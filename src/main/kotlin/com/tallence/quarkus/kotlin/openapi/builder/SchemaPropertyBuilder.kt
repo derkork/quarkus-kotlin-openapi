@@ -15,15 +15,13 @@ class SchemaPropertyBuilder(
         val type = node.extractSchemaRef(schemaRegistry)
         val required = node.getBooleanOrNull("required") ?: false
 
-        return SchemaProperty(name, type, required, false /* TODO */)
+        return SchemaProperty(name, type, required, false)
     }
 
 }
 
 fun JsonNode.parseAsSchemaProperty(name: String, schemaRegistry: SchemaRegistry): SchemaProperty {
-    if (!this.isObject) {
-        throw IllegalArgumentException("Json object expected")
-    }
+    require(this.isObject) { "Json object expected" }
 
     return SchemaPropertyBuilder(name, this as ObjectNode, schemaRegistry).build()
 }

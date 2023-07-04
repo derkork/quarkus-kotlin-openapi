@@ -6,9 +6,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 
 class ApiSpecBuilder(private val node: ObjectNode) {
 
-    fun build(): ApiSpec {
-        val schemaRegistry = SchemaRegistry()
-
+    fun build(schemaRegistry: SchemaRegistry): ApiSpec {
         val requests = buildRequests(schemaRegistry)
         val schemas = buildSchemas(schemaRegistry)
 
@@ -37,10 +35,8 @@ class ApiSpecBuilder(private val node: ObjectNode) {
         .toSet()
 }
 
-fun JsonNode.parseAsApiSpec(): ApiSpec {
-    if (!this.isObject) {
-        throw IllegalArgumentException("Json object expected")
-    }
+fun JsonNode.parseAsApiSpec(schemaRegistry: SchemaRegistry): ApiSpec {
+    require(this.isObject) { "Json object expected" }
 
-    return ApiSpecBuilder(this as ObjectNode).build()
+    return ApiSpecBuilder(this as ObjectNode).build(schemaRegistry)
 }

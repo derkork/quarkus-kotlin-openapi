@@ -3,6 +3,7 @@ package com.tallence.quarkus.kotlin.openapi.builder
 import com.tallence.quarkus.kotlin.openapi.Request
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ObjectNode
+import com.tallence.quarkus.kotlin.openapi.RequestMethod
 import com.tallence.quarkus.kotlin.openapi.getTextOrNull
 
 class RequestBuilder(
@@ -14,7 +15,7 @@ class RequestBuilder(
         val operationId = node.getTextOrNull("operationId")
         val parameters = buildParameters(schemaRegistry)
 
-        return Request(path, method, operationId, parameters)
+        return Request(path, RequestMethod.fromString(method), operationId, parameters)
     }
 
     private fun buildParameters(schemaRegistry: SchemaRegistry) =
