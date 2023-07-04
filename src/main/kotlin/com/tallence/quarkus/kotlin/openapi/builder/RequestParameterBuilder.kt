@@ -23,9 +23,7 @@ class RequestParameterBuilder(private val node: ObjectNode, private val schemaRe
 }
 
 fun JsonNode.parseAsRequestParameter(schemaRegistry: SchemaRegistry): RequestParameter {
-    if (!this.isObject) {
-        throw IllegalArgumentException("Json object expected")
-    }
+    require(this.isObject) { "Json object expected" }
 
     return RequestParameterBuilder(this as ObjectNode, schemaRegistry).build()
 }

@@ -1,18 +1,38 @@
 package com.tallence.quarkus.kotlin.openapi
 
+
 data class ApiSpec(
     val requests: Set<Request>,
     val schemas: Set<Schema>
 )
 
-data class Request(
-    val uri: String,
-    val method: String,
+enum class RequestMethod {
+    GET,
+    POST,
+    PUT,
+    DELETE;
+
+    companion object {
+        fun fromString(string: String): RequestMethod {
+            return when (string.lowercase()) {
+                "get" -> GET
+                "post" -> POST
+                "put" -> PUT
+                "delete" -> DELETE
+                else -> throw IllegalArgumentException("Unknown request method $string")
+            }
+        }
+    }
+}
+
+ class Request(
+    val path: String,
+    val method: RequestMethod,
     val operationId: String?,
     val parameters: List<RequestParameter>
-    // TODO: body
+     // TODO: body
     // TODO: return type
-)
+ )
 
 enum class ParameterKind {
     PATH,
@@ -39,6 +59,7 @@ data class RequestParameter(
     val required: Boolean,
     val type: SchemaRef
     // TODO: isList?
+
 )
 
 sealed class Schema(val typeName: String) {

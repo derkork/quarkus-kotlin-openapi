@@ -23,9 +23,7 @@ class SchemaBuilder(
 }
 
 fun JsonNode.parseAsSchema(typeName: String, schemaRegistry: SchemaRegistry): Schema.ComplexSchema {
-    if (!this.isObject) {
-        throw IllegalArgumentException("Json object expected")
-    }
+    require(this.isObject) { "Json object expected" }
 
     return SchemaBuilder(typeName, this as ObjectNode, schemaRegistry).build()
 }
