@@ -13,14 +13,8 @@ fun Request.write(context:GenerationContext, writer: BufferedWriter) {
     // if we have no usable operationId, we use the path as operationId
     val operationId = if (operationId.isNullOrBlank()) path else operationId
 
-    // replace anything that is not a letter or a number with an underscore
-    val operationIdCleaned = operationId.replace(Regex("[^a-zA-Z0-9]"), "_")
-
-    // if it does not start with a letter, prepend an underscore
-    val operationIdCleanedWithUnderscore = if (operationIdCleaned[0].isLetter()) operationIdCleaned else "_$operationIdCleaned"
-
     // now write the function
-    writer.write("suspend fun $operationIdCleanedWithUnderscore(")
+    writer.write("suspend fun ${operationId.toKotlinIdentifier()}(")
 
     // parameters, separated by comma, no comma after the last one
 

@@ -8,6 +8,9 @@ class SchemaRegistry {
     private val references = mutableMapOf<String, SchemaRef>()
     private val schemas = mutableMapOf<String, Schema>()
 
+    val resolvedSchemas:Set<Schema>
+        get() = schemas.values.toSet()
+
     fun getOrRegisterReference(ref: String) = references.getOrPut(ref) { SchemaRef(ref) }
 
     fun getOrRegisterType(type: String) = references.getOrPut(type) {
@@ -15,7 +18,7 @@ class SchemaRegistry {
         SchemaRef(type)
     }
 
-    fun resolveRef(ref: String, schema: Schema.ComplexSchema) {
+    fun resolveRef(ref: String, schema: Schema) {
         schemas[ref] = schema
     }
 

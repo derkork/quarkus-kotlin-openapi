@@ -25,14 +25,14 @@ enum class RequestMethod {
     }
 }
 
- class Request(
+class Request(
     val path: String,
     val method: RequestMethod,
     val operationId: String?,
-    val parameters: List<RequestParameter>
-     // TODO: body
-    // TODO: return type
- )
+    val parameters: List<RequestParameter>,
+    val bodyType: SchemaRef?,
+    val returnType: SchemaRef?
+)
 
 enum class ParameterKind {
     PATH,
@@ -67,6 +67,10 @@ sealed class Schema(val typeName: String) {
     class BasicTypeSchema(typeName: String) : Schema(typeName)
     class ComplexSchema(typeName: String, val properties: List<SchemaProperty>) : Schema(typeName)
 
+    class OneOfSchema(typeName: String, val oneOf: List<SchemaRef>) : Schema(typeName)
+    class AnyOfSchema(typeName: String, val anyOf: List<SchemaRef>) : Schema(typeName)
+    class AllOfSchema(typeName: String, val allOf: List<SchemaRef>) : Schema(typeName)
+    class EnumSchema(typeName: String, val values: List<String>) : Schema(typeName)
 }
 
 data class SchemaRef(

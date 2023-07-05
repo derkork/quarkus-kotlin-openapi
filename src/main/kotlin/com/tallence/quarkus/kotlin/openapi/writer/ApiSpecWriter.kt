@@ -1,5 +1,6 @@
 package com.tallence.quarkus.kotlin.openapi.writer
 
+import com.fasterxml.jackson.databind.introspect.TypeResolutionContext.Basic
 import com.tallence.quarkus.kotlin.openapi.ApiSpec
 import com.tallence.quarkus.kotlin.openapi.GenerationContext
 import com.tallence.quarkus.kotlin.openapi.Schema
@@ -43,10 +44,17 @@ fun ApiSpec.writeInterface(context: GenerationContext) {
 
 
 fun ApiSpec.writeSchemas(context: GenerationContext) {
-    for (schema in schemas.filterIsInstance<Schema.ComplexSchema>()) {
+    for (schema in schemas.filter { it !is Schema.BasicTypeSchema }) {
         val file = mkFile(context.config.outputDirectory, context.modelPackage, schema.toKotlinType(!context.assumeInvalidInput))
         file.bufferedWriter().use {
-            schema.write(context, it)
+            when (schema) {
+                is Schema.ComplexSchema -> schema.write(context, it)
+                is Schema.EnumSchema -> schema.write(context, it)
+                is Schema.AllOfSchema -> schema.write(context, it)
+                is Schema.AnyOfSchema -> schema.write(context, it)
+                is Schema.OneOfSchema -> schema.write(context, it)
+                else -> throw IllegalArgumentException("Unknown schema type ${schema::class.simpleName}")
+            }
         }
     }
 }
