@@ -4,24 +4,27 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.tallence.quarkus.kotlin.openapi.ApiSpec
 import com.tallence.quarkus.kotlin.openapi.RequestMethod
-import com.tallence.quarkus.kotlin.openapi.Schema
 import com.tallence.quarkus.kotlin.openapi.resolvePath
 
 class ApiSpecBuilder(private val node: ObjectNode, private val schemaRegistry: SchemaRegistry) {
 
     fun build(requestFilter: RequestFilter): ApiSpec {
         val requests = buildRequests(requestFilter)
-        val schemas = buildSchemas()
+        buildRequiredSchemas()
 
-        return ApiSpec(requests, schemas)
+        return ApiSpec(requests, schemaRegistry.resolvedSchemas)
     }
 
     private fun buildRequests(requestFilter: RequestFilter) =
+        // get all paths
         node.with("paths")
             .fields().asSequence()
             .flatMap { (path, requests) ->
+                // get all methods below each path
                 requests.fields().asSequence()
+                    // filter out the ones we need
                     .filter { (method, _) -> requestFilter.accept(path, RequestMethod.fromString(method)) }
+                    // and parse them into a Request
                     .map { (method, request) ->
                         request.parseAsRequest(
                             path,
@@ -31,21 +34,15 @@ class ApiSpecBuilder(private val node: ObjectNode, private val schemaRegistry: S
                     }
             }.toSet()
 
-    private fun buildSchemas(): Set<Schema> {
+    private fun buildRequiredSchemas() {
         var queue = schemaRegistry.unresolved()
-        val result = mutableSetOf<Schema>()
         do {
-            queue.mapTo(result) {
-                val nodeName = it.id.substringAfterLast("/")
+            queue.forEach {
                 val schemaNode = node.resolvePath(it.id) ?: throw IllegalArgumentException("can't find schema for path ${it.id}")
-
-                val schema = schemaNode.parseAsSchema(nodeName, schemaRegistry)
-                schemaRegistry.resolveRef(it.id, schema)
-                schema
+                schemaNode.parseAsSchema(it.id, schemaRegistry)
             }
             queue = schemaRegistry.unresolved()
         } while (queue.isNotEmpty())
-        return result
     }
 }
 
