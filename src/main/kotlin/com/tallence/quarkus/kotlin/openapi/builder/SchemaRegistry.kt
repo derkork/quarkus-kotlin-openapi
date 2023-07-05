@@ -19,10 +19,9 @@ class SchemaRegistry {
         schemas[ref] = schema
     }
 
-    fun resolve(ref:SchemaRef) =
+    fun resolve(ref: SchemaRef) =
         schemas[ref.id] ?: throw IllegalArgumentException("Schema not found: ${ref.id}")
 
-    fun validate() {
-        check(schemas.keys.containsAll(references.keys)) { "One or more referenced schemas missing" }
-    }
+    fun unresolved() = references.filter { !schemas.containsKey(it.key) }.values
+
 }
