@@ -9,3 +9,14 @@ fun JsonNode?.getBooleanOrNull(property: String): Boolean? = this?.get(property)
 
 fun JsonNode?.getAsObjectNode(property: String): ObjectNode =
     this?.get(property) as? ObjectNode ?: throw IllegalArgumentException("$property is not of type OpbjectNode")
+
+fun JsonNode?.resolvePath(path: String): JsonNode? {
+    val foo = path.replaceFirst("#/", "")
+
+    var result = this
+    for (segment in foo.split("/")) {
+        result = this?.get(segment)
+    }
+
+    return result
+}

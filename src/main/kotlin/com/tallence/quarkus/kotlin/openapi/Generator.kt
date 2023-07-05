@@ -1,5 +1,6 @@
 package com.tallence.quarkus.kotlin.openapi
 
+import com.tallence.quarkus.kotlin.openapi.builder.RequestFilter
 import com.tallence.quarkus.kotlin.openapi.builder.SchemaRegistry
 import com.tallence.quarkus.kotlin.openapi.builder.parseAsApiSpec
 import com.tallence.quarkus.kotlin.openapi.writer.writeInterface
@@ -15,7 +16,7 @@ class Generator(private val config: Config) {
         val apiSpec = config.sourceFiles
             .map { read(File(it).inputStream()) }
             .reduce { acc, apiSpec -> acc.merge(apiSpec) }
-            .parseAsApiSpec(schemaRegistry)
+            .parseAsApiSpec(schemaRegistry, RequestFilter(config.endpoints))
 
         val validModelContext = GenerationContext(false, schemaRegistry, config)
         apiSpec.writeSchemas(validModelContext)

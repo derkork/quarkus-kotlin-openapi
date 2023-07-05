@@ -20,7 +20,7 @@ fun Request.write(context:GenerationContext, writer: BufferedWriter) {
     val operationIdCleanedWithUnderscore = if (operationIdCleaned[0].isLetter()) operationIdCleaned else "_$operationIdCleaned"
 
     // now write the function
-    writer.writeln("suspend fun $operationIdCleanedWithUnderscore(")
+    writer.write("suspend fun $operationIdCleanedWithUnderscore(")
 
     // parameters, separated by comma, no comma after the last one
 
