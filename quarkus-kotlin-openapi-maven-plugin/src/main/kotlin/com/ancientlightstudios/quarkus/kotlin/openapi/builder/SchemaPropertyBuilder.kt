@@ -8,11 +8,12 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.getBooleanOrNull
 class SchemaPropertyBuilder(
     private val name: String,
     private val node: ObjectNode,
-    private val schemaRegistry: SchemaRegistry
+    private val schemaRegistry: SchemaRegistry,
+    private val typeNameHint: () -> String
 ) {
     
     fun build(): SchemaProperty {
-        val type = node.extractSchemaRef(schemaRegistry)
+        val type = node.extractSchemaRef(schemaRegistry, typeNameHint)
         val required = node.getBooleanOrNull("required") ?: false
 
         return SchemaProperty(name, type, required, false)
@@ -20,8 +21,8 @@ class SchemaPropertyBuilder(
 
 }
 
-fun JsonNode.parseAsSchemaProperty(name: String, schemaRegistry: SchemaRegistry): SchemaProperty {
+fun JsonNode.parseAsSchemaProperty(name: String, schemaRegistry: SchemaRegistry, typeNameHint:() -> String): SchemaProperty {
     require(this.isObject) { "Json object expected" }
 
-    return SchemaPropertyBuilder(name, this as ObjectNode, schemaRegistry).build()
+    return SchemaPropertyBuilder(name, this as ObjectNode, schemaRegistry, typeNameHint).build()
 }

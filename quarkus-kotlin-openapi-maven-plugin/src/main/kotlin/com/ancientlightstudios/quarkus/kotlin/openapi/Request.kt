@@ -28,7 +28,7 @@ enum class RequestMethod {
 class Request(
     val path: String,
     val method: RequestMethod,
-    val operationId: String?,
+    val operationId: String,
     val parameters: List<RequestParameter>,
     val bodyType: SchemaRef?,
     val returnType: SchemaRef?
@@ -64,8 +64,8 @@ data class RequestParameter(
 
 sealed class Schema(val typeName: String) {
 
-    class BasicTypeSchema(typeName: String) : Schema(typeName)
-    class ComplexSchema(typeName: String, val properties: List<SchemaProperty>) : Schema(typeName)
+    class PrimitiveTypeSchema(typeName: String) : Schema(typeName)
+    class ObjectTypeSchema(typeName: String, val properties: List<SchemaProperty>) : Schema(typeName)
 
     class OneOfSchema(typeName: String, val discriminator:String, val oneOf: List<SchemaRef>) : Schema(typeName)
     class AnyOfSchema(typeName: String, val anyOf: List<SchemaRef>) : Schema(typeName)
