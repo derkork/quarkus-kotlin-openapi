@@ -17,22 +17,22 @@ class SchemaBuilder(
     fun build(): SchemaRef {
         // it's a real object with properties
         return when {
-            node.has("properties") -> buildComplexSchema()
+            node.has("properties") -> buildObjectTypeSchema()
             node.has("enum") -> buildEnumSchema()
             node.has("oneOf") -> buildOneOfSchema()
             node.has("allOf") -> buildAllOfSchema()
             node.has("anyOf") -> buildAnyOfSchema()
-            else -> return buildBasicTypeSchema()
+            else -> return buildPrimitiveTypeSchema()
         }
     }
 
-    private fun buildComplexSchema(): SchemaRef {
+    private fun buildObjectTypeSchema(): SchemaRef {
         val properties = node.with("properties")
             .fields().asSequence()
-            .map { (propertyName, propertyNode) -> propertyNode.parseAsSchemaProperty(propertyName, schemaRegistry) }
+            .map { (propertyName, propertyNode) -> propertyNode.parseAsSchemaProperty(propertyName, schemaRegistry)  { "$typeName $propertyName" } }
             .toList()
         val ref = schemaRegistry.getOrRegisterType(typeName)
-        schemaRegistry.resolveRef(typeName, Schema.ComplexSchema(typeName, properties))
+        schemaRegistry.resolveRef(typeName, Schema.ObjectTypeSchema(typeName, properties))
         return ref
     }
 
@@ -46,7 +46,7 @@ class SchemaBuilder(
     private fun buildOneOfSchema(): SchemaRef {
         val schemas = node.withArray("oneOf")
             .filterIsInstance<ObjectNode>()
-            .map { it.extractSchemaRef(schemaRegistry) }
+            .mapIndexed{ idx, it -> it.extractSchemaRef(schemaRegistry) { "$typeName OneOf $idx" } }
         val ref = schemaRegistry.getOrRegisterType(typeName)
         val discriminator = node.resolvePath("discriminator/propertyName")?.asText()
             ?: throw IllegalStateException("discriminator is required for oneOf schemas")
@@ -57,7 +57,7 @@ class SchemaBuilder(
     private fun buildAllOfSchema(): SchemaRef {
         val schemas = node.withArray("allOf")
             .filterIsInstance<ObjectNode>()
-            .map { it.extractSchemaRef(schemaRegistry) }
+            .mapIndexed { idx, it -> it.extractSchemaRef(schemaRegistry) { "$typeName AllOf $idx" } }
         val ref = schemaRegistry.getOrRegisterType(typeName)
         schemaRegistry.resolveRef(typeName, Schema.AllOfSchema(typeName, schemas))
         return ref
@@ -66,14 +66,14 @@ class SchemaBuilder(
     private fun buildAnyOfSchema(): SchemaRef {
         val schemas = node.withArray("anyOf")
             .filterIsInstance<ObjectNode>()
-            .map { it.extractSchemaRef(schemaRegistry) }
+            .mapIndexed { idx, it ->  it.extractSchemaRef(schemaRegistry) { "$typeName AnyOf $idx" } }
         val ref = schemaRegistry.getOrRegisterType(typeName)
         schemaRegistry.resolveRef(typeName, Schema.AnyOfSchema(typeName, schemas))
         return ref
     }
 
 
-    private fun buildBasicTypeSchema(): SchemaRef {
+    private fun buildPrimitiveTypeSchema(): SchemaRef {
         val type = node.getTextOrNull("type") ?: "string"
         return schemaRegistry.getOrRegisterType(type)
     }
@@ -85,13 +85,13 @@ fun JsonNode.parseAsSchema(typeName: String, schemaRegistry: SchemaRegistry): Sc
     return SchemaBuilder(typeName, this as ObjectNode, schemaRegistry).build()
 }
 
-fun ObjectNode.extractSchemaRef(schemaRegistry: SchemaRegistry): SchemaRef {
+fun ObjectNode.extractSchemaRef(schemaRegistry: SchemaRegistry, typeNameHint: () -> String): SchemaRef {
     // reference to another schema
     val ref = this["\$ref"]?.asText()
     if (ref != null) {
         return schemaRegistry.getOrRegisterReference(ref)
     }
     // an inline schema
-    return this.parseAsSchema(UUID.randomUUID().toString(), schemaRegistry)
+    return this.parseAsSchema(typeNameHint(), schemaRegistry)
 }
 

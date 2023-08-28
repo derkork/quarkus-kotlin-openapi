@@ -10,9 +10,6 @@ fun Request.writeServer(context:GenerationContext, writer: BufferedWriter) {
     // path
     writer.writeln("@Path(\"$path\")")
 
-    // if we have no usable operationId, we use the path as operationId
-    val operationId = if (operationId.isNullOrBlank()) path else operationId
-
     // now write the function
     writer.write("suspend fun ${operationId.toKotlinIdentifier()}(")
 
@@ -34,9 +31,6 @@ fun Request.writeClient(context:GenerationContext, writer: BufferedWriter) {
     writer.writeln("@${method.name}")
     // path
     writer.writeln("@Path(\"$path\")")
-
-    // if we have no usable operationId, we use the path as operationId
-    val operationId = if (operationId.isNullOrBlank()) path else operationId
 
     // now write the function
     writer.write("suspend fun ${operationId.toKotlinIdentifier()}(")

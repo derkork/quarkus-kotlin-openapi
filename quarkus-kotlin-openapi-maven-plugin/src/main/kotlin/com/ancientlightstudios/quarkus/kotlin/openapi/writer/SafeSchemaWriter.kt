@@ -5,17 +5,16 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.Schema
 import com.ancientlightstudios.quarkus.kotlin.openapi.SchemaRef
 import java.io.BufferedWriter
 
-fun Schema.ComplexSchema.writeSafe(context: GenerationContext, bufferedWriter: BufferedWriter) {
+fun Schema.ObjectTypeSchema.writeSafe(context: GenerationContext, bufferedWriter: BufferedWriter) {
     bufferedWriter.writeSafeSchemaClass(this, context) {
         for (property in properties) {
-            bufferedWriter.writeSafeProperty(context, property.name, property.type)
+            bufferedWriter.writeSafeProperty(true, context, property.name, property.type)
         }
     }
 
 }
 
 fun Schema.EnumSchema.writeSafe(context: GenerationContext, bufferedWriter: BufferedWriter) {
-    //language=kotlin
     bufferedWriter.writeln(
         """
         package ${context.modelPackage}
@@ -58,16 +57,15 @@ fun Schema.AllOfSchema.writeSafe(context: GenerationContext, bufferedWriter: Buf
 
 fun BufferedWriter.writeSafeSchemaPropertiesOf(schemas: List<SchemaRef>, context: GenerationContext) {
     // first get all properties
-    val propertyList = schemas.map { context.schemaRegistry.resolve(it) }
-        .filterIsInstance<Schema.ComplexSchema>()
-        .flatMap { it.properties }
+    val propertyList = context.schemaRegistry.getPropertiesOf(schemas)
         .groupBy { it.name }
 
+    // TODO: move this up into getPropertiesOf
     for ((name, properties) in propertyList) {
         // check if we have the same type for all defined properties with this name
         check(properties.distinctBy { it.type }.size == 1) { "Property $name has multiple different types." }
 
-        writeSafeProperty(context, name, properties.first().type)
+        writeSafeProperty(false, context, name, properties.first().type)
     }
 }
 

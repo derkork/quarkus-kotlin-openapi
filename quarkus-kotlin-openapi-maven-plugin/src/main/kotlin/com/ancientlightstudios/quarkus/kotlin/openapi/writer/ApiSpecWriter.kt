@@ -78,11 +78,11 @@ fun ApiSpec.writeClientInterface(context: GenerationContext) {
 
 
 fun ApiSpec.writeUnsafeSchemas(context: GenerationContext) {
-    for (schema in schemas.filter { it !is Schema.BasicTypeSchema }) {
+    for (schema in schemas.filter { it !is Schema.PrimitiveTypeSchema }) {
         val file = mkFile(context.config.outputDirectory, context.modelPackage, schema.toKotlinType(false))
         file.bufferedWriter().use {
             when (schema) {
-                is Schema.ComplexSchema -> schema.writeUnsafe(context, it)
+                is Schema.ObjectTypeSchema -> schema.writeUnsafe(context, it)
                 is Schema.EnumSchema -> schema.writeUnsafe(context, it)
                 is Schema.AllOfSchema -> schema.writeUnsafe(context, it)
                 is Schema.AnyOfSchema -> schema.writeUnsafe(context, it)
@@ -94,11 +94,11 @@ fun ApiSpec.writeUnsafeSchemas(context: GenerationContext) {
 }
 
 fun ApiSpec.writeSafeSchemas(context: GenerationContext) {
-    for (schema in schemas.filter { it !is Schema.BasicTypeSchema }) {
+    for (schema in schemas.filter { it !is Schema.PrimitiveTypeSchema }) {
         val file = mkFile(context.config.outputDirectory, context.modelPackage, schema.toKotlinType(true))
         file.bufferedWriter().use {
             when (schema) {
-                is Schema.ComplexSchema -> schema.writeSafe(context, it)
+                is Schema.ObjectTypeSchema -> schema.writeSafe(context, it)
                 is Schema.EnumSchema -> schema.writeSafe(context, it)
                 is Schema.AllOfSchema -> schema.writeSafe(context, it)
                 is Schema.AnyOfSchema -> schema.writeSafe(context, it)

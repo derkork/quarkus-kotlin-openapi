@@ -14,7 +14,7 @@ class SchemaRegistry {
     fun getOrRegisterReference(ref: String) = references.getOrPut(ref) { SchemaRef(ref) }
 
     fun getOrRegisterType(type: String) = references.getOrPut(type) {
-        schemas[type] = Schema.BasicTypeSchema(type)
+        schemas[type] = Schema.PrimitiveTypeSchema(type)
         SchemaRef(type)
     }
 

@@ -5,7 +5,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.Schema
 import com.ancientlightstudios.quarkus.kotlin.openapi.SchemaRef
 import java.io.BufferedWriter
 
-fun Schema.ComplexSchema.writeUnsafe(context: GenerationContext, bufferedWriter: BufferedWriter) {
+fun Schema.ObjectTypeSchema.writeUnsafe(context: GenerationContext, bufferedWriter: BufferedWriter) {
     bufferedWriter.writeUnsafeSchemaClass(this, context) {
         for (property in properties) {
             bufferedWriter.writeUnsafeProperty(context, property.name, property.type)
@@ -40,9 +40,7 @@ fun Schema.AllOfSchema.writeUnsafe(context: GenerationContext, bufferedWriter: B
 
 fun BufferedWriter.writeUnsafeSchemaPropertiesOf(schemas: List<SchemaRef>, context: GenerationContext) {
     // first get all properties
-    val propertyList = schemas.map { context.schemaRegistry.resolve(it) }
-        .filterIsInstance<Schema.ComplexSchema>()
-        .flatMap { it.properties }
+    val propertyList = context.schemaRegistry.getPropertiesOf(schemas)
         .groupBy { it.name }
 
     for ((name, properties) in propertyList) {
