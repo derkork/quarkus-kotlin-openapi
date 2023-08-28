@@ -15,15 +15,22 @@ fun Request.writeServer(context:GenerationContext, writer: BufferedWriter) {
 
     // parameters, separated by comma, no comma after the last one
 
-    for ((index, parameter) in parameters.withIndex()) {
+    for (parameter in parameters) {
         parameter.writeUnsafe(context, writer)
-        if (index < parameters.size - 1) {
-            writer.write(", ")
-        }
+        writer.write(", ")
     }
 
+    if (bodyType != null) {
+        val type = context.schemaRegistry.resolve(bodyType)
+        writer.write(" body: ${type.toKotlinType(false)}?")
+    }
 
     writer.writeln(")")
+
+    if (returnType != null) {
+        val type = context.schemaRegistry.resolve(returnType)
+        writer.writeln(": ${type.toKotlinType(true)}")
+    }
 }
 
 fun Request.writeClient(context:GenerationContext, writer: BufferedWriter) {
@@ -37,13 +44,20 @@ fun Request.writeClient(context:GenerationContext, writer: BufferedWriter) {
 
     // parameters, separated by comma, no comma after the last one
 
-    for ((index, parameter) in parameters.withIndex()) {
+    for (parameter in parameters) {
         parameter.writeSafe(context, writer)
-        if (index < parameters.size - 1) {
-            writer.write(", ")
-        }
+        writer.write(", ")
     }
 
+    if (bodyType != null) {
+        val type = context.schemaRegistry.resolve(bodyType)
+        writer.write(" body: ${type.toKotlinType(true)}")
+    }
 
     writer.writeln(")")
+
+    if (returnType != null) {
+        val type = context.schemaRegistry.resolve(returnType)
+        writer.writeln(": ${type.toKotlinType(false)}?")
+    }
 }

@@ -14,12 +14,7 @@ fun ApiSpec.writeServerInterface(context: GenerationContext) {
         it.write(
             """
         package ${context.interfacePackage}
-        import jakarta.ws.rs.GET
-        import jakarta.ws.rs.POST
-        import jakarta.ws.rs.PUT
-        import jakarta.ws.rs.DELETE
-        import jakarta.ws.rs.Path
-        import ${context.modelPackage}.*
+        ${imports(context)}
         
         interface ${context.interfaceName} {
         """.trimIndent()
@@ -49,12 +44,7 @@ fun ApiSpec.writeClientInterface(context: GenerationContext) {
         it.write(
             """
         package ${context.interfacePackage}
-        import jakarta.ws.rs.GET
-        import jakarta.ws.rs.POST
-        import jakarta.ws.rs.PUT
-        import jakarta.ws.rs.DELETE
-        import jakarta.ws.rs.Path
-        import ${context.modelPackage}.*
+        ${imports(context)}
         
         interface ${context.interfaceName} {
         """.trimIndent()
@@ -75,6 +65,17 @@ fun ApiSpec.writeClientInterface(context: GenerationContext) {
     }
 }
 
+private fun imports(context: GenerationContext) = """ import jakarta.ws.rs.GET
+        import jakarta.ws.rs.POST
+        import jakarta.ws.rs.PUT
+        import jakarta.ws.rs.DELETE
+        import jakarta.ws.rs.Path
+        import jakarta.ws.rs.PathParam
+        import jakarta.ws.rs.QueryParam
+        import jakarta.ws.rs.HeaderParam
+        import jakarta.ws.rs.CookieParam
+
+        import ${context.modelPackage}.*"""
 
 
 fun ApiSpec.writeUnsafeSchemas(context: GenerationContext) {

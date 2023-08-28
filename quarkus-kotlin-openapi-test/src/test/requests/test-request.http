@@ -1,0 +1,5 @@
+
+# DELETE
+#@Path("/openapi/subscription/{SearchTerm}")
+
+DELETE http://localhost:8080/openapi/subscription/1
