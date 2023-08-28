@@ -1,6 +1,6 @@
-package com.tallence.quarkus.kotlin.openapi.builder
+package com.ancientlightstudios.quarkus.kotlin.openapi.builder
 
-import com.tallence.quarkus.kotlin.openapi.RequestMethod
+import com.ancientlightstudios.quarkus.kotlin.openapi.RequestMethod
 
 class RequestFilter(endpoints: List<String>) {
 

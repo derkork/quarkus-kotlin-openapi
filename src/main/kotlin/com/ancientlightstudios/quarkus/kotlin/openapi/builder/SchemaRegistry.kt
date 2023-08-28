@@ -1,7 +1,7 @@
-package com.tallence.quarkus.kotlin.openapi.builder
+package com.ancientlightstudios.quarkus.kotlin.openapi.builder
 
-import com.tallence.quarkus.kotlin.openapi.Schema
-import com.tallence.quarkus.kotlin.openapi.SchemaRef
+import com.ancientlightstudios.quarkus.kotlin.openapi.Schema
+import com.ancientlightstudios.quarkus.kotlin.openapi.SchemaRef
 
 class SchemaRegistry {
 

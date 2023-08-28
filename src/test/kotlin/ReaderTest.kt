@@ -1,5 +1,5 @@
-import com.tallence.quarkus.kotlin.openapi.Config
-import com.tallence.quarkus.kotlin.openapi.Generator
+import com.ancientlightstudios.quarkus.kotlin.openapi.Config
+import com.ancientlightstudios.quarkus.kotlin.openapi.Generator
 import org.junit.jupiter.api.Test
 
 class ReaderTest {

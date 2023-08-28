@@ -1,12 +1,12 @@
-package com.tallence.quarkus.kotlin.openapi.builder
+package com.ancientlightstudios.quarkus.kotlin.openapi.builder
 
-import com.tallence.quarkus.kotlin.openapi.ParameterKind
-import com.tallence.quarkus.kotlin.openapi.RequestParameter
+import com.ancientlightstudios.quarkus.kotlin.openapi.ParameterKind
+import com.ancientlightstudios.quarkus.kotlin.openapi.RequestParameter
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ObjectNode
-import com.tallence.quarkus.kotlin.openapi.getAsObjectNode
-import com.tallence.quarkus.kotlin.openapi.getBooleanOrNull
-import com.tallence.quarkus.kotlin.openapi.getTextOrNull
+import com.ancientlightstudios.quarkus.kotlin.openapi.getAsObjectNode
+import com.ancientlightstudios.quarkus.kotlin.openapi.getBooleanOrNull
+import com.ancientlightstudios.quarkus.kotlin.openapi.getTextOrNull
 
 class RequestParameterBuilder(private val node: ObjectNode, private val schemaRegistry: SchemaRegistry) {
 

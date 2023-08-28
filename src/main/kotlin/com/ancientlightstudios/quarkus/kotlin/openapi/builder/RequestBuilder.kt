@@ -1,11 +1,11 @@
-package com.tallence.quarkus.kotlin.openapi.builder
+package com.ancientlightstudios.quarkus.kotlin.openapi.builder
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ObjectNode
-import com.tallence.quarkus.kotlin.openapi.Request
-import com.tallence.quarkus.kotlin.openapi.RequestMethod
-import com.tallence.quarkus.kotlin.openapi.getTextOrNull
-import com.tallence.quarkus.kotlin.openapi.resolvePath
+import com.ancientlightstudios.quarkus.kotlin.openapi.Request
+import com.ancientlightstudios.quarkus.kotlin.openapi.RequestMethod
+import com.ancientlightstudios.quarkus.kotlin.openapi.getTextOrNull
+import com.ancientlightstudios.quarkus.kotlin.openapi.resolvePath
 
 class RequestBuilder(
     private val path: String, private val method: RequestMethod,

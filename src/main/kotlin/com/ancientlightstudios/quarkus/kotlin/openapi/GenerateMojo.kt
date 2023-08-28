@@ -1,4 +1,4 @@
-package com.tallence.quarkus.kotlin.openapi
+package com.ancientlightstudios.quarkus.kotlin.openapi
 
 import org.apache.maven.plugin.AbstractMojo
 import org.apache.maven.plugins.annotations.Parameter

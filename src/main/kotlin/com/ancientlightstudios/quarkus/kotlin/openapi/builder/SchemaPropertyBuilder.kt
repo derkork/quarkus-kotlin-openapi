@@ -1,9 +1,9 @@
-package com.tallence.quarkus.kotlin.openapi.builder
+package com.ancientlightstudios.quarkus.kotlin.openapi.builder
 
-import com.tallence.quarkus.kotlin.openapi.SchemaProperty
+import com.ancientlightstudios.quarkus.kotlin.openapi.SchemaProperty
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ObjectNode
-import com.tallence.quarkus.kotlin.openapi.getBooleanOrNull
+import com.ancientlightstudios.quarkus.kotlin.openapi.getBooleanOrNull
 
 class SchemaPropertyBuilder(
     private val name: String,
