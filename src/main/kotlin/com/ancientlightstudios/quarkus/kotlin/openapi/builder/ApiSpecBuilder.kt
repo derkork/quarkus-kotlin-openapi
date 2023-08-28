@@ -1,10 +1,10 @@
-package com.tallence.quarkus.kotlin.openapi.builder
+package com.ancientlightstudios.quarkus.kotlin.openapi.builder
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ObjectNode
-import com.tallence.quarkus.kotlin.openapi.ApiSpec
-import com.tallence.quarkus.kotlin.openapi.RequestMethod
-import com.tallence.quarkus.kotlin.openapi.resolvePath
+import com.ancientlightstudios.quarkus.kotlin.openapi.ApiSpec
+import com.ancientlightstudios.quarkus.kotlin.openapi.RequestMethod
+import com.ancientlightstudios.quarkus.kotlin.openapi.resolvePath
 
 class ApiSpecBuilder(private val node: ObjectNode, private val schemaRegistry: SchemaRegistry) {
 

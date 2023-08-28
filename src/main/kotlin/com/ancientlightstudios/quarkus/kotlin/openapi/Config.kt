@@ -1,4 +1,4 @@
-package com.tallence.quarkus.kotlin.openapi
+package com.ancientlightstudios.quarkus.kotlin.openapi
 
 enum class InterfaceType {
     SERVER, CLIENT, BOTH

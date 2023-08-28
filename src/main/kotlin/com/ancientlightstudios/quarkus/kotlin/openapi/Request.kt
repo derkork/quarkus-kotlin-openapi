@@ -1,4 +1,4 @@
-package com.tallence.quarkus.kotlin.openapi
+package com.ancientlightstudios.quarkus.kotlin.openapi
 
 
 data class ApiSpec(
@@ -67,7 +67,7 @@ sealed class Schema(val typeName: String) {
     class BasicTypeSchema(typeName: String) : Schema(typeName)
     class ComplexSchema(typeName: String, val properties: List<SchemaProperty>) : Schema(typeName)
 
-    class OneOfSchema(typeName: String, val oneOf: List<SchemaRef>) : Schema(typeName)
+    class OneOfSchema(typeName: String, val discriminator:String, val oneOf: List<SchemaRef>) : Schema(typeName)
     class AnyOfSchema(typeName: String, val anyOf: List<SchemaRef>) : Schema(typeName)
     class AllOfSchema(typeName: String, val allOf: List<SchemaRef>) : Schema(typeName)
     class EnumSchema(typeName: String, val values: List<String>) : Schema(typeName)

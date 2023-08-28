@@ -1,4 +1,4 @@
-package com.tallence.quarkus.kotlin.openapi.writer
+package com.ancientlightstudios.quarkus.kotlin.openapi.writer
 
 import java.io.BufferedWriter
 import java.io.File
