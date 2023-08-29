@@ -11,15 +11,18 @@ fun Schema.toKotlinType(safe: Boolean): String {
         is Schema.PrimitiveTypeSchema -> {
             when (this.typeName) {
                 "string" -> "String"
+                "password" -> "String"
                 "integer" -> "Int"
+                "int32" -> "Int"
+                "int64" -> "Long"
+                "float" -> "Float"
                 "number" -> "Double"
                 "boolean" -> "Boolean"
                 "array" -> "List<Any>" // TODO
                 else -> throw IllegalArgumentException("Unknown basic type: $typeName")
             }
         }
-
-        is Schema.EnumSchema -> typeName.substringAfterLast("/").toKotlinClassName()
+        is Schema.EnumSchema -> typeName.substringAfterLast("/").toKotlinClassName() + if (!safe)  "Unsafe" else ""
         else -> typeName.substringAfterLast("/").toKotlinClassName() + if (!safe) "Unsafe" else ""
     }
 }

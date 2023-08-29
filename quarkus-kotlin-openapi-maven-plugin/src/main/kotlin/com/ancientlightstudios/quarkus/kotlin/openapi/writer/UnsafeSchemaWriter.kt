@@ -11,12 +11,18 @@ fun Schema.ObjectTypeSchema.writeUnsafe(context: GenerationContext, bufferedWrit
             bufferedWriter.writeUnsafeProperty(context, property.name, property.type)
         }
     }
-
 }
 
+
 fun Schema.EnumSchema.writeUnsafe(context: GenerationContext, bufferedWriter: BufferedWriter) {
-    //language=kotlin
-    writeSafe(context, bufferedWriter)
+    bufferedWriter.writeln(
+        """
+        package ${context.modelPackage}
+        
+        @JvmInline
+        value class ${this.toKotlinType(false)}(val value:String)
+        """.trimIndent()
+    )
 }
 
 fun Schema.OneOfSchema.writeUnsafe(context: GenerationContext, bufferedWriter: BufferedWriter) {
@@ -62,8 +68,7 @@ private fun BufferedWriter.writeUnsafeProperty(
     // an enum value. therefore we use a string here.
     if (resolvedType is Schema.EnumSchema) {
         write("val ${name.toKotlinIdentifier()}: String?")
-    }
-    else {
+    } else {
         write(
             "val ${name.toKotlinIdentifier()}: ${
                 context.schemaRegistry.resolve(type).toKotlinType(false)
