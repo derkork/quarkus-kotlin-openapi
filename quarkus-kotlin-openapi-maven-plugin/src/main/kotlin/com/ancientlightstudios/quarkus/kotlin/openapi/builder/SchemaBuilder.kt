@@ -74,7 +74,20 @@ class SchemaBuilder(
 
 
     private fun buildPrimitiveTypeSchema(): SchemaRef {
-        val type = node.getTextOrNull("type") ?: "string"
+        val additionalProperties = node.get("additionalProperties")
+        var type = node.getTextOrNull("type") ?: "string"
+        if (type == "object") {
+            check(additionalProperties != null) { "additionalProperties is required for object types" }
+            type = additionalProperties.getTextOrNull("type") ?: "string"
+        }
+
+        if (additionalProperties != null) {
+            val format = additionalProperties.getTextOrNull("format")
+            if (format != null) {
+                type = format
+            }
+        }
+
         return schemaRegistry.getOrRegisterType(type)
     }
 }

@@ -19,7 +19,7 @@ fun RequestParameter.writeSafe(context: GenerationContext, writer: BufferedWrite
 
 fun RequestParameter.writeAnnotation(context: GenerationContext, writer: BufferedWriter) {
     when (kind) {
-        ParameterKind.PATH -> writer.write("@PathParam(\"{$name}\") ")
+        ParameterKind.PATH -> writer.write("@PathParam(\"$name\") ")
         ParameterKind.QUERY -> writer.write("@QueryParam(\"$name\") ")
         ParameterKind.HEADER -> writer.write("@HeaderParam(\"$name\") ")
         ParameterKind.COOKIE -> writer.write("@CookieParam(\"$name\") ")

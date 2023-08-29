@@ -95,6 +95,10 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>com.ancientlightstudios</groupId>
+            <artifactId>quarkus-kotlin-openapi</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-stdlib-jdk8</artifactId>
         </dependency>
@@ -109,13 +113,10 @@
                 <artifactId>quarkus-kotlin-openapi-maven-plugin</artifactId>
                 <configuration>
                     <sources>
-                        <source>${project.basedir}/src/main/resources/example_openapi.json</source>
+                        <source>${project.basedir}/src/main/resources/petstore.yaml</source>
                     </sources>
                     <interfaceName>NarfInterface</interfaceName>
                     <packageName>com.ancientlightstudios.example</packageName>
-                    <endpoints>
-                        <endpoint>/openapi/subscription/{SearchTerm}</endpoint>
-                    </endpoints>
                 </configuration>
                 <executions>
                     <execution>

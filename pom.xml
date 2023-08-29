@@ -17,6 +17,7 @@
     </properties>
 
     <modules>
+        <module>quarkus-kotlin-openapi</module>
         <module>quarkus-kotlin-openapi-maven-plugin</module>
         <module>quarkus-kotlin-openapi-test</module>
     </modules>
@@ -33,6 +34,11 @@
                 <groupId>org.jetbrains.kotlin</groupId>
                 <artifactId>kotlin-stdlib-jdk8</artifactId>
                 <version>${kotlin.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.ancientlightstudios</groupId>
+                <artifactId>quarkus-kotlin-openapi</artifactId>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.dataformat</groupId>
