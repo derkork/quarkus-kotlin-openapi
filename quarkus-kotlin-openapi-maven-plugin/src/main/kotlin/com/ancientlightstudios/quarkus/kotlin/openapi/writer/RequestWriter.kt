@@ -2,7 +2,11 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.writer
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.GenerationContext
 import com.ancientlightstudios.quarkus.kotlin.openapi.Request
+import com.ancientlightstudios.quarkus.kotlin.openapi.Schema
+import com.ancientlightstudios.quarkus.kotlin.openapi.SchemaRef
 import java.io.BufferedWriter
+
+class InputInfo(val name: String, val type: SchemaRef, val resolvedType:Schema)
 
 fun Request.writeServer(context:GenerationContext, writer: BufferedWriter) {
     // request method
@@ -15,14 +19,17 @@ fun Request.writeServer(context:GenerationContext, writer: BufferedWriter) {
 
     // parameters, separated by comma, no comma after the last one
 
+    val inputInfo = mutableListOf<InputInfo>()
+
     for (parameter in parameters) {
         parameter.writeUnsafe(context, writer)
         writer.write(", ")
+        inputInfo.add(InputInfo(parameter.name.toKotlinIdentifier(), parameter.type, context.schemaRegistry.resolve(parameter.type)))
     }
 
     if (bodyType != null) {
-        val type = context.schemaRegistry.resolve(bodyType)
-        writer.write(" body: ${type.toKotlinType(false)}?")
+        writer.write(" body: String?")
+        inputInfo.add(InputInfo("body", bodyType, context.schemaRegistry.resolve(bodyType)))
     }
 
     writer.writeln(")")
@@ -30,7 +37,44 @@ fun Request.writeServer(context:GenerationContext, writer: BufferedWriter) {
     if (returnType != null) {
         val type = context.schemaRegistry.resolve(returnType)
         writer.writeln(": ${type.toKotlinType(true)}")
+
     }
+
+    writer.writeln(" {")
+
+    if (inputInfo.isEmpty()) {
+        writer.writeln("return delegate.${operationId.toKotlinIdentifier()}()")
+        writer.writeln("}")
+        return
+    }
+
+    for (info in inputInfo) {
+        when(info.resolvedType) {
+            is Schema.PrimitiveTypeSchema -> writer.writeln("val maybe${info.name} =  ${info.name}.as${info.resolvedType.toKotlinType(true)}(\"${info.name}\")")
+            is Schema.ObjectTypeSchema -> writer.writeln("val maybe${info.name} =  ${info.name}.asObject(\"${info.name}\", ${info.resolvedType.toKotlinType(true)}::class.java, objectMapper)")
+            else -> throw IllegalArgumentException("Unsupported type ${info.resolvedType}")
+        }
+    }
+
+    writer.writeln("val request = maybeOf(")
+    for (info in inputInfo) {
+        writer.writeln("maybe${info.name}, ")
+    }
+    writer.writeln(")  { ")
+    writer.write("(")
+
+    for (info in inputInfo) {
+        writer.writeln("valid${info.name}, ")
+    }
+    writer.writeln(") -> ${operationId.toKotlinClassName()}Request(")
+
+    for(info in inputInfo) {
+        writer.writeln("valid${info.name} as ${info.resolvedType.toKotlinType(true)}, ")
+    }
+    writer.writeln(")}")
+    writer.writeln("return delegate.${operationId.toKotlinIdentifier()}(request)")
+
+    writer.writeln("}")
 }
 
 fun Request.writeClient(context:GenerationContext, writer: BufferedWriter) {
