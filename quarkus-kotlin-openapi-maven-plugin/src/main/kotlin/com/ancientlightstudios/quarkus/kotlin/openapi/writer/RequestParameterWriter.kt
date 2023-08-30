@@ -6,9 +6,8 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.RequestParameter
 import java.io.BufferedWriter
 
 fun RequestParameter.writeUnsafe(context: GenerationContext, writer: BufferedWriter) {
-    val type = context.schemaRegistry.resolve(this.type)
     writeAnnotation(context, writer)
-    writer.write("${name.toKotlinIdentifier()}: ${type.toKotlinType(false)}?")
+    writer.write("${name.toKotlinIdentifier()}: String?") // TODO: multi-valued parameters
 }
 
 fun RequestParameter.writeSafe(context: GenerationContext, writer: BufferedWriter) {

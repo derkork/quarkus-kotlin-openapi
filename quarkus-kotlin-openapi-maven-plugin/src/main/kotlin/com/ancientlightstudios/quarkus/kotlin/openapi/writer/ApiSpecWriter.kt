@@ -10,13 +10,13 @@ fun ApiSpec.writeServerInterface(context: GenerationContext) {
 
     val file = mkFile(context.config.outputDirectory, context.interfacePackage, context.interfaceName)
     file.bufferedWriter().use {
-        //language=kotlin
         it.write(
             """
         package ${context.interfacePackage}
         ${imports(context)}
         
-        interface ${context.interfaceName} {
+        @Path("/")
+        class ${context.interfaceName}Server(private val delegate: ${context.interfaceName}, private val objectMapper:ObjectMapper) {
         """.trimIndent()
         )
 
@@ -74,6 +74,7 @@ private fun imports(context: GenerationContext) = """ import jakarta.ws.rs.GET
         import jakarta.ws.rs.QueryParam
         import jakarta.ws.rs.HeaderParam
         import jakarta.ws.rs.CookieParam
+        import com.fasterxml.jackson.databind.ObjectMapper
 
         import ${context.modelPackage}.*"""
 
