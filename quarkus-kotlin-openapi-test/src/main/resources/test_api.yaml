@@ -22,6 +22,12 @@ paths:
           required: false
           schema:
             $ref: "#/components/schemas/UserStatus"
+        - name: arnie
+          in: query
+          description: the real arnie
+          required: true
+          schema:
+            type: string
       responses:
         '200':
           description: Successful operation

@@ -51,13 +51,16 @@ fun Request.writeServer(context:GenerationContext, writer: BufferedWriter) {
             is Schema.EnumSchema -> writer.writeln("val maybe${info.name} =  ${info.name}.asEnum(\"${info.contextPath}\", ${info.resolvedType.toKotlinType(true)}::class.java, objectMapper)")
             else -> throw IllegalArgumentException("Unsupported type ${info.resolvedType} for parameter ${info.contextPath} in request ${this.operationId}")
         }
+        if (info.required) {
+            writer.writeln(".required()")
+        }
     }
 
     writer.write("val request = maybeOf(\"request\", ")
     for (info in requestInfo.inputInfo) {
         writer.write("maybe${info.name}, ")
     }
-    writer.writeln(")  { ")
+    writer.writeln(") { ")
     writer.write("(")
 
     for (info in requestInfo.inputInfo) {
@@ -66,7 +69,11 @@ fun Request.writeServer(context:GenerationContext, writer: BufferedWriter) {
     writer.writeln(") -> ${operationId.toKotlinClassName()}Request(")
 
     for(info in requestInfo.inputInfo) {
-        writer.writeln("valid${info.name} as ${info.resolvedType.toKotlinType(true)}, ")
+        writer.write("valid${info.name} as ${info.resolvedType.toKotlinType(true)}")
+        if (!info.required) {
+            writer.write("?")
+        }
+        writer.writeln(",")
     }
     writer.writeln(")}")
     writer.writeln("return delegate.${operationId.toKotlinIdentifier()}(request)")

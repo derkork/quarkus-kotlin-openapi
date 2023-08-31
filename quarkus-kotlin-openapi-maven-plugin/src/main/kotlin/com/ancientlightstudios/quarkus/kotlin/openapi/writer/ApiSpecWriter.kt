@@ -59,6 +59,9 @@ fun ApiSpec.writeServerRequests(context: GenerationContext) {
 
             for (info in requestInfo.inputInfo) {
                 it.write("val ${info.name}: ${info.resolvedType.toKotlinType(true)}")
+                if (!info.required) {
+                    it.write("?")
+                }
                 it.write(", ")
             }
 
