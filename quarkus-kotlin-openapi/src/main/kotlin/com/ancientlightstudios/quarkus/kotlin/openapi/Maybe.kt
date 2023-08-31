@@ -2,14 +2,18 @@ package com.ancientlightstudios.quarkus.kotlin.openapi
 
 import com.fasterxml.jackson.databind.ObjectMapper
 
-sealed interface Maybe<T> {
-    data class Success<T>(val value: T) : Maybe<T>
-    data class Failure<T>(val errors: List<ValidationError>) : Maybe<T> {
-        constructor(error: ValidationError) : this(listOf(error))
+sealed class Maybe<T>(val context: String) {
+    class Success<T>(context: String, val value: T) : Maybe<T>(context) {
+        fun failure(error: ValidationError) = Failure<T>(context, error)
+        fun failure(errors: List<ValidationError>) = Failure<T>(context, errors)
+    }
+
+    class Failure<T>(context: String, val errors: List<ValidationError>) : Maybe<T>(context) {
+        constructor(context: String, error: ValidationError) : this(context, listOf(error))
     }
 }
 
-fun <T> maybeOf(vararg maybes: Maybe<*>, builder: (Array<*>) -> T): Maybe<T> {
+fun <T> maybeOf(context: String, vararg maybes: Maybe<*>, builder: (Array<*>) -> T): Maybe<T> {
     val errors = mutableListOf<ValidationError>()
     val values = mutableListOf<Any?>()
     for (maybe in maybes) {
@@ -19,89 +23,61 @@ fun <T> maybeOf(vararg maybes: Maybe<*>, builder: (Array<*>) -> T): Maybe<T> {
         }
     }
     return if (errors.isEmpty()) {
-        Maybe.Success(builder(values.toTypedArray()))
+        Maybe.Success(context, builder(values.toTypedArray()))
     } else {
-        Maybe.Failure(errors)
+        Maybe.Failure(context, errors)
     }
 }
 
-fun String?.asString(path: String): Maybe<String> =
-    when (this) {
-        null -> Maybe.Failure(ValidationError(path, "is null"))
-        else -> Maybe.Success(this)
-    }
 
-fun String?.asFloat(path: String): Maybe<Float> =
+private inline fun <T> String?.asMaybe(context: String, validationMessage: String, block: (String) -> T): Maybe<T?> =
     when (this) {
-        null -> Maybe.Failure(ValidationError(path, "is null"))
+        null -> Maybe.Success(context,null)
         else -> try {
-            Maybe.Success(this.toFloat())
+            Maybe.Success(context,block(this))
         } catch (e: Exception) {
-            Maybe.Failure(ValidationError(path, "is not a float"))
+            Maybe.Failure(context, ValidationError(validationMessage))
         }
     }
 
-fun String?.asDouble(path: String): Maybe<Double> =
-    when (this) {
-        null -> Maybe.Failure(ValidationError(path, "is null"))
-        else -> try {
-            Maybe.Success(this.toDouble())
-        } catch (e: Exception) {
-            Maybe.Failure(ValidationError(path, "is not a double"))
-        }
-    }
+fun String?.asString(context: String): Maybe<String?> = Maybe.Success(context, this)
+fun String?.asFloat(context: String): Maybe<Float?> = this.asMaybe(context, "is not a float") { it.toFloat() }
+fun String?.asDouble(context: String): Maybe<Double?> = this.asMaybe(context, "is not a double") { it.toDouble() }
+fun String?.asInt(context: String): Maybe<Int?> = this.asMaybe(context, "is not a int") { it.toInt() }
+fun String?.asLong(context: String): Maybe<Long?> = this.asMaybe(context, "is not a long") { it.toLong() }
+fun String?.asBoolean(context: String): Maybe<Boolean?> = this.asMaybe(context, "is not a boolean") { it.toBoolean() }
 
-fun String?.asInt(path: String): Maybe<Int> =
-    when (this) {
-        null -> Maybe.Failure(ValidationError(path, "is null"))
-        else -> try {
-            Maybe.Success(this.toInt())
-        } catch (e: Exception) {
-            Maybe.Failure(ValidationError(path, "is not an int"))
-        }
-    }
+fun <T> String?.asObject(context: String, type: Class<T>, objectMapper: ObjectMapper): Maybe<T?> =
+    this.asMaybe(context, "is not a valid json object") { objectMapper.readValue(this, type) }
 
-fun String?.asLong(path: String): Maybe<Long> =
-    when (this) {
-        null -> Maybe.Failure(ValidationError(path, "is null"))
-        else -> try {
-            Maybe.Success(this.toLong())
-        } catch (e: Exception) {
-            Maybe.Failure(ValidationError(path, "is not a long"))
-        }
-    }
+fun <T> String?.asEnum(context: String, type: Class<T>, objectMapper: ObjectMapper): Maybe<T?> =
+    this.asMaybe(context, "is not a valid enum value") { objectMapper.convertValue(this, type) }
 
-fun String?.asBoolean(path: String): Maybe<Boolean> =
-    when (this) {
-        null -> Maybe.Failure(ValidationError(path, "is null"))
-        else -> try {
-            Maybe.Success(this.toBoolean())
-        } catch (e: Exception) {
-            Maybe.Failure(ValidationError(path, "is not a boolean"))
+fun <T> Maybe<T>.validated(block: (T, validationErrors: MutableList<ValidationError>) -> Unit): Maybe<T> {
+    return when (this) {
+        is Maybe.Failure -> this
+        is Maybe.Success -> {
+            val validationErrors = mutableListOf<ValidationError>()
+            block(this.value, validationErrors)
+            if (validationErrors.isEmpty()) {
+                this
+            } else {
+                this.failure(validationErrors)
+            }
         }
     }
+}
 
-fun <T> String?.asObject(path: String, type: Class<T>, objectMapper: ObjectMapper) =
-    when (this) {
-        null -> Maybe.Failure(ValidationError(path, "is null"))
-        else -> try {
-            Maybe.Success(objectMapper.readValue(this, type))
-        } catch (e: Exception) {
-            // TODO: better error message
-            Maybe.Failure(ValidationError(path, "is not a valid json object"))
+fun <T> Maybe<T?>.required(): Maybe<T?> {
+    return when (this) {
+        is Maybe.Failure -> this
+        is Maybe.Success -> if (value != null) {
+            this
+        } else {
+            this.failure(ValidationError("is required"))
         }
     }
-
-fun <T> String?.asEnum(path: String, type: Class<T>, objectMapper: ObjectMapper) =
-    when (this) {
-        null -> Maybe.Failure(ValidationError(path, "is null"))
-        else -> try {
-            Maybe.Success(objectMapper.convertValue(this, type))
-        } catch (e: Exception) {
-            // TODO: better error message
-            Maybe.Failure(ValidationError(path, "is not a valid enum value"))
-        }
-    }
+}
 
 // TODO: dates
 // TODO: optional parameters

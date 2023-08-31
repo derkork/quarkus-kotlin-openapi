@@ -1,3 +1,3 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi
 
-data class ValidationError(val path:String, val message:String)
+data class ValidationError(val message: String, val path: String? = null)

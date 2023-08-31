@@ -1,5 +1,1 @@
-
-# DELETE
-#@Path("/openapi/subscription/{SearchTerm}")
-
-DELETE http://localhost:8080/openapi/subscription/1
+GET http://localhost:8080/user/1?status=available
