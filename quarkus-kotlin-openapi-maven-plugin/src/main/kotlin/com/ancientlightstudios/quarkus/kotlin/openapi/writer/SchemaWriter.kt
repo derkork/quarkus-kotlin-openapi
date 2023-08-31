@@ -1,8 +1,6 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.writer
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.Schema
-import com.ancientlightstudios.quarkus.kotlin.openapi.SchemaProperty
-import com.ancientlightstudios.quarkus.kotlin.openapi.SchemaRef
+import com.ancientlightstudios.quarkus.kotlin.openapi.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.builder.SchemaRegistry
 import java.util.*
 
@@ -65,4 +63,24 @@ fun SchemaRegistry.getPropertiesOf(list: List<SchemaRef>): List<SchemaProperty> 
     }
 
     return result
+}
+
+class InputInfo(val name: String, val type: SchemaRef, val resolvedType:Schema)
+
+class RequestInfo(val className:String, val inputInfo: List<InputInfo>) {
+    fun hasInput() = inputInfo.isNotEmpty()
+}
+
+fun Request.asRequestInfo(context:GenerationContext) : RequestInfo {
+    val inputInfo = mutableListOf<InputInfo>()
+
+    for (parameter in parameters) {
+        inputInfo.add(InputInfo(parameter.name.toKotlinIdentifier(), parameter.type, context.schemaRegistry.resolve(parameter.type)))
+    }
+
+    if (bodyType != null) {
+        inputInfo.add(InputInfo("body", bodyType, context.schemaRegistry.resolve(bodyType)))
+    }
+
+    return RequestInfo(operationId.toKotlinClassName(), inputInfo)
 }

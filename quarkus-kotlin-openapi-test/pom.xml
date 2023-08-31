@@ -117,6 +117,9 @@
                     </sources>
                     <interfaceName>NarfInterface</interfaceName>
                     <packageName>com.ancientlightstudios.example</packageName>
+                    <endpoints>
+                        <endpoint>/user:post</endpoint>
+                    </endpoints>
                 </configuration>
                 <executions>
                     <execution>

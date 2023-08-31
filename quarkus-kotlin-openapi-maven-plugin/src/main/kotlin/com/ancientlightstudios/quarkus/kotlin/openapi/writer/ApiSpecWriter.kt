@@ -35,6 +35,38 @@ fun ApiSpec.writeServerInterface(context: GenerationContext) {
     }
 }
 
+
+fun ApiSpec.writeServerRequests(context: GenerationContext) {
+    for (request in requests) {
+        val requestInfo = request.asRequestInfo(context)
+        if (!requestInfo.hasInput()) {
+            continue
+        }
+
+        val file = mkFile(context.config.outputDirectory, context.modelPackage, "${request.operationId.toKotlinClassName()}Request")
+
+        file.bufferedWriter().use {
+            it.write(
+                """
+            package ${context.modelPackage}
+            
+            import com.fasterxml.jackson.annotation.JsonProperty
+            import com.fasterxml.jackson.databind.ObjectMapper
+            
+            data class ${request.operationId.toKotlinClassName()}Request(
+            """.trimIndent()
+            )
+
+            for (info in requestInfo.inputInfo) {
+                it.write("val ${info.name}: ${info.resolvedType.toKotlinType(true)}")
+                it.write(", ")
+            }
+
+            it.write(")")
+        }
+
+    }
+}
 fun ApiSpec.writeServerDelegate(context: GenerationContext) {
     // the interface is named after the config.interfaceName and is put into the config.packageName
 

@@ -3,10 +3,8 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.writer
 import com.ancientlightstudios.quarkus.kotlin.openapi.GenerationContext
 import com.ancientlightstudios.quarkus.kotlin.openapi.Request
 import com.ancientlightstudios.quarkus.kotlin.openapi.Schema
-import com.ancientlightstudios.quarkus.kotlin.openapi.SchemaRef
 import java.io.BufferedWriter
 
-class InputInfo(val name: String, val type: SchemaRef, val resolvedType:Schema)
 
 fun Request.writeServer(context:GenerationContext, writer: BufferedWriter) {
     // request method
@@ -19,17 +17,15 @@ fun Request.writeServer(context:GenerationContext, writer: BufferedWriter) {
 
     // parameters, separated by comma, no comma after the last one
 
-    val inputInfo = mutableListOf<InputInfo>()
+    val requestInfo = this.asRequestInfo(context)
 
     for (parameter in parameters) {
         parameter.writeUnsafe(context, writer)
         writer.write(", ")
-        inputInfo.add(InputInfo(parameter.name.toKotlinIdentifier(), parameter.type, context.schemaRegistry.resolve(parameter.type)))
     }
 
     if (bodyType != null) {
         writer.write(" body: String?")
-        inputInfo.add(InputInfo("body", bodyType, context.schemaRegistry.resolve(bodyType)))
     }
 
     writer.write(")")
@@ -42,13 +38,13 @@ fun Request.writeServer(context:GenerationContext, writer: BufferedWriter) {
 
     writer.writeln(" {")
 
-    if (inputInfo.isEmpty()) {
+    if (!requestInfo.hasInput()) {
         writer.writeln("return delegate.${operationId.toKotlinIdentifier()}()")
         writer.writeln("}")
         return
     }
 
-    for (info in inputInfo) {
+    for (info in requestInfo.inputInfo) {
         when(info.resolvedType) {
             is Schema.PrimitiveTypeSchema -> writer.writeln("val maybe${info.name} =  ${info.name}.as${info.resolvedType.toKotlinType(true)}(\"${info.name}\")")
             is Schema.ObjectTypeSchema -> writer.writeln("val maybe${info.name} =  ${info.name}.asObject(\"${info.name}\", ${info.resolvedType.toKotlinType(true)}::class.java, objectMapper)")
@@ -58,18 +54,18 @@ fun Request.writeServer(context:GenerationContext, writer: BufferedWriter) {
     }
 
     writer.write("val request = maybeOf(")
-    for (info in inputInfo) {
+    for (info in requestInfo.inputInfo) {
         writer.write("maybe${info.name}, ")
     }
     writer.writeln(")  { ")
     writer.write("(")
 
-    for (info in inputInfo) {
+    for (info in requestInfo.inputInfo) {
         writer.write("valid${info.name}, ")
     }
     writer.writeln(") -> ${operationId.toKotlinClassName()}Request(")
 
-    for(info in inputInfo) {
+    for(info in requestInfo.inputInfo) {
         writer.writeln("valid${info.name} as ${info.resolvedType.toKotlinType(true)}, ")
     }
     writer.writeln(")}")
@@ -82,7 +78,7 @@ fun Request.writeServerDelegate(context:GenerationContext, writer: BufferedWrite
     if (parameters.isEmpty() && bodyType == null) {
         writer.write("suspend fun ${operationId.toKotlinIdentifier()}()")
     } else {
-        writer.write("suspend fun ${operationId.toKotlinIdentifier()}(request: ${operationId.toKotlinClassName()}Request)")
+        writer.write("suspend fun ${operationId.toKotlinIdentifier()}(request: Maybe<${operationId.toKotlinClassName()}Request>)")
     }
 
     if (returnType != null) {
