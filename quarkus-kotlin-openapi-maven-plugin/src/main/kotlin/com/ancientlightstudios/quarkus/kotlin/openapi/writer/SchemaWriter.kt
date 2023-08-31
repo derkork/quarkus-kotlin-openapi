@@ -16,14 +16,16 @@ fun Schema.toKotlinType(safe: Boolean): String {
                 "float" -> "Float"
                 "number" -> "Double"
                 "boolean" -> "Boolean"
-                "array" -> "List<Any>" // TODO
                 else -> throw IllegalArgumentException("Unknown basic type: $typeName")
             }
         }
+        is Schema.ArraySchema -> "List<${items.resolve().toKotlinType(safe)}>"  //TODO: make nullable when unsafe?
         is Schema.EnumSchema -> typeName.substringAfterLast("/").toKotlinClassName() + if (!safe)  "Unsafe" else ""
         else -> typeName.substringAfterLast("/").toKotlinClassName() + if (!safe) "Unsafe" else ""
     }
 }
+
+
 
 fun String.toKotlinClassName(): String {
     return this.toKotlinIdentifier()
@@ -65,24 +67,24 @@ fun SchemaRegistry.getPropertiesOf(list: List<SchemaRef>): List<SchemaProperty> 
     return result
 }
 
-class InputInfo(val name: String, val contextPath: String, val type: SchemaRef, val resolvedType:Schema, val required: Boolean)
+class InputInfo(val name: String, val contextPath: String, val type: SchemaRef, val required: Boolean)
 
 class RequestInfo(val className:String, val inputInfo: List<InputInfo>) {
     fun hasInput() = inputInfo.isNotEmpty()
 }
 
-fun Request.asRequestInfo(context:GenerationContext) : RequestInfo {
+fun Request.asRequestInfo(): RequestInfo {
     val inputInfo = mutableListOf<InputInfo>()
 
     for (parameter in parameters) {
         inputInfo.add(InputInfo(parameter.name.toKotlinIdentifier(),
             "request.${parameter.kind.toString().lowercase()}.${parameter.name}",
-            parameter.type, context.schemaRegistry.resolve(parameter.type), parameter.required))
+            parameter.type, parameter.required))
     }
 
     if (bodyType != null) {
         inputInfo.add(InputInfo("body", "request.body", bodyType,
-            context.schemaRegistry.resolve(bodyType), true)) // TODO: extend body builder to read required flag
+            true)) // TODO: extend body builder to read required flag
     }
 
     return RequestInfo(operationId.toKotlinClassName(), inputInfo)

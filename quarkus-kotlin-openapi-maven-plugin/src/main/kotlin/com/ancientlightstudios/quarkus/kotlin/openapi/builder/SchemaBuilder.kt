@@ -22,6 +22,7 @@ class SchemaBuilder(
             node.has("oneOf") -> buildOneOfSchema()
             node.has("allOf") -> buildAllOfSchema()
             node.has("anyOf") -> buildAnyOfSchema()
+            node.getTextOrNull("type") == "array" -> buildArraySchema()
             else -> return buildPrimitiveTypeSchema()
         }
     }
@@ -72,6 +73,12 @@ class SchemaBuilder(
         return ref
     }
 
+    private fun buildArraySchema(): SchemaRef {
+        val items = node.with("items").extractSchemaRef(schemaRegistry) { "$typeName items" }
+        val ref = schemaRegistry.getOrRegisterType(typeName)
+        schemaRegistry.resolveRef(typeName, Schema.ArraySchema(items))
+        return ref
+    }
 
     private fun buildPrimitiveTypeSchema(): SchemaRef {
         val additionalProperties = node.get("additionalProperties")

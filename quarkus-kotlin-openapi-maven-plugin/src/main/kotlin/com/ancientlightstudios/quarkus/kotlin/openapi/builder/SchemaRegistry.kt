@@ -11,11 +11,11 @@ class SchemaRegistry {
     val resolvedSchemas:Set<Schema>
         get() = schemas.values.toSet()
 
-    fun getOrRegisterReference(ref: String) = references.getOrPut(ref) { SchemaRef(ref) }
+    fun getOrRegisterReference(ref: String) = references.getOrPut(ref) { SchemaRef(ref, this) }
 
     fun getOrRegisterType(type: String) = references.getOrPut(type) {
         schemas[type] = Schema.PrimitiveTypeSchema(type)
-        SchemaRef(type)
+        SchemaRef(type, this)
     }
 
     fun resolveRef(ref: String, schema: Schema) {

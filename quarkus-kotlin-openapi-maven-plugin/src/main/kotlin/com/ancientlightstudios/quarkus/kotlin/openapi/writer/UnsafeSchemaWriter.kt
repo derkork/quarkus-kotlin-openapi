@@ -8,7 +8,7 @@ import java.io.BufferedWriter
 fun Schema.ObjectTypeSchema.writeUnsafe(context: GenerationContext, bufferedWriter: BufferedWriter) {
     bufferedWriter.writeUnsafeSchemaClass(this, context) {
         for (property in properties) {
-            bufferedWriter.writeUnsafeProperty(context, property.name, property.type)
+            bufferedWriter.writeUnsafeProperty(property.name, property.type)
         }
     }
 }
@@ -53,17 +53,16 @@ fun BufferedWriter.writeUnsafeSchemaPropertiesOf(schemas: List<SchemaRef>, conte
         // check if we have the same type for all defined properties with this name
         check(properties.distinctBy { it.type }.size == 1) { "Property $name has multiple different types." }
 
-        writeUnsafeProperty(context, name, properties.first().type)
+        writeUnsafeProperty(name, properties.first().type)
     }
 }
 
 private fun BufferedWriter.writeUnsafeProperty(
-    context: GenerationContext,
     name: String,
     type: SchemaRef
 ) {
     writeln("@field:JsonProperty(value = \"$name\")")
-    val resolvedType = context.schemaRegistry.resolve(type)
+    val resolvedType = type.resolve()
     // for enum types jackson may not be able to convert this to an enum if we receive string that is not
     // an enum value. therefore we use a string here.
     if (resolvedType is Schema.EnumSchema) {
@@ -71,7 +70,7 @@ private fun BufferedWriter.writeUnsafeProperty(
     } else {
         write(
             "val ${name.toKotlinIdentifier()}: ${
-                context.schemaRegistry.resolve(type).toKotlinType(false)
+                resolvedType.toKotlinType(false)
             }?"
         )
     }

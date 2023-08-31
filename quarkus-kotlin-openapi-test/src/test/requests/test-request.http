@@ -1,1 +1,15 @@
-GET http://localhost:8080/user/1?status=blocked&arnie=
+POST http://localhost:8080/user/notify
+Content-Type: application/json
+
+[
+  {
+    "id": 4811,
+    "name": "John Doe",
+    "status": "available"
+  },
+  {
+    "id": 4812,
+    "name": "Jane Doe",
+    "status": "available"
+  }
+]
