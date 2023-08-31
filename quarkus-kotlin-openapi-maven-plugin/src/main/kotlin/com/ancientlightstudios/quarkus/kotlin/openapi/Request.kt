@@ -1,5 +1,7 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi
 
+import com.ancientlightstudios.quarkus.kotlin.openapi.builder.SchemaRegistry
+
 
 data class ApiSpec(
     val requests: Set<Request>,
@@ -58,13 +60,13 @@ data class RequestParameter(
     val kind: ParameterKind,
     val required: Boolean,
     val type: SchemaRef
-    // TODO: isList?
-
 )
 
 sealed class Schema(val typeName: String) {
 
     class PrimitiveTypeSchema(typeName: String) : Schema(typeName)
+
+    class ArraySchema(val items: SchemaRef) : Schema("array")
     class ObjectTypeSchema(typeName: String, val properties: List<SchemaProperty>) : Schema(typeName)
 
     class OneOfSchema(typeName: String, val discriminator:String, val oneOf: List<SchemaRef>) : Schema(typeName)
@@ -74,12 +76,16 @@ sealed class Schema(val typeName: String) {
 }
 
 data class SchemaRef(
-    val id: String
-)
+    val id: String,
+    private val schemaRegistry: SchemaRegistry
+) {
+    fun resolve(): Schema {
+        return schemaRegistry.resolve(this)
+    }
+}
 
 data class SchemaProperty(
     val name: String,
     val type: SchemaRef,
     val required: Boolean,
-    val isList: Boolean
 )

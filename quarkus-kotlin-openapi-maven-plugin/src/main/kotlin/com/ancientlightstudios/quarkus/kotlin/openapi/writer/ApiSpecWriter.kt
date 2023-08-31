@@ -38,7 +38,7 @@ fun ApiSpec.writeServerInterface(context: GenerationContext) {
 
 fun ApiSpec.writeServerRequests(context: GenerationContext) {
     for (request in requests) {
-        val requestInfo = request.asRequestInfo(context)
+        val requestInfo = request.asRequestInfo()
         if (!requestInfo.hasInput()) {
             continue
         }
@@ -58,7 +58,7 @@ fun ApiSpec.writeServerRequests(context: GenerationContext) {
             )
 
             for (info in requestInfo.inputInfo) {
-                it.write("val ${info.name}: ${info.resolvedType.toKotlinType(true)}")
+                it.write("val ${info.name}: ${info.type.resolve().toKotlinType(true)}")
                 if (!info.required) {
                     it.write("?")
                 }
@@ -87,7 +87,7 @@ fun ApiSpec.writeServerDelegate(context: GenerationContext) {
         it.writeln()
 
         for (request in requests) {
-            request.writeServerDelegate(context, it)
+            request.writeServerDelegate(it)
             it.writeln()
         }
 
@@ -145,7 +145,7 @@ private fun imports(context: GenerationContext) = """ import jakarta.ws.rs.GET
 
 
 fun ApiSpec.writeUnsafeSchemas(context: GenerationContext) {
-    for (schema in schemas.filter { it !is Schema.PrimitiveTypeSchema }) {
+    for (schema in schemas.filter { it !is Schema.PrimitiveTypeSchema && it !is Schema.ArraySchema}) {
         val file = mkFile(context.config.outputDirectory, context.modelPackage, schema.toKotlinType(false))
         file.bufferedWriter().use {
             when (schema) {
@@ -161,7 +161,7 @@ fun ApiSpec.writeUnsafeSchemas(context: GenerationContext) {
 }
 
 fun ApiSpec.writeSafeSchemas(context: GenerationContext) {
-    for (schema in schemas.filter { it !is Schema.PrimitiveTypeSchema }) {
+    for (schema in schemas.filter { it !is Schema.PrimitiveTypeSchema && it !is Schema.ArraySchema}) {
         val file = mkFile(context.config.outputDirectory, context.modelPackage, schema.toKotlinType(true))
         file.bufferedWriter().use {
             when (schema) {

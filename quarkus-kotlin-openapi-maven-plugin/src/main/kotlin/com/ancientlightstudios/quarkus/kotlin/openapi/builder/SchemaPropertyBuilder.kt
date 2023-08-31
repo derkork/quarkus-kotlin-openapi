@@ -16,7 +16,7 @@ class SchemaPropertyBuilder(
         val type = node.extractSchemaRef(schemaRegistry, typeNameHint)
         val required = node.getBooleanOrNull("required") ?: false
 
-        return SchemaProperty(name, type, required, false)
+        return SchemaProperty(name, type, required)
     }
 
 }

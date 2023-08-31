@@ -8,7 +8,7 @@ import java.io.BufferedWriter
 fun Schema.ObjectTypeSchema.writeSafe(context: GenerationContext, bufferedWriter: BufferedWriter) {
     bufferedWriter.writeSafeSchemaClass(this, context) {
         for (property in properties) {
-            bufferedWriter.writeSafeProperty(true, context, property.name, property.type)
+            bufferedWriter.writeSafeProperty(true, property.name, property.type)
         }
     }
 
@@ -68,13 +68,12 @@ fun BufferedWriter.writeSafeSchemaPropertiesOf(schemas: List<SchemaRef>, context
         // check if we have the same type for all defined properties with this name
         check(properties.distinctBy { it.type }.size == 1) { "Property $name has multiple different types." }
 
-        writeSafeProperty(false, context, name, properties.first().type)
+        writeSafeProperty(false, name, properties.first().type)
     }
 }
 
 private fun BufferedWriter.writeSafeProperty(
-    isPublic:Boolean,
-    context: GenerationContext,
+    isPublic: Boolean,
     name: String,
     type: SchemaRef
 ) {
@@ -84,7 +83,7 @@ private fun BufferedWriter.writeSafeProperty(
     }
     write(
         "val ${name.toKotlinIdentifier()}: ${
-            context.schemaRegistry.resolve(type).toKotlinType(true)
+            type.resolve().toKotlinType(true)
         }"
     )
     writeln(", ")

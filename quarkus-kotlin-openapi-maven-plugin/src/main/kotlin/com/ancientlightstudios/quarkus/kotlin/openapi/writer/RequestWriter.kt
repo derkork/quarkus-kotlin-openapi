@@ -17,7 +17,7 @@ fun Request.writeServer(context:GenerationContext, writer: BufferedWriter) {
 
     // parameters, separated by comma, no comma after the last one
 
-    val requestInfo = this.asRequestInfo(context)
+    val requestInfo = this.asRequestInfo()
 
     for (parameter in parameters) {
         parameter.writeUnsafe(context, writer)
@@ -31,8 +31,7 @@ fun Request.writeServer(context:GenerationContext, writer: BufferedWriter) {
     writer.write(")")
 
     if (returnType != null) {
-        val type = context.schemaRegistry.resolve(returnType)
-        writer.write(": ${type.toKotlinType(true)}")
+        writer.write(": ${returnType.resolve().toKotlinType(true)}")
 
     }
 
@@ -45,11 +44,13 @@ fun Request.writeServer(context:GenerationContext, writer: BufferedWriter) {
     }
 
     for (info in requestInfo.inputInfo) {
-        when(info.resolvedType) {
-            is Schema.PrimitiveTypeSchema -> writer.writeln("val maybe${info.name} =  ${info.name}.as${info.resolvedType.toKotlinType(false)}(\"${info.contextPath}\")")
-            is Schema.ObjectTypeSchema -> writer.writeln("val maybe${info.name} =  ${info.name}.asObject(\"${info.contextPath}\", ${info.resolvedType.toKotlinType(false)}::class.java, objectMapper)")
-            is Schema.EnumSchema -> writer.writeln("val maybe${info.name} =  ${info.name}.asEnum(\"${info.contextPath}\", ${info.resolvedType.toKotlinType(true)}::class.java, objectMapper)")
-            else -> throw IllegalArgumentException("Unsupported type ${info.resolvedType} for parameter ${info.contextPath} in request ${this.operationId}")
+
+        when(val resolvedType = info.type.resolve()) {
+            is Schema.PrimitiveTypeSchema -> writer.writeln("val maybe${info.name} =  ${info.name}.as${resolvedType.toKotlinType(false)}(\"${info.contextPath}\")")
+            is Schema.ObjectTypeSchema -> writer.writeln("val maybe${info.name} =  ${info.name}.asObject(\"${info.contextPath}\", ${resolvedType.toKotlinType(false)}::class.java, objectMapper)")
+            is Schema.ArraySchema -> writer.writeln("val maybe${info.name} =  ${info.name}.asObject(\"${info.contextPath}\", ${resolvedType.toKotlinType(false)}[]::class.java, objectMapper)")
+            is Schema.EnumSchema -> writer.writeln("val maybe${info.name} =  ${info.name}.asEnum(\"${info.contextPath}\", ${resolvedType.toKotlinType(true)}::class.java, objectMapper)")
+            else -> throw IllegalArgumentException("Unsupported type $resolvedType for parameter ${info.contextPath} in request ${this.operationId}")
         }
         if (info.required) {
             writer.writeln(".required()")
@@ -69,7 +70,7 @@ fun Request.writeServer(context:GenerationContext, writer: BufferedWriter) {
     writer.writeln(") -> ${operationId.toKotlinClassName()}Request(")
 
     for(info in requestInfo.inputInfo) {
-        writer.write("valid${info.name} as ${info.resolvedType.toKotlinType(true)}")
+        writer.write("valid${info.name} as ${info.type.resolve().toKotlinType(true)}")
         if (!info.required) {
             writer.write("?")
         }
@@ -81,7 +82,7 @@ fun Request.writeServer(context:GenerationContext, writer: BufferedWriter) {
     writer.writeln("}")
 }
 
-fun Request.writeServerDelegate(context:GenerationContext, writer: BufferedWriter) {
+fun Request.writeServerDelegate(writer: BufferedWriter) {
     if (parameters.isEmpty() && bodyType == null) {
         writer.write("suspend fun ${operationId.toKotlinIdentifier()}()")
     } else {
@@ -89,8 +90,7 @@ fun Request.writeServerDelegate(context:GenerationContext, writer: BufferedWrite
     }
 
     if (returnType != null) {
-        val type = context.schemaRegistry.resolve(returnType)
-        writer.write(": ${type.toKotlinType(true)}")
+        writer.write(": ${returnType.resolve().toKotlinType(true)}")
     }
 
     writer.writeln()
@@ -113,14 +113,13 @@ fun Request.writeClient(context:GenerationContext, writer: BufferedWriter) {
     }
 
     if (bodyType != null) {
-        val type = context.schemaRegistry.resolve(bodyType)
+        val type = bodyType.resolve()
         writer.write(" body: ${type.toKotlinType(true)}")
     }
 
     writer.writeln(")")
 
     if (returnType != null) {
-        val type = context.schemaRegistry.resolve(returnType)
-        writer.writeln(": ${type.toKotlinType(false)}?")
+        writer.writeln(": ${returnType.resolve().toKotlinType(false)}?")
     }
 }

@@ -50,6 +50,7 @@ fun String?.asBoolean(context: String): Maybe<Boolean?> = this.asMaybe(context, 
 fun <T> String?.asObject(context: String, type: Class<T>, objectMapper: ObjectMapper): Maybe<T?> =
     this.asMaybe(context, "is not a valid json object") { objectMapper.readValue(this, type) }
 
+
 fun <T> String?.asEnum(context: String, type: Class<T>, objectMapper: ObjectMapper): Maybe<T?> =
     this.asMaybe(context, "is not a valid enum value") { objectMapper.convertValue(this, type) }
 

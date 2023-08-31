@@ -6,6 +6,47 @@ info:
   version: 1.0.17
   title: Test Interface
 paths:
+  /user/notify:
+    post:
+      operationId: notifyUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                  $ref: '#/components/schemas/User'
+      responses:
+        '204':
+          description: Successful operation
+
+
+  /user:
+    get:
+      operationId: getUsers
+      parameters:
+        - name: status
+          in: query
+          description: status
+          required: false
+          schema:
+            $ref: "#/components/schemas/UserStatus"
+        - name: arnie
+          in: query
+          description: the real arnie
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+
   /user/{userId}:
     get:
       operationId: getUser
