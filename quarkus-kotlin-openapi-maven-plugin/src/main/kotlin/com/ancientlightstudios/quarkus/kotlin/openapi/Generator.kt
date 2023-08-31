@@ -25,7 +25,7 @@ class Generator(private val config: Config) {
         if (config.interfaceType != InterfaceType.CLIENT) {
             val serverContext = GenerationContext("server", schemaRegistry, config)
             apiSpec.writeServerInterface(serverContext)
-            // TODO: write delegate interface
+            apiSpec.writeServerDelegate(serverContext)
         }
         if (config.interfaceType != InterfaceType.SERVER) {
             val clientContext = GenerationContext("client", schemaRegistry, config)

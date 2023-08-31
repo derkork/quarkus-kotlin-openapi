@@ -8,7 +8,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.Schema
 fun ApiSpec.writeServerInterface(context: GenerationContext) {
     // the interface is named after the config.interfaceName and is put into the config.packageName
 
-    val file = mkFile(context.config.outputDirectory, context.interfacePackage, context.interfaceName)
+    val file = mkFile(context.config.outputDirectory, context.interfacePackage, "${context.interfaceName}Server")
     file.bufferedWriter().use {
         it.write(
             """
@@ -24,6 +24,35 @@ fun ApiSpec.writeServerInterface(context: GenerationContext) {
 
         for (request in requests) {
             request.writeServer(context, it)
+            it.writeln()
+        }
+
+        it.write(
+            """
+        }
+        """.trimIndent()
+        )
+    }
+}
+
+fun ApiSpec.writeServerDelegate(context: GenerationContext) {
+    // the interface is named after the config.interfaceName and is put into the config.packageName
+
+    val file = mkFile(context.config.outputDirectory, context.interfacePackage, context.interfaceName)
+    file.bufferedWriter().use {
+        it.write(
+            """
+        package ${context.interfacePackage}
+        ${imports(context)}
+        
+        interface ${context.interfaceName} {
+        """.trimIndent()
+        )
+
+        it.writeln()
+
+        for (request in requests) {
+            request.writeServerDelegate(context, it)
             it.writeln()
         }
 
@@ -53,7 +82,7 @@ fun ApiSpec.writeClientInterface(context: GenerationContext) {
         it.writeln()
 
         for (request in requests) {
-            request.writeServer(context, it)
+            request.writeClient(context, it)
             it.writeln()
         }
 
@@ -76,7 +105,8 @@ private fun imports(context: GenerationContext) = """ import jakarta.ws.rs.GET
         import jakarta.ws.rs.CookieParam
         import com.fasterxml.jackson.databind.ObjectMapper
 
-        import ${context.modelPackage}.*"""
+        import ${context.modelPackage}.*
+        import com.ancientlightstudios.quarkus.kotlin.openapi.*"""
 
 
 fun ApiSpec.writeUnsafeSchemas(context: GenerationContext) {

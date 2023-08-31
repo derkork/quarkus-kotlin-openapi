@@ -32,11 +32,11 @@ fun Request.writeServer(context:GenerationContext, writer: BufferedWriter) {
         inputInfo.add(InputInfo("body", bodyType, context.schemaRegistry.resolve(bodyType)))
     }
 
-    writer.writeln(")")
+    writer.write(")")
 
     if (returnType != null) {
         val type = context.schemaRegistry.resolve(returnType)
-        writer.writeln(": ${type.toKotlinType(true)}")
+        writer.write(": ${type.toKotlinType(true)}")
 
     }
 
@@ -52,19 +52,20 @@ fun Request.writeServer(context:GenerationContext, writer: BufferedWriter) {
         when(info.resolvedType) {
             is Schema.PrimitiveTypeSchema -> writer.writeln("val maybe${info.name} =  ${info.name}.as${info.resolvedType.toKotlinType(true)}(\"${info.name}\")")
             is Schema.ObjectTypeSchema -> writer.writeln("val maybe${info.name} =  ${info.name}.asObject(\"${info.name}\", ${info.resolvedType.toKotlinType(true)}::class.java, objectMapper)")
-            else -> throw IllegalArgumentException("Unsupported type ${info.resolvedType}")
+            is Schema.EnumSchema -> writer.writeln("val maybe${info.name} =  ${info.name}.asEnum(\"${info.name}\", ${info.resolvedType.toKotlinType(true)}::class.java, objectMapper)")
+            else -> throw IllegalArgumentException("Unsupported type ${info.resolvedType} for parameter ${info.name} in request ${this.operationId}")
         }
     }
 
-    writer.writeln("val request = maybeOf(")
+    writer.write("val request = maybeOf(")
     for (info in inputInfo) {
-        writer.writeln("maybe${info.name}, ")
+        writer.write("maybe${info.name}, ")
     }
     writer.writeln(")  { ")
     writer.write("(")
 
     for (info in inputInfo) {
-        writer.writeln("valid${info.name}, ")
+        writer.write("valid${info.name}, ")
     }
     writer.writeln(") -> ${operationId.toKotlinClassName()}Request(")
 
@@ -75,6 +76,21 @@ fun Request.writeServer(context:GenerationContext, writer: BufferedWriter) {
     writer.writeln("return delegate.${operationId.toKotlinIdentifier()}(request)")
 
     writer.writeln("}")
+}
+
+fun Request.writeServerDelegate(context:GenerationContext, writer: BufferedWriter) {
+    if (parameters.isEmpty() && bodyType == null) {
+        writer.write("suspend fun ${operationId.toKotlinIdentifier()}()")
+    } else {
+        writer.write("suspend fun ${operationId.toKotlinIdentifier()}(request: ${operationId.toKotlinClassName()}Request)")
+    }
+
+    if (returnType != null) {
+        val type = context.schemaRegistry.resolve(returnType)
+        writer.write(": ${type.toKotlinType(true)}")
+    }
+
+    writer.writeln()
 }
 
 fun Request.writeClient(context:GenerationContext, writer: BufferedWriter) {
