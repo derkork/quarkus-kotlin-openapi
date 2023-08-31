@@ -46,14 +46,14 @@ fun Request.writeServer(context:GenerationContext, writer: BufferedWriter) {
 
     for (info in requestInfo.inputInfo) {
         when(info.resolvedType) {
-            is Schema.PrimitiveTypeSchema -> writer.writeln("val maybe${info.name} =  ${info.name}.as${info.resolvedType.toKotlinType(true)}(\"${info.name}\")")
-            is Schema.ObjectTypeSchema -> writer.writeln("val maybe${info.name} =  ${info.name}.asObject(\"${info.name}\", ${info.resolvedType.toKotlinType(true)}::class.java, objectMapper)")
-            is Schema.EnumSchema -> writer.writeln("val maybe${info.name} =  ${info.name}.asEnum(\"${info.name}\", ${info.resolvedType.toKotlinType(true)}::class.java, objectMapper)")
-            else -> throw IllegalArgumentException("Unsupported type ${info.resolvedType} for parameter ${info.name} in request ${this.operationId}")
+            is Schema.PrimitiveTypeSchema -> writer.writeln("val maybe${info.name} =  ${info.name}.as${info.resolvedType.toKotlinType(false)}(\"${info.contextPath}\")")
+            is Schema.ObjectTypeSchema -> writer.writeln("val maybe${info.name} =  ${info.name}.asObject(\"${info.contextPath}\", ${info.resolvedType.toKotlinType(false)}::class.java, objectMapper)")
+            is Schema.EnumSchema -> writer.writeln("val maybe${info.name} =  ${info.name}.asEnum(\"${info.contextPath}\", ${info.resolvedType.toKotlinType(true)}::class.java, objectMapper)")
+            else -> throw IllegalArgumentException("Unsupported type ${info.resolvedType} for parameter ${info.contextPath} in request ${this.operationId}")
         }
     }
 
-    writer.write("val request = maybeOf(")
+    writer.write("val request = maybeOf(\"request\", ")
     for (info in requestInfo.inputInfo) {
         writer.write("maybe${info.name}, ")
     }

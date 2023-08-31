@@ -65,7 +65,7 @@ fun SchemaRegistry.getPropertiesOf(list: List<SchemaRef>): List<SchemaProperty> 
     return result
 }
 
-class InputInfo(val name: String, val type: SchemaRef, val resolvedType:Schema)
+class InputInfo(val name: String, val contextPath: String, val type: SchemaRef, val resolvedType:Schema)
 
 class RequestInfo(val className:String, val inputInfo: List<InputInfo>) {
     fun hasInput() = inputInfo.isNotEmpty()
@@ -75,11 +75,11 @@ fun Request.asRequestInfo(context:GenerationContext) : RequestInfo {
     val inputInfo = mutableListOf<InputInfo>()
 
     for (parameter in parameters) {
-        inputInfo.add(InputInfo(parameter.name.toKotlinIdentifier(), parameter.type, context.schemaRegistry.resolve(parameter.type)))
+        inputInfo.add(InputInfo(parameter.name.toKotlinIdentifier(), "request.${parameter.kind.toString().lowercase()}.${parameter.name}", parameter.type, context.schemaRegistry.resolve(parameter.type)))
     }
 
     if (bodyType != null) {
-        inputInfo.add(InputInfo("body", bodyType, context.schemaRegistry.resolve(bodyType)))
+        inputInfo.add(InputInfo("body", "request.body", bodyType, context.schemaRegistry.resolve(bodyType)))
     }
 
     return RequestInfo(operationId.toKotlinClassName(), inputInfo)

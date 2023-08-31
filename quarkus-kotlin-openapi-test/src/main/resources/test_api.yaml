@@ -1,0 +1,52 @@
+openapi: 3.0.2
+servers:
+  - url: /v3
+info:
+  description: our test interface
+  version: 1.0.17
+  title: Test Interface
+paths:
+  /user/{userId}:
+    get:
+      operationId: getUser
+      parameters:
+        - name: userId
+          in: path
+          description: userId
+          required: true
+          schema:
+            type: integer
+        - name: status
+          in: query
+          description: status
+          required: false
+          schema:
+            $ref: "#/components/schemas/UserStatus"
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        status:
+          $ref: "#/components/schemas/UserStatus"
+      required:
+        - id
+        - name
+        - status
+    UserStatus:
+      type: string
+      enum:
+        - available
+        - blocked
+      default: available
