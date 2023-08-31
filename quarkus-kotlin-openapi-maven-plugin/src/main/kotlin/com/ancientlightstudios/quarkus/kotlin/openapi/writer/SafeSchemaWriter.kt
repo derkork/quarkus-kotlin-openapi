@@ -19,6 +19,8 @@ fun Schema.EnumSchema.writeSafe(context: GenerationContext, bufferedWriter: Buff
         """
         package ${context.modelPackage}
         
+        import com.fasterxml.jackson.annotation.JsonProperty
+        
         enum class ${this.toKotlinType(true)}(val value:String) {
         """.trimIndent()
     )
@@ -26,6 +28,7 @@ fun Schema.EnumSchema.writeSafe(context: GenerationContext, bufferedWriter: Buff
     // properties
     for (value in values) {
         val enumEntryName = value.toKotlinClassName()
+        bufferedWriter.writeln("@JsonProperty(\"$value\")")
         bufferedWriter.write("$enumEntryName(\"$value\")")
         if (value != values.last()) {
             bufferedWriter.write(", ")
