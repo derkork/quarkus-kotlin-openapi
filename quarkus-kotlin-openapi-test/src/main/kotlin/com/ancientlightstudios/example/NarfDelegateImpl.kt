@@ -2,6 +2,7 @@ package com.ancientlightstudios.example
 
 import com.ancientlightstudios.example.model.GetUserRequest
 import com.ancientlightstudios.example.model.User
+import com.ancientlightstudios.example.model.UserStatus
 import com.ancientlightstudios.example.server.NarfInterface
 import com.ancientlightstudios.quarkus.kotlin.openapi.Maybe
 import jakarta.enterprise.context.ApplicationScoped
@@ -15,7 +16,7 @@ class NarfDelegateImpl : NarfInterface {
 
     override suspend fun getUser(request: Maybe<GetUserRequest>): User = request.unwrap {
         log.info("requesting user ${it.userId} with status filter ${it.status}")
-        User(it.userId, "Host", it.status)
+        User(it.userId, it.arnie, it.status ?: UserStatus.Available)
     }
 }
 
