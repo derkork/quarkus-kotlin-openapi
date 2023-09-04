@@ -19,7 +19,7 @@ fun Schema.toKotlinType(safe: Boolean): String {
                 else -> throw IllegalArgumentException("Unknown basic type: $typeName")
             }
         }
-        is Schema.ArraySchema -> "List<${items.resolve().toKotlinType(safe)}>"  //TODO: make nullable when unsafe?
+        is Schema.ArraySchema -> "List<${items.resolve().toKotlinType(safe)}?>"  //TODO: make nullable when unsafe?
         is Schema.EnumSchema -> typeName.substringAfterLast("/").toKotlinClassName() + if (!safe)  "Unsafe" else ""
         else -> typeName.substringAfterLast("/").toKotlinClassName() + if (!safe) "Unsafe" else ""
     }

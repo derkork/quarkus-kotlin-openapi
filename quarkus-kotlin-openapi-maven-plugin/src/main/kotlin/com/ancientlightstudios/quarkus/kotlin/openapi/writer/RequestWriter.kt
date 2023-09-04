@@ -48,7 +48,7 @@ fun Request.writeServer(context:GenerationContext, writer: BufferedWriter) {
         when(val resolvedType = info.type.resolve()) {
             is Schema.PrimitiveTypeSchema -> writer.writeln("val maybe${info.name} =  ${info.name}.as${resolvedType.toKotlinType(false)}(\"${info.contextPath}\")")
             is Schema.ObjectTypeSchema -> writer.writeln("val maybe${info.name} =  ${info.name}.asObject(\"${info.contextPath}\", ${resolvedType.toKotlinType(false)}::class.java, objectMapper)")
-            is Schema.ArraySchema -> writer.writeln("val maybe${info.name} =  ${info.name}.asObject(\"${info.contextPath}\", ${resolvedType.toKotlinType(false)}[]::class.java, objectMapper)")
+            is Schema.ArraySchema -> writer.writeln("val maybe${info.name} =  ${info.name}.asList<${resolvedType.items.resolve().toKotlinType(false)}>(\"${info.contextPath}\", objectMapper)")
             is Schema.EnumSchema -> writer.writeln("val maybe${info.name} =  ${info.name}.asEnum(\"${info.contextPath}\", ${resolvedType.toKotlinType(true)}::class.java, objectMapper)")
             else -> throw IllegalArgumentException("Unsupported type $resolvedType for parameter ${info.contextPath} in request ${this.operationId}")
         }
