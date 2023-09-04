@@ -31,7 +31,7 @@ fun Request.writeServer(context:GenerationContext, writer: BufferedWriter) {
     writer.write(")")
 
     if (returnType != null) {
-        writer.write(": ${returnType.resolve().toKotlinType(true)}")
+        writer.write(": ${returnType.resolve().toKotlinType(true, true)}")
 
     }
 
@@ -46,10 +46,10 @@ fun Request.writeServer(context:GenerationContext, writer: BufferedWriter) {
     for (info in requestInfo.inputInfo) {
 
         when(val resolvedType = info.type.resolve()) {
-            is Schema.PrimitiveTypeSchema -> writer.writeln("val maybe${info.name} =  ${info.name}.as${resolvedType.toKotlinType(false)}(\"${info.contextPath}\")")
-            is Schema.ObjectTypeSchema -> writer.writeln("val maybe${info.name} =  ${info.name}.asObject(\"${info.contextPath}\", ${resolvedType.toKotlinType(false)}::class.java, objectMapper)")
-            is Schema.ArraySchema -> writer.writeln("val maybe${info.name} =  ${info.name}.asList<${resolvedType.items.resolve().toKotlinType(false)}>(\"${info.contextPath}\", objectMapper)")
-            is Schema.EnumSchema -> writer.writeln("val maybe${info.name} =  ${info.name}.asEnum(\"${info.contextPath}\", ${resolvedType.toKotlinType(true)}::class.java, objectMapper)")
+            is Schema.PrimitiveTypeSchema -> writer.writeln("val maybe${info.name} =  ${info.name}.as${resolvedType.toKotlinType(false, false)}(\"${info.contextPath}\")")
+            is Schema.ObjectTypeSchema -> writer.writeln("val maybe${info.name} =  ${info.name}.asObject(\"${info.contextPath}\", ${resolvedType.toKotlinType(false, false)}::class.java, objectMapper)")
+            is Schema.ArraySchema -> writer.writeln("val maybe${info.name} =  ${info.name}.asObject(\"${info.contextPath}\", ${resolvedType.toKotlinType(false, false, true)}::class.java, objectMapper)")
+            is Schema.EnumSchema -> writer.writeln("val maybe${info.name} =  ${info.name}.asEnum(\"${info.contextPath}\", ${resolvedType.toKotlinType(true, true)}::class.java, objectMapper)")
             else -> throw IllegalArgumentException("Unsupported type $resolvedType for parameter ${info.contextPath} in request ${this.operationId}")
         }
         if (info.required) {
@@ -70,7 +70,7 @@ fun Request.writeServer(context:GenerationContext, writer: BufferedWriter) {
     writer.writeln(") -> ${operationId.toKotlinClassName()}Request(")
 
     for(info in requestInfo.inputInfo) {
-        writer.write("valid${info.name} as ${info.type.resolve().toKotlinType(true)}")
+        writer.write("valid${info.name} as ${info.type.resolve().toKotlinType(true, true)}")
         if (!info.required) {
             writer.write("?")
         }
@@ -90,7 +90,7 @@ fun Request.writeServerDelegate(writer: BufferedWriter) {
     }
 
     if (returnType != null) {
-        writer.write(": ${returnType.resolve().toKotlinType(true)}")
+        writer.write(": ${returnType.resolve().toKotlinType(true, true)}")
     }
 
     writer.writeln()
@@ -114,12 +114,12 @@ fun Request.writeClient(context:GenerationContext, writer: BufferedWriter) {
 
     if (bodyType != null) {
         val type = bodyType.resolve()
-        writer.write(" body: ${type.toKotlinType(true)}")
+        writer.write(" body: ${type.toKotlinType(true, true)}")
     }
 
     writer.writeln(")")
 
     if (returnType != null) {
-        writer.writeln(": ${returnType.resolve().toKotlinType(false)}?")
+        writer.writeln(": ${returnType.resolve().toKotlinType(false, false)}?")
     }
 }

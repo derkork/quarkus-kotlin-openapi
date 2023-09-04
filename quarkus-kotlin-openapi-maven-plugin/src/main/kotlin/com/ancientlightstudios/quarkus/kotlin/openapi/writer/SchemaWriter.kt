@@ -4,7 +4,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.builder.SchemaRegistry
 import java.util.*
 
-fun Schema.toKotlinType(safe: Boolean): String {
+fun Schema.toKotlinType(safeObject: Boolean, safeList: Boolean, listAsArray: Boolean = false): String {
     return when (this) {
         is Schema.PrimitiveTypeSchema -> {
             when (this.typeName) {
@@ -19,9 +19,14 @@ fun Schema.toKotlinType(safe: Boolean): String {
                 else -> throw IllegalArgumentException("Unknown basic type: $typeName")
             }
         }
-        is Schema.ArraySchema -> "List<${items.resolve().toKotlinType(safe)}?>"  //TODO: make nullable when unsafe?
-        is Schema.EnumSchema -> typeName.substringAfterLast("/").toKotlinClassName() + if (!safe)  "Unsafe" else ""
-        else -> typeName.substringAfterLast("/").toKotlinClassName() + if (!safe) "Unsafe" else ""
+        is Schema.ArraySchema -> {
+            val type = if (listAsArray) "Array" else "List"
+            val itemType = items.resolve().toKotlinType(safeObject, safeList, listAsArray)
+            val unsafe = if (safeList) "" else "?"
+            "$type<$itemType$unsafe>"
+        }
+        is Schema.EnumSchema -> typeName.substringAfterLast("/").toKotlinClassName() + if (!safeObject)  "Unsafe" else ""
+        else -> typeName.substringAfterLast("/").toKotlinClassName() + if (!safeObject) "Unsafe" else ""
     }
 }
 
