@@ -12,7 +12,7 @@ fun RequestParameter.writeUnsafe(context: GenerationContext, writer: BufferedWri
 
 fun RequestParameter.writeSafe(context: GenerationContext, writer: BufferedWriter) {
     writeAnnotation(writer)
-    writer.write("${name.toKotlinIdentifier()}: ${type.resolve().toKotlinType(true)}")
+    writer.write("${name.toKotlinIdentifier()}: ${type.resolve().toKotlinType(true, true)}")
 }
 
 fun RequestParameter.writeAnnotation(writer: BufferedWriter) {

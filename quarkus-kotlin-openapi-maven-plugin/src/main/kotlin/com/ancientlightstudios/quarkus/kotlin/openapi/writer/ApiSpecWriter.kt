@@ -58,7 +58,7 @@ fun ApiSpec.writeServerRequests(context: GenerationContext) {
             )
 
             for (info in requestInfo.inputInfo) {
-                it.write("val ${info.name}: ${info.type.resolve().toKotlinType(true)}")
+                it.write("val ${info.name}: ${info.type.resolve().toKotlinType(true, true)}")
                 if (!info.required) {
                     it.write("?")
                 }
@@ -146,7 +146,7 @@ private fun imports(context: GenerationContext) = """ import jakarta.ws.rs.GET
 
 fun ApiSpec.writeUnsafeSchemas(context: GenerationContext) {
     for (schema in schemas.filter { it !is Schema.PrimitiveTypeSchema && it !is Schema.ArraySchema}) {
-        val file = mkFile(context.config.outputDirectory, context.modelPackage, schema.toKotlinType(false))
+        val file = mkFile(context.config.outputDirectory, context.modelPackage, schema.toKotlinType(false, false))
         file.bufferedWriter().use {
             when (schema) {
                 is Schema.ObjectTypeSchema -> schema.writeUnsafe(context, it)
@@ -162,7 +162,7 @@ fun ApiSpec.writeUnsafeSchemas(context: GenerationContext) {
 
 fun ApiSpec.writeSafeSchemas(context: GenerationContext) {
     for (schema in schemas.filter { it !is Schema.PrimitiveTypeSchema && it !is Schema.ArraySchema}) {
-        val file = mkFile(context.config.outputDirectory, context.modelPackage, schema.toKotlinType(true))
+        val file = mkFile(context.config.outputDirectory, context.modelPackage, schema.toKotlinType(true, true))
         file.bufferedWriter().use {
             when (schema) {
                 is Schema.ObjectTypeSchema -> schema.writeSafe(context, it)

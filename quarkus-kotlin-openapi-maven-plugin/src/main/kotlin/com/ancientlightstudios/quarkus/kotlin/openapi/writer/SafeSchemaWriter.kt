@@ -21,7 +21,7 @@ fun Schema.EnumSchema.writeSafe(context: GenerationContext, bufferedWriter: Buff
         
         import com.fasterxml.jackson.annotation.JsonProperty
         
-        enum class ${this.toKotlinType(true)}(val value:String) {
+        enum class ${this.toKotlinType(true, true)}(val value:String) {
         """.trimIndent()
     )
 
@@ -83,7 +83,7 @@ private fun BufferedWriter.writeSafeProperty(
     }
     write(
         "val ${name.toKotlinIdentifier()}: ${
-            type.resolve().toKotlinType(true)
+            type.resolve().toKotlinType(true, true)
         }"
     )
     writeln(", ")
@@ -98,7 +98,7 @@ fun BufferedWriter.writeSafeSchemaClass(schema: Schema, context: GenerationConte
         import io.quarkus.runtime.annotations.RegisterForReflection
         
         @RegisterForReflection
-        class ${schema.toKotlinType(true)}(
+        class ${schema.toKotlinType(true, true)}(
         """.trimIndent()
     )
 

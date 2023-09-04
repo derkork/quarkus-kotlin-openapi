@@ -20,7 +20,7 @@ fun Schema.EnumSchema.writeUnsafe(context: GenerationContext, bufferedWriter: Bu
         package ${context.modelPackage}
         
         @JvmInline
-        value class ${this.toKotlinType(false)}(val value:String)
+        value class ${this.toKotlinType(false, false)}(val value:String)
         """.trimIndent()
     )
 }
@@ -70,7 +70,7 @@ private fun BufferedWriter.writeUnsafeProperty(
     } else {
         write(
             "val ${name.toKotlinIdentifier()}: ${
-                resolvedType.toKotlinType(false)
+                resolvedType.toKotlinType(false, false)
             }?"
         )
     }
@@ -86,7 +86,7 @@ fun BufferedWriter.writeUnsafeSchemaClass(schema: Schema, context: GenerationCon
         import io.quarkus.runtime.annotations.RegisterForReflection
         
         @RegisterForReflection
-        class ${schema.toKotlinType(false)}(
+        class ${schema.toKotlinType(false, false)}(
         """.trimIndent()
     )
 
