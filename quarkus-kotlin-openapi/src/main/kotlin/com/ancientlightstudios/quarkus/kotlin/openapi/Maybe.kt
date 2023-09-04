@@ -1,5 +1,6 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi
 
+import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 
 sealed class Maybe<T>(val context: String) {
@@ -29,8 +30,7 @@ fun <T> maybeOf(context: String, vararg maybes: Maybe<*>, builder: (Array<*>) ->
     }
 }
 
-
-private inline fun <T> String?.asMaybe(context: String, validationMessage: String, block: (String) -> T): Maybe<T?> =
+ inline fun <T> String?.asMaybe(context: String, validationMessage: String, block: (String) -> T): Maybe<T?> =
     when (this) {
         null -> Maybe.Success(context,null)
         else -> try {
@@ -53,6 +53,9 @@ fun <T> String?.asObject(context: String, type: Class<T>, objectMapper: ObjectMa
 
 fun <T> String?.asEnum(context: String, type: Class<T>, objectMapper: ObjectMapper): Maybe<T?> =
     this.asMaybe(context, "is not a valid enum value") { objectMapper.convertValue(this, type) }
+
+ inline fun <reified T> String?.asList(context: String, objectMapper: ObjectMapper): Maybe<List<T>?> =
+    this.asMaybe(context, "is not a valid json array") { objectMapper.readValue(this, object:TypeReference<List<T>>() {}) }
 
 fun <T> Maybe<T>.validated(block: (T, validationErrors: MutableList<ValidationError>) -> Unit): Maybe<T> {
     return when (this) {
