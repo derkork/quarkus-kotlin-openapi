@@ -1,8 +1,8 @@
-package com.ancientlightstudios.quarkus.kotlin.openapi.writer
+package com.ancientlightstudios.quarkus.kotlin.openapi.strafbank
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.GenerationContext
-import com.ancientlightstudios.quarkus.kotlin.openapi.Schema
-import com.ancientlightstudios.quarkus.kotlin.openapi.SchemaRef
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.Schema
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.SchemaRef
 import java.io.BufferedWriter
 
 fun Schema.ObjectTypeSchema.writeUnsafe(context: GenerationContext, bufferedWriter: BufferedWriter) {

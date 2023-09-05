@@ -1,8 +1,8 @@
-package com.ancientlightstudios.quarkus.kotlin.openapi.writer
+package com.ancientlightstudios.quarkus.kotlin.openapi.strafbank
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.GenerationContext
-import com.ancientlightstudios.quarkus.kotlin.openapi.Request
-import com.ancientlightstudios.quarkus.kotlin.openapi.Schema
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.Request
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.Schema
 import java.io.BufferedWriter
 
 

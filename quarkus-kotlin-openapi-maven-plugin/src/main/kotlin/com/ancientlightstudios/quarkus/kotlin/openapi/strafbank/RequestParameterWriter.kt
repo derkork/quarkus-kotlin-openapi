@@ -1,8 +1,8 @@
-package com.ancientlightstudios.quarkus.kotlin.openapi.writer
+package com.ancientlightstudios.quarkus.kotlin.openapi.strafbank
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.GenerationContext
-import com.ancientlightstudios.quarkus.kotlin.openapi.ParameterKind
-import com.ancientlightstudios.quarkus.kotlin.openapi.RequestParameter
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ParameterKind
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.RequestParameter
 import java.io.BufferedWriter
 
 fun RequestParameter.writeUnsafe(context: GenerationContext, writer: BufferedWriter) {

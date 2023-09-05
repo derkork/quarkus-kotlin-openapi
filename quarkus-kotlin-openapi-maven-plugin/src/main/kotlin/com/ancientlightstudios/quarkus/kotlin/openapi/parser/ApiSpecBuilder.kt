@@ -1,10 +1,9 @@
-package com.ancientlightstudios.quarkus.kotlin.openapi.builder
+package com.ancientlightstudios.quarkus.kotlin.openapi.parser
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ObjectNode
-import com.ancientlightstudios.quarkus.kotlin.openapi.ApiSpec
-import com.ancientlightstudios.quarkus.kotlin.openapi.RequestMethod
-import com.ancientlightstudios.quarkus.kotlin.openapi.resolvePath
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ApiSpec
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.RequestMethod
 
 class ApiSpecBuilder(private val node: ObjectNode, private val schemaRegistry: SchemaRegistry) {
 

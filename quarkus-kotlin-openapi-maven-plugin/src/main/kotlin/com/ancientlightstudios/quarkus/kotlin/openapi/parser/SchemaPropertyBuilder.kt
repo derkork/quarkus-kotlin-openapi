@@ -1,9 +1,8 @@
-package com.ancientlightstudios.quarkus.kotlin.openapi.builder
+package com.ancientlightstudios.quarkus.kotlin.openapi.parser
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.SchemaProperty
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.SchemaProperty
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ObjectNode
-import com.ancientlightstudios.quarkus.kotlin.openapi.getBooleanOrNull
 
 class SchemaPropertyBuilder(
     private val name: String,
