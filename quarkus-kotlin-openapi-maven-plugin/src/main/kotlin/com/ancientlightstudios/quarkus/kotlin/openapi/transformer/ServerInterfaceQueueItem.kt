@@ -30,18 +30,15 @@ class ServerInterfaceQueueItem(val requests: Set<Request>) : QueueItem() {
     }
 
     private fun generateRequest(serverInterface: KotlinClass, request: Request, queue: (QueueItem) -> Unit) {
-
         val methodName = Name.MethodName(request.operationId)
-        var returnType:Name.ClassName? = null
-        if (request.returnType != null) {
-            val queueItem = SafeModelQueueItem(request.returnType)
+        val returnType = request.returnType?.let {
+            val queueItem = SafeModelQueueItem(it)
             queue(queueItem)
-            returnType = queueItem.className()
+            queueItem.className()
         }
 
-
-
-
+        val method = KotlinMethod(methodName, returnType, emptyList(), null)
+        serverInterface.methods.add(method)
     }
 
 
