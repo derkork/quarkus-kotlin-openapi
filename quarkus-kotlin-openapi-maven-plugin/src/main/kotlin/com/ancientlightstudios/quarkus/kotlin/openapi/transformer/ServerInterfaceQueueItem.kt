@@ -7,11 +7,9 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinMethod
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.Name
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.Request
 
-class ServerInterfaceQueueItem(val requests: Set<Request>) : QueueItem() {
-
+class ServerInterfaceQueueItem(private val requests: Set<Request>) : QueueItem() {
 
     override fun generate(config: Config, queue: (QueueItem) -> Unit): KotlinFile {
-
         val serverInterface = KotlinClass(Name.ClassName(config.interfaceName + "Server"))
         serverInterface.annotations.add(
             Name.ClassName("Path"),
