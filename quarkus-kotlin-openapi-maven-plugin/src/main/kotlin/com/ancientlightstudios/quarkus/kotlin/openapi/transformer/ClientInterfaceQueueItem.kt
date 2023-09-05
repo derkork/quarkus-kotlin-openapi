@@ -17,7 +17,7 @@ class ClientInterfaceQueueItem(requests: Set<Request>) : QueueItem() {
 
         return KotlinFile(
             clientInterface, config.packageName + ".client", listOf(
-                "javax.ws.rs.Path",
+                "jakarta.ws.rs.Path",
             )
         )
     }

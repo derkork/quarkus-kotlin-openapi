@@ -9,6 +9,7 @@ class KotlinClass(name: Name.ClassName) : KotlinFileContent(name) {
 
         writeln("class ${name.name} {")
         indent {
+            writeln()
             methods.forEach {
                 it.render(this)
                 writeln()

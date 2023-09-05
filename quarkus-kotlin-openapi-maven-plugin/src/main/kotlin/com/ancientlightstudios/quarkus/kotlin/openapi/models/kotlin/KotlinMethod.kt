@@ -4,6 +4,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.writer.CodeWriter
 
 class KotlinMethod(
     private val name: Name.MethodName,
+    private val suspend: Boolean,
     private val returnType: Name.ClassName?,
     private val parameters: List<KotlinParameter>,
     private val body: KotlinCode? = null
@@ -12,6 +13,10 @@ class KotlinMethod(
 
     fun render(writer: CodeWriter) = with(writer) {
         annotations.render(this, true)
+        if (suspend) {
+            write("suspend ")
+        }
+        
         write("fun ${name.name}(")
         parameters.forEach {
             it.render(this)
