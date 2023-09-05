@@ -1,14 +1,11 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.strafbank.CodeWriter
+import com.ancientlightstudios.quarkus.kotlin.openapi.writer.CodeWriter
 
 abstract class KotlinFileContent(val name: Name.ClassName) {
 
-    protected val annotations: MutableList<KotlinAnnotation> = mutableListOf()
-
-    fun addAnnotation(name: Name.ClassName,  vararg  parameters: Pair<Name.VariableName, Any>) {
-        annotations.add(KotlinAnnotation(name, *parameters))
-    }
+    val annotations = KotlinAnnotationContainer()
+    val methods = mutableListOf<KotlinMethod>()
 
     abstract fun render(writer: CodeWriter)
 

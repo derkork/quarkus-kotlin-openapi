@@ -10,14 +10,16 @@ class ClientInterfaceQueueItem(requests: Set<Request>) : QueueItem() {
     override fun generate(config: Config, queue: (QueueItem) -> Unit): KotlinFile {
 
         val clientInterface = KotlinInterface(Name.ClassName(config.interfaceName + "Client"))
-        clientInterface.addAnnotation(
+        clientInterface.annotations.add(
             Name.ClassName("Path"),
             Name.VariableName("value") to "/"
         )
 
-        return KotlinFile(clientInterface, config.packageName + ".client", listOf(
-            "javax.ws.rs.Path",
-        ))
+        return KotlinFile(
+            clientInterface, config.packageName + ".client", listOf(
+                "javax.ws.rs.Path",
+            )
+        )
     }
 
 

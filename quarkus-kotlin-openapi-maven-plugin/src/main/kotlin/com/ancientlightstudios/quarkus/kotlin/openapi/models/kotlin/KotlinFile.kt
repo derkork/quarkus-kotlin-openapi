@@ -1,6 +1,6 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.strafbank.CodeWriter
+import com.ancientlightstudios.quarkus.kotlin.openapi.writer.CodeWriter
 
 class KotlinFile(val content:KotlinFileContent, val packageName: String, val imports: List<String>) {
 

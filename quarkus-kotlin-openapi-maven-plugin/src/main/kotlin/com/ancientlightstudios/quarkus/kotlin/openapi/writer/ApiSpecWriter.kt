@@ -2,7 +2,6 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.writer
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.Config
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinFile
-import com.ancientlightstudios.quarkus.kotlin.openapi.strafbank.CodeWriter
 import java.io.File
 
 fun write(files: List<KotlinFile>, config: Config) {
