@@ -1,4 +1,4 @@
-package com.ancientlightstudios.quarkus.kotlin.openapi.strafbank
+package com.ancientlightstudios.quarkus.kotlin.openapi.writer
 
 import java.io.BufferedWriter
 

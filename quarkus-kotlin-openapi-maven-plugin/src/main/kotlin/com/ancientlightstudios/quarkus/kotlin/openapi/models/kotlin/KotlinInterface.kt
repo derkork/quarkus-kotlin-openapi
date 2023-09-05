@@ -1,18 +1,18 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.strafbank.CodeWriter
+import com.ancientlightstudios.quarkus.kotlin.openapi.writer.CodeWriter
 
 class KotlinInterface(name: Name.ClassName) : KotlinFileContent(name) {
 
     override fun render(writer: CodeWriter) = with(writer) {
-        annotations.forEach {
-            it.render(this)
-            writeln()
-        }
+        annotations.render(this, true)
 
         writeln("interface ${name.name} {")
         indent {
-            writeln("// methoden hier")
+            methods.forEach {
+                it.render(this)
+                writeln()
+            }
         }
         write("}")
     }

@@ -1,6 +1,6 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.strafbank.CodeWriter
+import com.ancientlightstudios.quarkus.kotlin.openapi.writer.CodeWriter
 
 class KotlinAnnotation(private val name: Name.ClassName, private vararg val parameters: Pair<Name.VariableName, Any>) {
     fun render(writer: CodeWriter) {

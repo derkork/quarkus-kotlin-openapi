@@ -24,7 +24,10 @@ fun transform(apiSpec: ApiSpec, config: Config): List<KotlinFile> {
 
         if (!done.contains(item)) {
             done.add(item)
-            result.add(item.generate(config) { queue.add(it) })
+            val element = item.generate(config) { queue.add(it) }
+            if (element != null) {
+                result.add(element)
+            }
         }
     }
 

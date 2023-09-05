@@ -1,6 +1,5 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.strafbank.CodeWriter
 import com.ancientlightstudios.quarkus.kotlin.openapi.strafbank.toKotlinClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.strafbank.toKotlinIdentifier
 
