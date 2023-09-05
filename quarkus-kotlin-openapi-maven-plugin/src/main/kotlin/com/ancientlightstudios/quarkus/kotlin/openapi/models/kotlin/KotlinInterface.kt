@@ -9,6 +9,7 @@ class KotlinInterface(name: Name.ClassName) : KotlinFileContent(name) {
 
         writeln("interface ${name.name} {")
         indent {
+            writeln()
             methods.forEach {
                 it.render(this)
                 writeln()

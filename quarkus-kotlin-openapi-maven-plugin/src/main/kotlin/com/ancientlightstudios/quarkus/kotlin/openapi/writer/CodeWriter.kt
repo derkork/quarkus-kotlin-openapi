@@ -12,7 +12,7 @@ class CodeWriter private constructor(private val level: Int, private val writer:
         if (onEmptyLine) {
             writer.write(text.trimIndent().prependIndent("    ".repeat(level)))
         } else {
-            writer.write(text.trimIndent())
+            writer.write(text)
         }
         onEmptyLine = false
     }

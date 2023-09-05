@@ -1,10 +1,7 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.transformer
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.Config
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinClass
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinFile
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinMethod
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.Name
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.Request
 
 class ServerInterfaceQueueItem(private val requests: Set<Request>) : QueueItem() {
@@ -22,7 +19,18 @@ class ServerInterfaceQueueItem(private val requests: Set<Request>) : QueueItem()
 
         return KotlinFile(
             serverInterface, config.packageName + ".server", listOf(
-                "javax.ws.rs.Path",
+                "jakarta.ws.rs.GET",
+                "jakarta.ws.rs.POST",
+                "jakarta.ws.rs.PUT",
+                "jakarta.ws.rs.DELETE",
+                "jakarta.ws.rs.Path",
+                "jakarta.ws.rs.PathParam",
+                "jakarta.ws.rs.QueryParam",
+                "jakarta.ws.rs.HeaderParam",
+                "jakarta.ws.rs.CookieParam",
+                "com.fasterxml.jackson.databind.ObjectMapper",
+                "com.ancientlightstudios.example.model.*",
+                "com.ancientlightstudios.quarkus.kotlin.openapi.*"
             )
         )
     }
@@ -35,7 +43,13 @@ class ServerInterfaceQueueItem(private val requests: Set<Request>) : QueueItem()
             queueItem.className()
         }
 
-        val method = KotlinMethod(methodName, returnType, emptyList(), null)
+        val method = KotlinMethod(methodName, true, returnType, emptyList(), KotlinCode("// TODO"))
+        method.annotations.add(Name.ClassName(request.method.name))
+        method.annotations.add(
+            Name.ClassName("Path"),
+            Name.VariableName("value") to request.path
+        )
+
         serverInterface.methods.add(method)
     }
 
