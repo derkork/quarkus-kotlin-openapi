@@ -1,4 +1,4 @@
-package com.ancientlightstudios.quarkus.kotlin.openapi
+package com.ancientlightstudios.quarkus.kotlin.openapi.parser
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ArrayNode

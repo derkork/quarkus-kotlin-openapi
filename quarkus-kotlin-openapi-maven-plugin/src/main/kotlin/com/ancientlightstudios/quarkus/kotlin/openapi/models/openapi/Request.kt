@@ -1,6 +1,6 @@
-package com.ancientlightstudios.quarkus.kotlin.openapi
+package com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.builder.SchemaRegistry
+import com.ancientlightstudios.quarkus.kotlin.openapi.parser.SchemaRegistry
 
 
 data class ApiSpec(

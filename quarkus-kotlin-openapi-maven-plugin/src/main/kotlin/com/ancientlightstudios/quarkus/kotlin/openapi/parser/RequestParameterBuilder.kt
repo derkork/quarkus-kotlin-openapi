@@ -1,12 +1,9 @@
-package com.ancientlightstudios.quarkus.kotlin.openapi.builder
+package com.ancientlightstudios.quarkus.kotlin.openapi.parser
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.ParameterKind
-import com.ancientlightstudios.quarkus.kotlin.openapi.RequestParameter
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ParameterKind
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.RequestParameter
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ObjectNode
-import com.ancientlightstudios.quarkus.kotlin.openapi.getAsObjectNode
-import com.ancientlightstudios.quarkus.kotlin.openapi.getBooleanOrNull
-import com.ancientlightstudios.quarkus.kotlin.openapi.getTextOrNull
 
 class RequestParameterBuilder(
     private val node: ObjectNode,

@@ -1,12 +1,9 @@
-package com.ancientlightstudios.quarkus.kotlin.openapi.builder
+package com.ancientlightstudios.quarkus.kotlin.openapi.parser
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.Schema
-import com.ancientlightstudios.quarkus.kotlin.openapi.SchemaRef
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.Schema
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.SchemaRef
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ObjectNode
-import com.ancientlightstudios.quarkus.kotlin.openapi.getTextOrNull
-import com.ancientlightstudios.quarkus.kotlin.openapi.resolvePath
-import java.util.*
 
 class SchemaBuilder(
     private val typeName: String,

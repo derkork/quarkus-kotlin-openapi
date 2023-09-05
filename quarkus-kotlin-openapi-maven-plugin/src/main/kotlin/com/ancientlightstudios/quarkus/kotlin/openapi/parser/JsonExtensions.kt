@@ -1,4 +1,4 @@
-package com.ancientlightstudios.quarkus.kotlin.openapi
+package com.ancientlightstudios.quarkus.kotlin.openapi.parser
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ObjectNode

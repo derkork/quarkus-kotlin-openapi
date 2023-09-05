@@ -1,7 +1,10 @@
-package com.ancientlightstudios.quarkus.kotlin.openapi.writer
+package com.ancientlightstudios.quarkus.kotlin.openapi.strafbank
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.*
-import com.ancientlightstudios.quarkus.kotlin.openapi.builder.SchemaRegistry
+import com.ancientlightstudios.quarkus.kotlin.openapi.parser.SchemaRegistry
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.Request
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.Schema
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.SchemaProperty
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.SchemaRef
 import java.util.*
 
 fun Schema.toKotlinType(safeObject: Boolean, safeList: Boolean, listAsArray: Boolean = false): String {
@@ -82,14 +85,18 @@ fun Request.asRequestInfo(): RequestInfo {
     val inputInfo = mutableListOf<InputInfo>()
 
     for (parameter in parameters) {
-        inputInfo.add(InputInfo(parameter.name.toKotlinIdentifier(),
+        inputInfo.add(
+            InputInfo(parameter.name.toKotlinIdentifier(),
             "request.${parameter.kind.toString().lowercase()}.${parameter.name}",
-            parameter.type, parameter.required))
+            parameter.type, parameter.required)
+        )
     }
 
     if (bodyType != null) {
-        inputInfo.add(InputInfo("body", "request.body", bodyType,
-            true)) // TODO: extend body builder to read required flag
+        inputInfo.add(
+            InputInfo("body", "request.body", bodyType,
+            true)
+        ) // TODO: extend body builder to read required flag
     }
 
     return RequestInfo(operationId.toKotlinClassName(), inputInfo)

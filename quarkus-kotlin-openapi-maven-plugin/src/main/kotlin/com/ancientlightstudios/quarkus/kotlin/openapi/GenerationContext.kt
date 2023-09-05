@@ -1,6 +1,6 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.builder.SchemaRegistry
+import com.ancientlightstudios.quarkus.kotlin.openapi.parser.SchemaRegistry
 
 class GenerationContext(
     subPackage:String,

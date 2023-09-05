@@ -1,7 +1,7 @@
-package com.ancientlightstudios.quarkus.kotlin.openapi.builder
+package com.ancientlightstudios.quarkus.kotlin.openapi.parser
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.Schema
-import com.ancientlightstudios.quarkus.kotlin.openapi.SchemaRef
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.Schema
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.SchemaRef
 
 class SchemaRegistry {
 
