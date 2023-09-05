@@ -1,25 +1,20 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.transformer
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.Config
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName.Companion.className
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinFile
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinInterface
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.Name
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.Request
 
 class ClientInterfaceQueueItem(requests: Set<Request>) : QueueItem() {
     override fun generate(config: Config, queue: (QueueItem) -> Unit): KotlinFile {
 
-        val clientInterface = KotlinInterface(Name.ClassName(config.interfaceName + "Client"))
-        clientInterface.annotations.add(
-            Name.ClassName("Path"),
-            Name.VariableName("value") to "/"
-        )
+        val clientInterface = KotlinInterface("${config.interfaceName}Client".className())
+        clientInterface.annotations.addPath("/")
 
-        return KotlinFile(
-            clientInterface, config.packageName + ".client", listOf(
-                "jakarta.ws.rs.Path",
-            )
-        )
+        return KotlinFile(clientInterface, "${config.packageName}.client").apply {
+            addJakartaRestImports()
+        }
     }
 
 

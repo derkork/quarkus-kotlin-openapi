@@ -5,10 +5,10 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName.Co
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinFile
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.SchemaRef
 
-class SafeModelQueueItem(val schemaRef: SchemaRef) : QueueItem() {
+class UnsafeModelQueueItem(val schemaRef: SchemaRef) : QueueItem() {
 
     // TODO: check arrays, enums and other stuff
-    fun className() = schemaRef.resolve().typeName.className()
+    fun className() = "${schemaRef.resolve().typeName}Unsafe".className()
 
     override fun generate(config: Config, queue: (QueueItem) -> Unit): KotlinFile? {
         return null
@@ -18,7 +18,7 @@ class SafeModelQueueItem(val schemaRef: SchemaRef) : QueueItem() {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as SafeModelQueueItem
+        other as UnsafeModelQueueItem
 
         return schemaRef.id == other.schemaRef.id
     }

@@ -2,13 +2,13 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.writer.CodeWriter
 
-class KotlinParameter(val name:Name.VariableName, val type:Name.ClassName) {
+class KotlinParameter(val name: VariableName, val type: ClassName) {
 
-        val annotations = KotlinAnnotationContainer()
+    val annotations = KotlinAnnotationContainer()
 
-        fun render(writer: CodeWriter) {
-            annotations.render(writer, false)
-            writer.write("${name.name}: ${type.name}")
-        }
+    fun render(writer: CodeWriter) {
+        annotations.render(writer, false)
+        writer.write("${name.name}: ${type.name}")
+    }
 
 }
