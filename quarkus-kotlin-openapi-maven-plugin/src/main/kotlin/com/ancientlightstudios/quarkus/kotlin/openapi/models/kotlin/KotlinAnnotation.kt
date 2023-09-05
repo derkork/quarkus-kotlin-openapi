@@ -2,7 +2,7 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.writer.CodeWriter
 
-class KotlinAnnotation(private val name: Name.ClassName, private vararg val parameters: Pair<Name.VariableName, Any>) {
+class KotlinAnnotation(private val name: ClassName, private vararg val parameters: Pair<VariableName, Any>) {
     fun render(writer: CodeWriter) {
         writer.write("@${name.name}")
 
@@ -18,11 +18,11 @@ class KotlinAnnotation(private val name: Name.ClassName, private vararg val para
                     writer.write("\"")
                     writer.write(
                         value
-                        .replace("\\", "\\\\")
-                        .replace("\"", "\\\""))
+                            .replace("\\", "\\\\")
+                            .replace("\"", "\\\"")
+                    )
                     writer.write("\"")
-                }
-                else {
+                } else {
                     writer.write(value.toString())
                 }
             }

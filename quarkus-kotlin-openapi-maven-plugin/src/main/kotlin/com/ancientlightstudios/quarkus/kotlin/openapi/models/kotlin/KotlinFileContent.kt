@@ -2,7 +2,7 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.writer.CodeWriter
 
-abstract class KotlinFileContent(val name: Name.ClassName) {
+abstract class KotlinFileContent(val name: ClassName) {
 
     val annotations = KotlinAnnotationContainer()
     val methods = mutableListOf<KotlinMethod>()

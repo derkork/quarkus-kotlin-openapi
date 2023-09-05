@@ -5,7 +5,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.writer.CodeWriter
 class KotlinAnnotationContainer {
     val annotations: MutableList<KotlinAnnotation> = mutableListOf()
 
-    fun add(name: Name.ClassName, vararg parameters: Pair<Name.VariableName, Any>) {
+    fun add(name: ClassName, vararg parameters: Pair<VariableName, Any>) {
         annotations.add(KotlinAnnotation(name, *parameters))
     }
 

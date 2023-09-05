@@ -2,24 +2,51 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
 import java.util.*
 
-sealed class Name(val name: String) {
+class ClassName private constructor(val name: String) {
 
-    class ClassName(name: String) : Name(name.toKotlinClassName())
-    class VariableName(name: String) : Name(name.toKotlinIdentifier())
-    class MethodName(name: String) : Name(name.toKotlinIdentifier())
+    override fun toString() = "ClassName($name)"
+
+    companion object {
+
+        fun String.rawClassName() = ClassName(this)
+
+        fun String.className() = ClassName(this.toKotlinIdentifier()
+            .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.ENGLISH) else it.toString() })
+    }
 
 }
 
-private fun String.toKotlinClassName() = this.toKotlinIdentifier()
-    .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.ENGLISH) else it.toString() }
+class VariableName private constructor(val name: String) {
 
-private val cameCasePattern = Regex("([a-z])([A-Z])")
+    override fun toString() = "VariableName($name)"
+
+    companion object {
+        fun String.rawVariableName() = VariableName(this)
+
+        fun String.variableName() = VariableName(this.toKotlinIdentifier())
+    }
+
+}
+
+class MethodName private constructor(val name: String) {
+
+    override fun toString() = "VariableName($name)"
+
+    companion object {
+        fun String.rawMethodName() = MethodName(this)
+
+        fun String.methodName() = MethodName(this.toKotlinIdentifier())
+    }
+
+}
+
+private val camelCasePattern = Regex("([a-z])([A-Z])")
 private val unwantedGroupPattern = Regex("[^a-zA-Z0-9]+")
 private val snakeCasePattern = Regex("_([a-z])")
 
 private fun String.toKotlinIdentifier(): String {
     // add an underscore into every combination of a lowercase letter followed by an uppercase letter
-    val cleaned = this.replace(cameCasePattern, "$1_$2")
+    val cleaned = this.replace(camelCasePattern, "$1_$2")
         // replace any sequence that is not a letter or a number with a single underscore
         .replace(unwantedGroupPattern, "_")
         // trim off any underscore at the start or end
