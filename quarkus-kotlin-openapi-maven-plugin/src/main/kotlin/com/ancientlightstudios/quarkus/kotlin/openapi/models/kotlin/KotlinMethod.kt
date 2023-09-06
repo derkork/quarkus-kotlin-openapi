@@ -1,6 +1,7 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.transformer.forEachWithStats
+import com.ancientlightstudios.quarkus.kotlin.openapi.transformer.renderParameterBlock
 import com.ancientlightstudios.quarkus.kotlin.openapi.writer.CodeWriter
 
 class KotlinMethod(
@@ -20,22 +21,7 @@ class KotlinMethod(
         }
 
         write("fun ${name.name}(")
-        // block to render the parameters. but will be called later
-        val parameterBlock: CodeWriter.(Boolean) -> Unit = { newLine ->
-            parameters.forEachWithStats { status, it ->
-                it.render(this)
-                if (!status.last) {
-                    write(", ", newLineAfter = newLine)
-                }
-            }
-        }
-
-        if (parameters.size > 1) {
-            indent(newLineBefore = true, newLineAfter = true) { parameterBlock(true) }
-        } else {
-            parameterBlock(false)
-        }
-
+        renderParameterBlock(parameters) { it.render(this) }
         write(")")
 
         if (returnType != null) {

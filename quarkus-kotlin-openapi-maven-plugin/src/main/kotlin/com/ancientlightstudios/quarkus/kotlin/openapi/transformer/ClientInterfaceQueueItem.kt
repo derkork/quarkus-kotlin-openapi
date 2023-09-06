@@ -9,11 +9,12 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.Request
 class ClientInterfaceQueueItem(requests: Set<Request>) : QueueItem() {
     override fun generate(config: Config, queue: (QueueItem) -> Unit): KotlinFile {
 
-        val clientInterface = KotlinInterface("${config.interfaceName}Client".className())
-        clientInterface.annotations.addPath("/")
+        val clientInterface = KotlinInterface("${config.interfaceName}Client".className()).apply {
+            annotations.addPath("/")
+        }
 
         return KotlinFile(clientInterface, "${config.packageName}.client").apply {
-            addJakartaRestImports()
+            imports.addAll(jakartaRestImports())
         }
     }
 

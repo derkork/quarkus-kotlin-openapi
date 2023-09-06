@@ -11,18 +11,25 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.Request
 class ServerInterfaceQueueItem(private val requests: Set<Request>) : QueueItem() {
 
     override fun generate(config: Config, queue: (QueueItem) -> Unit): KotlinFile {
-        val serverInterface = KotlinClass("${config.interfaceName}Server".className())
-        serverInterface.annotations.addPath("/")
+        queue(ServerDelegateQueueItem(requests))
+
+        val serverInterface = KotlinClass("${config.interfaceName}Server".className()).apply {
+            annotations.addPath("/")
+
+            // TODO: class name should come from the other generator
+            parameters.add(KotlinMember("delegate".variableName(), "${config.interfaceName}Delegate".className()))
+            parameters.add(KotlinMember("objectMapper".variableName(), "ObjectMapper".rawClassName()))
+        }
 
         requests.forEach {
             generateRequest(serverInterface, it, queue)
         }
 
         return KotlinFile(serverInterface, "${config.packageName}.server").apply {
-            addJakartaRestImports()
-            addJacksonImports()
-            addModelImports(config)
-            addLibraryImports()
+            imports.addAll(jakartaRestImports())
+            imports.addAll(jacksonImports())
+            imports.addAll(modelImports(config))
+            imports.addAll(libraryImports())
         }
     }
 
@@ -34,9 +41,10 @@ class ServerInterfaceQueueItem(private val requests: Set<Request>) : QueueItem()
             queueItem.className()
         }
 
-        val method = KotlinMethod(methodName, true, returnType, KotlinCode("// TODO"))
-        method.annotations.add(request.method.name.rawClassName()) // use name as it is
-        method.annotations.addPath(request.path)
+        val method = KotlinMethod(methodName, true, returnType, KotlinCode("// TODO")).apply {
+            annotations.add(request.method.name.rawClassName()) // use name as it is
+            annotations.addPath(request.path)
+        }
 
 
         request.parameters.forEach {

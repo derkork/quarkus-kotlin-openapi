@@ -2,7 +2,7 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.writer.CodeWriter
 
-class KotlinParameter(private val name: VariableName, private val type: ClassName, private val nullable: Boolean) {
+class KotlinParameter(private val name: VariableName, private val type: ClassName, private val nullable: Boolean = false) {
 
     val annotations = KotlinAnnotationContainer()
 
