@@ -40,16 +40,13 @@ class ServerInterfaceQueueItem(private val requests: Set<Request>) : QueueItem()
 
 
         request.parameters.forEach {
-            // TODO: nullable
-            val parameter = KotlinParameter(it.name.variableName(), "String".className())
+            val parameter = KotlinParameter(it.name.variableName(), "String".className(), true)
             parameter.annotations.addParam(it.kind, it.name)
             method.parameters.add(parameter)
         }
 
         request.bodyType?.let {
-            val queueItem = UnsafeModelQueueItem(it)
-            queue(queueItem)
-            val parameter = KotlinParameter("body".variableName(), queueItem.className())
+            val parameter = KotlinParameter("body".variableName(), "String".className(), true)
             method.parameters.add(parameter)
         }
 
