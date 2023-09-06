@@ -35,5 +35,8 @@ fun KotlinFile.addLibraryImports() {
     this.addImport("com.ancientlightstudios.quarkus.kotlin.openapi.*")
 }
 
-
-
+data class LoopStatus(val index: Int, val first: Boolean, val last: Boolean)
+inline fun <T> Collection<T>.forEachWithStats(action: (status: LoopStatus, T) -> Unit) {
+    val lastIndex = size - 1
+    this.forEachIndexed { index, item -> action(LoopStatus(index, index == 0, index == lastIndex), item) }
+}
