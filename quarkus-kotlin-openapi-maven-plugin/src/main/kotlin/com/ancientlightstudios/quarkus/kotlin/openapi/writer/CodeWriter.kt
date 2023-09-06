@@ -8,28 +8,38 @@ class CodeWriter private constructor(private val level: Int, private val writer:
 
     private var onEmptyLine = true
 
-    fun write(text: String) {
+    fun write(text: String, newLineBefore: Boolean = false, newLineAfter: Boolean = false) {
+        if (newLineBefore) {
+            writeln()
+        }
+
         if (onEmptyLine) {
             writer.write(text.trimIndent().prependIndent("    ".repeat(level)))
         } else {
             writer.write(text)
         }
         onEmptyLine = false
+
+        if (newLineAfter) {
+            writeln()
+        }
     }
 
-    fun writeln(text: String) {
-        write(text)
-        writer.newLine()
-        onEmptyLine = true
-    }
+    fun writeln(text: String) = write(text, newLineAfter = true)
 
     fun writeln() {
         writer.newLine()
         onEmptyLine = true
     }
 
-    fun indent(block: CodeWriter.() -> Unit) {
+    fun indent(newLineBefore: Boolean = false, newLineAfter: Boolean = false, block: CodeWriter.() -> Unit) {
+        if (newLineBefore) {
+            writeln()
+        }
         block(CodeWriter(level + 1, writer))
+        if (newLineAfter) {
+            writeln()
+        }
     }
 
 }
