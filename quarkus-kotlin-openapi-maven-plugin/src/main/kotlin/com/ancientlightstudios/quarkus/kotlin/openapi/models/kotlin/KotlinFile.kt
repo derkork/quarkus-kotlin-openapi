@@ -5,11 +5,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.writer.CodeWriter
 class KotlinFile(private val content: KotlinFileContent, val packageName: String) {
 
     val fileName = content.name.name
-    private val imports = mutableListOf<String>()
-
-    fun addImport(value: String) {
-        imports.add(value)
-    }
+    val imports = mutableListOf<String>()
 
     fun render(writer: CodeWriter) = with(writer) {
         writeln("package $packageName")
