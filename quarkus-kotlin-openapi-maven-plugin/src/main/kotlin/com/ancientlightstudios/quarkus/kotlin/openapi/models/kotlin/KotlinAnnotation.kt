@@ -1,32 +1,34 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
+import com.ancientlightstudios.quarkus.kotlin.openapi.transformer.forEachWithStats
 import com.ancientlightstudios.quarkus.kotlin.openapi.writer.CodeWriter
 
 class KotlinAnnotation(private val name: ClassName, private vararg val parameters: Pair<VariableName, Any>) {
-    fun render(writer: CodeWriter) {
-        writer.write("@${name.name}")
+
+    fun render(writer: CodeWriter) = with(writer) {
+        write("@${name.name}")
 
         if (parameters.isNotEmpty()) {
-            writer.write("(")
-            parameters.forEachIndexed { index, (name, value) ->
-                if (index > 0) {
-                    writer.write(", ")
-                }
-
-                writer.write("${name.name} = ")
+            write("(")
+            parameters.forEachWithStats { status, (name, value) ->
+                write("${name.name} = ")
                 if (value is String) {
-                    writer.write("\"")
-                    writer.write(
+                    write("\"")
+                    write(
                         value
                             .replace("\\", "\\\\")
                             .replace("\"", "\\\"")
                     )
-                    writer.write("\"")
+                    write("\"")
                 } else {
-                    writer.write(value.toString())
+                    write(value.toString())
+                }
+
+                if (!status.last) {
+                    write(", ")
                 }
             }
-            writer.write(")")
+            write(")")
         }
     }
 }

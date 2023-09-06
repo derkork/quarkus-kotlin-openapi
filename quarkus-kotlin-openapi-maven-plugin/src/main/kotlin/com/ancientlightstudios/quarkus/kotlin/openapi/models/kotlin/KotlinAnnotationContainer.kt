@@ -9,13 +9,13 @@ class KotlinAnnotationContainer {
         annotations.add(KotlinAnnotation(name, *parameters))
     }
 
-    fun render(writer: CodeWriter, addNewLines: Boolean) {
+    fun render(writer: CodeWriter, addNewLines: Boolean) = with(writer) {
         annotations.forEach {
-            it.render(writer)
+            it.render(this)
             if (addNewLines) {
-                writer.writeln()
+                writeln()
             } else {
-                writer.write(" ")
+                write(" ")
             }
         }
     }
