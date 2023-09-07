@@ -1,14 +1,13 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.transformer.forEachWithStats
 import com.ancientlightstudios.quarkus.kotlin.openapi.transformer.renderParameterBlock
 import com.ancientlightstudios.quarkus.kotlin.openapi.writer.CodeWriter
 
 class KotlinMethod(
     private val name: MethodName,
     private val suspend: Boolean,
-    private val returnType: ClassName?,
-    private val body: KotlinCode? = null
+    private val returnType: TypeName?,
+    private val body: KotlinStatementList? = null
 ) {
 
     val annotations = KotlinAnnotationContainer()
@@ -25,7 +24,8 @@ class KotlinMethod(
         write(")")
 
         if (returnType != null) {
-            write(": ${returnType.name}")
+            write(": ")
+            returnType.render(this)
         }
 
         if (body != null) {

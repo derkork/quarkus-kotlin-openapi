@@ -6,8 +6,9 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinFile
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinInterface
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.Request
 
-class ClientInterfaceQueueItem(requests: Set<Request>) : QueueItem() {
-    override fun generate(config: Config, queue: (QueueItem) -> Unit): KotlinFile {
+class ClientInterfaceQueueItem(private val config: Config, private val requests: Set<Request>) : QueueItem {
+
+    override fun generate(queue: (QueueItem) -> Unit): KotlinFile {
 
         val clientInterface = KotlinInterface("${config.interfaceName}Client".className()).apply {
             annotations.addPath("/")

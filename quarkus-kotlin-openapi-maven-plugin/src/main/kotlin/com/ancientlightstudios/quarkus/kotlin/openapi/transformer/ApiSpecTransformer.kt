@@ -10,11 +10,11 @@ fun transform(apiSpec: ApiSpec, config: Config): List<KotlinFile> {
     val done = mutableSetOf<QueueItem>()
 
     if (config.interfaceType == InterfaceType.CLIENT || config.interfaceType == InterfaceType.BOTH) {
-        queue.add(ClientInterfaceQueueItem(apiSpec.requests))
+        queue.add(ClientInterfaceQueueItem(config, apiSpec.requests))
     }
 
     if (config.interfaceType == InterfaceType.SERVER || config.interfaceType == InterfaceType.BOTH) {
-        queue.add(ServerInterfaceQueueItem(apiSpec.requests))
+        queue.add(ServerInterfaceQueueItem(config, apiSpec.requests))
     }
 
     val result = mutableListOf<KotlinFile>()
@@ -24,7 +24,7 @@ fun transform(apiSpec: ApiSpec, config: Config): List<KotlinFile> {
 
         if (!done.contains(item)) {
             done.add(item)
-            val element = item.generate(config) { queue.add(it) }
+            val element = item.generate { queue.add(it) }
             if (element != null) {
                 result.add(element)
             }
