@@ -95,20 +95,18 @@ class ServerInterfaceQueueItem(private val config: Config, private val requests:
             }
 
             is Schema.ArraySchema -> {
-                val parameterType = SafeModelQueueItem(config, type).enqueue(queue).className()
+                val parameterType = UnsafeModelQueueItem(config, type).enqueue(queue).className()
                 MaybeArrayTransformStatement(
                     maybeVariable, parameterVariable, contextName, type.containerAsArray(parameterType, true, false)
                 )
             }
 
-            is Schema.ObjectTypeSchema -> {
-                val parameterType = SafeModelQueueItem(config, type).enqueue(queue).className()
+            else -> {
+                val parameterType = UnsafeModelQueueItem(config, type).enqueue(queue).className()
                 MaybeObjectTransformStatement(
                     maybeVariable, parameterVariable, contextName, parameterType.typeName()
                 )
             }
-            // TODO: oneof, allof, anyof
-            else -> null
         }
 
         statement?.let { this.statements.add(it) }

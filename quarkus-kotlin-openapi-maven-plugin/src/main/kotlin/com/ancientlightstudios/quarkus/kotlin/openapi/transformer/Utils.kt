@@ -76,7 +76,11 @@ fun <T : QueueItem> T.enqueue(queue: (QueueItem) -> Unit): T {
     return this
 }
 
-fun SchemaRef.containerAsList(innerType: ClassName, innerNullable: Boolean = false, outerNullable: Boolean): TypeName {
+fun SchemaRef.containerAsList(
+    innerType: ClassName,
+    innerNullable: Boolean = false,
+    outerNullable: Boolean = false
+): TypeName {
     val schema = this.resolve()
     if (schema !is Schema.ArraySchema) {
         return innerType.typeName(innerNullable)
@@ -85,32 +89,28 @@ fun SchemaRef.containerAsList(innerType: ClassName, innerNullable: Boolean = fal
     return "List".rawTypeName(outerNullable).of(schema.items.containerAsList(innerType, innerNullable, outerNullable))
 }
 
-fun SchemaRef.containerAsArray(innerType: ClassName, innerNullable: Boolean = false, outerNullable: Boolean): TypeName {
+fun SchemaRef.containerAsArray(
+    innerType: ClassName,
+    innerNullable: Boolean = false,
+    outerNullable: Boolean = false
+): TypeName {
     val schema = this.resolve()
     if (schema !is Schema.ArraySchema) {
         return innerType.typeName(innerNullable)
     }
 
-    return "Array".rawTypeName(outerNullable).of(schema.items.containerAsList(innerType, innerNullable, outerNullable))
+    return "Array".rawTypeName(outerNullable).of(schema.items.containerAsArray(innerType, innerNullable, outerNullable))
 }
 
-fun Schema.className(): ClassName {
-    return when (this) {
-        is Schema.ArraySchema -> throw IllegalArgumentException("arrays not allowed here")
-        is Schema.PrimitiveTypeSchema -> {
-            when (this.typeName) {
-                "string" -> "String"
-                "password" -> "String"
-                "integer" -> "Int"
-                "int32" -> "Int"
-                "int64" -> "Long"
-                "float" -> "Float"
-                "number" -> "Double"
-                "boolean" -> "Boolean"
-                else -> throw IllegalArgumentException("Unknown basic type: ${this.typeName}")
-            }.rawClassName()
-        }
-
-        else -> this.typeName.substringAfterLast("/").className()
-    }
-}
+fun String.primitiveTypeClass() =
+    when (this) {
+        "string" -> "String"
+        "password" -> "String"
+        "integer" -> "Int"
+        "int32" -> "Int"
+        "int64" -> "Long"
+        "float" -> "Float"
+        "number" -> "Double"
+        "boolean" -> "Boolean"
+        else -> throw IllegalArgumentException("Unknown basic type: $this")
+    }.rawClassName()

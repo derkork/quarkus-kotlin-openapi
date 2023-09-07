@@ -28,7 +28,13 @@ class UnsafeModelQueueItem(private val config: Config, schemaRef: SchemaRef) : Q
         schema = currentSchema
     }
 
-    fun className(): ClassName = schema.className()
+    fun className(): ClassName {
+        return when (schema) {
+            is Schema.PrimitiveTypeSchema -> schema.typeName.primitiveTypeClass()
+            is Schema.EnumSchema -> "String".rawClassName()
+            else -> (schema.typeName.substringAfterLast("/") + "Unsafe").className()
+        }
+    }
 
     override fun generate(queue: (QueueItem) -> Unit): KotlinFile? {
         // ignore primitive types and enums
