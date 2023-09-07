@@ -2,6 +2,7 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.parser
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ParameterKind
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.RequestParameter
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ValidationInfo
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ObjectNode
 
@@ -18,7 +19,7 @@ class RequestParameterBuilder(
         val type = node.getAsObjectNode("schema").extractSchemaRef(schemaRegistry) { "$operationId $name" }
         val required = node.getBooleanOrNull("required") ?: false
 
-        return RequestParameter(name, ParameterKind.fromString(kind), required, type)
+        return RequestParameter(name, ParameterKind.fromString(kind), type, ValidationInfo(required))
     }
 
 }
