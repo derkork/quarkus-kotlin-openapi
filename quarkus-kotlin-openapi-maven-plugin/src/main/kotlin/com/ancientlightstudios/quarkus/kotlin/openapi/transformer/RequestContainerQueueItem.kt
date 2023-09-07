@@ -14,7 +14,18 @@ class RequestContainerQueueItem(private val config: Config, private val request:
 
         val content = KotlinClass(className())
         return KotlinFile(content, "${config.packageName}.model").apply {
-            imports.add("com.fasterxml.jackson.annotation.JsonProperty")
+        }
+
+    }
+
+    companion object {
+
+        fun enqueueRequestContainer(config: Config, request: Request, queue: (QueueItem) -> Unit): RequestContainerQueueItem? {
+            return if (request.parameters.isEmpty() && request.body == null) {
+                null
+            } else {
+                RequestContainerQueueItem(config, request).enqueue(queue)
+            }
         }
 
     }

@@ -48,28 +48,31 @@ class ServerInterfaceQueueItem(private val config: Config, private val requests:
             annotations.addPath(request.path)
         }
 
-        val parameterNames = mutableListOf<Pair<VariableName, VariableName>>()
+        val requestContainer = RequestContainerQueueItem.enqueueRequestContainer(config, request, queue)
+        val builderTransform = RequestBuilderTransformStatement(methodName, requestContainer?.className())
+
         request.parameters.forEach {
             val parameter = KotlinParameter(it.name.variableName(), "String".rawTypeName(true))
             parameter.annotations.addParam(it.kind, it.name)
             method.parameters.add(parameter)
 
-            methodBody.generateMaybeTransformStatement(it.type, it.name, it.validationInfo, it.kind, queue)
+            methodBody.generateMaybeTransformStatement(it.type, it.name, it.validationInfo, it.kind, queue, builderTransform)
         }
 
         request.body?.let {
             val parameter = KotlinParameter("body".variableName(), "String".rawTypeName(true))
             method.parameters.add(parameter)
 
-            methodBody.generateMaybeTransformStatement(it.type, "body", it.validationInfo, null, queue)
+            methodBody.generateMaybeTransformStatement(it.type, "body", it.validationInfo, null, queue, builderTransform)
         }
 
+        methodBody.statements.add(builderTransform)
         serverInterface.methods.add(method)
     }
 
     private fun KotlinStatementList.generateMaybeTransformStatement(
         type: SchemaRef, parameterName: String, validationInfo: ValidationInfo,
-        kind: ParameterKind?, queue: (QueueItem) -> Unit
+        kind: ParameterKind?, queue: (QueueItem) -> Unit, builderTransformStatement: RequestBuilderTransformStatement
     ) {
         val maybeVariable = "maybe $parameterName".variableName()
         val parameterVariable = parameterName.variableName()
@@ -108,6 +111,7 @@ class ServerInterfaceQueueItem(private val config: Config, private val requests:
         }
 
         this.statements.add(statement)
+        builderTransformStatement.registerParameter(parameterName, maybeVariable)
     }
 
     override fun equals(other: Any?): Boolean {
