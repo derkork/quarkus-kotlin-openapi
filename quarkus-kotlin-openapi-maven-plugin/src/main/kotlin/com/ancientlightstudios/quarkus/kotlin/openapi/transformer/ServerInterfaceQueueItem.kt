@@ -5,20 +5,25 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName.Companion.className
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName.Companion.rawClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.methodName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.SimpleTypeName.Companion.rawTypeName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.SimpleTypeName.Companion.typeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ParameterKind
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.Request
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.Schema
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.SchemaRef
 
-class ServerInterfaceQueueItem(private val requests: Set<Request>) : QueueItem() {
+class ServerInterfaceQueueItem(private val config: Config, private val requests: Set<Request>) : QueueItem {
 
-    override fun generate(config: Config, queue: (QueueItem) -> Unit): KotlinFile {
-        queue(ServerDelegateQueueItem(requests))
+    override fun generate(queue: (QueueItem) -> Unit): KotlinFile {
+        val delegateQueueItem = ServerDelegateQueueItem(config, requests)
+        queue(delegateQueueItem)
 
         val serverInterface = KotlinClass("${config.interfaceName}Server".className()).apply {
             annotations.addPath("/")
 
-            // TODO: class name should come from the other generator
-            parameters.add(KotlinMember("delegate".variableName(), "${config.interfaceName}Delegate".className()))
-            parameters.add(KotlinMember("objectMapper".variableName(), "ObjectMapper".rawClassName()))
+            parameters.add(KotlinMember("delegate".variableName(), delegateQueueItem.className().typeName()))
+            parameters.add(KotlinMember("objectMapper".variableName(), "ObjectMapper".rawTypeName()))
         }
 
         requests.forEach {
@@ -36,31 +41,78 @@ class ServerInterfaceQueueItem(private val requests: Set<Request>) : QueueItem()
     private fun generateRequest(serverInterface: KotlinClass, request: Request, queue: (QueueItem) -> Unit) {
         val methodName = request.operationId.methodName()
         val returnType = request.returnType?.let {
-            val queueItem = SafeModelQueueItem(it)
-            queue(queueItem)
-            queueItem.className()
+            val inner = SafeModelQueueItem(config, it).enqueue(queue).className()
+            it.containerAsList(inner, false, false)
         }
+        val methodBody = KotlinStatementList()
 
-        val method = KotlinMethod(methodName, true, returnType, KotlinCode("// TODO")).apply {
+        val method = KotlinMethod(methodName, true, returnType, methodBody).apply {
             annotations.add(request.method.name.rawClassName()) // use name as it is
             annotations.addPath(request.path)
         }
 
-
+        val parameterNames = mutableListOf<Pair<VariableName, VariableName>>()
         request.parameters.forEach {
-            val parameter = KotlinParameter(it.name.variableName(), "String".className(), true)
+            val parameter = KotlinParameter(it.name.variableName(), "String".rawTypeName(true))
             parameter.annotations.addParam(it.kind, it.name)
             method.parameters.add(parameter)
+
+            methodBody.generateMaybeTransformStatement(it.type, it.name, it.kind, queue)
         }
 
         request.bodyType?.let {
-            val parameter = KotlinParameter("body".variableName(), "String".className(), true)
+            val parameter = KotlinParameter("body".variableName(), "String".rawTypeName(true))
             method.parameters.add(parameter)
+
+            methodBody.generateMaybeTransformStatement(it, "body", null, queue)
         }
 
         serverInterface.methods.add(method)
     }
 
+    private fun KotlinStatementList.generateMaybeTransformStatement(
+        type: SchemaRef, parameterName: String,
+        kind: ParameterKind?, queue: (QueueItem) -> Unit
+    ) {
+        val maybeVariable = "maybe $parameterName".variableName()
+        val parameterVariable = parameterName.variableName()
+        val contextName = kind?.let { "request.${it.name.lowercase()}.$parameterName" } ?: "request.$parameterName"
+
+
+        val statement = when (type.resolve()) {
+            is Schema.EnumSchema -> {
+                val parameterType = SafeModelQueueItem(config, type).enqueue(queue).className()
+                MaybeEnumTransformStatement(
+                    maybeVariable, parameterVariable, contextName, parameterType.typeName()
+                )
+            }
+
+            is Schema.PrimitiveTypeSchema -> {
+                val parameterType = SafeModelQueueItem(config, type).enqueue(queue).className()
+                MaybePrimitiveTransformStatement(
+                    maybeVariable, parameterVariable, contextName, parameterType.typeName()
+                )
+            }
+
+            is Schema.ArraySchema -> {
+                val parameterType = SafeModelQueueItem(config, type).enqueue(queue).className()
+                MaybeArrayTransformStatement(
+                    maybeVariable, parameterVariable, contextName, type.containerAsArray(parameterType, true, false)
+                )
+            }
+
+            is Schema.ObjectTypeSchema -> {
+                val parameterType = SafeModelQueueItem(config, type).enqueue(queue).className()
+                MaybeObjectTransformStatement(
+                    maybeVariable, parameterVariable, contextName, parameterType.typeName()
+                )
+            }
+            // TODO: oneof, allof, anyof
+            else -> null
+        }
+
+        statement?.let { this.statements.add(it) }
+    }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

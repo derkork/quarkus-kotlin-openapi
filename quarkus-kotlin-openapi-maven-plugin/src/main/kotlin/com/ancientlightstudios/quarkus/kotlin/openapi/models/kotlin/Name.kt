@@ -1,5 +1,6 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
+import com.ancientlightstudios.quarkus.kotlin.openapi.writer.CodeWriter
 import java.util.*
 
 class ClassName private constructor(val name: String) {
@@ -16,13 +17,63 @@ class ClassName private constructor(val name: String) {
 
 }
 
+sealed class TypeName {
+
+    abstract fun render(writer: CodeWriter)
+
+    class SimpleTypeName private constructor(val name: String, val nullable: Boolean) : TypeName() {
+
+        override fun toString() = "SimpleTypeName($name)"
+
+        override fun render(writer: CodeWriter) = with(writer) {
+            write(name)
+            if (nullable) {
+                write("?")
+            }
+        }
+
+        companion object {
+
+            fun String.rawTypeName(nullable: Boolean = false) = SimpleTypeName(this, nullable)
+
+            fun String.typeName(nullable: Boolean = false) = SimpleTypeName(
+                this.toKotlinIdentifier()
+                    .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.ENGLISH) else it.toString() },
+                nullable
+            )
+
+            fun ClassName.typeName(nullable: Boolean = false) = name.rawTypeName(nullable)
+        }
+
+    }
+
+    class GenericTypeName private constructor(val outerType: SimpleTypeName, val innerType: TypeName) : TypeName() {
+
+        override fun toString() = "GenericTypeName($outerType, $innerType)"
+
+        override fun render(writer: CodeWriter) = with(writer) {
+            write("${outerType.name}<")
+            innerType.render(this)
+            write(">")
+            if (outerType.nullable) {
+                write("?")
+            }
+        }
+
+        companion object {
+
+            fun SimpleTypeName.of(inner: TypeName) = GenericTypeName(this, inner)
+
+        }
+
+    }
+}
+
 class VariableName private constructor(val name: String) {
 
     override fun toString() = "VariableName($name)"
 
     companion object {
-        fun String.rawVariableName() = VariableName(this)
-
         fun String.variableName() = VariableName(this.toKotlinIdentifier())
     }
 
@@ -33,8 +84,6 @@ class MethodName private constructor(val name: String) {
     override fun toString() = "VariableName($name)"
 
     companion object {
-        fun String.rawMethodName() = MethodName(this)
-
         fun String.methodName() = MethodName(this.toKotlinIdentifier())
     }
 

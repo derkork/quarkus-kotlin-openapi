@@ -1,10 +1,18 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.transformer
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.Config
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName.Companion.className
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName.Companion.rawClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinAnnotationContainer
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.GenericTypeName.Companion.of
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.SimpleTypeName.Companion.rawTypeName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.SimpleTypeName.Companion.typeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ParameterKind
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.Schema
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.SchemaRef
 import com.ancientlightstudios.quarkus.kotlin.openapi.writer.CodeWriter
 
 fun KotlinAnnotationContainer.addPath(path: String) = add("Path".className(), "value".variableName() to path)
@@ -60,5 +68,49 @@ fun <T> CodeWriter.renderParameterBlock(
         indent(newLineBefore = true, newLineAfter = true) { parameterBlock(true) }
     } else {
         parameterBlock(false)
+    }
+}
+
+fun <T : QueueItem> T.enqueue(queue: (QueueItem) -> Unit): T {
+    queue(this)
+    return this
+}
+
+fun SchemaRef.containerAsList(innerType: ClassName, innerNullable: Boolean = false, outerNullable: Boolean): TypeName {
+    val schema = this.resolve()
+    if (schema !is Schema.ArraySchema) {
+        return innerType.typeName(innerNullable)
+    }
+
+    return "List".rawTypeName(outerNullable).of(schema.items.containerAsList(innerType, innerNullable, outerNullable))
+}
+
+fun SchemaRef.containerAsArray(innerType: ClassName, innerNullable: Boolean = false, outerNullable: Boolean): TypeName {
+    val schema = this.resolve()
+    if (schema !is Schema.ArraySchema) {
+        return innerType.typeName(innerNullable)
+    }
+
+    return "Array".rawTypeName(outerNullable).of(schema.items.containerAsList(innerType, innerNullable, outerNullable))
+}
+
+fun Schema.className(): ClassName {
+    return when (this) {
+        is Schema.ArraySchema -> throw IllegalArgumentException("arrays not allowed here")
+        is Schema.PrimitiveTypeSchema -> {
+            when (this.typeName) {
+                "string" -> "String"
+                "password" -> "String"
+                "integer" -> "Int"
+                "int32" -> "Int"
+                "int64" -> "Long"
+                "float" -> "Float"
+                "number" -> "Double"
+                "boolean" -> "Boolean"
+                else -> throw IllegalArgumentException("Unknown basic type: ${this.typeName}")
+            }.rawClassName()
+        }
+
+        else -> this.typeName.substringAfterLast("/").className()
     }
 }
