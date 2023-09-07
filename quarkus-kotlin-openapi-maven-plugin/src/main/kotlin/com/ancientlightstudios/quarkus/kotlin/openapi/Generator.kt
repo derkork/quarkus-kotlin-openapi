@@ -1,7 +1,6 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.parser.*
-import com.ancientlightstudios.quarkus.kotlin.openapi.strafbank.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.transformer.transform
 import com.ancientlightstudios.quarkus.kotlin.openapi.writer.write
 

@@ -86,7 +86,8 @@ fun SchemaRef.containerAsList(
         return innerType.typeName(innerNullable)
     }
 
-    return "List".rawTypeName(outerNullable).of(schema.items.containerAsList(innerType, innerNullable, outerNullable))
+    // passing the innerNullable argument twice is important here, because nested Lists are treated as inner types as well
+    return "List".rawTypeName(outerNullable).of(schema.items.containerAsList(innerType, innerNullable, innerNullable))
 }
 
 fun SchemaRef.containerAsArray(
@@ -99,7 +100,8 @@ fun SchemaRef.containerAsArray(
         return innerType.typeName(innerNullable)
     }
 
-    return "Array".rawTypeName(outerNullable).of(schema.items.containerAsArray(innerType, innerNullable, outerNullable))
+    // passing the innerNullable argument twice is important here, because nested Lists are treated as inner types as well
+    return "Array".rawTypeName(outerNullable).of(schema.items.containerAsArray(innerType, innerNullable, innerNullable))
 }
 
 fun String.primitiveTypeClass() =

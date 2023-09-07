@@ -8,7 +8,7 @@ fun JsonNode?.getTextOrNull(property: String): String? = this?.get(property)?.as
 fun JsonNode?.getBooleanOrNull(property: String): Boolean? = this?.get(property)?.asBoolean()
 
 fun JsonNode?.getAsObjectNode(property: String): ObjectNode =
-    this?.get(property) as? ObjectNode ?: throw IllegalArgumentException("$property is not of type OpbjectNode")
+    this?.get(property) as? ObjectNode ?: throw IllegalArgumentException("$property is not of type ObjectNode")
 
 private val PathPattern = Regex("(?<!\\\\)/").toPattern()
 

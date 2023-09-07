@@ -24,9 +24,7 @@ class RequestBuilder(
         node.withArray("parameters").map { it.parseAsRequestParameter(schemaRegistry, operationId) }
 
     private fun buildBodyType(schemaRegistry: SchemaRegistry) =
-        // TODO: handle other content types when needed, then again, we don't need them for now
-        (node.resolvePath("requestBody/content/application\\/json/schema") as? ObjectNode)
-            ?.extractSchemaRef(schemaRegistry) { "$operationId Body" }
+        (node.resolvePath("requestBody") as? ObjectNode)?.parseAsRequestBody(schemaRegistry, operationId)
 
     private fun buildReturnType(schemaRegistry: SchemaRegistry) =
         // TODO: handle other content types when needed, then again, we don't need them for now

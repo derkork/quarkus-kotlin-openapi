@@ -32,7 +32,7 @@ class Request(
     val method: RequestMethod,
     val operationId: String,
     val parameters: List<RequestParameter>,
-    val bodyType: SchemaRef?,
+    val body: RequestBody?,
     val returnType: SchemaRef?
 )
 
@@ -58,9 +58,13 @@ enum class ParameterKind {
 data class RequestParameter(
     val name: String,
     val kind: ParameterKind,
-    val required: Boolean,
-    val type: SchemaRef
+    val type: SchemaRef,
+    val validationInfo: ValidationInfo
 )
+
+data class RequestBody(val type: SchemaRef, val validationInfo: ValidationInfo)
+
+data class ValidationInfo(val required: Boolean)
 
 sealed class Schema(val typeName: String) {
 
@@ -69,7 +73,7 @@ sealed class Schema(val typeName: String) {
     class ArraySchema(val items: SchemaRef) : Schema("array")
     class ObjectTypeSchema(typeName: String, val properties: List<SchemaProperty>) : Schema(typeName)
 
-    class OneOfSchema(typeName: String, val discriminator:String, val oneOf: List<SchemaRef>) : Schema(typeName)
+    class OneOfSchema(typeName: String, val discriminator: String, val oneOf: List<SchemaRef>) : Schema(typeName)
     class AnyOfSchema(typeName: String, val anyOf: List<SchemaRef>) : Schema(typeName)
     class AllOfSchema(typeName: String, val allOf: List<SchemaRef>) : Schema(typeName)
     class EnumSchema(typeName: String, val values: List<String>) : Schema(typeName)

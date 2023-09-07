@@ -8,10 +8,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.C
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.SimpleTypeName.Companion.rawTypeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.SimpleTypeName.Companion.typeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ParameterKind
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.Request
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.Schema
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.SchemaRef
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.*
 
 class ServerInterfaceQueueItem(private val config: Config, private val requests: Set<Request>) : QueueItem {
 
@@ -57,59 +54,60 @@ class ServerInterfaceQueueItem(private val config: Config, private val requests:
             parameter.annotations.addParam(it.kind, it.name)
             method.parameters.add(parameter)
 
-            methodBody.generateMaybeTransformStatement(it.type, it.name, it.kind, queue)
+            methodBody.generateMaybeTransformStatement(it.type, it.name, it.validationInfo, it.kind, queue)
         }
 
-        request.bodyType?.let {
+        request.body?.let {
             val parameter = KotlinParameter("body".variableName(), "String".rawTypeName(true))
             method.parameters.add(parameter)
 
-            methodBody.generateMaybeTransformStatement(it, "body", null, queue)
+            methodBody.generateMaybeTransformStatement(it.type, "body", it.validationInfo, null, queue)
         }
 
         serverInterface.methods.add(method)
     }
 
     private fun KotlinStatementList.generateMaybeTransformStatement(
-        type: SchemaRef, parameterName: String,
+        type: SchemaRef, parameterName: String, validationInfo: ValidationInfo,
         kind: ParameterKind?, queue: (QueueItem) -> Unit
     ) {
         val maybeVariable = "maybe $parameterName".variableName()
         val parameterVariable = parameterName.variableName()
         val contextName = kind?.let { "request.${it.name.lowercase()}.$parameterName" } ?: "request.$parameterName"
 
-
         val statement = when (type.resolve()) {
             is Schema.EnumSchema -> {
                 val parameterType = SafeModelQueueItem(config, type).enqueue(queue).className()
                 MaybeEnumTransformStatement(
-                    maybeVariable, parameterVariable, contextName, parameterType.typeName()
+                    maybeVariable, parameterVariable, contextName, parameterType.typeName(), validationInfo
                 )
             }
 
             is Schema.PrimitiveTypeSchema -> {
                 val parameterType = SafeModelQueueItem(config, type).enqueue(queue).className()
                 MaybePrimitiveTransformStatement(
-                    maybeVariable, parameterVariable, contextName, parameterType.typeName()
+                    maybeVariable, parameterVariable, contextName, parameterType.typeName(), validationInfo
                 )
             }
 
             is Schema.ArraySchema -> {
                 val parameterType = UnsafeModelQueueItem(config, type).enqueue(queue).className()
                 MaybeArrayTransformStatement(
-                    maybeVariable, parameterVariable, contextName, type.containerAsArray(parameterType, true, false)
+                    maybeVariable, parameterVariable, contextName,
+                    type.containerAsArray(parameterType, true, false),
+                    validationInfo
                 )
             }
 
             else -> {
                 val parameterType = UnsafeModelQueueItem(config, type).enqueue(queue).className()
                 MaybeObjectTransformStatement(
-                    maybeVariable, parameterVariable, contextName, parameterType.typeName()
+                    maybeVariable, parameterVariable, contextName, parameterType.typeName(), validationInfo
                 )
             }
         }
 
-        statement?.let { this.statements.add(it) }
+        this.statements.add(statement)
     }
 
     override fun equals(other: Any?): Boolean {
