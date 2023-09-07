@@ -29,7 +29,12 @@ class SafeModelQueueItem(private val config: Config, schemaRef: SchemaRef) : Que
         schema = currentSchema
     }
 
-    fun className(): ClassName = schema.className()
+    fun className(): ClassName {
+        return when (schema) {
+            is Schema.PrimitiveTypeSchema -> schema.typeName.primitiveTypeClass()
+            else -> schema.typeName.substringAfterLast("/").className()
+        }
+    }
 
     override fun generate(queue: (QueueItem) -> Unit): KotlinFile? {
         // ignore primitive types
