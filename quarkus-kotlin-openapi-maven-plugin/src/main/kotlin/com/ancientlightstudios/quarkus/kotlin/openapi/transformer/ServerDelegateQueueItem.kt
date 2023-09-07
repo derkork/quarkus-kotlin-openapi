@@ -37,15 +37,16 @@ class ServerDelegateQueueItem(private val config: Config, private val requests: 
             it.containerAsList(inner, false, false)
         }
 
-        val requestContainerItem = RequestContainerQueueItem(config, request).enqueue(queue)
 
         val method = KotlinMethod(methodName, true, returnType).apply {
-            parameters.add(
-                KotlinParameter(
-                    "request".variableName(),
-                    "Maybe".rawTypeName().of(requestContainerItem.className().typeName())
+            RequestContainerQueueItem.enqueueRequestContainer(config, request, queue)?.let {
+                parameters.add(
+                    KotlinParameter(
+                        "request".variableName(),
+                        "Maybe".rawTypeName().of(it.className().typeName())
+                    )
                 )
-            )
+            }
         }
 
         serverInterface.methods.add(method)
