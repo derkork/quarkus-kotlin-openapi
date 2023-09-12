@@ -69,14 +69,38 @@ sealed class TypeName {
     }
 }
 
-class VariableName private constructor(val name: String) {
+interface Expression {
+    val expression: String
+}
 
+class StringExpression(private val value:String) : Expression {
+    override val expression: String
+        get() = "\"${value.replace("\\", "\\\\").replace("\"", "\\\"")}\""
+
+    companion object {
+        fun String.stringExpression() = StringExpression(this)
+    }
+}
+
+class NestedPathExpression private constructor(private val propertyPath: Expression, private val append: VariableName) : Expression {
+    override fun toString() = "NestedPath($expression)"
+    override val expression: String
+        get() = "${propertyPath.expression}.${append.name}"
+
+    companion object {
+        fun Expression.nested(name: VariableName) = NestedPathExpression(this, name)
+    }
+}
+
+class VariableName private constructor(val name: String) : Expression {
     override fun toString() = "VariableName($name)"
+
+    override val expression: String
+        get() = name
 
     companion object {
         fun String.variableName() = VariableName(this.toKotlinIdentifier())
     }
-
 }
 
 class MethodName private constructor(val name: String) {

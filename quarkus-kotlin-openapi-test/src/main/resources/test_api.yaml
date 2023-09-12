@@ -20,7 +20,7 @@ paths:
             schema:
               type: array
               items:
-                  $ref: '#/components/schemas/User'
+                $ref: '#/components/schemas/User'
       responses:
         '204':
           description: Successful operation
@@ -103,6 +103,13 @@ components:
           type: string
         status:
           $ref: "#/components/schemas/UserStatus"
+        address:
+          $ref: "#/components/schemas/Address"
+
+        fallbackAddresses:
+          type: array
+          items:
+            $ref: "#/components/schemas/Address"
       required:
         - id
         - name
@@ -113,3 +120,20 @@ components:
         - available
         - blocked
       default: available
+
+    Address:
+      type: object
+      properties:
+        street:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        zip:
+          type: string
+      required:
+        - street
+        - city
+        - state
+        - zip

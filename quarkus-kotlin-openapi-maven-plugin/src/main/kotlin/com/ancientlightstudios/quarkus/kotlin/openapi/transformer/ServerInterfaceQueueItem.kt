@@ -1,117 +1,96 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.transformer
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.Config
+import TransformerContext
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName.Companion.className
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName.Companion.rawClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.methodName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.NestedPathExpression.Companion.nested
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.StringExpression.Companion.stringExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.SimpleTypeName.Companion.rawTypeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.SimpleTypeName.Companion.typeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.*
 
-class ServerInterfaceQueueItem(private val config: Config, private val requests: Set<Request>) : QueueItem {
+class ServerInterfaceQueueItem(private val requests: Set<Request>, private val context: TransformerContext) : QueueItem {
 
-    override fun generate(queue: (QueueItem) -> Unit): KotlinFile {
-        val delegateQueueItem = ServerDelegateQueueItem(config, requests)
-        queue(delegateQueueItem)
+    override fun generate(): KotlinFile {
+        val delegateQueueItem = ServerDelegateQueueItem( requests, context).apply {
+            context.enqueue(this)
+        }
 
-        val serverInterface = KotlinClass("${config.interfaceName}Server".className()).apply {
-            annotations.addPath("/")
+        val serverInterface = KotlinClass("${context.config.interfaceName}Server".className()).apply {
+            addPathAnnotation("/")
 
-            parameters.add(KotlinMember("delegate".variableName(), delegateQueueItem.className().typeName()))
-            parameters.add(KotlinMember("objectMapper".variableName(), "ObjectMapper".rawTypeName()))
+            addMember("delegate".variableName(), delegateQueueItem.className().typeName())
+            addMember("objectMapper".variableName(), "ObjectMapper".rawTypeName())
         }
 
         requests.forEach {
-            generateRequest(serverInterface, it, queue)
+            generateRequest(serverInterface, it)
         }
 
-        return KotlinFile(serverInterface, "${config.packageName}.server").apply {
+        return KotlinFile(serverInterface, "${context.config.packageName}.server").apply {
             imports.addAll(jakartaRestImports())
             imports.addAll(jacksonImports())
-            imports.addAll(modelImports(config))
+            imports.addAll(modelImports(context.config))
             imports.addAll(libraryImports())
         }
     }
 
-    private fun generateRequest(serverInterface: KotlinClass, request: Request, queue: (QueueItem) -> Unit) {
+    private fun generateRequest(serverInterface: KotlinClass, request: Request) {
         val methodName = request.operationId.methodName()
-        val returnType = request.returnType?.let {
-            val inner = SafeModelQueueItem(config, it).enqueue(queue).className()
-            it.containerAsList(inner, false, false)
-        }
-        val methodBody = KotlinStatementList()
 
-        val method = KotlinMethod(methodName, true, returnType, methodBody).apply {
+        val method = serverInterface.addMethod(methodName, true, "RestResponse<*>".rawTypeName()).apply {
             annotations.add(request.method.name.rawClassName()) // use name as it is
             annotations.addPath(request.path)
         }
 
-        val requestContainer = RequestContainerQueueItem.enqueueRequestContainer(config, request, queue)
-        val builderTransform = RequestBuilderTransformStatement(methodName, requestContainer?.className())
+        val requestContainer = context.requestContainerFor(request)
+        val builderTransform =  RequestBuilderTransformStatement(methodName, requestContainer?.className())
 
         request.parameters.forEach {
-            val parameter = KotlinParameter(it.name.variableName(), "String".rawTypeName(true))
-            parameter.annotations.addParam(it.kind, it.name)
-            method.parameters.add(parameter)
+            method.addParameter(it.name.variableName(), "String".rawTypeName(true)).apply {
+                annotations.addParam(it.kind, it.name)
+            }
 
-            methodBody.generateMaybeTransformStatement(it.type, it.name, it.validationInfo, it.kind, queue, builderTransform)
+            generateMaybeTransformStatement(it.type, it.name, it.validationInfo, it.kind, builderTransform)
+                .addTo(method)
         }
 
         request.body?.let {
-            val parameter = KotlinParameter("body".variableName(), "String".rawTypeName(true))
-            method.parameters.add(parameter)
+            method.addParameter("body".variableName(), "String".rawTypeName(true))
 
-            methodBody.generateMaybeTransformStatement(it.type, "body", it.validationInfo, null, queue, builderTransform)
+            generateMaybeTransformStatement(it.type, "body", it.validationInfo, null, builderTransform)
+                .addTo(method)
         }
 
-        methodBody.statements.add(builderTransform)
-        serverInterface.methods.add(method)
+        builderTransform.addTo(method)
     }
 
-    private fun KotlinStatementList.generateMaybeTransformStatement(
-        type: SchemaRef, parameterName: String, validationInfo: ValidationInfo,
-        kind: ParameterKind?, queue: (QueueItem) -> Unit, builderTransformStatement: RequestBuilderTransformStatement
-    ) {
-        val maybeVariable = "maybe $parameterName".variableName()
-        val parameterVariable = parameterName.variableName()
-        val contextName = kind?.let { "request.${it.name.lowercase()}.$parameterName" } ?: "request.$parameterName"
+    private fun generateMaybeTransformStatement(
+        type: SchemaRef,
+        parameterName: String,
+        validationInfo: ValidationInfo,
+        kind: ParameterKind?,
+        builderTransformStatement: RequestBuilderTransformStatement
+    ): KotlinStatement {
+        val contextName = kind
+            ?.let { "request.${it.name.lowercase()}.$parameterName".stringExpression() }
+            ?: "request.$parameterName".stringExpression()
+        val (maybeVariable, statement) = convertToMaybe(
+            context,
+            type,
+            validationInfo,
+            contextName,
+            parameterName.variableName()
+        )
 
-        val statement = when (type.resolve()) {
-            is Schema.EnumSchema -> {
-                val parameterType = SafeModelQueueItem(config, type).enqueue(queue).className()
-                MaybeEnumTransformStatement(
-                    maybeVariable, parameterVariable, contextName, parameterType.typeName(), validationInfo
-                )
-            }
+        val inner = context.safeModelFor(type).className()
+        val finalType = type.containerAsList(inner, innerNullable = false, outerNullable = !validationInfo.required)
 
-            is Schema.PrimitiveTypeSchema -> {
-                val parameterType = SafeModelQueueItem(config, type).enqueue(queue).className()
-                MaybePrimitiveTransformStatement(
-                    maybeVariable, parameterVariable, contextName, parameterType.typeName(), validationInfo
-                )
-            }
-
-            is Schema.ArraySchema -> {
-                val parameterType = UnsafeModelQueueItem(config, type).enqueue(queue).className()
-                MaybeArrayTransformStatement(
-                    maybeVariable, parameterVariable, contextName,
-                    type.containerAsArray(parameterType, true, false),
-                    validationInfo
-                )
-            }
-
-            else -> {
-                val parameterType = UnsafeModelQueueItem(config, type).enqueue(queue).className()
-                MaybeObjectTransformStatement(
-                    maybeVariable, parameterVariable, contextName, parameterType.typeName(), validationInfo
-                )
-            }
-        }
-
-        this.statements.add(statement)
         builderTransformStatement.registerParameter(parameterName, maybeVariable)
+        return statement
     }
 
     override fun equals(other: Any?): Boolean {
@@ -123,4 +102,6 @@ class ServerInterfaceQueueItem(private val config: Config, private val requests:
     override fun hashCode(): Int {
         return javaClass.hashCode()
     }
+
+
 }

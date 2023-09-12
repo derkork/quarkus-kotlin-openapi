@@ -6,12 +6,13 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.writer.CodeWriter
 class KotlinMethod(
     private val name: MethodName,
     private val suspend: Boolean,
-    private val returnType: TypeName?,
-    private val body: KotlinStatementList? = null
+    private val returnType: TypeName? = null,
+    private val receiverType: TypeName? = null
 ) {
 
     val annotations = KotlinAnnotationContainer()
-    val parameters = mutableListOf<KotlinParameter>()
+    private val parameters = mutableListOf<KotlinParameter>()
+    private var body: KotlinStatementList? = null
 
     fun render(writer: CodeWriter) = with(writer) {
         annotations.render(this, true)
@@ -19,7 +20,12 @@ class KotlinMethod(
             write("suspend ")
         }
 
-        write("fun ${name.name}(")
+        write("fun ")
+        if (receiverType != null) {
+            receiverType.render(this)
+            write(".")
+        }
+        write("${name.name}(")
         renderParameterBlock(parameters) { it.render(this) }
         write(")")
 
@@ -31,11 +37,26 @@ class KotlinMethod(
         if (body != null) {
             writeln(" {")
             indent {
-                body.render(this)
+                body!!.render(this)
             }
             writeln("}")
         } else {
             writeln()
         }
     }
+
+    fun addStatement(statement: KotlinStatement): KotlinMethod {
+        if (body == null) {
+            body = KotlinStatementList()
+        }
+        body!!.statements.add(statement)
+        return this
+    }
+
+    fun addParameter(variableName:VariableName, typeName:TypeName): KotlinParameter {
+        val result = KotlinParameter(variableName, typeName)
+        parameters.add(result)
+        return result
+    }
+
 }

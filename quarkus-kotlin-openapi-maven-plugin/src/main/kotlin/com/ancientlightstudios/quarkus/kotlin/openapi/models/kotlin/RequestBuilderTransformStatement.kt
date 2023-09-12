@@ -10,7 +10,7 @@ class RequestBuilderTransformStatement(private val methodName: MethodName,
     private val parameters = mutableListOf<Pair<VariableName, VariableName>>()
 
     fun registerParameter(parameterName: String, maybeName: VariableName) {
-        parameters.add("valid $parameterName".variableName() to maybeName)
+        parameters.add(Pair("valid $parameterName".variableName(), maybeName))
     }
 
     override fun render(writer: CodeWriter) = with(writer) {
@@ -27,11 +27,11 @@ class RequestBuilderTransformStatement(private val methodName: MethodName,
                 }
             }
             write(") ->")
-            indent(true, true) {
+            indent(newLineBefore = true, newLineAfter = true) {
                 write("${requestContainer.name}(")
-                indent(true, true) {
+                indent(newLineBefore = true, newLineAfter = true) {
                     parameters.forEachWithStats { status, (validName, _) ->
-                        write("${validName.name} as String")
+                        write("maybeCast(${validName.name})")
                         if (!status.last) {
                             writeln(",")
                         }
@@ -39,10 +39,10 @@ class RequestBuilderTransformStatement(private val methodName: MethodName,
                 }
                 write(")")
             }
-            writeln("}")
-            writeln("return delegate.${methodName.name}(request)")
+            writeln("}.forceNotNull()")
+            writeln("return delegate.${methodName.name}(request).response")
         } else {
-            writeln("return delegate.${methodName.name}()")
+            writeln("return delegate.${methodName.name}().response")
         }
     }
 

@@ -91,5 +91,5 @@ data class SchemaRef(
 data class SchemaProperty(
     val name: String,
     val type: SchemaRef,
-    val required: Boolean,
+    val validationInfo: ValidationInfo
 )
