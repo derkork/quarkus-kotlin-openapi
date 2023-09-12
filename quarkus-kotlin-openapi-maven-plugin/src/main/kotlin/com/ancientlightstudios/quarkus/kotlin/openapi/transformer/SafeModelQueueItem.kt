@@ -1,16 +1,15 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.transformer
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.Config
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName
+import TransformerContext
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName.Companion.className
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName.Companion.rawClassName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinClass
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinEnum
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinFile
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.SimpleTypeName.Companion.typeName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.Schema
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.SchemaRef
 
-class SafeModelQueueItem(private val config: Config, schemaRef: SchemaRef) : QueueItem {
+class SafeModelQueueItem(schemaRef: SchemaRef, private val context: TransformerContext) : QueueItem {
 
     private val innerSchemaRef: SchemaRef
     private val schema: Schema
@@ -36,7 +35,7 @@ class SafeModelQueueItem(private val config: Config, schemaRef: SchemaRef) : Que
         }
     }
 
-    override fun generate(queue: (QueueItem) -> Unit): KotlinFile? {
+    override fun generate(): KotlinFile? {
         // ignore primitive types
         if (schema is Schema.PrimitiveTypeSchema) {
             return null
@@ -44,14 +43,30 @@ class SafeModelQueueItem(private val config: Config, schemaRef: SchemaRef) : Que
 
         if (schema is Schema.EnumSchema) {
             val content = KotlinEnum(className(), schema.values.map { it to it.className() })
-            return KotlinFile(content, "${config.packageName}.model").apply {
-                imports.add("com.fasterxml.jackson.annotation.JsonProperty")
+            return KotlinFile(content, "${context.config.packageName}.model").apply {
+                imports.addAll(modelImports(context.config))
+                imports.addAll(libraryImports())
             }
         }
 
-        val content = KotlinClass(className())
-        return KotlinFile(content, "${config.packageName}.model").apply {
+        val content = KotlinClass(className()).apply {
+            addAnnotation("RegisterForReflection".rawClassName())
+
+            val properties = innerSchemaRef.getAllProperties()
+            properties.forEach {
+                addMember(
+                    it.name.variableName(),
+                    context.safeModelFor(it.type).className().typeName(!it.validationInfo.required),
+                    private = false
+                ).apply {
+                    annotations.add("field:JsonProperty".rawClassName(), "value".variableName() to it.name)
+                }
+            }
+        }
+
+        return KotlinFile(content, "${context.config.packageName}.model").apply {
             imports.add("com.fasterxml.jackson.annotation.JsonProperty")
+            imports.add("io.quarkus.runtime.annotations.RegisterForReflection")
         }
     }
 

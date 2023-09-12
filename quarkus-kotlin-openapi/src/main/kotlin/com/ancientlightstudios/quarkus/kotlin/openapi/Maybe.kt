@@ -13,7 +13,7 @@ sealed class Maybe<T>(val context: String) {
     }
 }
 
-fun <T> maybeOf(context: String, vararg maybes: Maybe<*>, builder: (Array<*>) -> T): Maybe<T> {
+fun <T> maybeOf(context: String, vararg maybes: Maybe<*>, builder: (Array<*>) -> T): Maybe<T?> {
     val errors = mutableListOf<ValidationError>()
     val values = mutableListOf<Any?>()
     for (maybe in maybes) {
@@ -29,11 +29,14 @@ fun <T> maybeOf(context: String, vararg maybes: Maybe<*>, builder: (Array<*>) ->
     }
 }
 
+fun <T> T?.maybeOf(context: String): Maybe<T?> = Maybe.Success(context, this)
+fun <T> failedMaybeOf(context:String, errorMessage:String) : Maybe<T?> = Maybe.Failure(context, ValidationError(errorMessage))
+
 private inline fun <T> String?.asMaybe(context: String, validationMessage: String, block: (String) -> T): Maybe<T?> =
     when (this) {
-        null -> Maybe.Success(context,null)
+        null -> Maybe.Success(context, null)
         else -> try {
-            Maybe.Success(context,block(this))
+            Maybe.Success(context, block(this))
         } catch (e: Exception) {
             Maybe.Failure(context, ValidationError(validationMessage))
         }
@@ -49,34 +52,28 @@ fun String?.asBoolean(context: String): Maybe<Boolean?> = this.asMaybe(context, 
 fun <T> String?.asObject(context: String, type: Class<T>, objectMapper: ObjectMapper): Maybe<T?> =
     this.asMaybe(context, "is not a valid json object") { objectMapper.readValue(this, type) }
 
-fun <T> String?.asEnum(context: String, type: Class<T>, objectMapper: ObjectMapper): Maybe<T?> =
-    this.asMaybe(context, "is not a valid enum value") { objectMapper.convertValue(this, type) }
 
-fun <T> Maybe<T>.validated(block: (T, validationErrors: MutableList<ValidationError>) -> Unit): Maybe<T> {
+
+fun <I, O> Maybe<I>.map(block: (I) -> O): Maybe<O> {
     return when (this) {
-        is Maybe.Failure -> this
+        is Maybe.Failure -> Maybe.Failure(context, errors)
         is Maybe.Success -> {
-            val validationErrors = mutableListOf<ValidationError>()
-            block(this.value, validationErrors)
-            if (validationErrors.isEmpty()) {
-                this
-            } else {
-                this.failure(validationErrors)
+            try {
+                Maybe.Success(context, block(value))
+            } catch (e: Exception) {
+                Maybe.Failure(context, ValidationError("is not a valid value"))
             }
         }
     }
 }
 
-fun <T> Maybe<T?>.required(): Maybe<T?> {
-    return when (this) {
-        is Maybe.Failure -> this
-        is Maybe.Success -> if (value != null) {
-            this
-        } else {
-            this.failure(ValidationError("is required"))
-        }
+inline fun <T> Maybe<T>.validOrElse(block: (List<ValidationError>) -> Nothing): T {
+    if (this is Maybe.Failure) {
+        block(errors)
     }
+    return (this as Maybe.Success).value
 }
 
-// TODO: dates
-// TODO: optional parameters
+fun <T> Maybe<T?>.forceNotNull() : Maybe<T> = this.map { it!! }
+
+fun <T> maybeCast(value: Any?): T = value as T

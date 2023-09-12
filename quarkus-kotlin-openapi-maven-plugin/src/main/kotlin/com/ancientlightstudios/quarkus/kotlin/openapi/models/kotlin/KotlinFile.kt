@@ -8,6 +8,7 @@ class KotlinFile(private val content: KotlinFileContent, val packageName: String
     val imports = mutableListOf<String>()
 
     fun render(writer: CodeWriter) = with(writer) {
+        writeln("// THIS IS A GENERATED FILE. DO NOT EDIT!")
         writeln("package $packageName")
         writeln()
         imports.forEach {

@@ -25,9 +25,16 @@ class SchemaBuilder(
     }
 
     private fun buildObjectTypeSchema(): SchemaRef {
+        val required = node.withArray("required").map { it.asText() }
         val properties = node.with("properties")
             .fields().asSequence()
-            .map { (propertyName, propertyNode) -> propertyNode.parseAsSchemaProperty(propertyName, schemaRegistry)  { "$typeName $propertyName" } }
+            .map { (propertyName, propertyNode) ->
+                propertyNode.parseAsSchemaProperty(
+                    propertyName,
+                    schemaRegistry,
+                    required
+                ) { "$typeName $propertyName" }
+            }
             .toList()
         val ref = schemaRegistry.getOrRegisterType(typeName)
         schemaRegistry.resolveRef(typeName, Schema.ObjectTypeSchema(typeName, properties))
@@ -44,7 +51,7 @@ class SchemaBuilder(
     private fun buildOneOfSchema(): SchemaRef {
         val schemas = node.withArray("oneOf")
             .filterIsInstance<ObjectNode>()
-            .mapIndexed{ idx, it -> it.extractSchemaRef(schemaRegistry) { "$typeName OneOf $idx" } }
+            .mapIndexed { idx, it -> it.extractSchemaRef(schemaRegistry) { "$typeName OneOf $idx" } }
         val ref = schemaRegistry.getOrRegisterType(typeName)
         val discriminator = node.resolvePath("discriminator/propertyName")?.asText()
             ?: throw IllegalStateException("discriminator is required for oneOf schemas")
@@ -64,7 +71,7 @@ class SchemaBuilder(
     private fun buildAnyOfSchema(): SchemaRef {
         val schemas = node.withArray("anyOf")
             .filterIsInstance<ObjectNode>()
-            .mapIndexed { idx, it ->  it.extractSchemaRef(schemaRegistry) { "$typeName AnyOf $idx" } }
+            .mapIndexed { idx, it -> it.extractSchemaRef(schemaRegistry) { "$typeName AnyOf $idx" } }
         val ref = schemaRegistry.getOrRegisterType(typeName)
         schemaRegistry.resolveRef(typeName, Schema.AnyOfSchema(typeName, schemas))
         return ref
