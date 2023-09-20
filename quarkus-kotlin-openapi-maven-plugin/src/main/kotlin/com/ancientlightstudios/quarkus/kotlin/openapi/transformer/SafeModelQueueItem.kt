@@ -44,7 +44,7 @@ class SafeModelQueueItem(schemaRef: SchemaRef, private val context: TransformerC
         if (schema is Schema.EnumSchema) {
             val content = KotlinEnum(className(), schema.values.map { it to it.className() })
             return KotlinFile(content, "${context.config.packageName}.model").apply {
-                imports.addAll(modelImports(context.config))
+                imports.add("com.fasterxml.jackson.annotation.JsonProperty")
                 imports.addAll(libraryImports())
             }
         }
@@ -54,9 +54,10 @@ class SafeModelQueueItem(schemaRef: SchemaRef, private val context: TransformerC
 
             val properties = innerSchemaRef.getAllProperties()
             properties.forEach {
+                val safeType = context.safeModelFor(it.type).className()
                 addMember(
                     it.name.variableName(),
-                    context.safeModelFor(it.type).className().typeName(!it.validationInfo.required),
+                    it.type.containerAsList(safeType, innerNullable = false, outerNullable = !it.validationInfo.required),
                     private = false
                 ).apply {
                     annotations.add("field:JsonProperty".rawClassName(), "value".variableName() to it.name)

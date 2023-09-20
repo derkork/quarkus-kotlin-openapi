@@ -6,40 +6,9 @@ info:
   version: 1.0.17
   title: Test Interface
 paths:
-  /user/notify:
-    get:
-      operationId: notifyUser3
-      responses:
-        '204':
-          description: Successful operation
-    post:
-      operationId: notifyUser
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: array
-              items:
-                $ref: '#/components/schemas/User'
-      responses:
-        '204':
-          description: Successful operation
-    put:
-      operationId: notifyUser2
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/User'
-      responses:
-        '204':
-          description: Successful operation
-
-
   /user:
     get:
-      operationId: getUsers
+      operationId: find
       parameters:
         - name: status
           in: query
@@ -47,12 +16,6 @@ paths:
           required: false
           schema:
             $ref: "#/components/schemas/UserStatus"
-        - name: arnie
-          in: query
-          description: the real arnie
-          required: true
-          schema:
-            type: string
       responses:
         '200':
           description: Successful operation
@@ -62,29 +25,20 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/User'
-
-  /user/{userId}:
-    get:
-      operationId: getUser
-      parameters:
-        - name: userId
-          in: path
-          description: userId
-          required: true
-          schema:
-            type: integer
-        - name: status
-          in: query
-          description: status
-          required: false
-          schema:
-            $ref: "#/components/schemas/UserStatus"
-        - name: arnie
-          in: query
-          description: the real arnie
-          required: true
-          schema:
-            type: string
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+    post:
+      operationId: add
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewUser'
       responses:
         '200':
           description: Successful operation
@@ -92,8 +46,121 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+  /user/{userId}:
+    get:
+      operationId: get
+      parameters:
+        - name: userId
+          in: path
+          description: userId
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationError'
+    delete:
+      operationId: delete
+      parameters:
+        - name: userId
+          in: path
+          description: userId
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: No Content
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationError'
+    put:
+      operationId: modify
+      parameters:
+        - name: userId
+          in: path
+          description: userId
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewUser'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationError'
+
 components:
   schemas:
+    NewUser:
+      type: object
+      properties:
+        name:
+          type: string
+        status:
+          $ref: "#/components/schemas/UserStatus"
+        address:
+          $ref: "#/components/schemas/Address"
+        fallbackAddresses:
+          type: array
+          items:
+            $ref: "#/components/schemas/Address"
+      required:
+        - name
+        - status
+        - address
+
     User:
       type: object
       properties:
@@ -105,7 +172,6 @@ components:
           $ref: "#/components/schemas/UserStatus"
         address:
           $ref: "#/components/schemas/Address"
-
         fallbackAddresses:
           type: array
           items:
@@ -114,6 +180,8 @@ components:
         - id
         - name
         - status
+        - address
+
     UserStatus:
       type: string
       enum:
@@ -137,3 +205,21 @@ components:
         - city
         - state
         - zip
+
+    ValidationError:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: string
+      required:
+        - errors
+
+    ApplicationError:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+        - message

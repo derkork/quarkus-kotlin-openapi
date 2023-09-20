@@ -36,8 +36,8 @@ class KotlinClass(
             }
 
             companion?.let {
-                writeln()
                 it.render(this)
+                writeln()
             }
         }
         write("}")

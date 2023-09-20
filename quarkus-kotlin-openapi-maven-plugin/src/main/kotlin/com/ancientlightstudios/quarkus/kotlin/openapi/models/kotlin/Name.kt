@@ -114,12 +114,15 @@ class MethodName private constructor(val name: String) {
 }
 
 private val camelCasePattern = Regex("([a-z])([A-Z])")
+private val numberFollowedByLetterPattern = Regex("([0-9])([a-zA-Z])")
 private val unwantedGroupPattern = Regex("[^a-zA-Z0-9]+")
 private val snakeCasePattern = Regex("_([a-z])")
 
 private fun String.toKotlinIdentifier(): String {
     // add an underscore into every combination of a lowercase letter followed by an uppercase letter
     val cleaned = this.replace(camelCasePattern, "$1_$2")
+        // add an underscore into every combination of a number followed by a letter
+        .replace(numberFollowedByLetterPattern, "$1_$2")
         // replace any sequence that is not a letter or a number with a single underscore
         .replace(unwantedGroupPattern, "_")
         // trim off any underscore at the start or end

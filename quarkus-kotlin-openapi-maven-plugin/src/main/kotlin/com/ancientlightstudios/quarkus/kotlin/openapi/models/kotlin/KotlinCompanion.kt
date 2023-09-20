@@ -22,8 +22,8 @@ class KotlinCompanion(val className: ClassName?) {
         writeln("}")
     }
 
-    fun addMethod(name: MethodName, suspend: Boolean, returnType: TypeName? = null, receiverType:TypeName? = null): KotlinMethod {
-        val method = KotlinMethod(name, suspend, returnType, receiverType)
+    fun addMethod(name: MethodName, suspend: Boolean, returnType: TypeName? = null, receiverType:TypeName? = null, bodyAsAssignment: Boolean = false): KotlinMethod {
+        val method = KotlinMethod(name, suspend, returnType, receiverType, bodyAsAssignment)
         methods.add(method)
         return method
     }

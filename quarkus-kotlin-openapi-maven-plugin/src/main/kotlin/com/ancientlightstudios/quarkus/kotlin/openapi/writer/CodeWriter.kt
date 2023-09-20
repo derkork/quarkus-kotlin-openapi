@@ -2,11 +2,9 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.writer
 
 import java.io.BufferedWriter
 
-class CodeWriter private constructor(private val level: Int, private val writer: BufferedWriter) {
+class CodeWriter private constructor(private val level: Int, private val writer: BufferedWriter, private var onEmptyLine : Boolean = true) {
 
     constructor(writer: BufferedWriter) : this(0, writer)
-
-    private var onEmptyLine = true
 
     fun write(text: String, newLineBefore: Boolean = false, newLineAfter: Boolean = false) {
         if (newLineBefore) {
@@ -36,7 +34,7 @@ class CodeWriter private constructor(private val level: Int, private val writer:
         if (newLineBefore) {
             writeln()
         }
-        block(CodeWriter(level + 1, writer))
+        block(CodeWriter(level + 1, writer, onEmptyLine))
         if (newLineAfter) {
             writeln()
         }

@@ -5,16 +5,18 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.writer.CodeWriter
 class KotlinFile(private val content: KotlinFileContent, val packageName: String) {
 
     val fileName = content.name.name
-    val imports = mutableListOf<String>()
+    val imports = mutableSetOf<String>()
 
     fun render(writer: CodeWriter) = with(writer) {
         writeln("// THIS IS A GENERATED FILE. DO NOT EDIT!")
         writeln("package $packageName")
         writeln()
-        imports.forEach {
-            writeln("import $it")
+        if (imports.isNotEmpty()) {
+            imports.forEach {
+                writeln("import $it")
+            }
+            writeln()
         }
-        writeln()
         content.render(this)
     }
 

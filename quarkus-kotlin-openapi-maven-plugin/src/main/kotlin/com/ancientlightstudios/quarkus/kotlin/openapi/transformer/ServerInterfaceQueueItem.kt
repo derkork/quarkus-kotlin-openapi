@@ -26,8 +26,10 @@ class ServerInterfaceQueueItem(private val requests: Set<Request>, private val c
             addMember("objectMapper".variableName(), "ObjectMapper".rawTypeName())
         }
 
+        val additionalImports = mutableSetOf<String>()
+
         requests.forEach {
-            generateRequest(serverInterface, it)
+            generateRequest(serverInterface, it, additionalImports::add)
         }
 
         return KotlinFile(serverInterface, "${context.config.packageName}.server").apply {
@@ -35,10 +37,11 @@ class ServerInterfaceQueueItem(private val requests: Set<Request>, private val c
             imports.addAll(jacksonImports())
             imports.addAll(modelImports(context.config))
             imports.addAll(libraryImports())
+            imports.addAll(additionalImports)
         }
     }
 
-    private fun generateRequest(serverInterface: KotlinClass, request: Request) {
+    private fun generateRequest(serverInterface: KotlinClass, request: Request, importCollector: (String) -> Unit) {
         val methodName = request.operationId.methodName()
 
         val method = serverInterface.addMethod(methodName, true, "RestResponse<*>".rawTypeName()).apply {
@@ -54,14 +57,14 @@ class ServerInterfaceQueueItem(private val requests: Set<Request>, private val c
                 annotations.addParam(it.kind, it.name)
             }
 
-            generateMaybeTransformStatement(it.type, it.name, it.validationInfo, it.kind, builderTransform)
+            generateMaybeTransformStatement(it.type, it.name, it.validationInfo, it.kind, builderTransform, importCollector)
                 .addTo(method)
         }
 
         request.body?.let {
             method.addParameter("body".variableName(), "String".rawTypeName(true))
 
-            generateMaybeTransformStatement(it.type, "body", it.validationInfo, null, builderTransform)
+            generateMaybeTransformStatement(it.type, "body", it.validationInfo, null, builderTransform, importCollector)
                 .addTo(method)
         }
 
@@ -73,7 +76,8 @@ class ServerInterfaceQueueItem(private val requests: Set<Request>, private val c
         parameterName: String,
         validationInfo: ValidationInfo,
         kind: ParameterKind?,
-        builderTransformStatement: RequestBuilderTransformStatement
+        builderTransformStatement: RequestBuilderTransformStatement,
+        importCollector: (String) -> Unit
     ): KotlinStatement {
         val contextName = kind
             ?.let { "request.${it.name.lowercase()}.$parameterName".stringExpression() }
@@ -83,11 +87,9 @@ class ServerInterfaceQueueItem(private val requests: Set<Request>, private val c
             type,
             validationInfo,
             contextName,
-            parameterName.variableName()
+            parameterName.variableName(),
+            importCollector
         )
-
-        val inner = context.safeModelFor(type).className()
-        val finalType = type.containerAsList(inner, innerNullable = false, outerNullable = !validationInfo.required)
 
         builderTransformStatement.registerParameter(parameterName, maybeVariable)
         return statement

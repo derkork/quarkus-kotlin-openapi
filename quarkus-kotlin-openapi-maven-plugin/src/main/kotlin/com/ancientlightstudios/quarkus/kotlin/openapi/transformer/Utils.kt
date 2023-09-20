@@ -150,6 +150,7 @@ fun convertToMaybe(
     validationInfo: ValidationInfo,
     contextName: Expression,
     inputVariable: Expression,
+    importCollector: (String) -> Unit,
     parseNestedObjects: Boolean = true
 ): Pair<VariableName, KotlinStatement> {
     val maybeVariable = "maybe ${inputVariable.expression}".variableName()
@@ -186,8 +187,10 @@ fun convertToMaybe(
         }
 
         else -> {
+            val parameterType = context.unsafeModelFor(type).className()
+            importCollector("${context.config.packageName}.model.${parameterType.name}.Validator.validated")
+
             if (parseNestedObjects) {
-                val parameterType = context.unsafeModelFor(type).className()
                 MaybeObjectTransformStatementParse(
                     maybeVariable, inputVariable, contextName, parameterType.typeName(), validationInfo
                 )
