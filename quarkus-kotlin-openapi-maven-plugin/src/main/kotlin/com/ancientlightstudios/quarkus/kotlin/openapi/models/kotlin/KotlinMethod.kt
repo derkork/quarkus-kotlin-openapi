@@ -7,7 +7,8 @@ class KotlinMethod(
     private val name: MethodName,
     private val suspend: Boolean,
     private val returnType: TypeName? = null,
-    private val receiverType: TypeName? = null
+    private val receiverType: TypeName? = null,
+    private val bodyAsAssignment: Boolean = false
 ) {
 
     val annotations = KotlinAnnotationContainer()
@@ -34,15 +35,20 @@ class KotlinMethod(
             returnType.render(this)
         }
 
-        if (body != null) {
-            writeln(" {")
-            indent {
-                body!!.render(this)
+        body?.let {
+            if (bodyAsAssignment) {
+                write(" = ")
+            } else {
+                writeln(" {")
             }
-            writeln("}")
-        } else {
-            writeln()
+            indent {
+                it.render(this)
+            }
+            if (!bodyAsAssignment) {
+                write("}")
+            }
         }
+        writeln()
     }
 
     fun addStatement(statement: KotlinStatement): KotlinMethod {

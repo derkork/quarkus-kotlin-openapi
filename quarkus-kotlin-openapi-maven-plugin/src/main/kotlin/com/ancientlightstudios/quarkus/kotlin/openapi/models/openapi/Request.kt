@@ -33,7 +33,7 @@ class Request(
     val operationId: String,
     val parameters: List<RequestParameter>,
     val body: RequestBody?,
-    val returnType: SchemaRef?
+    val responses: List<ResponseBody>
 )
 
 enum class ParameterKind {
@@ -62,6 +62,8 @@ data class RequestParameter(
     val validationInfo: ValidationInfo
 )
 
+// TODO: support headers
+data class ResponseBody(val code: Int, val type: SchemaRef?)
 data class RequestBody(val type: SchemaRef, val validationInfo: ValidationInfo)
 
 data class ValidationInfo(val required: Boolean)

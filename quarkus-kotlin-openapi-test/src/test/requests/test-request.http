@@ -1,14 +1,67 @@
-GET http://localhost:8080/user?arnie=true&status=available
-Content-Type: application/json
-
+GET http://localhost:8080/user
 
 ###
 
-POST http://localhost:8080/user/notify
+GET http://localhost:8080/user?status=foo
+
+###
+
+GET http://localhost:8080/user?status=available
+
+###
+
+GET http://localhost:8080/user?status=blocked
+
+###
+
+GET http://localhost:8080/user/560566834
+
+###
+
+POST http://localhost:8080/user
 Content-Type: application/json
 
-[
-  {
-    "id" : "9493"
+{
+  "name" : "John Doe",
+  "status": "available",
+  "address": {
+    "street": "Doe Street",
+    "city": "Doe-Town",
+    "state": "Doe-County",
+    "zip": "10234"
   }
-]
+}
+
+###
+
+PUT http://localhost:8080/user/-965596874
+Content-Type: application/json
+
+{
+  "name" : "John Doe2",
+  "status": "blocked",
+  "address": {
+    "street": "Doe Street",
+    "city": "Doe-Town",
+    "state": "Doe-County",
+    "zip": "10234"
+  },
+  "fallbackAddresses": [
+    {
+      "street": "Doe Street2",
+      "city": "Doe-Town2",
+      "state": "Doe-County2",
+      "zip": "10234"
+    },
+    {
+      "street": "Doe Street3",
+      "city": "Doe-Town3",
+      "state": "Doe-County3",
+      "zip": "10234"
+    }
+  ]
+}
+
+###
+
+DELETE http://localhost:8080/user/1647767308

@@ -46,6 +46,7 @@ class UnsafeModelQueueItem(schemaRef: SchemaRef, private val context:Transformer
         }
 
         val properties = innerSchemaRef.getAllProperties()
+        val additionalImports = mutableSetOf<String>()
 
         val content = KotlinClass(className()).apply {
             addAnnotation("RegisterForReflection".rawClassName())
@@ -82,6 +83,7 @@ class UnsafeModelQueueItem(schemaRef: SchemaRef, private val context:Transformer
                                 it.validationInfo,
                                 "context".variableName(),
                                 "value".variableName().nested(it.name.variableName()),
+                                additionalImports::add,
                                 false
                             )
                             statement.addTo(this)
@@ -98,6 +100,7 @@ class UnsafeModelQueueItem(schemaRef: SchemaRef, private val context:Transformer
             imports.add("io.quarkus.runtime.annotations.RegisterForReflection")
             imports.addAll(libraryImports())
             imports.addAll(jacksonImports())
+            imports.addAll(additionalImports)
         }
     }
 

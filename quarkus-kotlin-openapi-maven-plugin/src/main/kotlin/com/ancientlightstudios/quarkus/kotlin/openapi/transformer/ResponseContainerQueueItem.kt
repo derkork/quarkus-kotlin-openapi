@@ -1,7 +1,6 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.transformer
 
 import TransformerContext
-import com.ancientlightstudios.quarkus.kotlin.openapi.Config
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName.Companion.className
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.methodName
@@ -15,7 +14,6 @@ class ResponseContainerQueueItem(private val request: Request, private val conte
     fun className() = "${request.operationId}Response".className()
 
     override fun generate(): KotlinFile {
-
         val content = KotlinClass(className(), privateConstructor = true).apply {
             addMember("response".variableName(), "RestResponse<*>".rawTypeName(), private = false)
             withCompanion {
@@ -29,17 +27,27 @@ class ResponseContainerQueueItem(private val request: Request, private val conte
                         "body".variableName()
                     ).addTo(this)
                 }
+
+                request.responses.forEach {
+                    addMethod(it.code.statusCodeReason().methodName(), false, bodyAsAssignment = true).apply {
+                        if (it.type != null) {
+                            val responseType = context.safeModelFor(it.type).className()
+                            val returnType =
+                                it.type.containerAsList(responseType, innerNullable = false, outerNullable = false)
+
+                            addParameter("body".variableName(), returnType)
+                            addStatement(kotlinStatement {
+                                write("status(${it.code}, body)")
+                            })
+                        } else {
+                            addStatement(kotlinStatement {
+                                write("status(${it.code}, null)")
+                            })
+                        }
+                    }
+                }
             }
         }
-
-        /* // TODO: implement proper companion methods for responses indicated in OpenAPI spec
-           val returnType = request.returnType?.let {
-                    val inner = SafeModelQueueItem(config, it).enqueue(queue).className()
-                    it.containerAsList(inner, innerNullable = false, outerNullable = false)
-                }
-
-         */
-
 
         return KotlinFile(content, "${context.config.packageName}.model").apply {
             imports.add("org.jboss.resteasy.reactive.RestResponse.ResponseBuilder")
