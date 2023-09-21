@@ -33,8 +33,7 @@ class UnsafeModelQueueItem(schemaRef: SchemaRef, private val context:Transformer
 
     fun className(): ClassName {
         return when (schema) {
-            is Schema.PrimitiveTypeSchema -> "String".rawClassName()
-            is Schema.EnumSchema -> "String".rawClassName()
+            is Schema.PrimitiveTypeSchema, is Schema.EnumSchema -> "String".rawClassName()
             else -> (schema.typeName.substringAfterLast("/") + "Unsafe").className()
         }
     }

@@ -14,7 +14,7 @@ GET http://localhost:8080/user?status=blocked
 
 ###
 
-GET http://localhost:8080/user/560566834
+GET http://localhost:8080/user/6faf60f3-3cd7-4a3a-b5c6-59738b8f725e
 
 ###
 
@@ -34,7 +34,7 @@ Content-Type: application/json
 
 ###
 
-PUT http://localhost:8080/user/-965596874
+PUT http://localhost:8080/user/6faf60f3-3cd7-4a3a-b5c6-59738b8f725e
 Content-Type: application/json
 
 {
@@ -64,4 +64,4 @@ Content-Type: application/json
 
 ###
 
-DELETE http://localhost:8080/user/1647767308
+DELETE http://localhost:8080/user/6faf60f3-3cd7-4a3a-b5c6-59738b8f725e

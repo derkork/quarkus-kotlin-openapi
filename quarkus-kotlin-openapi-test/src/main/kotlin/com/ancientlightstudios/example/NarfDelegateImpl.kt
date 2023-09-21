@@ -4,8 +4,18 @@ import com.ancientlightstudios.example.model.*
 import com.ancientlightstudios.example.model.ValidationError
 import com.ancientlightstudios.example.server.NarfInterfaceDelegate
 import com.ancientlightstudios.quarkus.kotlin.openapi.*
+import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.databind.ObjectMapper
+import io.quarkus.runtime.annotations.RegisterForReflection
 import jakarta.enterprise.context.ApplicationScoped
+import jakarta.ws.rs.GET
+import jakarta.ws.rs.POST
+import jakarta.ws.rs.Path
+import jakarta.ws.rs.QueryParam
 import jakarta.ws.rs.core.Response
+import org.jboss.resteasy.reactive.RestResponse
+import java.lang.IllegalArgumentException
+import java.util.UUID
 import kotlin.random.Random
 
 @ApplicationScoped
@@ -24,7 +34,7 @@ class NarfDelegateImpl : NarfInterfaceDelegate {
         val validRequest = request.validOrElse { return AddResponse.badRequest(it.asResponseBody()) }
 
         val body = validRequest.body
-        val newUser = User(Random.nextInt(), body.name, body.status, body.address, body.fallbackAddresses)
+        val newUser = User(generateId(), body.name, body.status, body.address, body.fallbackAddresses)
         users.add(newUser)
         return AddResponse.ok(newUser)
     }
@@ -53,10 +63,12 @@ class NarfDelegateImpl : NarfInterfaceDelegate {
         return DeleteResponse.noContent()
     }
 
-    private inline fun findUserOrElse(userId: Int, block: (ApplicationError) -> Nothing) =
+    private inline fun findUserOrElse(userId: Id, block: (ApplicationError) -> Nothing) =
         users.firstOrNull { it.id == userId } ?: block(ApplicationError("user with id $userId not found"))
 
 }
+
+fun generateId() = Id(UUID.randomUUID().toString())
 
 fun List<com.ancientlightstudios.quarkus.kotlin.openapi.ValidationError>.asResponseBody() =
     ValidationError(this.map { it.message })

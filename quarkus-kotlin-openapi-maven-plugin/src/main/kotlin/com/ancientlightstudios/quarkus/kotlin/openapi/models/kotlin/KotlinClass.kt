@@ -27,20 +27,22 @@ class KotlinClass(
             write(")")
         }
 
-        writeln(" {")
-        indent {
-            writeln()
-            methods.forEach {
-                it.render(this)
+        if (methods.isNotEmpty() || companion != null) {
+            writeln(" {")
+            indent {
                 writeln()
-            }
+                methods.forEach {
+                    it.render(this)
+                    writeln()
+                }
 
-            companion?.let {
-                it.render(this)
-                writeln()
+                companion?.let {
+                    it.render(this)
+                    writeln()
+                }
             }
+            write("}")
         }
-        write("}")
     }
 
     fun addMember(
