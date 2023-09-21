@@ -24,13 +24,13 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/User'
+                  $ref: "#/components/schemas/User"
         '400':
           description: Bad request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ValidationError'
+                $ref: "#/components/schemas/ValidationError"
     post:
       operationId: add
       requestBody:
@@ -38,20 +38,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/NewUser'
+              $ref: "#/components/schemas/BaseUser"
       responses:
         '200':
           description: Successful operation
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: "#/components/schemas/User"
         '400':
           description: Bad request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ValidationError'
+                $ref: "#/components/schemas/ValidationError"
 
   /user/{userId}:
     get:
@@ -62,26 +62,26 @@ paths:
           description: userId
           required: true
           schema:
-            type: integer
+            $ref: "#/components/schemas/Id"
       responses:
         '200':
           description: Successful operation
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: "#/components/schemas/User"
         '400':
           description: Bad request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ValidationError'
+                $ref: "#/components/schemas/ValidationError"
         '404':
           description: Not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ApplicationError'
+                $ref: "#/components/schemas/ApplicationError"
     delete:
       operationId: delete
       parameters:
@@ -90,7 +90,7 @@ paths:
           description: userId
           required: true
           schema:
-            type: integer
+            $ref: "#/components/schemas/Id"
       responses:
         '204':
           description: No Content
@@ -99,13 +99,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ValidationError'
+                $ref: "#/components/schemas/ValidationError"
         '404':
           description: Not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ApplicationError'
+                $ref: "#/components/schemas/ApplicationError"
     put:
       operationId: modify
       parameters:
@@ -114,36 +114,48 @@ paths:
           description: userId
           required: true
           schema:
-            type: integer
+            $ref: "#/components/schemas/Id"
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/NewUser'
+              $ref: "#/components/schemas/BaseUser"
       responses:
         '200':
           description: Successful operation
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: "#/components/schemas/User"
         '400':
           description: Bad request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ValidationError'
+                $ref: "#/components/schemas/ValidationError"
         '404':
           description: Not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ApplicationError'
+                $ref: "#/components/schemas/ApplicationError"
 
 components:
   schemas:
-    NewUser:
+    Id:
+      type: string
+      format: uuid
+
+    IdAware:
+      type: object
+      properties:
+        id:
+          $ref: "#/components/schemas/Id"
+      required:
+        - id
+
+    BaseUser:
       type: object
       properties:
         name:
@@ -163,24 +175,9 @@ components:
 
     User:
       type: object
-      properties:
-        id:
-          type: integer
-        name:
-          type: string
-        status:
-          $ref: "#/components/schemas/UserStatus"
-        address:
-          $ref: "#/components/schemas/Address"
-        fallbackAddresses:
-          type: array
-          items:
-            $ref: "#/components/schemas/Address"
-      required:
-        - id
-        - name
-        - status
-        - address
+      allOf:
+        - $ref: "#/components/schemas/IdAware"
+        - $ref: "#/components/schemas/BaseUser"
 
     UserStatus:
       type: string
