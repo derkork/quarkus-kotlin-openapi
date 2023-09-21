@@ -70,7 +70,7 @@ data class ValidationInfo(val required: Boolean)
 
 sealed class Schema(val typeName: String) {
 
-    class PrimitiveTypeSchema(typeName: String) : Schema(typeName)
+    class PrimitiveTypeSchema(typeName: String, val primitiveType: String, val shared: Boolean) : Schema(typeName)
 
     class ArraySchema(val items: SchemaRef) : Schema("array")
     class ObjectTypeSchema(typeName: String, val properties: List<SchemaProperty>) : Schema(typeName)

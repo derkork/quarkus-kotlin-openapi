@@ -30,7 +30,8 @@ fun <T> maybeOf(context: String, vararg maybes: Maybe<*>, builder: (Array<*>) ->
 }
 
 fun <T> T?.maybeOf(context: String): Maybe<T?> = Maybe.Success(context, this)
-fun <T> failedMaybeOf(context:String, errorMessage:String) : Maybe<T?> = Maybe.Failure(context, ValidationError(errorMessage))
+fun <T> failedMaybeOf(context: String, errorMessage: String): Maybe<T?> =
+    Maybe.Failure(context, ValidationError(errorMessage))
 
 private inline fun <T> String?.asMaybe(context: String, validationMessage: String, block: (String) -> T): Maybe<T?> =
     when (this) {
@@ -53,7 +54,6 @@ fun <T> String?.asObject(context: String, type: Class<T>, objectMapper: ObjectMa
     this.asMaybe(context, "is not a valid json object") { objectMapper.readValue(this, type) }
 
 
-
 fun <I, O> Maybe<I>.map(block: (I) -> O): Maybe<O> {
     return when (this) {
         is Maybe.Failure -> Maybe.Failure(context, errors)
@@ -74,6 +74,6 @@ inline fun <T> Maybe<T>.validOrElse(block: (List<ValidationError>) -> Nothing): 
     return (this as Maybe.Success).value
 }
 
-fun <T> Maybe<T?>.forceNotNull() : Maybe<T> = this.map { it!! }
+fun <T> Maybe<T?>.forceNotNull(): Maybe<T> = this.map { it!! }
 
 fun <T> maybeCast(value: Any?): T = value as T

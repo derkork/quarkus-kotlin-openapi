@@ -35,12 +35,17 @@ class ApiSpecBuilder(private val node: ObjectNode, private val schemaRegistry: S
 
     private fun buildRequiredSchemas() {
         var queue = schemaRegistry.unresolved()
+        var counter = 0
         do {
             queue.forEach {
                 val schemaNode = node.resolvePath(it.id) ?: throw IllegalArgumentException("can't find schema for path ${it.id}")
                 schemaNode.parseAsSchema(it.id, schemaRegistry)
             }
             queue = schemaRegistry.unresolved()
+            counter++
+            if (counter == 4) {
+                return
+            }
         } while (queue.isNotEmpty())
     }
 }

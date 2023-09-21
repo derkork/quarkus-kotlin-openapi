@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 
 class SchemaBuilder(
     private val typeName: String,
+    private val shared: Boolean,  // TODO: should we use this flag for other schemas like arrays too?
     private val node: ObjectNode,
     private val schemaRegistry: SchemaRegistry
 ) {
@@ -36,52 +37,52 @@ class SchemaBuilder(
                 ) { "$typeName $propertyName" }
             }
             .toList()
-        val ref = schemaRegistry.getOrRegisterType(typeName)
-        schemaRegistry.resolveRef(typeName, Schema.ObjectTypeSchema(typeName, properties))
-        return ref
+        return schemaRegistry.getOrRegisterReference(typeName).also {
+            schemaRegistry.resolveRef(it, Schema.ObjectTypeSchema(typeName, properties))
+        }
     }
 
     private fun buildEnumSchema(): SchemaRef {
         val values = node.withArray("enum").map { it.asText() }
-        val ref = schemaRegistry.getOrRegisterType(typeName)
-        schemaRegistry.resolveRef(typeName, Schema.EnumSchema(typeName, values))
-        return ref
+        return schemaRegistry.getOrRegisterReference(typeName).also {
+            schemaRegistry.resolveRef(it, Schema.EnumSchema(typeName, values))
+        }
     }
 
     private fun buildOneOfSchema(): SchemaRef {
         val schemas = node.withArray("oneOf")
             .filterIsInstance<ObjectNode>()
             .mapIndexed { idx, it -> it.extractSchemaRef(schemaRegistry) { "$typeName OneOf $idx" } }
-        val ref = schemaRegistry.getOrRegisterType(typeName)
         val discriminator = node.resolvePath("discriminator/propertyName")?.asText()
             ?: throw IllegalStateException("discriminator is required for oneOf schemas")
-        schemaRegistry.resolveRef(typeName, Schema.OneOfSchema(typeName, discriminator, schemas))
-        return ref
+        return schemaRegistry.getOrRegisterReference(typeName).also {
+            schemaRegistry.resolveRef(it, Schema.OneOfSchema(typeName, discriminator, schemas))
+        }
     }
 
     private fun buildAllOfSchema(): SchemaRef {
         val schemas = node.withArray("allOf")
             .filterIsInstance<ObjectNode>()
             .mapIndexed { idx, it -> it.extractSchemaRef(schemaRegistry) { "$typeName AllOf $idx" } }
-        val ref = schemaRegistry.getOrRegisterType(typeName)
-        schemaRegistry.resolveRef(typeName, Schema.AllOfSchema(typeName, schemas))
-        return ref
+        return schemaRegistry.getOrRegisterReference(typeName).also {
+            schemaRegistry.resolveRef(it, Schema.AllOfSchema(typeName, schemas))
+        }
     }
 
     private fun buildAnyOfSchema(): SchemaRef {
         val schemas = node.withArray("anyOf")
             .filterIsInstance<ObjectNode>()
             .mapIndexed { idx, it -> it.extractSchemaRef(schemaRegistry) { "$typeName AnyOf $idx" } }
-        val ref = schemaRegistry.getOrRegisterType(typeName)
-        schemaRegistry.resolveRef(typeName, Schema.AnyOfSchema(typeName, schemas))
-        return ref
+        return schemaRegistry.getOrRegisterReference(typeName).also {
+            schemaRegistry.resolveRef(it, Schema.AnyOfSchema(typeName, schemas))
+        }
     }
 
     private fun buildArraySchema(): SchemaRef {
         val items = node.with("items").extractSchemaRef(schemaRegistry) { "$typeName items" }
-        val ref = schemaRegistry.getOrRegisterType(typeName)
-        schemaRegistry.resolveRef(typeName, Schema.ArraySchema(items))
-        return ref
+        return schemaRegistry.getOrRegisterReference(typeName).also {
+            schemaRegistry.resolveRef(it, Schema.ArraySchema(items))
+        }
     }
 
     private fun buildPrimitiveTypeSchema(): SchemaRef {
@@ -98,24 +99,25 @@ class SchemaBuilder(
                 type = format
             }
         }
-
-        return schemaRegistry.getOrRegisterType(type)
+        return schemaRegistry.getOrRegisterReference(typeName).also {
+            schemaRegistry.resolveRef(it, Schema.PrimitiveTypeSchema(typeName, type, shared))
+        }
     }
 }
 
-fun JsonNode.parseAsSchema(typeName: String, schemaRegistry: SchemaRegistry): SchemaRef {
+fun JsonNode.parseAsSchema(typeName: String, schemaRegistry: SchemaRegistry, shared: Boolean = true): SchemaRef {
     require(this.isObject) { "Json object expected" }
 
-    return SchemaBuilder(typeName, this as ObjectNode, schemaRegistry).build()
+    return SchemaBuilder(typeName, shared, this as ObjectNode, schemaRegistry).build()
 }
 
 fun ObjectNode.extractSchemaRef(schemaRegistry: SchemaRegistry, typeNameHint: () -> String): SchemaRef {
     // reference to another schema
-    val ref = this["\$ref"]?.asText()
-    if (ref != null) {
-        return schemaRegistry.getOrRegisterReference(ref)
+    this["\$ref"]?.let {
+        return schemaRegistry.getOrRegisterReference(it.asText())
     }
+
     // an inline schema
-    return this.parseAsSchema(typeNameHint(), schemaRegistry)
+    return this.parseAsSchema(typeNameHint(), schemaRegistry, false)
 }
 

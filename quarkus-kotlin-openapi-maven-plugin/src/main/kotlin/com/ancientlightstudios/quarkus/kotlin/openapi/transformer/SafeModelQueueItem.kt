@@ -30,7 +30,13 @@ class SafeModelQueueItem(schemaRef: SchemaRef, private val context: TransformerC
 
     fun className(): ClassName {
         return when (schema) {
-            is Schema.PrimitiveTypeSchema -> schema.typeName.primitiveTypeClass()
+            is Schema.PrimitiveTypeSchema -> {
+                return if (schema.shared) {
+                    schema.typeName.substringAfterLast("/").className()
+                } else {
+                    schema.primitiveType.primitiveTypeClass()
+                }
+            }
             else -> schema.typeName.substringAfterLast("/").className()
         }
     }
@@ -38,7 +44,15 @@ class SafeModelQueueItem(schemaRef: SchemaRef, private val context: TransformerC
     override fun generate(): KotlinFile? {
         // ignore primitive types
         if (schema is Schema.PrimitiveTypeSchema) {
-            return null
+            return if (schema.shared) {
+                val content = KotlinValueClass(className(), schema.primitiveType.primitiveTypeClass().typeName())
+                KotlinFile(content, "${context.config.packageName}.model").apply {
+                    imports.addAll(libraryImports())
+                }
+            } else {
+                // inline schema, nothing to do here
+                null
+            }
         }
 
         if (schema is Schema.EnumSchema) {
