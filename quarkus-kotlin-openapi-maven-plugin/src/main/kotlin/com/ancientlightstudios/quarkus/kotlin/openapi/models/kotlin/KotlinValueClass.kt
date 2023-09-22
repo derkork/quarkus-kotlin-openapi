@@ -39,6 +39,7 @@ class KotlinValueClass(
         }
 
         writeln()
+        writeln()
         writeln("fun String?.as${name.name}(context:String) : Maybe<${name.name}?> {")
         indent {
             write("return this.as")

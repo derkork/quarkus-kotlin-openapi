@@ -9,7 +9,7 @@ class MaybeObjectTransformStatementWrap(
 ) : MaybeTransformStatement() {
 
     override fun render(writer: CodeWriter) = with(writer) {
-        writeln("val ${variableName.name} = ${parameterName.expression}.maybeOf(${context.expression})")
+        writeln("val ${variableName.name} = ${parameterName.expression}.asMaybe(${context.expression})")
 
         indent {
             renderValidation(validationInfo)

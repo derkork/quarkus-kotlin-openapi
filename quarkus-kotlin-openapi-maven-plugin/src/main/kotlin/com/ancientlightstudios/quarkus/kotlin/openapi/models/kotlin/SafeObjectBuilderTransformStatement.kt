@@ -15,23 +15,16 @@ class SafeObjectBuilderTransformStatement(
     }
 
     override fun render(writer: CodeWriter) = with(writer) {
-        write("return maybeOf(\"request\"")
+        write("maybeOf(\"request\"")
         parameters.forEach { (_, maybeName) ->
             write(", ${maybeName.name}")
         }
-        write(") { (")
-        parameters.forEachWithStats { stats, (validName, _) ->
-            write(validName.name)
-            if (!stats.last) {
-                write(", ")
-            }
-        }
-        write(") ->")
+        write(") { args ->")
         indent(newLineBefore = true, newLineAfter = true) {
             write("${safeObject.name}(")
             indent(newLineBefore = true, newLineAfter = true) {
-                parameters.forEachWithStats { status, (validName, _) ->
-                    write("maybeCast(${validName.name})")
+                parameters.forEachWithStats { status, _ ->
+                    write("maybeCast(args[${status.index}])")
                     if (!status.last) {
                         writeln(",")
                     }

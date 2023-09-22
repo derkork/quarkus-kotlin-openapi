@@ -10,6 +10,12 @@ paths:
     get:
       operationId: find
       parameters:
+        - name: tag
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
         - name: status
           in: query
           description: status
@@ -160,16 +166,23 @@ components:
       properties:
         name:
           type: string
+        age:
+          type: integer
         status:
           $ref: "#/components/schemas/UserStatus"
         address:
           $ref: "#/components/schemas/Address"
+        tags:
+          type: array
+          items:
+            type: string
         fallbackAddresses:
           type: array
           items:
             $ref: "#/components/schemas/Address"
       required:
         - name
+        - age
         - status
         - address
 

@@ -10,11 +10,11 @@ GET http://localhost:8080/user?status=available
 
 ###
 
-GET http://localhost:8080/user?status=blocked
+GET http://localhost:8080/user?status=blocked&tag=nuff&tag=foo
 
 ###
 
-GET http://localhost:8080/user/6faf60f3-3cd7-4a3a-b5c6-59738b8f725e
+GET http://localhost:8080/user/bae16ec2-63d5-43fc-ab3f-036b8d3bc8e6
 
 ###
 
@@ -23,6 +23,7 @@ Content-Type: application/json
 
 {
   "name" : "John Doe",
+  "age": 30,
   "status": "available",
   "address": {
     "street": "Doe Street",
@@ -34,11 +35,12 @@ Content-Type: application/json
 
 ###
 
-PUT http://localhost:8080/user/6faf60f3-3cd7-4a3a-b5c6-59738b8f725e
+PUT http://localhost:8080/user/81fa638f-f962-4e67-b56c-fbb5f823af17
 Content-Type: application/json
 
 {
   "name" : "John Doe2",
+  "age": 35,
   "status": "blocked",
   "address": {
     "street": "Doe Street",
@@ -46,6 +48,10 @@ Content-Type: application/json
     "state": "Doe-County",
     "zip": "10234"
   },
+  "tags": [
+    "foo",
+    "bar"
+  ],
   "fallbackAddresses": [
     {
       "street": "Doe Street2",
@@ -64,4 +70,8 @@ Content-Type: application/json
 
 ###
 
-DELETE http://localhost:8080/user/6faf60f3-3cd7-4a3a-b5c6-59738b8f725e
+DELETE http://localhost:8080/user/aa41247d-1ca8-4038-9c54-851f658cce0b
+
+###
+
+GET localhost:8080/foo/bar?tag=second&tag2=puit&tag2=zort

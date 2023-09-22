@@ -34,7 +34,8 @@ class NarfDelegateImpl : NarfInterfaceDelegate {
         val validRequest = request.validOrElse { return AddResponse.badRequest(it.asResponseBody()) }
 
         val body = validRequest.body
-        val newUser = User(generateId(), body.name, body.status, body.address, body.fallbackAddresses)
+        val newUser =
+            User(generateId(), body.name, body.age, body.status, body.address, body.tags, body.fallbackAddresses)
         users.add(newUser)
         return AddResponse.ok(newUser)
     }
@@ -50,7 +51,7 @@ class NarfDelegateImpl : NarfInterfaceDelegate {
         val user = findUserOrElse(validRequest.userId) { return ModifyResponse.notFound(it) }
 
         val body = validRequest.body
-        val newUser = User(user.id, body.name, body.status, body.address, body.fallbackAddresses)
+        val newUser = User(user.id, body.name, body.age, body.status, body.address, body.tags, body.fallbackAddresses)
         users.replaceAll { if (it.id == newUser.id) newUser else it }
         return ModifyResponse.ok(newUser)
     }
@@ -71,4 +72,4 @@ class NarfDelegateImpl : NarfInterfaceDelegate {
 fun generateId() = Id(UUID.randomUUID().toString())
 
 fun List<com.ancientlightstudios.quarkus.kotlin.openapi.ValidationError>.asResponseBody() =
-    ValidationError(this.map { it.message })
+    ValidationError(this.map { "'${it.path}': ${it.message}" })
