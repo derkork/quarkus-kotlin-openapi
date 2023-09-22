@@ -25,15 +25,15 @@ class KotlinEnum(name: ClassName, private val items: List<Pair<String, ClassName
         indent {
             writeln("if (this == null) {")
             indent {
-                writeln("return maybeOf(context)")
+                writeln("return asMaybe(context)")
             }
             writeln("}")
             writeln("return when (this) {")
             indent {
                 items.forEach { (value, itemName) ->
-                    writeln("\"$value\" -> ${name.name}.${itemName.name}.maybeOf(context)")
+                    writeln("\"$value\" -> ${name.name}.${itemName.name}.asMaybe(context)")
                 }
-                writeln("else -> failedMaybeOf(context,  \"Invalid value for ${name.name}: \$this\")")
+                writeln("else -> Maybe.Failure(context, ValidationError(\"Invalid value for ${name.name}: \$this\"))")
             }
             writeln("}")
         }

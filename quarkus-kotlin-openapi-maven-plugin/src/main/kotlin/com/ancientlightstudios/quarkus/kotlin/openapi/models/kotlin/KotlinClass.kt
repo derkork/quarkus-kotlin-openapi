@@ -56,7 +56,7 @@ class KotlinClass(
         return result
     }
 
-    fun withCompanion(name:ClassName? = null, block: KotlinCompanion.() -> Unit) {
+    fun withCompanion(name: ClassName? = null, block: KotlinCompanion.() -> Unit) {
         if (this.companion == null) {
             this.companion = KotlinCompanion(name)
         }

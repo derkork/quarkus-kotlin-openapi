@@ -59,7 +59,7 @@ class KotlinMethod(
         return this
     }
 
-    fun addParameter(variableName:VariableName, typeName:TypeName): KotlinParameter {
+    fun addParameter(variableName: VariableName, typeName: TypeName): KotlinParameter {
         val result = KotlinParameter(variableName, typeName)
         parameters.add(result)
         return result

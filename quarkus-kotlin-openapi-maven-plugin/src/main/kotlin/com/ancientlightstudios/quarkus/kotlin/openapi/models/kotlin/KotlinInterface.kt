@@ -22,5 +22,4 @@ class KotlinInterface(name: ClassName) : KotlinFileContent(name) {
         }
     }
 
-
 }

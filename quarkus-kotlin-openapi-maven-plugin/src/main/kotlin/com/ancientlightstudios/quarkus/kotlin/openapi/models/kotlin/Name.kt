@@ -73,7 +73,7 @@ interface Expression {
     val expression: String
 }
 
-class StringExpression(private val value:String) : Expression {
+class StringExpression(private val value: String) : Expression {
     override val expression: String
         get() = "\"${value.replace("\\", "\\\\").replace("\"", "\\\"")}\""
 
@@ -82,7 +82,8 @@ class StringExpression(private val value:String) : Expression {
     }
 }
 
-class NestedPathExpression private constructor(private val propertyPath: Expression, private val append: VariableName) : Expression {
+class NestedPathExpression private constructor(private val propertyPath: Expression, private val append: VariableName) :
+    Expression {
     override fun toString() = "NestedPath($expression)"
     override val expression: String
         get() = "${propertyPath.expression}.${append.name}"

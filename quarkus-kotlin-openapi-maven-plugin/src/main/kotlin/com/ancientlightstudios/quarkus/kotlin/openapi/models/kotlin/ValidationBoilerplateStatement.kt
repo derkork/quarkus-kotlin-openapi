@@ -6,13 +6,9 @@ class ValidationBoilerplateStatement : KotlinStatement {
     val statementList = KotlinStatementList()
 
     override fun render(writer: CodeWriter) = with(writer) {
-        writeln("return skipOnFailure {")
+        writeln("return onNotNull {")
         indent {
-            writeln("succeedWhenNullElse {")
-            indent {
-                statementList.render(this)
-            }
-            writeln("}")
+            statementList.render(this)
         }
         writeln("}")
     }

@@ -17,7 +17,7 @@ class MaybeArrayTransformStatementParse(
         writeln("::class.java, objectMapper)")
         indent {
             renderValidation(validationInfo)
-            writeln(".map { it${"?" ifFalse  validationInfo.required}.toList() }") // todo: recursive lists
+            writeln(".map { it${"?" ifFalse validationInfo.required}.toList() }") // todo: recursive lists
             writeln(".validated {")
             indent {
                 writeln("it.validated()") //TODO: recursive lists && nullable items

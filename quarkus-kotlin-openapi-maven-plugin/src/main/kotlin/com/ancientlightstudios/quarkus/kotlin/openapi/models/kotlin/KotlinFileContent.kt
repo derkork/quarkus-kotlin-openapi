@@ -25,7 +25,7 @@ abstract class KotlinFileContent(val name: ClassName) {
         annotations.add(name, *parameters)
     }
 
-    fun addPathAnnotation(path:String) {
+    fun addPathAnnotation(path: String) {
         annotations.addPath(path)
     }
 
