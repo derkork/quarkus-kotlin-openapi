@@ -75,10 +75,23 @@ fun <T> String?.asObject(context: String, type: Class<T>, objectMapper: ObjectMa
  * executes the given block and returns its result if this maybe is a [Success]. Returns a [Failure] if an
  * exception occurred or this maybe already is a [Failure]
  */
-fun <I, O> Maybe<I>.map(block: (I) -> O): Maybe<O> =
+fun <I, O> Maybe<I?>.map(block: (I?) -> O?): Maybe<O?> =
     onSuccess {
         try {
             success(block(value))
+        } catch (e: Exception) {
+            failure(ValidationError("is not a valid value"))
+        }
+    }
+
+/**
+ * executes the given block and returns its result if this maybe is a [Success] and has a non-null value. Returns a
+ * [Failure] if an exception occurred or this maybe already is a [Failure]
+ */
+fun <I, O> Maybe<I?>.mapNotNull(block: (I) -> O?): Maybe<O?> =
+    onSuccess {
+        try {
+            success(value?.let(block))
         } catch (e: Exception) {
             failure(ValidationError("is not a valid value"))
         }
