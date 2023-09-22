@@ -44,7 +44,7 @@ class KotlinValueClass(
         indent {
             write("return this.as")
             nestedType.render(this)
-            writeln("(context).map { it?.let { ${name.name}(it) } }")
+            writeln("(context).mapNotNull { ${name.name}(it) }")
         }
         writeln("}")
     }
