@@ -190,44 +190,44 @@ paths:
               schema:
                 $ref: "#/components/schemas/ApplicationError"
 
-#    put:
-#      operationId: setRatings
-#      parameters:
-#        - name: movieId
-#          in: path
-#          description: movieId
-#          required: true
-#          schema:
-#            $ref: "#/components/schemas/Id"
-#      requestBody:
-#        required: true
-#        content:
-#          application/json:
-#            schema:
-#              type: array
-#              items:
-#                $ref: "#/components/schemas/Rating"
-#      responses:
-#        '200':
-#          description: Successful operation
-#          content:
-#            application/json:
-#              schema:
-#                type: array
-#                items:
-#                  $ref: "#/components/schemas/Rating"
-#        '400':
-#          description: Bad request
-#          content:
-#            application/json:
-#              schema:
-#                $ref: "#/components/schemas/ValidationError"
-#        '404':
-#          description: Not found
-#          content:
-#            application/json:
-#              schema:
-#                $ref: "#/components/schemas/ApplicationError"
+    put:
+      operationId: setRatings
+      parameters:
+        - name: movieId
+          in: path
+          description: movieId
+          required: true
+          schema:
+            $ref: "#/components/schemas/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/Rating"
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Rating"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApplicationError"
 
 
 components:
@@ -278,6 +278,14 @@ components:
         actor:
           type: string
 
+    AdditionalInformation:
+      type: object
+      properties:
+        budget:
+          type: integer
+        revenue:
+          type: integer
+
     BaseMovie:
       type: object
       properties:
@@ -296,6 +304,8 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Cast"
+        additionalInformation:
+          $ref: "#/components/schemas/AdditionalInformation"
       required:
         - title
         - releaseDate

@@ -89,21 +89,6 @@ fun SchemaRef.containerAsList(
     return "List".rawTypeName(outerNullable).of(schema.items.containerAsList(innerType, innerNullable, innerNullable))
 }
 
-fun SchemaRef.containerAsArray(
-    innerType: ClassName,
-    innerNullable: Boolean = false,
-    outerNullable: Boolean = false
-): TypeName {
-    val schema = this.resolve()
-    if (schema !is Schema.ArraySchema) {
-        // on top level, outerNullable decides whether the type is nullable
-        return innerType.typeName(outerNullable)
-    }
-
-    // passing the innerNullable argument twice is important here, because nested Lists are treated as inner types as well
-    return "Array".rawTypeName(outerNullable).of(schema.items.containerAsArray(innerType, innerNullable, innerNullable))
-}
-
 fun String.primitiveTypeClass() =
     when (this) {
         "string" -> "String"
@@ -156,7 +141,7 @@ fun KotlinMethod.addTransformStatement(
     validationInfo: ValidationInfo,
     parameterContext: Expression,
     context: TransformerContext,
-    fromRequestParameter: Boolean
+    fromRequestBody: Boolean
 ): VariableName {
     val targetName = "maybe $parameterName".variableName()
     val sourceName = parameterName.variableName()
@@ -177,15 +162,23 @@ fun KotlinMethod.addTransformStatement(
         }
 
         is Schema.ArraySchema -> {
-            CollectionToMaybeTransformStatement(targetName, sourceName, parameterContext, validationInfo) {
-                nestedTransformStatement(it, schema.items, context)
+            if (fromRequestBody) {
+                val parameterType = context.unsafeModelFor(type).className()
+                val targetType = type.containerAsList(parameterType, true, false)
+                CollectionBodyToMaybeTransformStatement(targetName, sourceName, targetType, parameterContext, validationInfo) {
+                    nestedTransformStatement(it, schema.items, context)
+                }
+            } else {
+                CollectionPropertyToMaybeTransformStatement(targetName, sourceName, parameterContext, validationInfo) {
+                    nestedTransformStatement(it, schema.items, context)
+                }
             }
         }
 
         else -> {
             val parameterType = context.unsafeModelFor(type).className()
-            if (fromRequestParameter) {
-                ObjectParameterToMaybeTransformStatement(
+            if (fromRequestBody) {
+                ObjectBodyToMaybeTransformStatement(
                     targetName, sourceName, parameterContext, parameterType.typeName(), validationInfo
                 )
             } else {
