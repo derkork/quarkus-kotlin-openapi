@@ -5,6 +5,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.Config
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName.Companion.className
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName.Companion.rawClassName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.StringExpression.Companion.stringExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.GenericTypeName.Companion.of
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.SimpleTypeName.Companion.rawTypeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.SimpleTypeName.Companion.typeName
@@ -144,68 +145,88 @@ fun SchemaRef.getAllProperties(): List<SchemaProperty> {
     return result
 }
 
-fun convertToMaybe(
-    context: TransformerContext,
+fun <T : KotlinStatement> T.addTo(method: KotlinMethod): T {
+    method.addStatement(this)
+    return this
+}
+
+fun KotlinMethod.addTransformStatement(
+    parameterName: String,
     type: SchemaRef,
     validationInfo: ValidationInfo,
-    contextName: Expression,
-    inputVariable: Expression,
-    importCollector: (String) -> Unit,
-    parseNestedObjects: Boolean = true
-): Pair<VariableName, KotlinStatement> {
-    val maybeVariable = "maybe ${inputVariable.expression}".variableName()
+    parameterContext: Expression,
+    context: TransformerContext,
+    fromRequestParameter: Boolean
+): VariableName {
+    val targetName = "maybe $parameterName".variableName()
+    val sourceName = parameterName.variableName()
 
-    val statement = when (type.resolve()) {
+    val statement = when (val schema = type.resolve()) {
         is Schema.EnumSchema -> {
             val parameterType = context.safeModelFor(type).className()
-            MaybeEnumTransformStatementParse(
-                maybeVariable, inputVariable, contextName, parameterType.typeName(), validationInfo
+            EnumToMaybeTransformStatement(
+                targetName, sourceName, parameterContext, parameterType.typeName(), validationInfo
             )
         }
 
         is Schema.PrimitiveTypeSchema -> {
             val parameterType = context.safeModelFor(type).className()
-            MaybePrimitiveTransformStatementWrap(
-                maybeVariable, inputVariable, contextName, parameterType.typeName(), validationInfo
+            PrimitiveToMaybeTransformStatement(
+                targetName, sourceName, parameterContext, parameterType.typeName(), validationInfo
             )
         }
 
         is Schema.ArraySchema -> {
-            if (parseNestedObjects) {
-                val parameterType = context.unsafeModelFor(type).className()
-                MaybeArrayTransformStatementParse(
-                    maybeVariable, inputVariable, contextName,
-                    type = type.containerAsArray(parameterType, innerNullable = true, false),
-                    validationInfo = validationInfo
-                )
-            }
-            else {
-                MaybeListTransformStatementWrap(
-                    maybeVariable, inputVariable, contextName, validationInfo
-                )
+            CollectionToMaybeTransformStatement(targetName, sourceName, parameterContext, validationInfo) {
+                nestedTransformStatement(it, schema.items, context)
             }
         }
 
         else -> {
             val parameterType = context.unsafeModelFor(type).className()
-            importCollector("${context.config.packageName}.model.${parameterType.name}.Validator.validated")
-
-            if (parseNestedObjects) {
-                MaybeObjectTransformStatementParse(
-                    maybeVariable, inputVariable, contextName, parameterType.typeName(), validationInfo
+            if (fromRequestParameter) {
+                ObjectParameterToMaybeTransformStatement(
+                    targetName, sourceName, parameterContext, parameterType.typeName(), validationInfo
                 )
-            }
-            else {
-                MaybeObjectTransformStatementWrap(
-                    maybeVariable, inputVariable, contextName, validationInfo
+            } else {
+                ObjectPropertyToMaybeTransformStatement(
+                    targetName, sourceName, parameterContext, parameterType.typeName(), validationInfo
                 )
             }
         }
     }
-    return Pair(maybeVariable, statement)
+
+    this.addStatement(statement)
+    return targetName
 }
 
-fun <T:KotlinStatement> T.addTo(method: KotlinMethod): T {
-    method.addStatement(this)
-    return this
+private fun nestedTransformStatement(
+    sourceName: VariableName,
+    type: SchemaRef,
+    context: TransformerContext
+): KotlinStatement {
+    // TODO: right now we don't have a way to detect list with nullable items
+    val validationInfo = ValidationInfo(true)
+    return when (val schema = type.resolve()) {
+        is Schema.EnumSchema -> {
+            val parameterType = context.safeModelFor(type).className()
+            NestedEnumTransformStatement(sourceName, null, parameterType.typeName(), validationInfo)
+        }
+
+        is Schema.PrimitiveTypeSchema -> {
+            val parameterType = context.safeModelFor(type).className()
+            NestedPrimitiveTransformStatement(sourceName, null, parameterType.typeName(), validationInfo)
+        }
+
+        is Schema.ArraySchema -> {
+            NestedCollectionTransformStatement(sourceName, validationInfo) {
+                nestedTransformStatement(it, schema.items, context)
+            }
+        }
+
+        else -> {
+            val parameterType = context.unsafeModelFor(type).className()
+            NestedObjectTransformStatement(sourceName, parameterType.typeName(), validationInfo)
+        }
+    }
 }

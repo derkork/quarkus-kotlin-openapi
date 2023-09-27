@@ -8,8 +8,15 @@ interface KotlinStatement {
 
 }
 
-fun kotlinStatement(block: CodeWriter.() -> Unit): KotlinStatement = object : KotlinStatement {
+fun kotlinStatement(block: CodeWriter.() -> Unit) = object : KotlinStatement {
     override fun render(writer: CodeWriter) {
         writer.block()
     }
 }
+
+fun String.asKotlinStatement() = kotlinStatement { write(this@asKotlinStatement) }
+
+fun KotlinStatement.then(other: KotlinStatement) = kotlinStatement {
+    this@then.render(this)
+    other.render(this)
+} 

@@ -63,7 +63,7 @@ class SafeModelQueueItem(schemaRef: SchemaRef, private val context: TransformerC
             }
         }
 
-        val content = KotlinClass(className()).apply {
+        val content = KotlinClass(className(), asDataClass = true).apply {
             addAnnotation("RegisterForReflection".rawClassName())
 
             val properties = innerSchemaRef.getAllProperties()

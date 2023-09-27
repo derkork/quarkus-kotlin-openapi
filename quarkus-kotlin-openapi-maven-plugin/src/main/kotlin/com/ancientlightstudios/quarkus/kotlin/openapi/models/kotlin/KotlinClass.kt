@@ -5,6 +5,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.writer.CodeWriter
 
 class KotlinClass(
     name: ClassName,
+    private val asDataClass: Boolean = false,
     private val privateConstructor: Boolean = false
 ) : KotlinFileContent(name) {
 
@@ -14,6 +15,10 @@ class KotlinClass(
 
     override fun render(writer: CodeWriter) = with(writer) {
         annotations.render(this, true)
+
+        if (asDataClass) {
+            write("data ")
+        }
 
         write("class ${name.name}")
 

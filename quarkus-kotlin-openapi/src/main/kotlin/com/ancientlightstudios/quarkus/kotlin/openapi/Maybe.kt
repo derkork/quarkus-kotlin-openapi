@@ -61,12 +61,24 @@ private inline fun <T> String?.asMaybe(context: String, validationMessage: Strin
         Failure(context, ValidationError(validationMessage))
     }
 
+
 fun String?.asString(context: String): Maybe<String?> = Success(context, this)
+fun Maybe<String?>.asString(): Maybe<String?> = this
+
 fun String?.asFloat(context: String): Maybe<Float?> = this.asMaybe(context, "is not a float") { it.toFloat() }
+fun Maybe<String?>.asFloat(): Maybe<Float?> = this.mapNotNull("is not a float") { it.toFloat() }
+
 fun String?.asDouble(context: String): Maybe<Double?> = this.asMaybe(context, "is not a double") { it.toDouble() }
+fun Maybe<String?>.asDouble(): Maybe<Double?> = this.mapNotNull("is not a double") { it.toDouble() }
+
 fun String?.asInt(context: String): Maybe<Int?> = this.asMaybe(context, "is not a int") { it.toInt() }
+fun Maybe<String?>.asInt(): Maybe<Int?> = this.mapNotNull("is not a int") { it.toInt() }
+
 fun String?.asLong(context: String): Maybe<Long?> = this.asMaybe(context, "is not a long") { it.toLong() }
+fun Maybe<String?>.asLong(): Maybe<Long?> = this.mapNotNull("is not a long") { it.toLong() }
+
 fun String?.asBoolean(context: String): Maybe<Boolean?> = this.asMaybe(context, "is not a boolean") { it.toBoolean() }
+fun Maybe<String?>.asBoolean(): Maybe<Boolean?> = this.mapNotNull("is not a boolean") { it.toBoolean() }
 
 fun <T> String?.asObject(context: String, type: Class<T>, objectMapper: ObjectMapper): Maybe<T?> =
     this.asMaybe(context, "is not a valid json object") { objectMapper.readValue(this, type) }
@@ -75,12 +87,15 @@ fun <T> String?.asObject(context: String, type: Class<T>, objectMapper: ObjectMa
  * executes the given block and returns its result if this maybe is a [Success]. Returns a [Failure] if an
  * exception occurred or this maybe already is a [Failure]
  */
-fun <I, O> Maybe<I?>.map(block: (I?) -> O?): Maybe<O?> =
+inline fun <I, O> Maybe<I?>.map(
+    validationMessage: String = "is not a valid value",
+    crossinline block: (I?) -> O?
+): Maybe<O?> =
     onSuccess {
         try {
             success(block(value))
         } catch (e: Exception) {
-            failure(ValidationError("is not a valid value"))
+            failure(ValidationError(validationMessage))
         }
     }
 
@@ -88,12 +103,15 @@ fun <I, O> Maybe<I?>.map(block: (I?) -> O?): Maybe<O?> =
  * executes the given block and returns its result if this maybe is a [Success] and has a non-null value. Returns a
  * [Failure] if an exception occurred or this maybe already is a [Failure]
  */
-fun <I, O> Maybe<I?>.mapNotNull(block: (I) -> O?): Maybe<O?> =
-    onSuccess {
+inline fun <I, O> Maybe<I?>.mapNotNull(
+    validationMessage: String = "is not a valid value",
+    crossinline block: (I) -> O?
+): Maybe<O?> =
+    onNotNull {
         try {
-            success(value?.let(block))
+            success(block(value))
         } catch (e: Exception) {
-            failure(ValidationError("is not a valid value"))
+            failure(ValidationError(validationMessage))
         }
     }
 
@@ -106,6 +124,3 @@ inline fun <T> Maybe<T>.validOrElse(block: (List<ValidationError>) -> Nothing): 
     }
     return (this as Success).value
 }
-
-@Suppress("UNCHECKED_CAST")
-fun <T> maybeCast(value: Any?): T = value as T

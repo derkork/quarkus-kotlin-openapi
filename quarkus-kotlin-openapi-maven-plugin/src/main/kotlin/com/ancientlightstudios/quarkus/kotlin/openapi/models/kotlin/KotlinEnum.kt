@@ -38,6 +38,9 @@ class KotlinEnum(name: ClassName, private val items: List<Pair<String, ClassName
             writeln("}")
         }
         writeln("}")
+
+        writeln()
+        writeln("fun Maybe<String?>.as${name.name}() : Maybe<${name.name}?> = onNotNull { value.as${name.name}(context) }")
     }
 }
 

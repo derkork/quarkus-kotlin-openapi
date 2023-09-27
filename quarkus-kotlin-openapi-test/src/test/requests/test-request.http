@@ -1,77 +1,56 @@
-GET http://localhost:8080/user
+GET http://localhost:8080/movies
 
 ###
 
-GET http://localhost:8080/user?status=foo
-
-###
-
-GET http://localhost:8080/user?status=available
-
-###
-
-GET http://localhost:8080/user?status=blocked&tag=nuff&tag=foo
-
-###
-
-GET http://localhost:8080/user/bae16ec2-63d5-43fc-ab3f-036b8d3bc8e6
-
-###
-
-POST http://localhost:8080/user
+POST http://localhost:8080/movies
 Content-Type: application/json
 
 {
-  "name" : "John Doe",
-  "age": 30,
-  "status": "available",
-  "address": {
-    "street": "Doe Street",
-    "city": "Doe-Town",
-    "state": "Doe-County",
-    "zip": "10234"
-  }
-}
-
-###
-
-PUT http://localhost:8080/user/81fa638f-f962-4e67-b56c-fbb5f823af17
-Content-Type: application/json
-
-{
-  "name" : "John Doe2",
-  "age": 35,
-  "status": "blocked",
-  "address": {
-    "street": "Doe Street",
-    "city": "Doe-Town",
-    "state": "Doe-County",
-    "zip": "10234"
-  },
-  "tags": [
-    "foo",
-    "bar"
+  "title" : "Iron Man",
+  "releaseDate": "2008-05-02",
+  "genres": [
+    "action",
+    "scifi"
   ],
-  "fallbackAddresses": [
+  "duration": 126,
+  "cast": [
     {
-      "street": "Doe Street2",
-      "city": "Doe-Town2",
-      "state": "Doe-County2",
-      "zip": "10234"
+      "character": "Tony Stark",
+      "actor": "Robert Downey Jr."
     },
     {
-      "street": "Doe Street3",
-      "city": "Doe-Town3",
-      "state": "Doe-County3",
-      "zip": "10234"
+      "character": "Virginia Potts",
+      "actor": "Gwyneth Paltrow"
     }
   ]
 }
 
+> {%
+    client.global.set("movieId", response.body.id);
+%}
+
 ###
 
-DELETE http://localhost:8080/user/aa41247d-1ca8-4038-9c54-851f658cce0b
+GET http://localhost:8080/movies/{{movieId}}
 
 ###
 
-GET localhost:8080/foo/bar?tag=second&tag2=puit&tag2=zort
+POST http://localhost:8080/movies/{{movieId}}/ratings
+Content-Type: application/json
+
+{
+  "source": "JustWatch",
+  "score": 8.6
+}
+
+###
+
+GET http://localhost:8080/movies?score=2.3
+
+###
+
+GET http://localhost:8080/movies?genre=horror&genre=scifi
+
+###
+
+DELETE http://localhost:8080/movies/{{movieId}}
