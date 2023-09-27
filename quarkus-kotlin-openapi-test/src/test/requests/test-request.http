@@ -31,6 +31,34 @@ Content-Type: application/json
 
 ###
 
+PUT http://localhost:8080/movies/{{movieId}}
+Content-Type: application/json
+
+{
+  "title" : "Iron Man",
+  "releaseDate": "2008-05-02",
+  "genres": [
+    "action",
+    "scifi"
+  ],
+  "duration": 126,
+  "cast": [
+    {
+      "character": "Tony Stark",
+      "actor": "Robert Downey Jr."
+    },
+    {
+      "character": "Virginia Potts",
+      "actor": "Gwyneth Paltrow"
+    }
+  ],
+  "additionalInformation": {
+    "budget": 140000000
+  }
+}
+
+###
+
 GET http://localhost:8080/movies/{{movieId}}
 
 ###
@@ -42,6 +70,22 @@ Content-Type: application/json
   "source": "JustWatch",
   "score": 8.6
 }
+
+###
+
+PUT http://localhost:8080/movies/{{movieId}}/ratings
+Content-Type: application/json
+
+[
+  {
+    "source": "IMDb",
+    "score": 7.9
+  },
+  {
+    "source": "Rotten Tomatoes",
+    "score": 9.4
+  }
+]
 
 ###
 

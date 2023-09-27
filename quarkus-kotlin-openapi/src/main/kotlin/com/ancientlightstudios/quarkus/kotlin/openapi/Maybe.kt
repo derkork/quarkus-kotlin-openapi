@@ -2,6 +2,7 @@ package com.ancientlightstudios.quarkus.kotlin.openapi
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.Maybe.Failure
 import com.ancientlightstudios.quarkus.kotlin.openapi.Maybe.Success
+import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 
 sealed class Maybe<T>(val context: String) {
@@ -54,7 +55,7 @@ fun <T> T?.asMaybe(context: String): Maybe<T?> = Success(context, this)
 /**
  * wraps the result of the block into a [Success]. Returns a [Failure] if an exception occurred
  */
-private inline fun <T> String?.asMaybe(context: String, validationMessage: String, block: (String) -> T): Maybe<T?> =
+inline fun <T> String?.asMaybe(context: String, validationMessage: String, block: (String) -> T): Maybe<T?> =
     try {
         Success(context, this?.let(block))
     } catch (e: Exception) {
@@ -82,6 +83,10 @@ fun Maybe<String?>.asBoolean(): Maybe<Boolean?> = this.mapNotNull("is not a bool
 
 fun <T> String?.asObject(context: String, type: Class<T>, objectMapper: ObjectMapper): Maybe<T?> =
     this.asMaybe(context, "is not a valid json object") { objectMapper.readValue(this, type) }
+
+inline fun <reified T> String?.asList(context: String, objectMapper: ObjectMapper): Maybe<T?> =
+    this.asMaybe(context, "is not a valid json array") { objectMapper.readValue(this, object : TypeReference<T>() {}) }
+
 
 /**
  * executes the given block and returns its result if this maybe is a [Success]. Returns a [Failure] if an

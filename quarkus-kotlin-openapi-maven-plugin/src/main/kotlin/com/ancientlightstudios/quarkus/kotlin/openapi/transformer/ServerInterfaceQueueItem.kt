@@ -59,7 +59,7 @@ class ServerInterfaceQueueItem(private val requests: Set<Request>, private val c
             }
             method.addTransformStatement(
                 it.name, it.type, it.validationInfo,
-                "request.${it.kind.name.lowercase()}.${it.name}".stringExpression(), context, true
+                "request.${it.kind.name.lowercase()}.${it.name}".stringExpression(), context, false
             ).also(builderTransform::addParameter)
         }
 

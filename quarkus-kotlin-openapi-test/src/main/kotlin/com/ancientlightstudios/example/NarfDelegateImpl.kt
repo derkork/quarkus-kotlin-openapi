@@ -32,8 +32,10 @@ class NarfDelegateImpl : NarfInterfaceDelegate {
         val validRequest = request.validOrElse { return AddMovieResponse.badRequest(it.asResponseBody()) }
 
         val body = validRequest.body
-        val newMovie =
-            Movie(generateId(), body.title, body.releaseDate, body.genres, body.duration, body.cast, null, emptyList())
+        val newMovie = Movie(
+            generateId(), body.title, body.releaseDate, body.genres, body.duration,
+            body.cast, body.additionalInformation, null, emptyList()
+        )
         movieDataBase[newMovie.id] = newMovie
         return AddMovieResponse.ok(newMovie)
     }
@@ -63,7 +65,8 @@ class NarfDelegateImpl : NarfInterfaceDelegate {
             releaseDate = body.releaseDate,
             genres = body.genres,
             duration = body.duration,
-            cast = body.cast
+            cast = body.cast,
+            additionalInformation = body.additionalInformation
         )
         movieDataBase[newMovie.id] = newMovie
         return ModifyMovieResponse.ok(newMovie)
@@ -79,6 +82,17 @@ class NarfDelegateImpl : NarfInterfaceDelegate {
         val newMovie = movie.copy(totalScore = calculateScore(newRatings), ratings = newRatings)
         movieDataBase[newMovie.id] = newMovie
         return AddRatingResponse.ok(newRatings)
+    }
+
+    override suspend fun setRatings(request: Maybe<SetRatingsRequest>): SetRatingsResponse {
+        val validRequest = request.validOrElse { return SetRatingsResponse.badRequest(it.asResponseBody()) }
+        val movie = findMovieOrElse(validRequest.movieId) { return SetRatingsResponse.notFound(it) }
+
+        val body = validRequest.body
+
+        val newMovie = movie.copy(totalScore = calculateScore(body), ratings = body)
+        movieDataBase[newMovie.id] = newMovie
+        return SetRatingsResponse.ok(body)
     }
 
     private inline fun findMovieOrElse(movieId: Id, block: (ApplicationError) -> Nothing) =

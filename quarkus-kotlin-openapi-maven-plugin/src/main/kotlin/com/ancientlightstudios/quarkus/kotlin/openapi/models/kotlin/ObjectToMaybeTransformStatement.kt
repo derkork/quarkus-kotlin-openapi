@@ -4,7 +4,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ValidationInfo
 import com.ancientlightstudios.quarkus.kotlin.openapi.writer.CodeWriter
 
-class ObjectParameterToMaybeTransformStatement(
+class ObjectBodyToMaybeTransformStatement(
     private val targetName: VariableName, private val sourceName: VariableName,
     private val context: Expression, private val type: TypeName, private val validationInfo: ValidationInfo
 ) : KotlinStatement {
