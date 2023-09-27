@@ -42,11 +42,18 @@ class KotlinValueClass(
         writeln()
         writeln("fun String?.as${name.name}(context:String) : Maybe<${name.name}?> {")
         indent {
-            write("return this.as")
+            write("return as")
             nestedType.render(this)
-            writeln("(context).mapNotNull { ${name.name}(it) }")
+            writeln("(context)")
+            indent {
+                // TODO: add type validation here if necessary e.g. validateString { it.minLength(5) }
+                writeln(".mapNotNull { ${name.name}(it) }")
+            }
         }
         writeln("}")
+
+        writeln()
+        writeln("fun Maybe<String?>.as${name.name}() : Maybe<${name.name}?> = onNotNull { value.as${name.name}(context) }")
     }
 
     fun withCompanion(name: ClassName? = null, block: KotlinCompanion.() -> Unit) {

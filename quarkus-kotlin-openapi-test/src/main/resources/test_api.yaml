@@ -6,22 +6,24 @@ info:
   version: 1.0.17
   title: Test Interface
 paths:
-  /user:
+  /movies:
     get:
-      operationId: find
+      operationId: findMovies
       parameters:
-        - name: tag
+        - name: genre
           in: query
           schema:
             type: array
             items:
-              type: string
-        - name: status
+              $ref: "#/components/schemas/Genre"
+        - name: score
           in: query
-          description: status
-          required: false
           schema:
-            $ref: "#/components/schemas/UserStatus"
+            $ref: "#/components/schemas/Score"
+        - name: title
+          in: query
+          schema:
+            type: string
       responses:
         '200':
           description: Successful operation
@@ -30,28 +32,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/User"
-        '400':
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ValidationError"
-    post:
-      operationId: add
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/BaseUser"
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/User"
+                  $ref: "#/components/schemas/Movie"
         '400':
           description: Bad request
           content:
@@ -59,13 +40,35 @@ paths:
               schema:
                 $ref: "#/components/schemas/ValidationError"
 
-  /user/{userId}:
+    post:
+      operationId: addMovie
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BaseMovie"
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Movie"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
+
+  /movies/{movieId}:
     get:
-      operationId: get
+      operationId: getMovie
       parameters:
-        - name: userId
+        - name: movieId
           in: path
-          description: userId
+          description: movieId
           required: true
           schema:
             $ref: "#/components/schemas/Id"
@@ -75,7 +78,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/User"
+                $ref: "#/components/schemas/Movie"
         '400':
           description: Bad request
           content:
@@ -88,12 +91,13 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApplicationError"
+
     delete:
-      operationId: delete
+      operationId: deleteMovie
       parameters:
-        - name: userId
+        - name: movieId
           in: path
-          description: userId
+          description: movieId
           required: true
           schema:
             $ref: "#/components/schemas/Id"
@@ -112,12 +116,13 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApplicationError"
+
     put:
-      operationId: modify
+      operationId: modifyMovie
       parameters:
-        - name: userId
+        - name: movieId
           in: path
-          description: userId
+          description: movieId
           required: true
           schema:
             $ref: "#/components/schemas/Id"
@@ -126,14 +131,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/BaseUser"
+              $ref: "#/components/schemas/BaseMovie"
       responses:
         '200':
           description: Successful operation
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/User"
+                $ref: "#/components/schemas/Movie"
         '400':
           description: Bad request
           content:
@@ -147,11 +152,99 @@ paths:
               schema:
                 $ref: "#/components/schemas/ApplicationError"
 
+  /movies/{movieId}/ratings:
+    post:
+      operationId: addRating
+      parameters:
+        - name: movieId
+          in: path
+          description: movieId
+          required: true
+          schema:
+            $ref: "#/components/schemas/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Rating"
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Rating"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApplicationError"
+
+#    put:
+#      operationId: setRatings
+#      parameters:
+#        - name: movieId
+#          in: path
+#          description: movieId
+#          required: true
+#          schema:
+#            $ref: "#/components/schemas/Id"
+#      requestBody:
+#        required: true
+#        content:
+#          application/json:
+#            schema:
+#              type: array
+#              items:
+#                $ref: "#/components/schemas/Rating"
+#      responses:
+#        '200':
+#          description: Successful operation
+#          content:
+#            application/json:
+#              schema:
+#                type: array
+#                items:
+#                  $ref: "#/components/schemas/Rating"
+#        '400':
+#          description: Bad request
+#          content:
+#            application/json:
+#              schema:
+#                $ref: "#/components/schemas/ValidationError"
+#        '404':
+#          description: Not found
+#          content:
+#            application/json:
+#              schema:
+#                $ref: "#/components/schemas/ApplicationError"
+
+
 components:
   schemas:
     Id:
       type: string
       format: uuid
+
+    Duration:
+      type: integer
+      minimum: 1
+
+    Score:
+      type: number
+      format: double
+      minimum: 1
+      maximum: 10
 
     IdAware:
       type: object
@@ -161,60 +254,80 @@ components:
       required:
         - id
 
-    BaseUser:
+    Genre:
+      type: string
+      enum:
+        - action
+        - adventure
+        - comedy
+        - crime
+        - fantasy
+        - historical
+        - horror
+        - romance
+        - satire
+        - scifi
+        - thriller
+        - other
+
+    Cast:
       type: object
       properties:
-        name:
+        character:
           type: string
-        age:
-          type: integer
-        status:
-          $ref: "#/components/schemas/UserStatus"
-        address:
-          $ref: "#/components/schemas/Address"
-        tags:
-          type: array
-          items:
-            type: string
-        fallbackAddresses:
-          type: array
-          items:
-            $ref: "#/components/schemas/Address"
-      required:
-        - name
-        - age
-        - status
-        - address
+        actor:
+          type: string
 
-    User:
+    BaseMovie:
+      type: object
+      properties:
+        title:
+          type: string
+        releaseDate:
+          type: string
+          format: date
+        genres:
+          type: array
+          items:
+            $ref: "#/components/schemas/Genre"
+        duration:
+          $ref: "#/components/schemas/Duration"
+        cast:
+          type: array
+          items:
+            $ref: "#/components/schemas/Cast"
+      required:
+        - title
+        - releaseDate
+        - genres
+        - duration
+        - cast
+
+    Rating:
+      type: object
+      properties:
+        source:
+          type: string
+        score:
+          $ref: "#/components/schemas/Score"
+      required:
+        - source
+        - score
+
+    Movie:
       type: object
       allOf:
         - $ref: "#/components/schemas/IdAware"
-        - $ref: "#/components/schemas/BaseUser"
-
-    UserStatus:
-      type: string
-      enum:
-        - available
-        - blocked
-      default: available
-
-    Address:
-      type: object
-      properties:
-        street:
-          type: string
-        city:
-          type: string
-        state:
-          type: string
-        zip:
-          type: string
-      required:
-        - street
-        - city
-        - state
-        - zip
+        - $ref: "#/components/schemas/BaseMovie"
+        - properties:
+            totalScore:
+              $ref: "#/components/schemas/Score"
+            ratings:
+              type: array
+              items:
+                $ref: "#/components/schemas/Rating"
+          required:
+            - ratings
 
     ValidationError:
       type: object

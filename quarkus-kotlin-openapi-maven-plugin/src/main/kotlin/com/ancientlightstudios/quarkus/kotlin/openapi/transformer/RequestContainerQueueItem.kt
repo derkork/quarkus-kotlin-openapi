@@ -19,6 +19,7 @@ class RequestContainerQueueItem(private val request: Request, private val contex
         request.parameters.forEach {
             val inner = context.safeModelFor(it.type).className()
             val finalType =
+                // TODO: innerNullable depends in the spec
                 it.type.containerAsList(inner, innerNullable = false, outerNullable = !it.validationInfo.required)
             content.addMember(it.name.variableName(), finalType, private = false)
         }
@@ -26,6 +27,7 @@ class RequestContainerQueueItem(private val request: Request, private val contex
         request.body?.let {
             val inner = context.safeModelFor(it.type).className()
             val finalType =
+                // TODO: innerNullable depends in the spec
                 it.type.containerAsList(inner, innerNullable = false, outerNullable = !it.validationInfo.required)
             content.addMember("body".variableName(), finalType, private = false)
         }

@@ -1,72 +1,95 @@
 package com.ancientlightstudios.example
 
 import com.ancientlightstudios.example.model.*
-import com.ancientlightstudios.example.model.ValidationError
 import com.ancientlightstudios.example.server.NarfInterfaceDelegate
-import com.ancientlightstudios.quarkus.kotlin.openapi.*
-import com.fasterxml.jackson.annotation.JsonProperty
-import com.fasterxml.jackson.databind.ObjectMapper
-import io.quarkus.runtime.annotations.RegisterForReflection
+import com.ancientlightstudios.quarkus.kotlin.openapi.Maybe
+import com.ancientlightstudios.quarkus.kotlin.openapi.validOrElse
 import jakarta.enterprise.context.ApplicationScoped
-import jakarta.ws.rs.GET
-import jakarta.ws.rs.POST
-import jakarta.ws.rs.Path
-import jakarta.ws.rs.QueryParam
-import jakarta.ws.rs.core.Response
-import org.jboss.resteasy.reactive.RestResponse
-import java.lang.IllegalArgumentException
-import java.util.UUID
-import kotlin.random.Random
+import java.util.*
 
 @ApplicationScoped
 class NarfDelegateImpl : NarfInterfaceDelegate {
 
-    private val users = mutableListOf<User>()
+    private val movieDataBase = mutableMapOf<Id, Movie>()
 
-    override suspend fun find(request: Maybe<FindRequest>): FindResponse {
-        val validRequest = request.validOrElse { return FindResponse.badRequest(it.asResponseBody()) }
+    override suspend fun findMovies(request: Maybe<FindMoviesRequest>): FindMoviesResponse {
+        val validRequest = request.validOrElse { return FindMoviesResponse.badRequest(it.asResponseBody()) }
 
-        val filteredUsers = validRequest.status?.let { status -> users.filter { it.status == status } } ?: users
-        return FindResponse.ok(filteredUsers)
+        var filteredMovies = movieDataBase.values.toList()
+        if (validRequest.title != null) {
+            filteredMovies = filteredMovies.filter { it.title.contains(validRequest.title, true) }
+        }
+        if (validRequest.score != null) {
+            filteredMovies = filteredMovies.filter { (it.totalScore?.value ?: 0.0) >= validRequest.score.value }
+        }
+        if (!validRequest.genre.isNullOrEmpty()) {
+            filteredMovies = filteredMovies.filter { it.genres.intersect(validRequest.genre).isNotEmpty() }
+        }
+        return FindMoviesResponse.ok(filteredMovies)
     }
 
-    override suspend fun add(request: Maybe<AddRequest>): AddResponse {
-        val validRequest = request.validOrElse { return AddResponse.badRequest(it.asResponseBody()) }
+    override suspend fun addMovie(request: Maybe<AddMovieRequest>): AddMovieResponse {
+        val validRequest = request.validOrElse { return AddMovieResponse.badRequest(it.asResponseBody()) }
 
         val body = validRequest.body
-        val newUser =
-            User(generateId(), body.name, body.age, body.status, body.address, body.tags, body.fallbackAddresses)
-        users.add(newUser)
-        return AddResponse.ok(newUser)
+        val newMovie =
+            Movie(generateId(), body.title, body.releaseDate, body.genres, body.duration, body.cast, null, emptyList())
+        movieDataBase[newMovie.id] = newMovie
+        return AddMovieResponse.ok(newMovie)
     }
 
-    override suspend fun get(request: Maybe<GetRequest>): GetResponse {
-        val validRequest = request.validOrElse { return GetResponse.badRequest(it.asResponseBody()) }
-        val user = findUserOrElse(validRequest.userId) { return GetResponse.notFound(it) }
-        return GetResponse.ok(user)
+    override suspend fun getMovie(request: Maybe<GetMovieRequest>): GetMovieResponse {
+        val validRequest = request.validOrElse { return GetMovieResponse.badRequest(it.asResponseBody()) }
+        val movie = findMovieOrElse(validRequest.movieId) { return GetMovieResponse.notFound(it) }
+        return GetMovieResponse.ok(movie)
+
     }
 
-    override suspend fun modify(request: Maybe<ModifyRequest>): ModifyResponse {
-        val validRequest = request.validOrElse { return ModifyResponse.badRequest(it.asResponseBody()) }
-        val user = findUserOrElse(validRequest.userId) { return ModifyResponse.notFound(it) }
+    override suspend fun deleteMovie(request: Maybe<DeleteMovieRequest>): DeleteMovieResponse {
+        val validRequest = request.validOrElse { return DeleteMovieResponse.badRequest(it.asResponseBody()) }
+        val movie = findMovieOrElse(validRequest.movieId) { return DeleteMovieResponse.notFound(it) }
+
+        movieDataBase.remove(movie.id)
+        return DeleteMovieResponse.noContent()
+    }
+
+    override suspend fun modifyMovie(request: Maybe<ModifyMovieRequest>): ModifyMovieResponse {
+        val validRequest = request.validOrElse { return ModifyMovieResponse.badRequest(it.asResponseBody()) }
+        val movie = findMovieOrElse(validRequest.movieId) { return ModifyMovieResponse.notFound(it) }
 
         val body = validRequest.body
-        val newUser = User(user.id, body.name, body.age, body.status, body.address, body.tags, body.fallbackAddresses)
-        users.replaceAll { if (it.id == newUser.id) newUser else it }
-        return ModifyResponse.ok(newUser)
+        val newMovie = movie.copy(
+            title = body.title,
+            releaseDate = body.releaseDate,
+            genres = body.genres,
+            duration = body.duration,
+            cast = body.cast
+        )
+        movieDataBase[newMovie.id] = newMovie
+        return ModifyMovieResponse.ok(newMovie)
     }
 
-    override suspend fun delete(request: Maybe<DeleteRequest>): DeleteResponse {
-        val validRequest = request.validOrElse { return DeleteResponse.badRequest(it.asResponseBody()) }
-        val user = findUserOrElse(validRequest.userId) { return DeleteResponse.notFound(it) }
+    override suspend fun addRating(request: Maybe<AddRatingRequest>): AddRatingResponse {
+        val validRequest = request.validOrElse { return AddRatingResponse.badRequest(it.asResponseBody()) }
+        val movie = findMovieOrElse(validRequest.movieId) { return AddRatingResponse.notFound(it) }
 
-        users.remove(user)
-        return DeleteResponse.noContent()
+        val body = validRequest.body
+        val newRatings = movie.ratings.filterNot { it.source == body.source } + body
+
+        val newMovie = movie.copy(totalScore = calculateScore(newRatings), ratings = newRatings)
+        movieDataBase[newMovie.id] = newMovie
+        return AddRatingResponse.ok(newRatings)
     }
 
-    private inline fun findUserOrElse(userId: Id, block: (ApplicationError) -> Nothing) =
-        users.firstOrNull { it.id == userId } ?: block(ApplicationError("user with id $userId not found"))
+    private inline fun findMovieOrElse(movieId: Id, block: (ApplicationError) -> Nothing) =
+        movieDataBase[movieId] ?: block(ApplicationError("movie with id ${movieId.value} not found"))
 
+    private fun calculateScore(ratings: List<Rating>): Score? {
+        if (ratings.isEmpty()) {
+            return null
+        }
+        return Score(ratings.sumOf { it.score.value } / ratings.size)
+    }
 }
 
 fun generateId() = Id(UUID.randomUUID().toString())

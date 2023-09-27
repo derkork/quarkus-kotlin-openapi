@@ -5,14 +5,15 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName.Companion.className
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName.Companion.rawClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.methodName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.NestedPathExpression.Companion.nested
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.GenericTypeName.Companion.of
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.SimpleTypeName.Companion.rawTypeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.SimpleTypeName.Companion.typeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.Schema
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.SchemaRef
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ValidationInfo
 
-class UnsafeModelQueueItem(schemaRef: SchemaRef, private val context:TransformerContext) : QueueItem {
+class UnsafeModelQueueItem(schemaRef: SchemaRef, private val context: TransformerContext) : QueueItem {
 
     private val innerSchemaRef: SchemaRef
     private val schema: Schema
@@ -45,9 +46,8 @@ class UnsafeModelQueueItem(schemaRef: SchemaRef, private val context:Transformer
         }
 
         val properties = innerSchemaRef.getAllProperties()
-        val additionalImports = mutableSetOf<String>()
 
-        val content = KotlinClass(className()).apply {
+        val content = KotlinClass(className(), asDataClass = true).apply {
             addAnnotation("RegisterForReflection".rawClassName())
 
             properties.forEach {
@@ -63,35 +63,17 @@ class UnsafeModelQueueItem(schemaRef: SchemaRef, private val context:Transformer
                 }
             }
 
-            val safeType =context.safeModelFor(innerSchemaRef).className()
+            val safeType = context.safeModelFor(innerSchemaRef).className()
 
-            withCompanion("Validator".className()) {
+            addMethod("asSafe".methodName(), false, "Maybe".typeName().of(safeType.typeName(false))).apply {
+                addParameter("context".variableName(), "String".rawTypeName(false))
 
-                val builderTransform =  SafeObjectBuilderTransformStatement(safeType)
-
-                addMethod(
-                    "validated".methodName(), false,
-                    "Maybe".typeName().of(safeType.typeName(true)),
-                    "Maybe".typeName().of(className().typeName(true))
-                ).apply {
-                    ValidationBoilerplateStatement().addTo(this).apply {
-                        properties.forEach {
-                            val (maybeVariable, statement) = convertToMaybe(
-                                context,
-                                it.type,
-                                it.validationInfo,
-                                "context".variableName(),
-                                "value".variableName().nested(it.name.variableName()),
-                                additionalImports::add,
-                                false
-                            )
-                            statement.addTo(this)
-                            builderTransform.addParameter(it.name, maybeVariable)
-                        }
-
-                        builderTransform.addTo(this)
-                    }
+                val builderTransform = SafeObjectBuilderTransformStatement(safeType)
+                properties.forEach {
+                    addTransformStatement(it.name, it.type, it.validationInfo, "context".variableName(), context, false)
+                        .also(builderTransform::addParameter)
                 }
+                builderTransform.addTo(this)
             }
         }
 
@@ -99,7 +81,6 @@ class UnsafeModelQueueItem(schemaRef: SchemaRef, private val context:Transformer
             imports.add("io.quarkus.runtime.annotations.RegisterForReflection")
             imports.addAll(libraryImports())
             imports.addAll(jacksonImports())
-            imports.addAll(additionalImports)
         }
     }
 
