@@ -5,22 +5,28 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.writer.CodeWriter
 
 class PrimitiveToMaybeTransformStatement(
     private val targetName: VariableName, private val sourceName: VariableName,
-    private val context: Expression, private val type: TypeName, private val validationInfo: ValidationInfo
+    private val context: Expression, private val type: TypeName, private val defaultValue: String?,
+    private val validationInfo: ValidationInfo
 ) : KotlinStatement {
 
     override fun render(writer: CodeWriter) = with(writer) {
         write("val ${targetName.name} = ")
-        NestedPrimitiveTransformStatement(sourceName, context, type, validationInfo).render(this)
+        NestedPrimitiveTransformStatement(sourceName, context, type, defaultValue, validationInfo).render(this)
     }
 }
 
 class NestedPrimitiveTransformStatement(
-    private val sourceName: VariableName,
-    private val context: Expression?, private val type: TypeName, private val validationInfo: ValidationInfo
+    private val sourceName: VariableName, private val context: Expression?, private val type: TypeName,
+    private val defaultValue: String?, private val validationInfo: ValidationInfo
 ) : KotlinStatement {
 
     override fun render(writer: CodeWriter) = with(writer) {
-        write("${sourceName.name}.as")
+        if (defaultValue != null && !validationInfo.required) {
+            // TODO: we should replace this with a 'map { it ?: defaultValue }' to avoid parsing the value each time. but this class needs to know jow to convert the value into the required data type
+            write("(${sourceName.name} ?: \"$defaultValue\").as")
+        } else {
+            write("${sourceName.name}.as")
+        }
         type.render(this)
         write("(")
         context?.let { write(it.expression) }

@@ -45,7 +45,7 @@ class SafeModelQueueItem(schemaRef: SchemaRef, private val context: TransformerC
         // ignore primitive types
         if (schema is Schema.PrimitiveTypeSchema) {
             return if (schema.shared) {
-                val content = KotlinValueClass(className(), schema.primitiveType.primitiveTypeClass().typeName())
+                val content = KotlinValueClass(className(), schema.primitiveType.primitiveTypeClass().typeName(), schema.defaultValue)
                 KotlinFile(content, "${context.config.packageName}.model").apply {
                     imports.addAll(libraryImports())
                 }
@@ -56,7 +56,7 @@ class SafeModelQueueItem(schemaRef: SchemaRef, private val context: TransformerC
         }
 
         if (schema is Schema.EnumSchema) {
-            val content = KotlinEnum(className(), schema.values.map { it to it.className() })
+            val content = KotlinEnum(className(), schema.values.map { it to it.className() }, schema.defaultValue)
             return KotlinFile(content, "${context.config.packageName}.model").apply {
                 imports.add("com.fasterxml.jackson.annotation.JsonProperty")
                 imports.addAll(libraryImports())

@@ -243,6 +243,7 @@ components:
     Score:
       type: number
       format: double
+      default: 1
       minimum: 1
       maximum: 10
 
@@ -269,14 +270,19 @@ components:
         - scifi
         - thriller
         - other
+      default: scifi
 
     Cast:
       type: object
       properties:
         character:
           type: string
+          default: unknown
         actor:
           type: string
+          default: unknown
+      required:
+        - character
 
     AdditionalInformation:
       type: object
