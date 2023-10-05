@@ -44,8 +44,12 @@ class SchemaBuilder(
 
     private fun buildEnumSchema(): SchemaRef {
         val values = node.withArray("enum").map { it.asText() }
+        val defaultValue = node.get("default")?.asText()
+        if (defaultValue != null) {
+            check(values.contains(defaultValue)) { "Default value '$defaultValue' is not a valid enum value for $typeName." }
+        }
         return schemaRegistry.getOrRegisterReference(typeName).also {
-            schemaRegistry.resolveRef(it, Schema.EnumSchema(typeName, values))
+            schemaRegistry.resolveRef(it, Schema.EnumSchema(typeName, values, defaultValue))
         }
     }
 
@@ -99,8 +103,10 @@ class SchemaBuilder(
                 type = format
             }
         }
+
+        val defaultValue = node.get("default")?.asText()
         return schemaRegistry.getOrRegisterReference(typeName).also {
-            schemaRegistry.resolveRef(it, Schema.PrimitiveTypeSchema(typeName, type, shared))
+            schemaRegistry.resolveRef(it, Schema.PrimitiveTypeSchema(typeName, type, shared, defaultValue))
         }
     }
 }

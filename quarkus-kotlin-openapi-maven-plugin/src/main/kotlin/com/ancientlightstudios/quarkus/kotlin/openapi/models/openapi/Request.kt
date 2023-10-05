@@ -70,7 +70,7 @@ data class ValidationInfo(val required: Boolean)
 
 sealed class Schema(val typeName: String) {
 
-    class PrimitiveTypeSchema(typeName: String, val primitiveType: String, val shared: Boolean) : Schema(typeName)
+    class PrimitiveTypeSchema(typeName: String, val primitiveType: String, val shared: Boolean, val defaultValue: String?) : Schema(typeName)
 
     class ArraySchema(val items: SchemaRef) : Schema("array")
     class ObjectTypeSchema(typeName: String, val properties: List<SchemaProperty>) : Schema(typeName)
@@ -78,7 +78,7 @@ sealed class Schema(val typeName: String) {
     class OneOfSchema(typeName: String, val discriminator: String, val oneOf: List<SchemaRef>) : Schema(typeName)
     class AnyOfSchema(typeName: String, val anyOf: List<SchemaRef>) : Schema(typeName)
     class AllOfSchema(typeName: String, val allOf: List<SchemaRef>) : Schema(typeName)
-    class EnumSchema(typeName: String, val values: List<String>) : Schema(typeName)
+    class EnumSchema(typeName: String, val values: List<String>, val defaultValue: String?) : Schema(typeName)
 }
 
 data class SchemaRef(

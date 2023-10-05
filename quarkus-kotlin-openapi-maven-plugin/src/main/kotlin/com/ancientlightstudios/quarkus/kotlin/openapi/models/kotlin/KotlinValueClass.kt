@@ -5,7 +5,8 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.writer.CodeWriter
 
 class KotlinValueClass(
     name: ClassName,
-    private val nestedType: TypeName
+    private val nestedType: TypeName,
+    private val defaultValue: String?
 ) : KotlinFileContent(name) {
 
     init {
@@ -42,7 +43,12 @@ class KotlinValueClass(
         writeln()
         writeln("fun String?.as${name.name}(context:String) : Maybe<${name.name}?> {")
         indent {
-            write("return as")
+            if( defaultValue != null) {
+                // TODO: we should replace this with a 'map { it ?: defaultValue }' to avoid parsing the value each time. but this class needs to know jow to convert the value into the required data type
+                write("return (this ?: \"$defaultValue\").as")
+            } else {
+                write("return as")
+            }
             nestedType.render(this)
             writeln("(context)")
             indent {
@@ -53,6 +59,7 @@ class KotlinValueClass(
         writeln("}")
 
         writeln()
+        // this function should only be used for list/array items. otherwise the default value will not be available
         writeln("fun Maybe<String?>.as${name.name}() : Maybe<${name.name}?> = onNotNull { value.as${name.name}(context) }")
     }
 

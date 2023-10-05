@@ -157,7 +157,7 @@ fun KotlinMethod.addTransformStatement(
         is Schema.PrimitiveTypeSchema -> {
             val parameterType = context.safeModelFor(type).className()
             PrimitiveToMaybeTransformStatement(
-                targetName, sourceName, parameterContext, parameterType.typeName(), validationInfo
+                targetName, sourceName, parameterContext, parameterType.typeName(), schema.defaultValue, validationInfo
             )
         }
 
@@ -208,7 +208,7 @@ private fun nestedTransformStatement(
 
         is Schema.PrimitiveTypeSchema -> {
             val parameterType = context.safeModelFor(type).className()
-            NestedPrimitiveTransformStatement(sourceName, null, parameterType.typeName(), validationInfo)
+            NestedPrimitiveTransformStatement(sourceName, null, parameterType.typeName(), null, validationInfo)
         }
 
         is Schema.ArraySchema -> {
