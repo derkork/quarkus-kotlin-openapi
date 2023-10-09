@@ -2,9 +2,14 @@
 
 - [ ] Endpunkte anhand der OpenAPI-Tags oder Konfigurationswerte in getrennte Server/Client-Interfaces splitten
 - [ ] Name für Klassen per Konfiguration ändern (z.B. um den erzeugten NAmen für inline-Klassen zu ändern, oder Namenskonflikte zu vermeiden) 
+- [ ] Operation-Id per Konfiguration änderbar (falls man mit einer fremden API arbeiten muß)
+- [ ] Validierung für Klassen änderbar/ergänzbar
 
-## Generator
-
+## Parser
+               
+- [ ] Referenzen (z.B. auf Schema) können Werte überschreiben (z.B. Nullable, Default-Wert, Validierung, etc). Siehe dazu auch https://github.com/OAI/OpenAPI-Specification/issues/1368
+- [ ] Security
+- [ ] Tags
 - [ ] bessere Fehlerbehandlung im Parser
 - [ ] die verschiedenen OpenAPI Versionen unterstützen
 - [ ] Formate wie date, date-time, uuid unterstützen
@@ -24,12 +29,8 @@
     # type: string
     # nullable: true
   ```
-- [ ] Consumes/Produces Annotation für verschiedene Datenformate (Json, Xml, Binär)
 - [ ] Default-Werte für optionale Parameter und Properties
-- [ ] @ClientHeaderParam im Client Interface
 - [ ] style und explode für Array Parameter
-- [ ] Zugriff auf Request-Header und setzen von Response-Header
-- [ ] Zugriff auf Cookies
 - [ ] Default Responses
 - [ ] Referenz auf Response-Definition
 - [ ] Read-Only und Write-Only Properties
@@ -95,7 +96,14 @@
           enum:           # fügt neue Werte zur enum hinzu 
             - foo
   ```
-
+ 
+## Generator
+                
+- [ ] referenzen auf referenzen
+- [ ] Consumes/Produces Annotation für verschiedene Datenformate (Json, Xml, Binär)
+- [ ] @ClientHeaderParam im Client Interface
+- [ ] Zugriff auf Request-Header und setzen von Response-Header
+- [ ] Zugriff auf Cookies
 
 
 

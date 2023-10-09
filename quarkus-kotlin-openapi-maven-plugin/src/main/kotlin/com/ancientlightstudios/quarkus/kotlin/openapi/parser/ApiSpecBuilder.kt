@@ -1,57 +1,57 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.parser
 
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ApiSpec
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiVersion
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.Request
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.RequestMethod
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ObjectNode
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ApiSpec
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.RequestMethod
 
-class ApiSpecBuilder(private val node: ObjectNode, private val schemaRegistry: SchemaRegistry) {
+class ApiSpecBuilder(private val node: ObjectNode) {
+
+    private val openApiVersion = extractOpenApiVersion()
+    private val referenceResolver = ReferenceResolver(openApiVersion, node)
 
     fun build(requestFilter: RequestFilter): ApiSpec {
-        val requests = buildRequests(requestFilter)
-        buildRequiredSchemas()
-
-        return ApiSpec(requests, schemaRegistry.resolvedSchemas)
+        val requests = extractRequests(requestFilter)
+        val infoNode = node.with("info")
+        return ApiSpec(requests, infoNode.getTextOrNull("description"), infoNode.getTextOrNull("version"))
     }
 
-    private fun buildRequests(requestFilter: RequestFilter) =
-        // get all paths
-        node.with("paths")
-            .fields().asSequence()
-            .flatMap { (path, requests) ->
-                // get all methods below each path
-                requests.fields().asSequence()
-                    // filter out the ones we need
-                    .filter { (method, _) -> requestFilter.accept(path, RequestMethod.fromString(method)) }
-                    // and parse them into a Request
-                    .map { (method, request) ->
-                        request.parseAsRequest(
-                            path,
-                            RequestMethod.fromString(method),
-                            schemaRegistry
-                        )
-                    }
-            }.toSet()
+    private fun extractOpenApiVersion() = node.getTextOrNull("openapi")?.let { OpenApiVersion.fromString(it) }
+        ?: throw IllegalStateException("OpenAPI version not specified")
 
-    private fun buildRequiredSchemas() {
-        var queue = schemaRegistry.unresolved()
-        var counter = 0
-        do {
-            queue.forEach {
-                val schemaNode = node.resolvePath(it.id) ?: throw IllegalArgumentException("can't find schema for path ${it.id}")
-                schemaNode.parseAsSchema(it.id, schemaRegistry)
+    private fun extractRequests(requestFilter: RequestFilter) = node.with("paths")
+        .propertiesAsList()
+        .map { (path, pathNode) ->
+            pathNode.asObjectNode { "Json object expected for path '$path'" }
+                .extractPathRequests(path, requestFilter)
+        }
+        .flatten()
+
+    private fun ObjectNode.extractPathRequests(path: String, requestFilter: RequestFilter): List<Request> {
+        val context = ParseContext(openApiVersion, this, "#/paths/$path", referenceResolver)
+
+        // a path can define default parameters for all of its operations
+        val defaultParameter = withArray("parameters")
+            .mapIndexed { index, itemNode ->
+                context.contextFor(itemNode, "parameters[$index]")
+                    .parseAsRequestParameter()
             }
-            queue = schemaRegistry.unresolved()
-            counter++
-            if (counter == 4) {
-                return
+
+        // now extract all defined operations in this path
+        return propertiesAsList()
+            // ignore the parameters key, as this is not a valid operation
+            .filter { (name, _) -> name != "parameters" }
+            // ignore all operations which are not required
+            .filter { (operation, _) -> requestFilter.accept(path, RequestMethod.fromString(operation)) }
+            .map { (operation, operationNode) ->
+                context.contextFor(operationNode, "operation")
+                    .parseAsRequest(path, RequestMethod.fromString(operation), defaultParameter)
             }
-        } while (queue.isNotEmpty())
     }
+
 }
 
-fun JsonNode.parseAsApiSpec(schemaRegistry: SchemaRegistry, requestFilter: RequestFilter): ApiSpec {
-    require(this.isObject) { "Json object expected" }
-
-    return ApiSpecBuilder(this as ObjectNode, schemaRegistry).build(requestFilter)
-}
+fun JsonNode.parseAsApiSpec(requestFilter: RequestFilter) = asObjectNode { "Json object expected" }
+    .let { ApiSpecBuilder(it).build(requestFilter) }

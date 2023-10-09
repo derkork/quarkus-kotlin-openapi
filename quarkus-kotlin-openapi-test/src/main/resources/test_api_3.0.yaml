@@ -7,6 +7,7 @@ info:
   title: Test Interface
 paths:
   /movies:
+
     get:
       operationId: findMovies
       parameters:
@@ -34,20 +35,14 @@ paths:
                 items:
                   $ref: "#/components/schemas/Movie"
         '400':
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ValidationError"
+          $ref: "#/components/responses/BadRequestResponse"
+        default:
+          $ref: "#/components/responses/BadRequestResponse"
 
     post:
       operationId: addMovie
       requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/BaseMovie"
+        $ref: "#/components/requestBodies/NewMovie"
       responses:
         '200':
           description: Successful operation
@@ -63,15 +58,11 @@ paths:
                 $ref: "#/components/schemas/ValidationError"
 
   /movies/{movieId}:
+    parameters:
+      - $ref: "#/components/parameters/MovieId"
+
     get:
       operationId: getMovie
-      parameters:
-        - name: movieId
-          in: path
-          description: movieId
-          required: true
-          schema:
-            $ref: "#/components/schemas/Id"
       responses:
         '200':
           description: Successful operation
@@ -229,8 +220,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/ApplicationError"
 
-
 components:
+
   schemas:
     Id:
       type: string
@@ -362,3 +353,42 @@ components:
           type: string
       required:
         - message
+
+  parameters:
+    # referenced like this on path or method level
+    # parameters:
+    #   - $ref: "#/components/parameters/MovieId"
+    MovieId:
+      name: movieId
+      in: path
+      description: movieId
+      required: true
+      schema:
+        $ref: "#/components/schemas/Id"
+
+  securitySchemes: {}
+  requestBodies:
+    # referenced like this on a method level
+    # requestBody:
+    #   $ref: "#/components/requestBodies/NewMovie"
+    NewMovie:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/BaseMovie"
+
+  responses:
+    # referenced like this on a method level
+    # responses:
+    #   '400':
+    #     $ref: "#/components/requestBodies/NewMovie"
+    BadRequestResponse:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ValidationError"
+
+
+  headers: {}
