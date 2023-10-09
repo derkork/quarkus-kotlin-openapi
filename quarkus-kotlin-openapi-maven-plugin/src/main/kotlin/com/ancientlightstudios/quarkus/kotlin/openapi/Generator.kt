@@ -1,22 +1,29 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.parser.*
-import com.ancientlightstudios.quarkus.kotlin.openapi.transformer.transform
-import com.ancientlightstudios.quarkus.kotlin.openapi.writer.write
-
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ApiSpec
+import com.ancientlightstudios.quarkus.kotlin.openapi.parser.RequestFilter
+import com.ancientlightstudios.quarkus.kotlin.openapi.parser.merge
+import com.ancientlightstudios.quarkus.kotlin.openapi.parser.parseAsApiSpec
+import com.ancientlightstudios.quarkus.kotlin.openapi.parser.read
 import java.io.File
 
 class Generator(private val config: Config) {
 
-    fun generate() {
-        val schemaRegistry = SchemaRegistry()
+    fun generate() = parse()
+        .transform()
+        .write()
 
-        val apiSpec = config.sourceFiles
-            .map { read(File(it).inputStream()) }
-            .reduce { acc, apiSpec -> acc.merge(apiSpec) }
-            .parseAsApiSpec(schemaRegistry, RequestFilter(config.endpoints))
+    private fun parse() = config.sourceFiles
+        .map { read(File(it).inputStream()) }
+        .reduce { acc, apiSpec -> acc.merge(apiSpec) }
+        .parseAsApiSpec(RequestFilter(config.endpoints))
 
-        val files = transform(apiSpec, config)
-        write(files, config)
+    private fun ApiSpec.transform(): ApiSpec {
+//        val files = transform(apiSpec, config)
     }
+
+    private fun ApiSpec.write() {
+//        write(files, config)
+    }
+
 }

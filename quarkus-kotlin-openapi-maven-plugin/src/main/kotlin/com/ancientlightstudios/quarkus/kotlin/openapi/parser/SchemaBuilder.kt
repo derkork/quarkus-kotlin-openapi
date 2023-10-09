@@ -1,129 +1,148 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.parser
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.Schema
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.SchemaRef
-import com.fasterxml.jackson.databind.JsonNode
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiVersion
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.schema.*
 import com.fasterxml.jackson.databind.node.ObjectNode
 
-class SchemaBuilder(
-    private val typeName: String,
-    private val shared: Boolean,  // TODO: should we use this flag for other schemas like arrays too?
-    private val node: ObjectNode,
-    private val schemaRegistry: SchemaRegistry
-) {
+class SchemaBuilder(private val node: ObjectNode) {
 
-    fun build(): SchemaRef {
-        // it's a real object with properties
+    fun ParseContext.build(): Schema {
+        return when (val ref = node.getTextOrNull("\$ref")) {
+            null -> extractSchemaDefinition()
+            else -> extractSchemaReference(ref)
+        }
+    }
+
+    private fun ParseContext.extractSchemaDefinition(): Schema {
+        val type = extractPrimaryType()
         return when {
-            node.has("properties") -> buildObjectTypeSchema()
-            node.has("enum") -> buildEnumSchema()
-            node.has("oneOf") -> buildOneOfSchema()
-            node.has("allOf") -> buildAllOfSchema()
-            node.has("anyOf") -> buildAnyOfSchema()
-            node.getTextOrNull("type") == "array" -> buildArraySchema()
-            else -> return buildPrimitiveTypeSchema()
+            type == "object" || type == null && node.has("properties") -> extractObjectSchemaDefinition()
+            type == null -> throw IllegalStateException("Unsupported schema type in $contextPath")
+            node.has("enum") -> extractEnumSchemaDefinition(type)
+            node.has("oneOf") -> extractOneOfSchemaDefinition()
+            node.has("allOf") -> extractAllOfSchemaDefinition()
+            node.has("anyOf") -> extractAnyOfSchemaDefinition()
+            type == "array" -> extractArraySchemaDefinition()
+            else -> extractPrimitiveSchemaDefinition(type)
         }
     }
 
-    private fun buildObjectTypeSchema(): SchemaRef {
-        val required = node.withArray("required").map { it.asText() }
-        val properties = node.with("properties")
-            .fields().asSequence()
-            .map { (propertyName, propertyNode) ->
-                propertyNode.parseAsSchemaProperty(
-                    propertyName,
-                    schemaRegistry,
-                    required
-                ) { "$typeName $propertyName" }
-            }
-            .toList()
-        return schemaRegistry.getOrRegisterReference(typeName).also {
-            schemaRegistry.resolveRef(it, Schema.ObjectTypeSchema(typeName, properties))
+    private fun ParseContext.extractPrimaryType() = when (openApiVersion) {
+        OpenApiVersion.V3_0 -> node.getTextOrNull("type")
+        OpenApiVersion.V3_1 -> node.withArray("type")
+            .map { it.asText() }
+            .filterNot { it == "null" }
+            .also { check(it.size <= 1) { "Schema with multiple types (beside null) not yet supported. $contextPath" } }
+            .firstOrNull()
+    }
+
+    private fun ParseContext.isNullable() = when (openApiVersion) {
+        OpenApiVersion.V3_0 -> node.getBooleanOrNull("nullable") ?: false
+        OpenApiVersion.V3_1 -> node.withArray("type")
+            .map { it.asText() }
+            .contains("null")
+    }
+
+    private fun ParseContext.extractSchemaReference(ref: String): Schema {
+        val (targetName, schema) = referenceResolver.resolveSchema(ref)
+        val description = when (openApiVersion) {
+            // not supported in v3.0
+            OpenApiVersion.V3_0 -> null
+            OpenApiVersion.V3_1 -> node.getTextOrNull("description")
+        }
+
+        // extract into functions if other versions support more overrides for parameter references
+        return when (schema) {
+            is Schema.PrimitiveSchema -> PrimitiveSchemaReference(targetName, schema, description)
+            is Schema.EnumSchema -> EnumSchemaReference(targetName, schema, description)
+            is Schema.ArraySchema -> ArraySchemaReference(targetName, schema, description)
+            is Schema.ObjectSchema -> ObjectSchemaReference(targetName, schema, description)
+            is Schema.OneOfSchema -> OneOfSchemaReference(targetName, schema, description)
+            is Schema.AllOfSchema -> AllOfSchemaReference(targetName, schema, description)
+            is Schema.AnyOfSchema -> AnyOfSchemaReference(targetName, schema, description)
         }
     }
 
-    private fun buildEnumSchema(): SchemaRef {
+    private fun ParseContext.extractPrimitiveSchemaDefinition(type: String): PrimitiveSchemaDefinition {
+        return PrimitiveSchemaDefinition(
+            node.getTextOrNull("description"), isNullable(), type,
+            node.getTextOrNull("format"), node.getTextOrNull("default")
+        )
+    }
+
+    private fun ParseContext.extractEnumSchemaDefinition(type: String): EnumSchemaDefinition {
         val values = node.withArray("enum").map { it.asText() }
         val defaultValue = node.get("default")?.asText()
         if (defaultValue != null) {
-            check(values.contains(defaultValue)) { "Default value '$defaultValue' is not a valid enum value for $typeName." }
+            check(values.contains(defaultValue)) { "Default value '$defaultValue' is not a valid enum value for $contextPath" }
         }
-        return schemaRegistry.getOrRegisterReference(typeName).also {
-            schemaRegistry.resolveRef(it, Schema.EnumSchema(typeName, values, defaultValue))
-        }
+
+        return EnumSchemaDefinition(
+            node.getTextOrNull("description"), isNullable(), type,
+            node.getTextOrNull("format"), values, defaultValue
+        )
     }
 
-    private fun buildOneOfSchema(): SchemaRef {
-        val schemas = node.withArray("oneOf")
-            .filterIsInstance<ObjectNode>()
-            .mapIndexed { idx, it -> it.extractSchemaRef(schemaRegistry) { "$typeName OneOf $idx" } }
-        val discriminator = node.resolvePath("discriminator/propertyName")?.asText()
-            ?: throw IllegalStateException("discriminator is required for oneOf schemas")
-        return schemaRegistry.getOrRegisterReference(typeName).also {
-            schemaRegistry.resolveRef(it, Schema.OneOfSchema(typeName, discriminator, schemas))
-        }
+    private fun ParseContext.extractArraySchemaDefinition(): ArraySchemaDefinition {
+        return ArraySchemaDefinition(
+            node.getTextOrNull("description"),
+            isNullable(), contextFor("items").parseAsSchema()
+        )
     }
 
-    private fun buildAllOfSchema(): SchemaRef {
-        val schemas = node.withArray("allOf")
-            .filterIsInstance<ObjectNode>()
-            .mapIndexed { idx, it -> it.extractSchemaRef(schemaRegistry) { "$typeName AllOf $idx" } }
-        return schemaRegistry.getOrRegisterReference(typeName).also {
-            schemaRegistry.resolveRef(it, Schema.AllOfSchema(typeName, schemas))
-        }
-    }
-
-    private fun buildAnyOfSchema(): SchemaRef {
-        val schemas = node.withArray("anyOf")
-            .filterIsInstance<ObjectNode>()
-            .mapIndexed { idx, it -> it.extractSchemaRef(schemaRegistry) { "$typeName AnyOf $idx" } }
-        return schemaRegistry.getOrRegisterReference(typeName).also {
-            schemaRegistry.resolveRef(it, Schema.AnyOfSchema(typeName, schemas))
-        }
-    }
-
-    private fun buildArraySchema(): SchemaRef {
-        val items = node.with("items").extractSchemaRef(schemaRegistry) { "$typeName items" }
-        return schemaRegistry.getOrRegisterReference(typeName).also {
-            schemaRegistry.resolveRef(it, Schema.ArraySchema(items))
-        }
-    }
-
-    private fun buildPrimitiveTypeSchema(): SchemaRef {
-        val additionalProperties = node.get("additionalProperties")
-        var type = node.getTextOrNull("type") ?: "string"
-        if (type == "object") {
-            check(additionalProperties != null) { "additionalProperties is required for object types" }
-            type = additionalProperties.getTextOrNull("type") ?: "string"
-        }
-
-        if (additionalProperties != null) {
-            val format = additionalProperties.getTextOrNull("format")
-            if (format != null) {
-                type = format
+    private fun ParseContext.extractObjectSchemaDefinition(): ObjectSchemaDefinition {
+        val required = node.withArray("required").map { it.asText() }
+        val properties = node.with("properties")
+            .propertiesAsList()
+            .map { (name, propertyNode) ->
+                val property = contextFor(propertyNode, "properties.$name")
+                    .parseAsSchemaProperty(required.contains(name))
+                name to property
             }
-        }
 
-        val defaultValue = node.get("default")?.asText()
-        return schemaRegistry.getOrRegisterReference(typeName).also {
-            schemaRegistry.resolveRef(it, Schema.PrimitiveTypeSchema(typeName, type, shared, defaultValue))
-        }
-    }
-}
-
-fun JsonNode.parseAsSchema(typeName: String, schemaRegistry: SchemaRegistry, shared: Boolean = true): SchemaRef {
-    require(this.isObject) { "Json object expected" }
-
-    return SchemaBuilder(typeName, shared, this as ObjectNode, schemaRegistry).build()
-}
-
-fun ObjectNode.extractSchemaRef(schemaRegistry: SchemaRegistry, typeNameHint: () -> String): SchemaRef {
-    // reference to another schema
-    this["\$ref"]?.let {
-        return schemaRegistry.getOrRegisterReference(it.asText())
+        return ObjectSchemaDefinition(node.getTextOrNull("description"), isNullable(), properties)
     }
 
-    // an inline schema
-    return this.parseAsSchema(typeNameHint(), schemaRegistry, false)
+    private fun ParseContext.extractOneOfSchemaDefinition(): OneOfSchemaDefinition {
+        val types = node.withArray("oneOf")
+        check(types.all { it is ObjectNode }) { "OneOf schema with other types than objects not yet supported. $contextPath" }
+        val schemas = types.filterIsInstance<ObjectNode>()
+            .mapIndexed { idx, it ->
+                contextFor(it, "oneOf[$idx]").parseAsSchema()
+            }
+
+        return OneOfSchemaDefinition(
+            node.getTextOrNull("description"), isNullable(),
+            schemas, node.getTextOrNull("discriminator")
+        )
+    }
+
+    private fun ParseContext.extractAllOfSchemaDefinition(): AllOfSchemaDefinition {
+        val types = node.withArray("allOf")
+        check(types.all { it is ObjectNode }) { "AllOf schema with other types than objects not yet supported. $contextPath" }
+        val schemas = types.filterIsInstance<ObjectNode>()
+            .mapIndexed { idx, it ->
+                contextFor(it, "allOf[$idx]").parseAsSchema()
+            }
+
+        return AllOfSchemaDefinition(node.getTextOrNull("description"), isNullable(), schemas)
+    }
+
+    private fun ParseContext.extractAnyOfSchemaDefinition(): AnyOfSchemaDefinition {
+        val types = node.withArray("anyOf")
+        check(types.all { it is ObjectNode }) { "AnyOf schema with other types than objects not yet supported. $contextPath" }
+        val schemas = types.filterIsInstance<ObjectNode>()
+            .mapIndexed { idx, it ->
+                contextFor(it, "anyOf[$idx]").parseAsSchema()
+            }
+
+        return AnyOfSchemaDefinition(node.getTextOrNull("description"), isNullable(), schemas)
+    }
+
 }
 
+fun ParseContext.parseAsSchema() =
+    contextNode.asObjectNode { "Json object expected for $contextPath" }
+        .let {
+            SchemaBuilder(it).run { this@parseAsSchema.build() }
+        }

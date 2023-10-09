@@ -2,50 +2,56 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.parser
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.Request
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.RequestMethod
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ResponseBody
-import com.fasterxml.jackson.databind.JsonNode
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ResponseCode
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.parameter.Parameter
 import com.fasterxml.jackson.databind.node.ObjectNode
 
 class RequestBuilder(
     private val path: String, private val method: RequestMethod,
-    private val node: ObjectNode, private val schemaRegistry: SchemaRegistry
+    private val defaultParameter: List<Parameter>, private val node: ObjectNode
 ) {
 
     private val operationId = node.getTextOrNull("operationId") ?: "${method.name} $path"
 
-    fun build(): Request {
-        val parameters = buildParameters(schemaRegistry)
-        val bodyType = buildBodyType(schemaRegistry)
-        val returnType = buildReturnTypes(schemaRegistry)
+    fun ParseContext.build(): Request {
+        val parameters = extractParameters()
+        val bodyType = extractRequestBody()
+        val returnType = extractResponseBodies()
 
-        return Request(path, method, operationId, parameters, bodyType, returnType)
+        return Request(
+            path, method, operationId,
+            node.getTextOrNull("description"),
+            node.getBooleanOrNull("deprecated") ?: false,
+            parameters, bodyType, returnType
+        )
     }
 
-    private fun buildParameters(schemaRegistry: SchemaRegistry) =
-        node.withArray("parameters").map { it.parseAsRequestParameter(schemaRegistry, operationId) }
+    private fun ParseContext.extractParameters(): List<Parameter> {
+        val definedParameter = node
+            .withArray("parameters")
+            .mapIndexed { index, itemNode ->
+                contextFor(itemNode, "parameters[$index]").parseAsRequestParameter()
+            }
 
-    // TODO: support other content types too
-    private fun buildBodyType(schemaRegistry: SchemaRegistry) =
-        (node.resolvePath("requestBody") as? ObjectNode)?.parseAsRequestBody(schemaRegistry, operationId)
+        val definedParameterNames = definedParameter.map { it.name }.toSet()
+        // overwrite parameters in the default list if they are redefined here
+        return defaultParameter.filterNot { definedParameterNames.contains(it.name) } + definedParameter
+    }
 
-    // TODO: support other content types too
-    private fun buildReturnTypes(schemaRegistry: SchemaRegistry): List<ResponseBody> {
-        val result = mutableListOf<ResponseBody>()
-        val responses = node.with("responses")
+    private fun ParseContext.extractRequestBody() = node.get("requestBody")
+        ?.let { contextFor(it, "requestBody").parseAsRequestBody() }
 
-        responses.fieldNames().forEach {
-            val response = responses[it]
-            val schemaRef = (response.resolvePath("content/application\\/json/schema") as? ObjectNode)
-                ?.extractSchemaRef(schemaRegistry) { "$operationId Response" }
-            result.add(ResponseBody(it.toInt(), schemaRef))
+    private fun ParseContext.extractResponseBodies() = node.with("responses")
+        .propertiesAsList()
+        .map { (code, responseNode) ->
+            val body = contextFor(responseNode, "responses.$code").parseAsResponseBody()
+            ResponseCode.fromString(code) to body
         }
 
-        return result
-    }
 }
 
-fun JsonNode.parseAsRequest(path: String, method: RequestMethod, schemaRegistry: SchemaRegistry): Request {
-    require(this.isObject) { "Json object expected" }
-
-    return RequestBuilder(path, method, this as ObjectNode, schemaRegistry).build()
-}
+fun ParseContext.parseAsRequest(path: String, method: RequestMethod, defaultParameter: List<Parameter>) =
+    contextNode.asObjectNode { "Json object expected for ${this.contextPath}" }
+        .let {
+            RequestBuilder(path, method, defaultParameter, it).run { this@parseAsRequest.build() }
+        }

@@ -1,31 +1,32 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.parser
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.SchemaProperty
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ValidationInfo
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.node.ArrayNode
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.schema.Direction
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.schema.SchemaProperty
 import com.fasterxml.jackson.databind.node.ObjectNode
 
 class SchemaPropertyBuilder(
-    private val name: String,
-    private val node: ObjectNode,
-    private val requiredList: List<String>,
-    private val schemaRegistry: SchemaRegistry,
-    private val typeNameHint: () -> String
+    private val required: Boolean,
+    private val node: ObjectNode
 ) {
-    
-    fun build(): SchemaProperty {
-        val type = node.extractSchemaRef(schemaRegistry, typeNameHint)
-        val required = requiredList.contains(name)
 
-        val validationInfo = ValidationInfo(required)
-        return SchemaProperty(name, type, validationInfo)
+    fun ParseContext.build(): SchemaProperty {
+        val readOnly = node.getBooleanOrNull("readOnly") ?: false
+        val writeOnly = node.getBooleanOrNull("writeOnly") ?: false
+
+        val direction = when {
+            readOnly && writeOnly -> throw IllegalStateException("Property can't be read-only and write-only at the same time. $contextPath")
+            readOnly -> Direction.ReadOnly
+            writeOnly -> Direction.WriteOnly
+            else -> Direction.ReadAndWrite
+        }
+
+        return SchemaProperty(parseAsSchema(), direction, node.getTextOrNull("description"), required)
     }
 
 }
 
-fun JsonNode.parseAsSchemaProperty(name: String, schemaRegistry: SchemaRegistry, requiredList:List<String>, typeNameHint:() -> String): SchemaProperty {
-    require(this.isObject) { "Json object expected" }
-
-    return SchemaPropertyBuilder(name, this as ObjectNode, requiredList, schemaRegistry, typeNameHint).build()
-}
+fun ParseContext.parseAsSchemaProperty(required: Boolean) =
+    contextNode.asObjectNode { "Json object expected for $contextPath" }
+        .let {
+            SchemaPropertyBuilder(required, it).run { this@parseAsSchemaProperty.build() }
+        }
