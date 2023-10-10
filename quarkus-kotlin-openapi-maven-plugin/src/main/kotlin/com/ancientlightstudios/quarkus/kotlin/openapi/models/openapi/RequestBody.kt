@@ -19,11 +19,11 @@ data class RequestBodyDefinition(
 
 data class RequestBodyReference(
     val targetName: String,
-    private val definition: RequestBody,
+    private val target: RequestBody,
     private val descriptionOverride: String? = null
-) : RequestBody by definition {
+) : RequestBody by target {
 
     override val description: String?
-        get() = descriptionOverride ?: definition.description
+        get() = descriptionOverride ?: target.description
 
 }

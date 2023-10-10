@@ -9,11 +9,11 @@ data class OneOfSchemaDefinition(
 
 data class OneOfSchemaReference(
     override val targetName: String,
-    private val definition: Schema.OneOfSchema,
+    private val target: Schema.OneOfSchema,
     private val descriptionOverride: String? = null
-) : SchemaReference, Schema.OneOfSchema by definition {
+) : SchemaReference, Schema.OneOfSchema by target {
 
     override val description: String?
-        get() = descriptionOverride ?: definition.description
+        get() = descriptionOverride ?: target.description
 
 }

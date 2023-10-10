@@ -20,11 +20,11 @@ data class ResponseHeaderDefinition(
 
 data class ResponseHeaderReference(
     val targetName: String,
-    private val definition: ResponseHeader,
+    private val target: ResponseHeader,
     private val descriptionOverride: String? = null
-) : ResponseHeader by definition {
+) : ResponseHeader by target {
 
     override val description: String?
-        get() = descriptionOverride ?: definition.description
+        get() = descriptionOverride ?: target.description
 
 }

@@ -10,11 +10,11 @@ data class PrimitiveSchemaDefinition(
 
 data class PrimitiveSchemaReference(
     override val targetName: String,
-    private val definition: Schema.PrimitiveSchema,
+    private val target: Schema.PrimitiveSchema,
     private val descriptionOverride: String? = null
-) : SchemaReference, Schema.PrimitiveSchema by definition {
+) : SchemaReference, Schema.PrimitiveSchema by target {
 
     override val description: String?
-        get() = descriptionOverride ?: definition.description
+        get() = descriptionOverride ?: target.description
 
 }

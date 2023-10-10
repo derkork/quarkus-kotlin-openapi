@@ -18,11 +18,11 @@ data class ResponseBodyDefinition(
 
 data class ResponseBodyReference(
     val targetName: String,
-    private val definition: ResponseBody,
+    private val target: ResponseBody,
     private val descriptionOverride: String? = null
-) : ResponseBody by definition {
+) : ResponseBody by target {
 
     override val description: String?
-        get() = descriptionOverride ?: definition.description
+        get() = descriptionOverride ?: target.description
 
 }

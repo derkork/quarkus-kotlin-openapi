@@ -12,11 +12,11 @@ data class CookieParameterDefinition(
 
 data class CookieParameterReference(
     override val targetName: String,
-    private val definition: Parameter.CookieParameter,
+    private val target: Parameter.CookieParameter,
     private val descriptionOverride: String? = null
-) : ParameterReference, Parameter.CookieParameter by definition {
+) : ParameterReference, Parameter.CookieParameter by target {
 
     override val description: String?
-        get() = descriptionOverride ?: definition.description
+        get() = descriptionOverride ?: target.description
 
 }
