@@ -8,11 +8,11 @@ data class ObjectSchemaDefinition(
 
 data class ObjectSchemaReference(
     override val targetName: String,
-    private val definition: Schema.ObjectSchema,
+    private val target: Schema.ObjectSchema,
     private val descriptionOverride: String? = null
-) : SchemaReference, Schema.ObjectSchema by definition {
+) : SchemaReference, Schema.ObjectSchema by target {
 
     override val description: String?
-        get() = descriptionOverride ?: definition.description
+        get() = descriptionOverride ?: target.description
 
 }

@@ -11,12 +11,12 @@ data class EnumSchemaDefinition(
 
 data class EnumSchemaReference(
     override val targetName: String,
-    private val definition: Schema.EnumSchema,
+    private val target: Schema.EnumSchema,
     private val descriptionOverride: String? = null,
     private val nullableOverride: Boolean? = null
-) : SchemaReference, Schema.EnumSchema by definition {
+) : SchemaReference, Schema.EnumSchema by target {
 
     override val description: String?
-        get() = descriptionOverride ?: definition.description
+        get() = descriptionOverride ?: target.description
 
 }
