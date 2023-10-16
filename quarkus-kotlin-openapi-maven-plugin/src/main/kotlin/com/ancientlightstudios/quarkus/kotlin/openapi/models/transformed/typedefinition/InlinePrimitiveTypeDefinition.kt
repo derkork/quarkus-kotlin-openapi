@@ -7,7 +7,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.TypeNam
 
 data class InlinePrimitiveTypeDefinition(
     val primitiveType: ClassName,
-    private val sourceSchema: Schema.PrimitiveSchema
+    val sourceSchema: Schema.PrimitiveSchema
 ) : TypeDefinition {
 
     override val isNullable: Boolean

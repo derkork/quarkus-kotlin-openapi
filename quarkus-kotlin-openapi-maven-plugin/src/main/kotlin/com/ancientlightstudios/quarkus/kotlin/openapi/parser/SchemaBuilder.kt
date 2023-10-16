@@ -110,6 +110,10 @@ class SchemaBuilder(private val node: ObjectNode) {
             .mapIndexed { idx, it ->
                 contextFor(it, "oneOf[$idx]").parseAsSchema()
             }
+            .map {
+                check(it is Schema.ObjectSchema) { "OneOf schema only supports object schemas. $contextPath" }
+                it
+            }
 
         return OneOfSchemaDefinition(
             node.getTextOrNull("description"), isNullable(),
@@ -124,6 +128,10 @@ class SchemaBuilder(private val node: ObjectNode) {
             .mapIndexed { idx, it ->
                 contextFor(it, "allOf[$idx]").parseAsSchema()
             }
+            .map {
+                check(it is Schema.ObjectSchema) { "AllOf schema only supports object schemas. $contextPath" }
+                it
+            }
 
         return AllOfSchemaDefinition(node.getTextOrNull("description"), isNullable(), schemas)
     }
@@ -134,6 +142,10 @@ class SchemaBuilder(private val node: ObjectNode) {
         val schemas = types.filterIsInstance<ObjectNode>()
             .mapIndexed { idx, it ->
                 contextFor(it, "anyOf[$idx]").parseAsSchema()
+            }
+            .map {
+                check(it is Schema.ObjectSchema) { "AnyOf schema only supports object schemas. $contextPath" }
+                it
             }
 
         return AnyOfSchemaDefinition(node.getTextOrNull("description"), isNullable(), schemas)

@@ -8,7 +8,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.TypeNam
 data class EnumTypeDefinition(
     val name: ClassName,
     val primitiveType: ClassName,
-    private val sourceSchema: Schema.EnumSchema
+    val sourceSchema: Schema.EnumSchema
 ) : TypeDefinition {
 
     override val isNullable: Boolean
