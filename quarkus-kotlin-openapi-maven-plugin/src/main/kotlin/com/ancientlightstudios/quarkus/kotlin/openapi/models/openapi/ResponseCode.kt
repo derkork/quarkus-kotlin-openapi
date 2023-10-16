@@ -2,10 +2,18 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi
 
 sealed interface ResponseCode {
 
-    object Default : ResponseCode
+    object Default : ResponseCode {
+
+        override fun toString() = "Default"
+
+    }
 
     @JvmInline
-    value class HttpStatusCode(val value: Int) : ResponseCode
+    value class HttpStatusCode(val value: Int) : ResponseCode {
+
+        override fun toString() = value.toString()
+
+    }
 
     companion object {
 

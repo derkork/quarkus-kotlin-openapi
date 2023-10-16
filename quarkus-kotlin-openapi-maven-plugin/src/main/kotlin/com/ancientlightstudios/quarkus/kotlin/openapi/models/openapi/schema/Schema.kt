@@ -37,20 +37,20 @@ sealed interface Schema {
 
     sealed interface OneOfSchema : Schema {
 
-        val schemas: List<Schema>
+        val schemas: List<ObjectSchema>
         val discriminator: String?
 
     }
 
     sealed interface AnyOfSchema : Schema {
 
-        val schemas: List<Schema>
+        val schemas: List<ObjectSchema>
 
     }
 
     sealed interface AllOfSchema : Schema {
 
-        val schemas: List<Schema>
+        val schemas: List<ObjectSchema>
 
     }
 

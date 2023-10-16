@@ -13,13 +13,13 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.parameter.P
 
 class ParameterTransformer(private val source: OpenApiParameter) {
 
-    fun initializeSchemaRegistry(schemaCollector: SchemaCollector) {
-        schemaCollector.registerSchema(source.schema, FlowDirection.Up)
+    fun initializeSchemaRegistry(schemaCollector: SchemaCollector, nameHint: String) {
+        schemaCollector.registerSchema(source.schema, FlowDirection.Up) { "$nameHint ${source.name} parameter" }
     }
 
     fun transform(typeDefinitionRegistry: TypeDefinitionRegistry): Parameter {
         val name = source.name.variableName()
-        val type = "String".rawTypeName(true)
+        val type = typeDefinitionRegistry.getTypeDefinition(source.schema, FlowDirection.Up).defaultType // TODO: override nullable
         return when (source) {
             is OpenApiPathParameter -> Parameter(name, type, Source.Path, AdditionalInformation(source.description))
             is OpenApiQueryParameter -> Parameter(

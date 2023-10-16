@@ -10,6 +10,6 @@ data class Parameter(
 enum class Source(val value: String) {
     Path("PATH"),
     Query("QUERY"),
-    Header("Header"),
-    Cookie("Cookie")
+    Header("HEADER"),
+    Cookie("COOKIE")
 }

@@ -1,48 +1,73 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.transformer
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.schema.*
-import kotlin.experimental.or
+
+class SchemaInfo(val style: ObjectStyle, direction: FlowDirection, val name: String) {
+
+    private val _directions = mutableSetOf(direction)
+
+    val directions: Set<FlowDirection>
+        get(): Set<FlowDirection> = _directions
+
+    fun addDirection(direction: FlowDirection): SchemaInfo {
+        _directions.add(direction)
+        return this
+    }
+
+}
 
 class SchemaCollector {
 
-    private val schemaData = mutableMapOf<Schema, Pair<ObjectStyle, Byte>>()
+    private val schemaData = mutableMapOf<SchemaDefinition, SchemaInfo>()
 
-    fun registerSchema(schema: Schema?, direction: FlowDirection) {
-        schema?.let { registerSchema(it, direction) }
+    fun registerSchema(schema: Schema?, direction: FlowDirection, namingHint: () -> String) {
+        schema?.let { registerSchema(it, direction, namingHint) }
     }
 
-    private fun registerSchema(schema: Schema, direction: FlowDirection): ObjectStyle {
-        // they always have only one representation
-        if (schema is Schema.PrimitiveSchema || schema is Schema.EnumSchema) {
+    private fun registerSchema(schema: Schema, direction: FlowDirection, namingHint: () -> String): ObjectStyle {
+        if (schema is PrimitiveSchemaDefinition) {
+            // it's an inline primitive type
             return ObjectStyle.Single
         }
 
+        val (name, definition) = getSchemaDefinition(schema, namingHint)
         // check if we already registered this schema. if yes, update the directions in case we haven't seen this yet
-        val data = schemaData.computeIfPresent(schema) { _, (style, knownDirections) ->
-            style to (knownDirections or direction.value)
+        val data = schemaData.computeIfPresent(definition) { _, info ->
+            info.addDirection(direction)
         }
 
         if (data != null) {
-            return data.first
+            return data.style
         }
 
         // TODO: This treats references just as pointers. As soon as they can modify a scheme, we need to change this implementation
-        val result = when (val definition = getSchemaDefinition(schema)) {
-            // compiler doesn't know, that these two cases are impossible, because we already checked them at the start of the function
-            is PrimitiveSchemaDefinition, is EnumSchemaDefinition -> throw IllegalStateException("you found a bug.")
-            is ArraySchemaDefinition -> registerSchema(definition.itemSchema, direction)
-            is ObjectSchemaDefinition -> registerObjectSchema(definition, direction)
+        return when (definition) {
+            is PrimitiveSchemaDefinition, is EnumSchemaDefinition -> registerSimpleSchema(definition, direction, name)
+            is ArraySchemaDefinition -> registerSchema(definition.itemSchema, direction) { "$name item" }
+            is ObjectSchemaDefinition -> registerObjectSchema(definition, direction, name)
             is OneOfSchemaDefinition -> TODO("OneOf schemas not yet implemented")
             is AnyOfSchemaDefinition -> TODO("AnyOf schemas not yet implemented")
-            is AllOfSchemaDefinition -> registerAllOfSchema(definition, direction)
+            is AllOfSchemaDefinition -> registerAllOfSchema(definition, direction, name)
         }
-
-        return result
     }
 
-    private fun registerObjectSchema(definition: ObjectSchemaDefinition, direction: FlowDirection): ObjectStyle {
-        val propertyStyles = definition.properties.map { (_, property) ->
-            val style = registerSchema(property.schema, direction)
+    private fun registerSimpleSchema(
+        definition: SchemaDefinition,
+        direction: FlowDirection,
+        name: String
+    ): ObjectStyle {
+        val schemaInfo = SchemaInfo(ObjectStyle.Single, direction, name)
+        schemaData[definition] = schemaInfo
+        return schemaInfo.style
+    }
+
+    private fun registerObjectSchema(
+        definition: ObjectSchemaDefinition,
+        direction: FlowDirection,
+        name: String
+    ): ObjectStyle {
+        val propertyStyles = definition.properties.map { (propertyName, property) ->
+            val style = registerSchema(property.schema, direction) { "$name $propertyName" }
             when {
                 style == ObjectStyle.Multiple -> style
                 property.direction != Direction.ReadAndWrite -> ObjectStyle.Multiple
@@ -56,39 +81,42 @@ class SchemaCollector {
             ObjectStyle.Single
         }
 
-        schemaData[definition] = result to direction.value
-
+        schemaData[definition] = SchemaInfo(result, direction, name)
         return result
     }
 
-    private fun registerAllOfSchema(definition: AllOfSchemaDefinition, direction: FlowDirection): ObjectStyle {
-        // TODO: this can produce class files even if nobody really uses them
-        val nestedStyles = definition.schemas.map { registerSchema(it, direction) }
+    private fun registerAllOfSchema(
+        definition: AllOfSchemaDefinition,
+        direction: FlowDirection,
+        name: String
+    ): ObjectStyle {
+        val properties = definition.schemas.flatMap { it.properties }
 
-        val result = if (nestedStyles.contains(ObjectStyle.Multiple)) {
+        val propertyStyles = properties.map { (propertyName, property) ->
+            val style = registerSchema(property.schema, direction) { "$name $propertyName" }
+            when {
+                style == ObjectStyle.Multiple -> style
+                property.direction != Direction.ReadAndWrite -> ObjectStyle.Multiple
+                else -> ObjectStyle.Single
+            }
+        }
+
+        val result = if (propertyStyles.contains(ObjectStyle.Multiple)) {
             ObjectStyle.Multiple
         } else {
             ObjectStyle.Single
         }
 
-        schemaData[definition] = result to direction.value
-        
+        schemaData[definition] = SchemaInfo(result, direction, name)
         return result
     }
 
-    private fun getSchemaDefinition(schema: Schema): SchemaDefinition =
+    private fun getSchemaDefinition(schema: Schema, namingHint: () -> String): Pair<String, SchemaDefinition> =
         when (schema) {
-            is SchemaDefinition -> schema
-            is SchemaReference<*> -> getSchemaDefinition(schema.target)
+            is SchemaDefinition -> namingHint() to schema
+            is SchemaReference<*> -> getSchemaDefinition(schema.target) { schema.targetName }
         }
 
-    fun getTypeDefinitionRegistry(): TypeDefinitionRegistry {
-        TODO("Not yet implemented")
-    }
-
-    private enum class ObjectStyle {
-        Single,
-        Multiple
-    }
+    fun getTypeDefinitionRegistry() = TypeDefinitionRegistry(schemaData)
 
 }

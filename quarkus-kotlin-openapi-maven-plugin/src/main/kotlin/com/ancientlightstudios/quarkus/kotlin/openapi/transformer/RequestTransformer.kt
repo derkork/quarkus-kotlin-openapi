@@ -13,14 +13,14 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.Request as 
 class RequestTransformer(private val source: OpenApiRequest) {
 
     fun initializeSchemaRegistry(schemaCollector: SchemaCollector) {
-        schemaCollector.registerSchema(source.body?.schema, FlowDirection.Up)
+        schemaCollector.registerSchema(source.body?.schema, FlowDirection.Up) { "${source.operationId} body" }
         source.parameters.forEach {
-            ParameterTransformer(it).initializeSchemaRegistry(schemaCollector)
+            ParameterTransformer(it).initializeSchemaRegistry(schemaCollector, source.operationId)
         }
-        source.responses.forEach { (_, response) ->
-            schemaCollector.registerSchema(response.schema, FlowDirection.Down)
-            response.headers.forEach { (_, header) ->
-                schemaCollector.registerSchema(header.schema, FlowDirection.Down)
+        source.responses.forEach { (code, response) ->
+            schemaCollector.registerSchema(response.schema, FlowDirection.Down) { "${source.operationId} $code response" }
+            response.headers.forEach { (name, header) ->
+                schemaCollector.registerSchema(header.schema, FlowDirection.Down) { "${source.operationId} $code $name header" }
             }
         }
     }
