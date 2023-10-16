@@ -12,9 +12,9 @@ data class HeaderParameterDefinition(
 
 data class HeaderParameterReference(
     override val targetName: String,
-    private val target: Parameter.HeaderParameter,
+    override val target: Parameter.HeaderParameter,
     private val descriptionOverride: String? = null
-) : ParameterReference, Parameter.HeaderParameter by target {
+) : ParameterReference<Parameter.HeaderParameter>, Parameter.HeaderParameter by target {
 
     override val description: String?
         get() = descriptionOverride ?: target.description

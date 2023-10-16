@@ -12,9 +12,9 @@ data class QueryParameterDefinition(
 
 data class QueryParameterReference(
     override val targetName: String,
-    private val target: Parameter.QueryParameter,
+    override val target: Parameter.QueryParameter,
     private val descriptionOverride: String? = null
-) : ParameterReference, Parameter.QueryParameter by target {
+) : ParameterReference<Parameter.QueryParameter>, Parameter.QueryParameter by target {
 
     override val description: String?
         get() = descriptionOverride ?: target.description

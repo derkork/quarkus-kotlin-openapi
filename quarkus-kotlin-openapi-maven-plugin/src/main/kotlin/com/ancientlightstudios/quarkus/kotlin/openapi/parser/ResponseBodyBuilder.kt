@@ -16,12 +16,14 @@ class ResponseBodyBuilder(private val node: ObjectNode) {
     }
 
     private fun ParseContext.extractBodyDefinition(): ResponseBody {
-        val schema = contextFor("content/application\\/json/schema").parseAsSchema()
+        val schema = contextNode.resolvePath("content/application\\/json/schema")?.let {
+            contextFor(it, "content/application\\/json/schema").parseAsSchema()
+        }
 
         val headers = node.with("headers")
             .propertiesAsList()
             .map { (name, headerNode) ->
-                val header = contextFor(headerNode, "headers.$name").parseAsResponseHeader()
+                val header = contextFor(headerNode, "headers/$name").parseAsResponseHeader()
                 name to header
             }
 

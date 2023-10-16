@@ -8,9 +8,9 @@ data class AnyOfSchemaDefinition(
 
 data class AnyOfSchemaReference(
     override val targetName: String,
-    private val target: Schema.AnyOfSchema,
+    override val target: Schema.AnyOfSchema,
     private val descriptionOverride: String? = null
-) : SchemaReference, Schema.AnyOfSchema by target {
+) : SchemaReference<Schema.AnyOfSchema>, Schema.AnyOfSchema by target {
 
     override val description: String?
         get() = descriptionOverride ?: target.description

@@ -57,8 +57,9 @@ sealed interface Schema {
 }
 
 sealed interface SchemaDefinition
-sealed interface SchemaReference {
+sealed interface SchemaReference<S : Schema> {
 
     val targetName: String
+    val target: S
 
 }

@@ -1,22 +1,24 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.writer.CodeWriter
+import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
 
 class KotlinAnnotationContainer {
-    val annotations: MutableList<KotlinAnnotation> = mutableListOf()
 
-    fun add(name: ClassName, vararg parameters: Pair<VariableName, Any>) {
-        annotations.add(KotlinAnnotation(name, *parameters))
+    private val annotations = mutableListOf<KotlinAnnotation>()
+
+    fun addAnnotation(annotation: KotlinAnnotation) {
+        annotations.add(annotation)
     }
 
-    fun render(writer: CodeWriter, addNewLines: Boolean) = with(writer) {
+    fun render(writer: CodeWriter, onSingleLine: Boolean = false) = with(writer) {
         annotations.forEach {
             it.render(this)
-            if (addNewLines) {
-                writeln()
-            } else {
+            if (onSingleLine) {
                 write(" ")
+            } else {
+                writeln()
             }
         }
     }
+
 }

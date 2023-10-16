@@ -15,7 +15,7 @@ data class ParseContext(
 
     fun contextFor(path: String): ParseContext {
         val newContextNode = contextNode.resolvePath(path)
-            ?: throw IllegalStateException("Path ${this.contextPath}/path not resolvable.")
+            ?: throw IllegalStateException("Path ${this.contextPath}/$path not resolvable.")
         return contextFor(newContextNode, path)
     }
 

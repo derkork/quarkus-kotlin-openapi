@@ -8,9 +8,9 @@ data class ArraySchemaDefinition(
 
 data class ArraySchemaReference(
     override val targetName: String,
-    private val target: Schema.ArraySchema,
+    override val target: Schema.ArraySchema,
     private val descriptionOverride: String? = null
-) : SchemaReference, Schema.ArraySchema by target {
+) : SchemaReference<Schema.ArraySchema>, Schema.ArraySchema by target {
 
     override val description: String?
         get() = descriptionOverride ?: target.description

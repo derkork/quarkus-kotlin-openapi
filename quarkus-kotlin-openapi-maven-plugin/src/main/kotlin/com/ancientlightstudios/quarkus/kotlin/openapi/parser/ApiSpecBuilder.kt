@@ -30,7 +30,7 @@ class ApiSpecBuilder(private val node: ObjectNode) {
         .flatten()
 
     private fun ObjectNode.extractPathRequests(path: String, requestFilter: RequestFilter): List<Request> {
-        val context = ParseContext(openApiVersion, this, "#/paths/$path", referenceResolver)
+        val context = ParseContext(openApiVersion, this, "#/paths$path", referenceResolver)
 
         // a path can define default parameters for all of its operations
         val defaultParameter = withArray("parameters")
@@ -46,7 +46,7 @@ class ApiSpecBuilder(private val node: ObjectNode) {
             // ignore all operations which are not required
             .filter { (operation, _) -> requestFilter.accept(path, RequestMethod.fromString(operation)) }
             .map { (operation, operationNode) ->
-                context.contextFor(operationNode, "operation")
+                context.contextFor(operationNode, operation)
                     .parseAsRequest(path, RequestMethod.fromString(operation), defaultParameter)
             }
     }

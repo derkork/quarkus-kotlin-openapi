@@ -44,7 +44,7 @@ class RequestBuilder(
     private fun ParseContext.extractResponseBodies() = node.with("responses")
         .propertiesAsList()
         .map { (code, responseNode) ->
-            val body = contextFor(responseNode, "responses.$code").parseAsResponseBody()
+            val body = contextFor(responseNode, "responses/$code").parseAsResponseBody()
             ResponseCode.fromString(code) to body
         }
 

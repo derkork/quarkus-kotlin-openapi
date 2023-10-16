@@ -1,72 +1,45 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName.Companion.rawClassName
-import com.ancientlightstudios.quarkus.kotlin.openapi.writer.CodeWriter
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.ClassName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.TypeName
+import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
 
-class KotlinValueClass(
-    name: ClassName,
-    private val nestedType: TypeName,
-    private val defaultValue: String?
-) : KotlinFileContent(name) {
+class KotlinValueClass(private val name: ClassName, private val nestedType: TypeName) : KotlinFileContent,
+    AnnotationAware, MethodAware {
 
-    init {
-        addAnnotation("JvmInline".rawClassName())
+    private val annotations = KotlinAnnotationContainer()
+    private val methods = KotlinMethodContainer()
+
+    override fun addAnnotation(annotation: KotlinAnnotation) {
+        annotations.addAnnotation(annotation)
     }
 
-    private var companion: KotlinCompanion? = null
+    override fun addMethod(method: KotlinMethod) {
+        methods.addMethod(method)
+    }
 
     override fun render(writer: CodeWriter) = with(writer) {
-        annotations.render(this, true)
+        annotations.render(this)
 
-        write("value class ${name.name}(val value: ")
-        nestedType.render(this)
-        write(")")
+        write("value class ${name.render()}(val value: ${nestedType.render()})")
 
-        if (methods.isNotEmpty() || companion != null) {
+        if (methods.isNotEmpty) {
             writeln(" {")
             indent {
                 writeln()
-                methods.forEach {
-                    it.render(this)
-                    writeln()
-                }
-
-                companion?.let {
-                    it.render(this)
-                    writeln()
-                }
+                methods.render(this)
+                writeln(forceNewLine = false) // in case the item already rendered a line break
+                writeln()
             }
             write("}")
         }
 
-        writeln()
-        writeln()
-        writeln("fun String?.as${name.name}(context:String) : Maybe<${name.name}?> {")
-        indent {
-            if( defaultValue != null) {
-                // TODO: we should replace this with a 'map { it ?: defaultValue }' to avoid parsing the value each time. but this class needs to know jow to convert the value into the required data type
-                write("return (this ?: \"$defaultValue\").as")
-            } else {
-                write("return as")
-            }
-            nestedType.render(this)
-            writeln("(context)")
-            indent {
-                // TODO: add type validation here if necessary e.g. validateString { it.minLength(5) }
-                writeln(".mapNotNull { ${name.name}(it) }")
-            }
-        }
-        writeln("}")
-
-        writeln()
-        // this function should only be used for list/array items. otherwise the default value will not be available
-        writeln("fun Maybe<String?>.as${name.name}() : Maybe<${name.name}?> = onNotNull { value.as${name.name}(context) }")
+        // companion
     }
 
-    fun withCompanion(name: ClassName? = null, block: KotlinCompanion.() -> Unit) {
-        if (this.companion == null) {
-            this.companion = KotlinCompanion(name)
-        }
-        block(this.companion!!)
-    }
+}
+
+fun KotlinFile.kotlinValueClass(name: ClassName, nestedType: TypeName, block: KotlinValueClass.() -> Unit) {
+    val content = KotlinValueClass(name, nestedType).apply(block)
+    addFileContent(content)
 }

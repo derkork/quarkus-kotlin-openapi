@@ -34,8 +34,9 @@ sealed interface Parameter {
 }
 
 sealed interface ParameterDefinition
-sealed interface ParameterReference {
+sealed interface ParameterReference<P : Parameter> {
 
     val targetName: String
+    val target: P
 
 }
