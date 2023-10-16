@@ -1,36 +1,39 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.writer.CodeWriter
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.ClassName
+import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
 
-class KotlinCompanion(val className: ClassName?) {
-    private val methods = mutableListOf<KotlinMethod>()
+class KotlinCompanion(private val identifier: ClassName? = null) : MethodAware {
+
+    private val methods = KotlinMethodContainer()
+
+    override fun addMethod(method: KotlinMethod) {
+        methods.addMethod(method)
+    }
 
     fun render(writer: CodeWriter) = with(writer) {
         write("companion object ")
-        if (className != null) {
-            write(className.name)
-            write(" ")
+        if (identifier != null) {
+            write("${identifier.render()} ")
         }
         writeln("{")
         indent {
             writeln()
-            methods.forEach {
-                it.render(this)
-                writeln()
-            }
+            methods.render(this)
+            writeln(forceNewLine = false) // in case the item already rendered a line break
+            writeln()
         }
         writeln("}")
     }
+}
 
-    fun addMethod(
-        name: MethodName,
-        suspend: Boolean,
-        returnType: TypeName? = null,
-        receiverType: TypeName? = null,
-        bodyAsAssignment: Boolean = false
-    ): KotlinMethod {
-        val method = KotlinMethod(name, suspend, returnType, receiverType, bodyAsAssignment)
-        methods.add(method)
-        return method
-    }
+interface CompanionAware {
+
+    fun setCompanion(companion: KotlinCompanion)
+
+}
+
+fun CompanionAware.kotlinCompanion(identifier: ClassName? = null, block: KotlinCompanion.() -> Unit) {
+    val content = KotlinCompanion(identifier).apply(block)
+    setCompanion(content)
 }

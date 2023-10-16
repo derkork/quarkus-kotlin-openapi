@@ -8,9 +8,9 @@ data class AllOfSchemaDefinition(
 
 data class AllOfSchemaReference(
     override val targetName: String,
-    private val target: Schema.AllOfSchema,
+    override val target: Schema.AllOfSchema,
     private val descriptionOverride: String? = null
-) : SchemaReference, Schema.AllOfSchema by target {
+) : SchemaReference<Schema.AllOfSchema>, Schema.AllOfSchema by target {
 
     override val description: String?
         get() = descriptionOverride ?: target.description

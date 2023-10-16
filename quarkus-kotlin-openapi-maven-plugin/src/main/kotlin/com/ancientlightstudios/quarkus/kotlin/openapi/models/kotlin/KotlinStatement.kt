@@ -1,6 +1,6 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.writer.CodeWriter
+import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
 
 interface KotlinStatement {
 
@@ -8,15 +8,18 @@ interface KotlinStatement {
 
 }
 
-fun kotlinStatement(block: CodeWriter.() -> Unit) = object : KotlinStatement {
-    override fun render(writer: CodeWriter) {
-        writer.block()
-    }
+interface StatementAware {
+
+    fun addStatement(statement: KotlinStatement)
+
 }
 
-fun String.asKotlinStatement() = kotlinStatement { write(this@asKotlinStatement) }
+fun StatementAware.kotlinStatement(block: CodeWriter.() -> Unit) {
+    val content = object : KotlinStatement {
+        override fun render(writer: CodeWriter) {
+            writer.block()
+        }
+    }
+    addStatement(content)
+}
 
-fun KotlinStatement.then(other: KotlinStatement) = kotlinStatement {
-    this@then.render(this)
-    other.render(this)
-} 

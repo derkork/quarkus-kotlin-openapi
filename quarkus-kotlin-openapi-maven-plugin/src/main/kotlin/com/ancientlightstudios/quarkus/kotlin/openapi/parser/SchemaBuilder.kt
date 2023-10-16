@@ -95,7 +95,7 @@ class SchemaBuilder(private val node: ObjectNode) {
         val properties = node.with("properties")
             .propertiesAsList()
             .map { (name, propertyNode) ->
-                val property = contextFor(propertyNode, "properties.$name")
+                val property = contextFor(propertyNode, "properties/$name")
                     .parseAsSchemaProperty(required.contains(name))
                 name to property
             }

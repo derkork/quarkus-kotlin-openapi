@@ -1,68 +1,103 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.transformer.renderParameterBlock
-import com.ancientlightstudios.quarkus.kotlin.openapi.writer.CodeWriter
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.MethodName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.TypeName
+import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
 
+// TODO: replace suspend, private and other stuff with a bit flag .e.g. Suspend | Private to avoid 5 more members for internal etc
 class KotlinMethod(
     private val name: MethodName,
-    private val suspend: Boolean,
+    private val suspend: Boolean = false,
     private val returnType: TypeName? = null,
     private val receiverType: TypeName? = null,
-    private val bodyAsAssignment: Boolean = false
-) {
+    private val bodyAsAssignment: Boolean = false,
+    private val private: Boolean = false,
+) : KotlinFileContent, AnnotationAware, ParameterAware, StatementAware {
 
-    val annotations = KotlinAnnotationContainer()
-    private val parameters = mutableListOf<KotlinParameter>()
-    private var body: KotlinStatementList? = null
+    private val annotations = KotlinAnnotationContainer()
+    private val parameters = KotlinParameterContainer()
+    private val statements = KotlinStatementContainer()
 
-    fun render(writer: CodeWriter) = with(writer) {
-        annotations.render(this, true)
+    override fun addAnnotation(annotation: KotlinAnnotation) {
+        annotations.addAnnotation(annotation)
+    }
+
+    override fun addParameter(parameter: KotlinParameter) {
+        parameters.addParameter(parameter)
+    }
+
+    override fun addStatement(statement: KotlinStatement) {
+        statements.addStatement(statement)
+    }
+
+    override fun render(writer: CodeWriter) = with(writer) {
+        annotations.render(this)
+        if (private) {
+            write("private ")
+        }
+
         if (suspend) {
             write("suspend ")
         }
 
         write("fun ")
         if (receiverType != null) {
-            receiverType.render(this)
-            write(".")
+            write("${receiverType.render()}.")
         }
-        write("${name.name}(")
-        renderParameterBlock(parameters) { it.render(this) }
+        write("${name.render()}(")
+        parameters.render(this)
         write(")")
 
         if (returnType != null) {
-            write(": ")
-            returnType.render(this)
+            write(": ${returnType.render()}")
         }
 
-        body?.let {
-            if (bodyAsAssignment) {
-                write(" = ")
-            } else {
+        if (statements.isNotEmpty) {
+            if (!bodyAsAssignment) {
                 writeln(" {")
+            } else {
+                write(" = ")
             }
             indent {
-                it.render(this)
+                statements.render(this)
             }
             if (!bodyAsAssignment) {
                 write("}")
             }
         }
-        writeln()
     }
 
-    fun addStatement(statement: KotlinStatement): KotlinMethod {
-        if (body == null) {
-            body = KotlinStatementList()
-        }
-        body!!.statements.add(statement)
-        return this
-    }
+}
 
-    fun addParameter(variableName: VariableName, typeName: TypeName): KotlinParameter {
-        val result = KotlinParameter(variableName, typeName)
-        parameters.add(result)
-        return result
-    }
+interface MethodAware {
 
+    fun addMethod(method: KotlinMethod)
+
+}
+
+fun MethodAware.kotlinMethod(
+    name: MethodName,
+    suspend: Boolean = false,
+    returnType: TypeName? = null,
+    receiverType: TypeName? = null,
+    bodyAsAssignment: Boolean = false,
+    private: Boolean = false,
+    block: KotlinMethod.() -> Unit = {}
+) {
+    val content = KotlinMethod(name, suspend, returnType, receiverType, bodyAsAssignment, private).apply(block)
+    addMethod(content)
+
+}
+
+fun KotlinFile.kotlinMethod(
+    name: MethodName,
+    suspend: Boolean = false,
+    returnType: TypeName? = null,
+    receiverType: TypeName? = null,
+    bodyAsAssignment: Boolean = false,
+    private: Boolean = false,
+    block: KotlinMethod.() -> Unit = {}
+) {
+    val content = KotlinMethod(name, suspend, returnType, receiverType, bodyAsAssignment, private).apply(block)
+    addFileContent(content)
 }

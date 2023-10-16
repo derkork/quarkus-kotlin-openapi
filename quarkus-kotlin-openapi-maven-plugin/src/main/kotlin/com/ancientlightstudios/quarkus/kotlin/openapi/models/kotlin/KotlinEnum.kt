@@ -1,52 +1,66 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.transformer.forEachWithStats
-import com.ancientlightstudios.quarkus.kotlin.openapi.writer.CodeWriter
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.ClassName
+import com.ancientlightstudios.quarkus.kotlin.openapi.utils.forEachWithStats
+import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
 
-class KotlinEnum(name: ClassName, private val items: List<Pair<String, ClassName>>, private val defaultValue: String?) : KotlinFileContent(name) {
+class KotlinEnum(private val name: ClassName) : KotlinFileContent,
+    AnnotationAware, MethodAware, MemberAware {
+
+    private val annotations = KotlinAnnotationContainer()
+    private val methods = KotlinMethodContainer()
+    private val members = KotlinMemberContainer()
+    private val items = mutableListOf<KotlinEnumItem>()
+
+    override fun addAnnotation(annotation: KotlinAnnotation) {
+        annotations.addAnnotation(annotation)
+    }
+
+    override fun addMethod(method: KotlinMethod) {
+        methods.addMethod(method)
+    }
+
+    override fun addMember(member: KotlinMember) {
+        members.addMember(member)
+    }
+
+    fun addItem(item: KotlinEnumItem) {
+        items.add(item)
+    }
 
     override fun render(writer: CodeWriter) = with(writer) {
-        annotations.render(this, true)
+        annotations.render(this)
 
-        write("enum class ${name.name}(val value: String) {")
+        write("enum class ${name.render()}")
+        if (members.isNotEmpty) {
+            write("(")
+            members.render(this)
+            write(")")
+        }
+
+        write(" {")
         indent(newLineBefore = true, newLineAfter = true) {
-            items.forEachWithStats { status, (value, name) ->
-                writeln("@JsonProperty(\"$value\")")
-                write("${name.name}(\"$value\")")
+            items.forEachWithStats { status, item ->
+                item.render(this)
                 if (!status.last) {
                     writeln(",")
-                }
-            }
-        }
-        writeln("}")
-
-        writeln()
-        writeln("fun String?.as${name.name}(context:String) : Maybe<${name.name}?> {")
-        indent {
-            writeln("if (this == null) {")
-            indent {
-                if (defaultValue == null) {
-                    writeln("return asMaybe(context)")
                 } else {
-                    val enumItem = items.first { it.first == defaultValue }.second
-                    writeln("return ${name.name}.${enumItem.name}.asMaybe(context)")
+                    writeln(";")
                 }
             }
-            writeln("}")
-            writeln("return when (this) {")
-            indent {
-                items.forEach { (value, itemName) ->
-                    writeln("\"$value\" -> ${name.name}.${itemName.name}.asMaybe(context)")
-                }
-                writeln("else -> Maybe.Failure(context, ValidationError(\"Invalid value for ${name.name}: \$this\"))")
-            }
-            writeln("}")
-        }
-        writeln("}")
 
-        writeln()
-        // this function should only be used for list/array items. otherwise the default value will not be available
-        writeln("fun Maybe<String?>.as${name.name}() : Maybe<${name.name}?> = onNotNull { value.as${name.name}(context) }")
+            if (methods.isNotEmpty) {
+                writeln()
+                methods.render(this)
+            }
+        }
+
+        write("}")
     }
+
 }
 
+fun KotlinFile.kotlinEnum(name: ClassName, block: KotlinEnum.() -> Unit) {
+    val content = KotlinEnum(name).apply(block)
+    addFileContent(content)
+}

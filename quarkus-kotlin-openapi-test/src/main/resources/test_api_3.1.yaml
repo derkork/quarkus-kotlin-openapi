@@ -22,8 +22,6 @@ paths:
           in: query
           schema:
             $ref: "#/components/schemas/Score"
-            type:
-              - 'null'
         - name: title
           in: query
           schema:

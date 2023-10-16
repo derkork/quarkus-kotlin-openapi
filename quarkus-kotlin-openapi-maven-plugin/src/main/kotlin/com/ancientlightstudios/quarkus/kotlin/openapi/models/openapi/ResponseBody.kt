@@ -5,13 +5,13 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.schema.Sche
 // TODO: support different media-types (xml, file etc)
 sealed interface ResponseBody {
 
-    val schema: Schema
+    val schema: Schema?
     val description: String?
     val headers: List<Pair<String, ResponseHeader>>
 }
 
 data class ResponseBodyDefinition(
-    override val schema: Schema,
+    override val schema: Schema?,
     override val description: String?,
     override val headers: List<Pair<String, ResponseHeader>>
 ) : ResponseBody

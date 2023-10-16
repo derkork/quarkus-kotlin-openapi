@@ -10,9 +10,9 @@ data class PathParameterDefinition(
 
 data class PathParameterReference(
     override val targetName: String,
-    private val target: Parameter.PathParameter,
+    override val target: Parameter.PathParameter,
     private val descriptionOverride: String? = null
-) : ParameterReference, Parameter.PathParameter by target {
+) : ParameterReference<Parameter.PathParameter>, Parameter.PathParameter by target {
 
     override val description: String?
         get() = descriptionOverride ?: target.description

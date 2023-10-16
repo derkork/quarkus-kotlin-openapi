@@ -1,22 +1,33 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.transformer
 
-import TransformerContext
-import com.ancientlightstudios.quarkus.kotlin.openapi.Config
-import com.ancientlightstudios.quarkus.kotlin.openapi.InterfaceType
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinFile
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ApiSpec
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.AdditionalInformation
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.ClassName.Companion.className
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.RequestSuite
 
-fun transform(apiSpec: ApiSpec, config: Config): List<KotlinFile> {
+class ApiSpecTransformer(private val source: ApiSpec) {
 
-    val context = TransformerContext(config)
-
-    if (config.interfaceType == InterfaceType.CLIENT || config.interfaceType == InterfaceType.BOTH) {
-        context.enqueue(ClientInterfaceQueueItem(config, apiSpec.requests))
+    fun transform(interfaceName: String): RequestSuite {
+        val schemaRegistry = initializeTypeDefinitionRegistry()
+        return transform(interfaceName, schemaRegistry)
     }
 
-    if (config.interfaceType == InterfaceType.SERVER || config.interfaceType == InterfaceType.BOTH) {
-        context.enqueue(ServerInterfaceQueueItem(apiSpec.requests, context))
+    private fun initializeTypeDefinitionRegistry(): TypeDefinitionRegistry {
+        val schemaCollector = SchemaCollector()
+
+        source.requests.forEach {
+            RequestTransformer(it).initializeSchemaRegistry(schemaCollector)
+        }
+
+        return schemaCollector.getTypeDefinitionRegistry()
     }
 
-    return context.run()
+    private fun transform(interfaceName: String, typeDefinitionRegistry: TypeDefinitionRegistry): RequestSuite {
+        return RequestSuite(
+            interfaceName.className(),
+            source.version,
+            source.requests.map { RequestTransformer(it).transform(typeDefinitionRegistry) },
+            AdditionalInformation(source.description)
+        )
+    }
 }

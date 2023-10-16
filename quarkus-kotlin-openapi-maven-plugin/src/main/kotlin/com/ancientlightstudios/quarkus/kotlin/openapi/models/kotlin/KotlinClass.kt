@@ -1,70 +1,71 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.transformer.renderParameterBlock
-import com.ancientlightstudios.quarkus.kotlin.openapi.writer.CodeWriter
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.ClassName
+import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
 
-class KotlinClass(
-    name: ClassName,
-    private val asDataClass: Boolean = false,
-    private val privateConstructor: Boolean = false
-) : KotlinFileContent(name) {
+class KotlinClass(private val name: ClassName, private val privateConstructor: Boolean = false) : KotlinFileContent,
+    AnnotationAware, MethodAware, MemberAware, CompanionAware {
 
-    private val parameters = mutableListOf<KotlinMember>()
+    private val annotations = KotlinAnnotationContainer()
+    private val methods = KotlinMethodContainer()
+    private val members = KotlinMemberContainer()
     private var companion: KotlinCompanion? = null
 
+    override fun addAnnotation(annotation: KotlinAnnotation) {
+        annotations.addAnnotation(annotation)
+    }
+
+    override fun addMethod(method: KotlinMethod) {
+        methods.addMethod(method)
+    }
+
+    override fun addMember(member: KotlinMember) {
+        members.addMember(member)
+    }
+
+    override fun setCompanion(companion: KotlinCompanion) {
+        this.companion = companion
+    }
 
     override fun render(writer: CodeWriter) = with(writer) {
-        annotations.render(this, true)
-
-        if (asDataClass) {
-            write("data ")
-        }
-
-        write("class ${name.name}")
+        annotations.render(this)
+        write("class ${name.render()}")
 
         if (privateConstructor) {
             write(" private constructor")
         }
 
-        if (parameters.isNotEmpty() || privateConstructor) {
+        if (members.isNotEmpty || privateConstructor) {
             write("(")
-            renderParameterBlock(parameters) { it.render(this) }
+            members.render(this)
             write(")")
         }
 
-        if (methods.isNotEmpty() || companion != null) {
+        if (methods.isNotEmpty || companion != null) {
             writeln(" {")
             indent {
-                writeln()
-                methods.forEach {
-                    it.render(this)
+
+                if (methods.isNotEmpty) {
                     writeln()
+                    methods.render(this)
+                    writeln(forceNewLine = false) // in case the item already rendered a line break
                 }
 
                 companion?.let {
-                    it.render(this)
                     writeln()
+                    companion!!.render(this)
+                    writeln(forceNewLine = false) // in case the item already rendered a line break
                 }
+
+                writeln()
             }
             write("}")
         }
     }
 
-    fun addMember(
-        name: VariableName,
-        typeName: TypeName,
-        mutable: Boolean = false,
-        private: Boolean = true
-    ): KotlinMember {
-        val result = KotlinMember(name, typeName, mutable, private)
-        parameters.add(result)
-        return result
-    }
+}
 
-    fun withCompanion(name: ClassName? = null, block: KotlinCompanion.() -> Unit) {
-        if (this.companion == null) {
-            this.companion = KotlinCompanion(name)
-        }
-        block(this.companion!!)
-    }
+fun KotlinFile.kotlinClass(name: ClassName, privateConstructor: Boolean = false, block: KotlinClass.() -> Unit) {
+    val content = KotlinClass(name, privateConstructor).apply(block)
+    addFileContent(content)
 }

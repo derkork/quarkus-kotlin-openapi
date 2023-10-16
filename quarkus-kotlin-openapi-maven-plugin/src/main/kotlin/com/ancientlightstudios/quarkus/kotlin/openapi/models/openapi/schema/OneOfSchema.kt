@@ -9,9 +9,9 @@ data class OneOfSchemaDefinition(
 
 data class OneOfSchemaReference(
     override val targetName: String,
-    private val target: Schema.OneOfSchema,
+    override val target: Schema.OneOfSchema,
     private val descriptionOverride: String? = null
-) : SchemaReference, Schema.OneOfSchema by target {
+) : SchemaReference<Schema.OneOfSchema>, Schema.OneOfSchema by target {
 
     override val description: String?
         get() = descriptionOverride ?: target.description
