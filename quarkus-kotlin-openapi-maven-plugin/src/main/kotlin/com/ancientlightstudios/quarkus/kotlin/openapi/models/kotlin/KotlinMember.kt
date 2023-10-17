@@ -1,7 +1,7 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.TypeName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.VariableName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.VariableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
 
 class KotlinMember(

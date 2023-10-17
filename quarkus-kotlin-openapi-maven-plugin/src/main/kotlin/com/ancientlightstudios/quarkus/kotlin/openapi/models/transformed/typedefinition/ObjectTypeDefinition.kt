@@ -2,9 +2,9 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.typede
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.schema.Schema
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.schema.SchemaProperty
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.ClassName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.TypeName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.TypeName.SimpleTypeName.Companion.typeName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName.SimpleTypeName.Companion.typeName
 
 data class ObjectTypeDefinition(
     val name: ClassName,

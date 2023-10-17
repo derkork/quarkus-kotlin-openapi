@@ -1,14 +1,15 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.ClassName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.TypeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName
 
 class KotlinValueClass(private val name: ClassName, private val nestedType: TypeName) : KotlinFileContent,
-    AnnotationAware, MethodAware {
+    AnnotationAware, MethodAware, CommentAware {
 
     private val annotations = KotlinAnnotationContainer()
     private val methods = KotlinMethodContainer()
+    private var comment: KotlinComment? = null
 
     override fun addAnnotation(annotation: KotlinAnnotation) {
         annotations.addAnnotation(annotation)
@@ -18,9 +19,17 @@ class KotlinValueClass(private val name: ClassName, private val nestedType: Type
         methods.addMethod(method)
     }
 
-    override fun render(writer: CodeWriter) = with(writer) {
-        annotations.render(this)
+    override fun setComment(comment: KotlinComment) {
+        this.comment = comment
+    }
 
+    override fun render(writer: CodeWriter) = with(writer) {
+        comment?.let {
+            it.render(this)
+            writeln(forceNewLine = false)
+        }
+
+        annotations.render(this)
         write("value class ${name.render()}(val value: ${nestedType.render()})")
 
         if (methods.isNotEmpty) {
@@ -39,7 +48,7 @@ class KotlinValueClass(private val name: ClassName, private val nestedType: Type
 
 }
 
-fun KotlinFile.kotlinValueClass(name: ClassName, nestedType: TypeName, block: KotlinValueClass.() -> Unit) {
+fun KotlinFile.kotlinValueClass(name: ClassName, nestedType: TypeName, block: KotlinValueClass.() -> Unit = {}) {
     val content = KotlinValueClass(name, nestedType).apply(block)
     addFileContent(content)
 }

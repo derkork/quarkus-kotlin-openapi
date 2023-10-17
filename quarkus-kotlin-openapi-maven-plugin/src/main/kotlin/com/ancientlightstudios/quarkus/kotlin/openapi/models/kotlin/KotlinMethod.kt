@@ -1,7 +1,7 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.MethodName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.TypeName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.MethodName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
 
 // TODO: replace suspend, private and other stuff with a bit flag .e.g. Suspend | Private to avoid 5 more members for internal etc
@@ -12,11 +12,12 @@ class KotlinMethod(
     private val receiverType: TypeName? = null,
     private val bodyAsAssignment: Boolean = false,
     private val private: Boolean = false,
-) : KotlinFileContent, AnnotationAware, ParameterAware, StatementAware {
+) : KotlinFileContent, AnnotationAware, ParameterAware, StatementAware, CommentAware {
 
     private val annotations = KotlinAnnotationContainer()
     private val parameters = KotlinParameterContainer()
     private val statements = KotlinStatementContainer()
+    private var comment: KotlinComment? = null
 
     override fun addAnnotation(annotation: KotlinAnnotation) {
         annotations.addAnnotation(annotation)
@@ -30,7 +31,16 @@ class KotlinMethod(
         statements.addStatement(statement)
     }
 
+    override fun setComment(comment: KotlinComment) {
+        this.comment = comment
+    }
+
     override fun render(writer: CodeWriter) = with(writer) {
+        comment?.let {
+            it.render(this)
+            writeln(forceNewLine = false)
+        }
+
         annotations.render(this)
         if (private) {
             write("private ")
@@ -61,6 +71,8 @@ class KotlinMethod(
             indent {
                 statements.render(this)
             }
+            writeln(forceNewLine = false) // in case the item already rendered a line break
+
             if (!bodyAsAssignment) {
                 write("}")
             }

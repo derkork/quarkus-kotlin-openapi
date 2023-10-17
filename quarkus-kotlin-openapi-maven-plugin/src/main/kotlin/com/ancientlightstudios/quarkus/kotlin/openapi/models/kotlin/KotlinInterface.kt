@@ -1,12 +1,13 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.ClassName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
 
-class KotlinInterface(private val name: ClassName) : KotlinFileContent, AnnotationAware, MethodAware {
+class KotlinInterface(private val name: ClassName) : KotlinFileContent, AnnotationAware, MethodAware, CommentAware {
 
     private val annotations = KotlinAnnotationContainer()
     private val methods = KotlinMethodContainer()
+    private var comment: KotlinComment? = null
 
     override fun addAnnotation(annotation: KotlinAnnotation) {
         annotations.addAnnotation(annotation)
@@ -16,7 +17,17 @@ class KotlinInterface(private val name: ClassName) : KotlinFileContent, Annotati
         methods.addMethod(method)
     }
 
+    override fun setComment(comment: KotlinComment) {
+        this.comment = comment
+    }
+
+
     override fun render(writer: CodeWriter) = with(writer) {
+        comment?.let {
+            it.render(this)
+            writeln(forceNewLine = false)
+        }
+
         annotations.render(this, false)
         write("interface ${name.render()}")
 

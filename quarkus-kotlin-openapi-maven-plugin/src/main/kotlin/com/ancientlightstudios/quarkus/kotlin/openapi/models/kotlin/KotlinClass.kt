@@ -1,15 +1,16 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.ClassName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
 
 class KotlinClass(private val name: ClassName, private val privateConstructor: Boolean = false) : KotlinFileContent,
-    AnnotationAware, MethodAware, MemberAware, CompanionAware {
+    AnnotationAware, MethodAware, MemberAware, CompanionAware, CommentAware {
 
     private val annotations = KotlinAnnotationContainer()
     private val methods = KotlinMethodContainer()
     private val members = KotlinMemberContainer()
     private var companion: KotlinCompanion? = null
+    private var comment: KotlinComment? = null
 
     override fun addAnnotation(annotation: KotlinAnnotation) {
         annotations.addAnnotation(annotation)
@@ -27,7 +28,16 @@ class KotlinClass(private val name: ClassName, private val privateConstructor: B
         this.companion = companion
     }
 
+    override fun setComment(comment: KotlinComment) {
+        this.comment = comment
+    }
+
     override fun render(writer: CodeWriter) = with(writer) {
+        comment?.let {
+            it.render(this)
+            writeln(forceNewLine = false)
+        }
+
         annotations.render(this)
         write("class ${name.render()}")
 
@@ -53,7 +63,7 @@ class KotlinClass(private val name: ClassName, private val privateConstructor: B
 
                 companion?.let {
                     writeln()
-                    companion!!.render(this)
+                    it.render(this)
                     writeln(forceNewLine = false) // in case the item already rendered a line break
                 }
 

@@ -3,8 +3,7 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.transformer
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.AdditionalInformation
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.Parameter
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.Source
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.TypeName.SimpleTypeName.Companion.rawTypeName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.VariableName.Companion.variableName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.VariableName.Companion.variableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.parameter.Parameter as OpenApiParameter
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.parameter.Parameter.CookieParameter as OpenApiCookieParameter
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.parameter.Parameter.HeaderParameter as OpenApiHeaderParameter

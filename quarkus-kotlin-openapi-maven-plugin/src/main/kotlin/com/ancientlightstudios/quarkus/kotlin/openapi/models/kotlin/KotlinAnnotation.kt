@@ -1,8 +1,8 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.Expression
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.ClassName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.VariableName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.VariableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.forEachWithStats
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
 

@@ -1,12 +1,10 @@
-package com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed
+package com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.ClassName.Companion.className
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.ClassName.Companion.rawClassName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.TypeName.SimpleTypeName.Companion.typeName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName.Companion.className
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName.Companion.rawClassName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName.SimpleTypeName.Companion.typeName
 
-sealed interface TypeName {
-
-    fun render(): String
+sealed interface TypeName : Name {
 
     @Suppress("DataClassPrivateConstructor")
     data class SimpleTypeName private constructor(val name: ClassName, val nullable: Boolean) : TypeName {
@@ -24,9 +22,7 @@ sealed interface TypeName {
 
             fun String.typeName(nullable: Boolean = false) = className().typeName(nullable)
 
-            fun MethodName.typeName(nullable: Boolean = false) = render().className().typeName(nullable)
-
-            fun VariableName.typeName(nullable: Boolean = false) = render().className().typeName(nullable)
+            fun Name.typeName(nullable: Boolean = false) = render().className().typeName(nullable)
 
         }
 

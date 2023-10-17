@@ -1,11 +1,11 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.ClassName
-import com.ancientlightstudios.quarkus.kotlin.openapi.utils.forEachWithStats
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.Expression
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ConstantName
+import com.ancientlightstudios.quarkus.kotlin.openapi.utils.forEachWithStats
 
-class KotlinEnumItem(private val name: ClassName, private vararg val values: Expression) : AnnotationAware {
+class KotlinEnumItem(private val name: ConstantName, private vararg val values: Expression) : AnnotationAware {
 
     private val annotations = KotlinAnnotationContainer()
 
@@ -31,7 +31,7 @@ class KotlinEnumItem(private val name: ClassName, private vararg val values: Exp
 
 }
 
-fun KotlinEnum.kotlinEnumItem(name: ClassName, vararg values: Expression, block: KotlinEnumItem.() -> Unit = {}) {
+fun KotlinEnum.kotlinEnumItem(name: ConstantName, vararg values: Expression, block: KotlinEnumItem.() -> Unit = {}) {
     val content = KotlinEnumItem(name, *values).apply(block)
     addItem(content)
 }

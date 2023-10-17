@@ -2,29 +2,29 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ResponseCode
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.ClassName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.ClassName.Companion.className
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.ClassName.Companion.rawClassName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.MethodName.Companion.methodName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName.Companion.className
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName.Companion.rawClassName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.MethodName.Companion.methodName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.Request
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.RequestSuite
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.TypeName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.TypeName.GenericTypeName.Companion.of
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.TypeName.SimpleTypeName.Companion.rawTypeName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.VariableName.Companion.variableName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName.GenericTypeName.Companion.of
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName.SimpleTypeName.Companion.rawTypeName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.VariableName.Companion.variableName
+import com.ancientlightstudios.quarkus.kotlin.openapi.transformer.TypeDefinitionRegistry
 import jakarta.ws.rs.core.Response
 
 class ServerResponseContainerEmitter : CodeEmitter {
 
-    override fun EmitterContext.emit(suite: RequestSuite) {
+    override fun EmitterContext.emit(suite: RequestSuite, typeDefinitionRegistry: TypeDefinitionRegistry) {
         suite.requests.forEach {
             emitResponseContainer(it)
         }
     }
 
     private fun EmitterContext.emitResponseContainer(request: Request) {
-        val fileName = request.name.extend(postfix = "Response").className()
-        kotlinFile(serverPackage(), fileName) {
+        kotlinFile(serverPackage(), request.name.extend(postfix = "Response").className()) {
             registerImport("org.jboss.resteasy.reactive.RestResponse.ResponseBuilder")
             registerImport("org.jboss.resteasy.reactive.RestResponse")
 

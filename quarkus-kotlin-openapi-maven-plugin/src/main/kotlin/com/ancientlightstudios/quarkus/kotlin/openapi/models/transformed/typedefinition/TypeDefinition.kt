@@ -1,6 +1,6 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.typedefinition
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.TypeName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName
 
 sealed interface TypeDefinition {
 

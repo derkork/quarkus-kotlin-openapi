@@ -1,6 +1,6 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.transformer
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.ClassName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName
 
 class NameRegistry {
 
