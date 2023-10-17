@@ -8,6 +8,9 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.L
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.StringExpression.Companion.stringExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName.Companion.rawClassName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName.GenericTypeName.Companion.of
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName.SimpleTypeName.Companion.typeName
 
 fun ClassName.valueExpression(value: String) = when (this.render()) {
     "String" -> value.stringExpression()
@@ -29,4 +32,8 @@ fun primitiveTypeFor(type: String, format: String?) = when {
     else -> throw IllegalArgumentException("unsupported primitive type mapping '$type' with format '$format'")
 }.rawClassName()
 
+fun TypeName.overrideWhenOptional(isOptional: Boolean): TypeName = when (this) {
+    is TypeName.SimpleTypeName -> name.typeName(nullable || isOptional)
+    is TypeName.GenericTypeName -> outerType.name.typeName(outerType.nullable || isOptional).of(innerType)
+}
 

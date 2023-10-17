@@ -40,10 +40,21 @@ class Generator(private val config: Config) {
 
         codeEmitter.add(EnumModelEmitter())
         codeEmitter.add(SharedPrimitiveModelEmitter())
+        codeEmitter.add(SafeModelEmitter())
 
         codeEmitter.forEach {
             it.apply { context.emit(first, second) }
         }
     }
 
+}
+
+fun main() {
+
+    Generator(Config(
+        listOf("quarkus-kotlin-openapi-test/src/main/resources/test_api_3.0.yaml"),
+        "NarfInterface",
+        "com.ancientlightstudios.example",
+        "quarkus-kotlin-openapi-test/target/generated-sources/quarkus-kotlin-openapi"
+    )).generate()
 }

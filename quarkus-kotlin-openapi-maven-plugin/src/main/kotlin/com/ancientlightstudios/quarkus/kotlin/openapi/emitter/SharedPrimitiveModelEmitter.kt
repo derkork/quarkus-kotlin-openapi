@@ -29,7 +29,7 @@ class SharedPrimitiveModelEmitter : CodeEmitter {
 
     private fun EmitterContext.emitModel(definition: SharedPrimitiveTypeDefinition) {
         kotlinFile(modelPackage(), definition.name) {
-            registerImport(apiPackage())
+            registerImport(apiPackage(), wildcardImport = true)
 
             kotlinValueClass(fileName, definition.primitiveType.typeName()) {
                 kotlinAnnotation("JvmInline".className())

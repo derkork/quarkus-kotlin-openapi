@@ -8,6 +8,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.Request
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.RequestSuite
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.VariableName.Companion.variableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.transformer.TypeDefinitionRegistry
+import com.ancientlightstudios.quarkus.kotlin.openapi.utils.overrideWhenOptional
 
 class ServerRequestContainerEmitter : CodeEmitter {
 
@@ -21,6 +22,8 @@ class ServerRequestContainerEmitter : CodeEmitter {
 
     private fun EmitterContext.emitRequestContainer(request: Request) {
         kotlinFile(serverPackage(), request.name.extend(postfix = "Request").className()) {
+            registerImport(modelPackage(), wildcardImport = true)
+
             kotlinClass(fileName) {
                 request.parameters.forEach {
                     kotlinMember(it.name, it.type, private = false)

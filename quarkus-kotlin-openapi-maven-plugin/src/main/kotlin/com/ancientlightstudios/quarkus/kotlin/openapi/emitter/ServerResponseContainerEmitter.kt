@@ -27,6 +27,7 @@ class ServerResponseContainerEmitter : CodeEmitter {
         kotlinFile(serverPackage(), request.name.extend(postfix = "Response").className()) {
             registerImport("org.jboss.resteasy.reactive.RestResponse.ResponseBuilder")
             registerImport("org.jboss.resteasy.reactive.RestResponse")
+            registerImport(modelPackage(), wildcardImport = true)
 
             val defaultResponseExists = request.responses.any { it.first == ResponseCode.Default }
 

@@ -9,7 +9,8 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.Ty
 data class ObjectTypeDefinition(
     val name: ClassName,
     val sourceSchema: Schema.ObjectSchema,
-    val propertyFilter: (SchemaProperty) -> Boolean
+    val propertyFilter: (SchemaProperty) -> Boolean,
+    val resolveSchema: (SchemaProperty) -> TypeDefinition
 ) : TypeDefinition {
 
     override val isNullable: Boolean

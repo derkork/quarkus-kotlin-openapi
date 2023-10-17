@@ -12,7 +12,7 @@ class EmitterContext(private val packageName: String, private val outputDirector
     
     fun modelPackage() = "$packageName.model"
 
-    fun apiPackage() = "com.ancientlightstudios.quarkus.kotlin.openapi.*"
+    fun apiPackage() = "com.ancientlightstudios.quarkus.kotlin.openapi"
 
     fun generateFile(file: KotlinFile) {
         val targetPath = if (file.packageName.isNotBlank()) {

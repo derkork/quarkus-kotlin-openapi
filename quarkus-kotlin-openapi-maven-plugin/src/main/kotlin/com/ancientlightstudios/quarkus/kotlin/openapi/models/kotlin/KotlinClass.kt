@@ -1,10 +1,13 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName
 
-class KotlinClass(private val name: ClassName, private val privateConstructor: Boolean = false) : KotlinFileContent,
-    AnnotationAware, MethodAware, MemberAware, CompanionAware, CommentAware {
+class KotlinClass(
+    private val name: ClassName,
+    private val privateConstructor: Boolean = false,
+    private val asDataClass: Boolean = false
+) : KotlinFileContent, AnnotationAware, MethodAware, MemberAware, CompanionAware, CommentAware {
 
     private val annotations = KotlinAnnotationContainer()
     private val methods = KotlinMethodContainer()
@@ -39,6 +42,10 @@ class KotlinClass(private val name: ClassName, private val privateConstructor: B
         }
 
         annotations.render(this)
+        if (asDataClass) {
+            write("data ")
+        }
+
         write("class ${name.render()}")
 
         if (privateConstructor) {
@@ -75,7 +82,12 @@ class KotlinClass(private val name: ClassName, private val privateConstructor: B
 
 }
 
-fun KotlinFile.kotlinClass(name: ClassName, privateConstructor: Boolean = false, block: KotlinClass.() -> Unit) {
-    val content = KotlinClass(name, privateConstructor).apply(block)
+fun KotlinFile.kotlinClass(
+    name: ClassName,
+    privateConstructor: Boolean = false,
+    asDataClass: Boolean = false,
+    block: KotlinClass.() -> Unit
+) {
+    val content = KotlinClass(name, privateConstructor, asDataClass).apply(block)
     addFileContent(content)
 }

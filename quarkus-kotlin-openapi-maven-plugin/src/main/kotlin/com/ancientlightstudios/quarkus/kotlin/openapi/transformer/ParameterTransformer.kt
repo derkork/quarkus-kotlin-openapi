@@ -4,6 +4,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.Additio
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.Parameter
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.Source
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.VariableName.Companion.variableName
+import com.ancientlightstudios.quarkus.kotlin.openapi.utils.overrideWhenOptional
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.parameter.Parameter as OpenApiParameter
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.parameter.Parameter.CookieParameter as OpenApiCookieParameter
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.parameter.Parameter.HeaderParameter as OpenApiHeaderParameter
@@ -18,26 +19,26 @@ class ParameterTransformer(private val source: OpenApiParameter) {
 
     fun transform(typeDefinitionRegistry: TypeDefinitionRegistry): Parameter {
         val name = source.name.variableName()
-        val type = typeDefinitionRegistry.getTypeDefinition(source.schema, FlowDirection.Up).defaultType // TODO: override nullable
+        val type = typeDefinitionRegistry.getTypeDefinition(source.schema, FlowDirection.Up).defaultType
         return when (source) {
             is OpenApiPathParameter -> Parameter(name, type, Source.Path, AdditionalInformation(source.description))
             is OpenApiQueryParameter -> Parameter(
                 name,
-                type,
+                type.overrideWhenOptional(!source.required),
                 Source.Query,
                 AdditionalInformation(source.description, source.deprecated)
             )
 
             is OpenApiHeaderParameter -> Parameter(
                 name,
-                type,
+                type.overrideWhenOptional(!source.required),
                 Source.Header,
                 AdditionalInformation(source.description, source.deprecated)
             )
 
             is OpenApiCookieParameter -> Parameter(
                 name,
-                type,
+                type.overrideWhenOptional(!source.required),
                 Source.Cookie,
                 AdditionalInformation(source.description, source.deprecated)
             )
