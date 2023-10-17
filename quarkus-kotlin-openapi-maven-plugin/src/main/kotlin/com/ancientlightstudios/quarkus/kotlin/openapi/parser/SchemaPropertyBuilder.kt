@@ -20,7 +20,13 @@ class SchemaPropertyBuilder(
             else -> Direction.ReadAndWrite
         }
 
-        return SchemaProperty(parseAsSchema(), direction, node.getTextOrNull("description"), required)
+        return SchemaProperty(
+            parseAsSchema(),
+            direction,
+            node.getTextOrNull("description"),
+            node.getTextOrNull("default"),
+            required
+        )
     }
 
 }

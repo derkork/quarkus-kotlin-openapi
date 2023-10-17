@@ -8,6 +8,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.parser.merge
 import com.ancientlightstudios.quarkus.kotlin.openapi.parser.parseAsApiSpec
 import com.ancientlightstudios.quarkus.kotlin.openapi.parser.read
 import com.ancientlightstudios.quarkus.kotlin.openapi.transformer.ApiSpecTransformer
+import com.ancientlightstudios.quarkus.kotlin.openapi.transformer.FlowDirection
 import com.ancientlightstudios.quarkus.kotlin.openapi.transformer.TypeDefinitionRegistry
 import java.io.File
 import kotlin.io.path.Path
@@ -36,25 +37,21 @@ class Generator(private val config: Config) {
             codeEmitter.add(ServerDelegateEmitter())
             codeEmitter.add(ServerRequestContainerEmitter())
             codeEmitter.add(ServerResponseContainerEmitter())
+            codeEmitter.add(UnsafeObjectModelEmitter(FlowDirection.Up))
+        }
+
+        // Client or Both
+        if (config.interfaceType != InterfaceType.SERVER) {
+            codeEmitter.add(UnsafeObjectModelEmitter(FlowDirection.Down))
         }
 
         codeEmitter.add(EnumModelEmitter())
         codeEmitter.add(SharedPrimitiveModelEmitter())
-        codeEmitter.add(SafeModelEmitter())
+        codeEmitter.add(SafeObjectModelEmitter())
 
         codeEmitter.forEach {
             it.apply { context.emit(first, second) }
         }
     }
 
-}
-
-fun main() {
-
-    Generator(Config(
-        listOf("quarkus-kotlin-openapi-test/src/main/resources/test_api_3.0.yaml"),
-        "NarfInterface",
-        "com.ancientlightstudios.example",
-        "quarkus-kotlin-openapi-test/target/generated-sources/quarkus-kotlin-openapi"
-    )).generate()
 }

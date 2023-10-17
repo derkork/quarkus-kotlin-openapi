@@ -44,10 +44,9 @@ class SchemaCollector {
         return when (definition) {
             is PrimitiveSchemaDefinition, is EnumSchemaDefinition -> registerSimpleSchema(definition, direction, name)
             is ArraySchemaDefinition -> registerSchema(definition.itemSchema, direction) { "$name item" }
-            is ObjectSchemaDefinition -> registerObjectSchema(definition, direction, name)
+            is ObjectSchemaDefinition, is AllOfSchemaDefinition -> registerObjectSchema(definition, direction, name)
             is OneOfSchemaDefinition -> TODO("OneOf schemas not yet implemented")
             is AnyOfSchemaDefinition -> TODO("AnyOf schemas not yet implemented")
-            is AllOfSchemaDefinition -> registerAllOfSchema(definition, direction, name)
         }
     }
 
@@ -62,37 +61,11 @@ class SchemaCollector {
     }
 
     private fun registerObjectSchema(
-        definition: ObjectSchemaDefinition,
+        definition: SchemaDefinition,
         direction: FlowDirection,
         name: String
     ): ObjectStyle {
-        val propertyStyles = definition.properties.map { (propertyName, property) ->
-            val style = registerSchema(property.schema, direction) { "$name $propertyName" }
-            when {
-                style == ObjectStyle.Multiple -> style
-                property.direction != Direction.ReadAndWrite -> ObjectStyle.Multiple
-                else -> ObjectStyle.Single
-            }
-        }
-
-        val result = if (propertyStyles.contains(ObjectStyle.Multiple)) {
-            ObjectStyle.Multiple
-        } else {
-            ObjectStyle.Single
-        }
-
-        schemaData[definition] = SchemaInfo(result, direction, name)
-        return result
-    }
-
-    private fun registerAllOfSchema(
-        definition: AllOfSchemaDefinition,
-        direction: FlowDirection,
-        name: String
-    ): ObjectStyle {
-        val properties = definition.schemas.flatMap { it.properties }
-
-        val propertyStyles = properties.map { (propertyName, property) ->
+        val propertyStyles = definition.getAllProperties().map { (propertyName, property) ->
             val style = registerSchema(property.schema, direction) { "$name $propertyName" }
             when {
                 style == ObjectStyle.Multiple -> style

@@ -32,7 +32,7 @@ class ServerResponseContainerEmitter : CodeEmitter {
             val defaultResponseExists = request.responses.any { it.first == ResponseCode.Default }
 
             kotlinClass(fileName, true) {
-                kotlinMember("response".variableName(), "RestResponse".rawTypeName().of("*".rawClassName())) {}
+                kotlinMember("response".variableName(), "RestResponse".rawTypeName().of("*".rawClassName()), private = false) {}
                 kotlinCompanion {
                     emitGenericStatusMethod(fileName, defaultResponseExists)
 

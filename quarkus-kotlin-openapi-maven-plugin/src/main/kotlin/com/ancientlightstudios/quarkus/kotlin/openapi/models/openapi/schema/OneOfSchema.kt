@@ -3,7 +3,7 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.schema
 data class OneOfSchemaDefinition(
     override val description: String?,
     override val nullable: Boolean,
-    override val schemas: List<Schema.ObjectSchema>,
+    override val schemas: List<Schema>,
     override val discriminator: String?
 ) : SchemaDefinition, Schema.OneOfSchema
 

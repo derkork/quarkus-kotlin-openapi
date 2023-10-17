@@ -3,7 +3,7 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.schema
 data class AnyOfSchemaDefinition(
     override val description: String?,
     override val nullable: Boolean,
-    override val schemas: List<Schema.ObjectSchema>
+    override val schemas: List<Schema>
 ) : SchemaDefinition, Schema.AnyOfSchema
 
 data class AnyOfSchemaReference(
