@@ -89,7 +89,6 @@ class EnumModelEmitter : CodeEmitter {
         }.also { generateFile(it) }
     }
 
-    // TODO: other expression types
     private fun getDefault(name: ClassName, source: Schema.EnumSchema) = when (val value = source.defaultValue) {
         null -> NullExpression
         else -> name.pathExpression().then(value.constantName())

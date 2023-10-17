@@ -25,28 +25,3 @@ class ServerRestInterfaceEmitter : CodeEmitter {
         }.also { generateFile(it) }
     }
 }
-
-// value class
-/*
-        writeln("fun String?.as${name.name}(context:String) : Maybe<${name.name}?> {")
-        indent {
-            if( defaultValue != null) {
-                // TODO: we should replace this with a 'map { it ?: defaultValue }' to avoid parsing the value each time. but this class needs to know jow to convert the value into the required data type
-                write("return (this ?: \"$defaultValue\").as")
-            } else {
-                write("return as")
-            }
-            nestedType.render(this)
-            writeln("(context)")
-            indent {
-                // TODO: add type validation here if necessary e.g. validateString { it.minLength(5) }
-                writeln(".mapNotNull { ${name.name}(it) }")
-            }
-        }
-        writeln("}")
-
-        writeln()
-        // this function should only be used for list/array items. otherwise the default value will not be available
-        writeln("fun Maybe<String?>.as${name.name}() : Maybe<${name.name}?> = onNotNull { value.as${name.name}(context) }")
-
- */

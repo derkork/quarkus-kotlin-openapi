@@ -1,6 +1,6 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression
 
-sealed interface Expression {
+interface Expression {
 
     fun evaluate(): String
 

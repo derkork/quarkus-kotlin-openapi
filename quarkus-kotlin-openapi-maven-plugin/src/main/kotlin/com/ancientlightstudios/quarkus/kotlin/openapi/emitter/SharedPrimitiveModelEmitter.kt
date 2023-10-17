@@ -1,14 +1,13 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.InvocationExpression.Companion.invocationExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.NullExpression
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.PathExpression.Companion.pathExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.schema.Schema
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.RequestSuite
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName.Companion.className
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName.Companion.rawClassName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ConstantName.Companion.constantName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.MethodName.Companion.methodName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName.GenericTypeName.Companion.of
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName.SimpleTypeName.Companion.rawTypeName
@@ -16,6 +15,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.Ty
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.VariableName.Companion.variableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.typedefinition.SharedPrimitiveTypeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.transformer.TypeDefinitionRegistry
+import com.ancientlightstudios.quarkus.kotlin.openapi.utils.valueExpression
 
 class SharedPrimitiveModelEmitter : CodeEmitter {
 
@@ -44,7 +44,7 @@ class SharedPrimitiveModelEmitter : CodeEmitter {
                 kotlinParameter(
                     "default".variableName(),
                     fileName.typeName(true),
-                    getDefault(fileName, definition.sourceSchema)
+                    getDefault(fileName, definition.primitiveType, definition.sourceSchema)
                 )
 
                 kotlinStatement {
@@ -78,10 +78,10 @@ class SharedPrimitiveModelEmitter : CodeEmitter {
         }.also { generateFile(it) }
     }
 
-    // TODO: other expression types
-    private fun getDefault(name: ClassName, source: Schema.PrimitiveSchema) = when (val value = source.defaultValue) {
-        null -> NullExpression
-        else -> name.pathExpression().then(value.constantName())
-    }
+    private fun getDefault(name: ClassName, primitiveType: ClassName, source: Schema.PrimitiveSchema) =
+        when (val value = source.defaultValue) {
+            null -> NullExpression
+            else -> name.invocationExpression(primitiveType.valueExpression(value))
+        }
 
 }

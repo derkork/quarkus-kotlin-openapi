@@ -5,6 +5,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.Cl
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName.Companion.className
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName.Companion.rawClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.typedefinition.*
+import com.ancientlightstudios.quarkus.kotlin.openapi.utils.primitiveTypeFor
 
 class TypeDefinitionRegistry(private val schemas: MutableMap<SchemaDefinition, SchemaInfo>) {
 
@@ -117,16 +118,6 @@ class TypeDefinitionRegistry(private val schemas: MutableMap<SchemaDefinition, S
 
 
     fun getAllTypeDefinitions() = typeDefinitions.values.flatMap { it.values }
-
-    private fun primitiveTypeFor(type: String, format: String?) = when {
-        type == "string" -> "String"
-        type == "number" && format == "float" -> "Float"
-        type == "number" && format == "double" -> "Double"
-        type == "integer" && format == "int64" -> "Long"
-        type == "integer" && (format == null || format == "int32") -> "Int"
-        type == "boolean" -> "Boolean"
-        else -> throw IllegalArgumentException("unsupported primitive type mapping '$type' with format '$format'")
-    }.rawClassName()
 
     private fun getSchemaDefinition(schema: Schema): SchemaDefinition =
         when (schema) {
