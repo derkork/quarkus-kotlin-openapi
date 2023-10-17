@@ -1,6 +1,7 @@
 package com.ancientlightstudios.example
 
 import com.ancientlightstudios.example.model.*
+import com.ancientlightstudios.example.server.*
 import com.ancientlightstudios.example.server.NarfInterfaceDelegate
 import com.ancientlightstudios.quarkus.kotlin.openapi.Maybe
 import com.ancientlightstudios.quarkus.kotlin.openapi.validOrElse

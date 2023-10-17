@@ -12,7 +12,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.typedef
 import com.ancientlightstudios.quarkus.kotlin.openapi.transformer.TypeDefinitionRegistry
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.overrideWhenOptional
 
-class SafeModelEmitter : CodeEmitter {
+class SafeObjectModelEmitter : CodeEmitter {
 
     override fun EmitterContext.emit(suite: RequestSuite, typeDefinitionRegistry: TypeDefinitionRegistry) {
         typeDefinitionRegistry.getAllTypeDefinitions()
@@ -31,21 +31,18 @@ class SafeModelEmitter : CodeEmitter {
             kotlinClass(fileName, asDataClass = true) {
                 addReflectionAnnotation()
 
-                definition.sourceSchema.properties
-                    .filter { (_, property) -> definition.propertyFilter(property) }
-                    .forEach { (name, property) ->
-                        val propertyTypeDefinition = definition.resolveSchema(property)
-                        kotlinMember(
-                            name.variableName(),
-                            propertyTypeDefinition.defaultType.overrideWhenOptional(!property.required),
-                            private = false
-                        ) {
-                            kotlinAnnotation(
-                                "field:JsonProperty".rawClassName(),
-                                "value".variableName() to name.stringExpression()
-                            )
-                        }
+                definition.properties.forEach { (name, property, propertyTypeDefinition) ->
+                    kotlinMember(
+                        name.variableName(),
+                        propertyTypeDefinition.defaultType.overrideWhenOptional(!property.required),
+                        private = false
+                    ) {
+                        kotlinAnnotation(
+                            "field:JsonProperty".rawClassName(),
+                            "value".variableName() to name.stringExpression()
+                        )
                     }
+                }
             }
         }.also { generateFile(it) }
     }

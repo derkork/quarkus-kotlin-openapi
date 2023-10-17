@@ -10,7 +10,9 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.Cl
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName.Companion.rawClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName.GenericTypeName.Companion.of
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName.SimpleTypeName.Companion.rawTypeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName.SimpleTypeName.Companion.typeName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.typedefinition.*
 
 fun ClassName.valueExpression(value: String) = when (this.render()) {
     "String" -> value.stringExpression()
@@ -37,3 +39,10 @@ fun TypeName.overrideWhenOptional(isOptional: Boolean): TypeName = when (this) {
     is TypeName.GenericTypeName -> outerType.name.typeName(outerType.nullable || isOptional).of(innerType)
 }
 
+fun TypeDefinition.asUnsafePropertyType(): TypeName = when (this) {
+    is InlinePrimitiveTypeDefinition -> "String".rawTypeName(true)
+    is SharedPrimitiveTypeDefinition -> "String".rawTypeName(true)
+    is EnumTypeDefinition -> "String".rawTypeName(true)
+    is CollectionTypeDefinition -> "List".rawTypeName(true).of(innerType.asUnsafePropertyType())
+    is ObjectTypeDefinition -> defaultType.extend(postfix = "Unsafe").overrideWhenOptional(true)
+}

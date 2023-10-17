@@ -80,7 +80,7 @@ class TypeDefinitionRegistry(private val schemas: MutableMap<SchemaDefinition, S
         return result
     }
 
-    private fun enumTypeDefinition(name: ClassName, definition: EnumSchemaDefinition) : TypeDefinition {
+    private fun enumTypeDefinition(name: ClassName, definition: EnumSchemaDefinition): TypeDefinition {
         val result = EnumTypeDefinition(
             nameRegistry.uniqueNameFor(name),
             primitiveTypeFor(definition.type, definition.format),
@@ -90,7 +90,7 @@ class TypeDefinitionRegistry(private val schemas: MutableMap<SchemaDefinition, S
         return result
     }
 
-    private fun collectionTypeDefinition(definition: ArraySchemaDefinition, direction: FlowDirection) : TypeDefinition {
+    private fun collectionTypeDefinition(definition: ArraySchemaDefinition, direction: FlowDirection): TypeDefinition {
         val result = CollectionTypeDefinition(
             "List".rawClassName(),
             getTypeDefinition(definition.itemSchema, direction),
@@ -105,12 +105,7 @@ class TypeDefinitionRegistry(private val schemas: MutableMap<SchemaDefinition, S
         definition: ObjectSchemaDefinition,
         direction: FlowDirection
     ): TypeDefinition {
-        val filter = when (direction) {
-            FlowDirection.Up -> { property: SchemaProperty -> property.direction != Direction.ReadOnly }
-            FlowDirection.Down -> { property: SchemaProperty -> property.direction != Direction.WriteOnly }
-        }
-        val resolver = { property: SchemaProperty -> getTypeDefinition(property.schema, direction) }
-        val result = ObjectTypeDefinition(name, definition, filter, resolver)
+        val result = ObjectTypeDefinition(name, definition.nullable, getProperties(definition, direction))
         typeDefinitions.getOrPut(definition) { mutableMapOf() }[direction] = result
         return result
     }
@@ -120,17 +115,20 @@ class TypeDefinitionRegistry(private val schemas: MutableMap<SchemaDefinition, S
         definition: AllOfSchemaDefinition,
         direction: FlowDirection
     ): TypeDefinition {
-        val filter = when (direction) {
-            FlowDirection.Up -> { property: SchemaProperty -> property.direction != Direction.ReadOnly }
-            FlowDirection.Down -> { property: SchemaProperty -> property.direction != Direction.WriteOnly }
-        }
-        val result = AllOfTypeDefinition(name, definition, filter)
+        val result = ObjectTypeDefinition(name, definition.nullable, getProperties(definition, direction))
         typeDefinitions.getOrPut(definition) { mutableMapOf() }[direction] = result
         return result
     }
 
+    fun getAllTypeDefinitions(directionFilter: FlowDirection? = null): List<TypeDefinition> {
+        var types = typeDefinitions.values.flatMap { it.map { it.key to it.value } }
 
-    fun getAllTypeDefinitions() = typeDefinitions.values.flatMap { it.values }
+        if (directionFilter != null) {
+            types = types.filter { it.first == directionFilter }
+        }
+
+        return types.map { it.second }
+    }
 
     private fun getSchemaDefinition(schema: Schema): SchemaDefinition =
         when (schema) {
@@ -138,5 +136,26 @@ class TypeDefinitionRegistry(private val schemas: MutableMap<SchemaDefinition, S
             is SchemaReference<*> -> getSchemaDefinition(schema.target)
         }
 
+    private fun getProperties(schema: SchemaDefinition, direction: FlowDirection): List<ObjectProperty> {
+        val result = mutableListOf<ObjectProperty>()
+
+        val filter = when (direction) {
+            FlowDirection.Up -> { property: SchemaProperty -> property.direction != Direction.ReadOnly }
+            FlowDirection.Down -> { property: SchemaProperty -> property.direction != Direction.WriteOnly }
+        }
+
+        if (schema is ObjectSchemaDefinition) {
+            result.addAll(schema.properties
+                .filter { (_, property) -> filter(property) }
+                .map { (name, property) ->
+                    ObjectProperty(name, property, getTypeDefinition(property.schema, direction))
+                }
+            )
+        } else if (schema is AllOfSchemaDefinition) {
+            result.addAll(schema.schemas.map { getSchemaDefinition(it) }.flatMap { getProperties(it, direction) })
+        }
+
+        return result
+    }
 }
 

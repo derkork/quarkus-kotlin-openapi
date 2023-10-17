@@ -268,7 +268,6 @@ components:
       properties:
         character:
           type: string
-          default: unknown
         actor:
           type: string
           default: unknown

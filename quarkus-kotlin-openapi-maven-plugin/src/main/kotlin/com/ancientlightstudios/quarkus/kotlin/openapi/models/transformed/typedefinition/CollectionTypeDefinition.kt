@@ -9,7 +9,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.Ty
 data class CollectionTypeDefinition(
     val name: ClassName,
     val innerType: TypeDefinition,
-    val sourceSchema: Schema.ArraySchema
+    private val sourceSchema: Schema.ArraySchema
 ) : TypeDefinition {
 
     override val isNullable: Boolean
