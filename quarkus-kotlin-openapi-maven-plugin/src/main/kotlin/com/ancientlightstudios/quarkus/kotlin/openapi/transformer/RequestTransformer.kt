@@ -4,10 +4,10 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.RequestBody
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ResponseBody
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ResponseCode
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.AdditionalInformation
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.MethodName.Companion.methodName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.MethodName.Companion.methodName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.Request
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.TypeName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.TypeName.SimpleTypeName.Companion.rawTypeName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName.SimpleTypeName.Companion.rawTypeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.Request as OpenApiRequest
 
 class RequestTransformer(private val source: OpenApiRequest) {

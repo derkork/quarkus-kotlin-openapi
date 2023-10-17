@@ -8,6 +8,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.parser.merge
 import com.ancientlightstudios.quarkus.kotlin.openapi.parser.parseAsApiSpec
 import com.ancientlightstudios.quarkus.kotlin.openapi.parser.read
 import com.ancientlightstudios.quarkus.kotlin.openapi.transformer.ApiSpecTransformer
+import com.ancientlightstudios.quarkus.kotlin.openapi.transformer.TypeDefinitionRegistry
 import java.io.File
 import kotlin.io.path.Path
 
@@ -24,7 +25,7 @@ class Generator(private val config: Config) {
 
     private fun ApiSpec.transformApi() = ApiSpecTransformer(this).transform(config.interfaceName)
 
-    private fun RequestSuite.generateApi() {
+    private fun Pair<RequestSuite, TypeDefinitionRegistry>.generateApi() {
         val context = EmitterContext(config.packageName, Path(config.outputDirectory))
 
         val codeEmitter = mutableListOf<CodeEmitter>()
@@ -37,8 +38,11 @@ class Generator(private val config: Config) {
             codeEmitter.add(ServerResponseContainerEmitter())
         }
 
+        codeEmitter.add(EnumModelEmitter())
+        codeEmitter.add(SharedPrimitiveModelEmitter())
+
         codeEmitter.forEach {
-            it.apply { context.emit(this@generateApi) }
+            it.apply { context.emit(first, second) }
         }
     }
 

@@ -1,16 +1,17 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.ClassName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.forEachWithStats
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
 
 class KotlinEnum(private val name: ClassName) : KotlinFileContent,
-    AnnotationAware, MethodAware, MemberAware {
+    AnnotationAware, MethodAware, MemberAware, CommentAware {
 
     private val annotations = KotlinAnnotationContainer()
     private val methods = KotlinMethodContainer()
     private val members = KotlinMemberContainer()
     private val items = mutableListOf<KotlinEnumItem>()
+    private var comment: KotlinComment? = null
 
     override fun addAnnotation(annotation: KotlinAnnotation) {
         annotations.addAnnotation(annotation)
@@ -28,9 +29,17 @@ class KotlinEnum(private val name: ClassName) : KotlinFileContent,
         items.add(item)
     }
 
-    override fun render(writer: CodeWriter) = with(writer) {
-        annotations.render(this)
+    override fun setComment(comment: KotlinComment) {
+        this.comment = comment
+    }
 
+    override fun render(writer: CodeWriter) = with(writer) {
+        comment?.let {
+            it.render(this)
+            writeln(forceNewLine = false)
+        }
+
+        annotations.render(this)
         write("enum class ${name.render()}")
         if (members.isNotEmpty) {
             write("(")

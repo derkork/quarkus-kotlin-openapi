@@ -4,15 +4,15 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.kotlinClass
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.kotlinFile
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.kotlinMember
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.RequestSuite
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.TypeName.SimpleTypeName.Companion.rawTypeName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.TypeName.SimpleTypeName.Companion.typeName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.VariableName.Companion.variableName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName.SimpleTypeName.Companion.rawTypeName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName.SimpleTypeName.Companion.typeName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.VariableName.Companion.variableName
+import com.ancientlightstudios.quarkus.kotlin.openapi.transformer.TypeDefinitionRegistry
 
 class ServerRestInterfaceEmitter : CodeEmitter {
 
-    override fun EmitterContext.emit(suite: RequestSuite) {
-        val fileName = suite.name.extend(postfix = "Server")
-        kotlinFile(serverPackage(), fileName) {
+    override fun EmitterContext.emit(suite: RequestSuite, typeDefinitionRegistry: TypeDefinitionRegistry) {
+        kotlinFile(serverPackage(), suite.name.extend(postfix = "Server")) {
             registerImport("jakarta.ws.rs.Path")
             registerImport("com.fasterxml.jackson.databind.ObjectMapper")
 
@@ -25,36 +25,6 @@ class ServerRestInterfaceEmitter : CodeEmitter {
         }.also { generateFile(it) }
     }
 }
-
-// enum
-/*
-        writeln("fun String?.as${name.name}(context:String) : Maybe<${name.name}?> {")
-        indent {
-            writeln("if (this == null) {")
-            indent {
-                if (defaultValue == null) {
-                    writeln("return asMaybe(context)")
-                } else {
-                    val enumItem = items.first { it.first == defaultValue }.second
-                    writeln("return ${name.name}.${enumItem.name}.asMaybe(context)")
-                }
-            }
-            writeln("}")
-            writeln("return when (this) {")
-            indent {
-                items.forEach { (value, itemName) ->
-                    writeln("\"$value\" -> ${name.name}.${itemName.name}.asMaybe(context)")
-                }
-                writeln("else -> Maybe.Failure(context, ValidationError(\"Invalid value for ${name.name}: \$this\"))")
-            }
-            writeln("}")
-        }
-        writeln("}")
-
-        writeln()
-        // this function should only be used for list/array items. otherwise the default value will not be available
-        writeln("fun Maybe<String?>.as${name.name}() : Maybe<${name.name}?> = onNotNull { value.as${name.name}(context) }")
- */
 
 // value class
 /*

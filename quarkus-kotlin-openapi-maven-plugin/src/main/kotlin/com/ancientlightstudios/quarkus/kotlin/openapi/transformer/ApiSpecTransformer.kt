@@ -2,14 +2,14 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.transformer
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ApiSpec
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.AdditionalInformation
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.ClassName.Companion.className
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName.Companion.className
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.RequestSuite
 
 class ApiSpecTransformer(private val source: ApiSpec) {
 
-    fun transform(interfaceName: String): RequestSuite {
-        val schemaRegistry = initializeTypeDefinitionRegistry()
-        return transform(interfaceName, schemaRegistry)
+    fun transform(interfaceName: String): Pair<RequestSuite, TypeDefinitionRegistry> {
+        val typeDefinitionRegistry = initializeTypeDefinitionRegistry()
+        return transform(interfaceName, typeDefinitionRegistry) to typeDefinitionRegistry
     }
 
     private fun initializeTypeDefinitionRegistry(): TypeDefinitionRegistry {

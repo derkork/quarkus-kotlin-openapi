@@ -1,14 +1,14 @@
-package com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed
+package com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.toKotlinIdentifier
 import java.util.*
 
 @Suppress("DataClassPrivateConstructor")
-data class ClassName private constructor(private val name: String) {
+data class ClassName private constructor(private val name: String) : Name {
 
     fun extend(prefix: String = "", postfix: String = "") = "${prefix}_${name}_$postfix".className()
 
-    fun render() = name
+    override fun render() = name
 
     companion object {
 
@@ -17,9 +17,7 @@ data class ClassName private constructor(private val name: String) {
         fun String.className() = ClassName(toKotlinIdentifier()
             .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.ENGLISH) else it.toString() })
 
-        fun MethodName.className() = render().className()
-
-        fun VariableName.className() = render().className()
+        fun Name.className() = render().className()
 
     }
 

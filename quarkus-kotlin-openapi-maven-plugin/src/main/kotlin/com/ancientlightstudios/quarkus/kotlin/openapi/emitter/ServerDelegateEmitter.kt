@@ -5,16 +5,16 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.kotlinInterf
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.kotlinMethod
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.kotlinParameter
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.RequestSuite
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.TypeName.GenericTypeName.Companion.of
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.TypeName.SimpleTypeName.Companion.rawTypeName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.TypeName.SimpleTypeName.Companion.typeName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.VariableName.Companion.variableName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName.GenericTypeName.Companion.of
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName.SimpleTypeName.Companion.rawTypeName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName.SimpleTypeName.Companion.typeName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.VariableName.Companion.variableName
+import com.ancientlightstudios.quarkus.kotlin.openapi.transformer.TypeDefinitionRegistry
 
 class ServerDelegateEmitter : CodeEmitter {
 
-    override fun EmitterContext.emit(suite: RequestSuite) {
-        val fileName = suite.name.extend(postfix = "Delegate")
-        kotlinFile(serverPackage(), fileName) {
+    override fun EmitterContext.emit(suite: RequestSuite, typeDefinitionRegistry: TypeDefinitionRegistry) {
+        kotlinFile(serverPackage(), suite.name.extend(postfix = "Delegate")) {
             registerImport("com.ancientlightstudios.quarkus.kotlin.openapi.*")
 
             kotlinInterface(fileName) {

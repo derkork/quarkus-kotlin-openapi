@@ -1,10 +1,14 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.TypeName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.VariableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.Expression
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.VariableName
 
-class KotlinParameter(private val name: VariableName, private val type: TypeName) : AnnotationAware {
+class KotlinParameter(
+    private val name: VariableName, private val type: TypeName,
+    private val expression: Expression? = null
+) : AnnotationAware {
 
     private val annotations = KotlinAnnotationContainer()
 
@@ -15,6 +19,9 @@ class KotlinParameter(private val name: VariableName, private val type: TypeName
     fun render(writer: CodeWriter) = with(writer) {
         annotations.render(this, true)
         write("${name.render()}: ${type.render()}")
+        if (expression != null) {
+            write(" = ${expression.evaluate()}")
+        }
     }
 
 }
@@ -25,8 +32,13 @@ interface ParameterAware {
 
 }
 
-fun ParameterAware.kotlinParameter(name: VariableName, type: TypeName, block: KotlinParameter.() -> Unit = {}) {
-    val content = KotlinParameter(name, type).apply(block)
+fun ParameterAware.kotlinParameter(
+    name: VariableName,
+    type: TypeName,
+    expression: Expression? = null,
+    block: KotlinParameter.() -> Unit = {}
+) {
+    val content = KotlinParameter(name, type, expression).apply(block)
     addParameter(content)
 
 }

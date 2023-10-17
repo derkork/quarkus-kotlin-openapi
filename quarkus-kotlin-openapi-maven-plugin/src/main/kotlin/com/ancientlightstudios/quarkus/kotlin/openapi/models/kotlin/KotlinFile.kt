@@ -1,6 +1,6 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.ClassName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.forEachWithStats
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
 
