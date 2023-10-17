@@ -16,12 +16,13 @@ class SchemaBuilder(private val node: ObjectNode) {
     private fun ParseContext.extractSchemaDefinition(): Schema {
         val type = extractPrimaryType()
         return when {
-            type == "object" || type == null && node.has("properties") -> extractObjectSchemaDefinition()
-            type == null -> throw IllegalStateException("Unsupported schema type in $contextPath")
-            node.has("enum") -> extractEnumSchemaDefinition(type)
             node.has("oneOf") -> extractOneOfSchemaDefinition()
             node.has("allOf") -> extractAllOfSchemaDefinition()
             node.has("anyOf") -> extractAnyOfSchemaDefinition()
+            type == null && node.has("properties") -> extractObjectSchemaDefinition()
+            type == null -> throw IllegalStateException("Unsupported schema type in $contextPath")
+            node.has("enum") -> extractEnumSchemaDefinition(type)
+            type == "object" -> extractObjectSchemaDefinition()
             type == "array" -> extractArraySchemaDefinition()
             else -> extractPrimitiveSchemaDefinition(type)
         }

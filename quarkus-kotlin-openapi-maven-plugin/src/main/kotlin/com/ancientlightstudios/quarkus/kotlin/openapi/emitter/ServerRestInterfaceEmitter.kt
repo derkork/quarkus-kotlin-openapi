@@ -15,6 +15,7 @@ class ServerRestInterfaceEmitter : CodeEmitter {
         kotlinFile(serverPackage(), suite.name.extend(postfix = "Server")) {
             registerImport("jakarta.ws.rs.Path")
             registerImport("com.fasterxml.jackson.databind.ObjectMapper")
+            registerImport(modelPackage(), wildcardImport = true)
 
             kotlinClass(fileName, false) {
                 addPathAnnotation("/")

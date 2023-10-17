@@ -31,7 +31,7 @@ class EnumModelEmitter : CodeEmitter {
     private fun EmitterContext.emitModel(definition: EnumTypeDefinition) {
         kotlinFile(modelPackage(), definition.name) {
             registerImport("com.fasterxml.jackson.annotation.JsonProperty")
-            registerImport(apiPackage())
+            registerImport(apiPackage(), wildcardImport = true)
 
             kotlinEnum(fileName) {
                 kotlinMember("value".variableName(), definition.primitiveType.typeName(), private = false)

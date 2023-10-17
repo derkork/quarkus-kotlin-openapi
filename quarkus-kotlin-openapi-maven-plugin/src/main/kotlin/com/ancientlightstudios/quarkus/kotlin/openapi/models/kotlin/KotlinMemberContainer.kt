@@ -15,6 +15,6 @@ class KotlinMemberContainer {
         get() = members.isNotEmpty()
 
     fun render(writer: CodeWriter) = with(writer) {
-        renderWithWrap(members, 2) { it.render(this) }
+        renderWithWrap(members) { it.render(this) }
     }
 }

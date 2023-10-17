@@ -52,7 +52,6 @@ class TypeDefinitionRegistry(private val schemas: MutableMap<SchemaDefinition, S
             is AllOfSchemaDefinition -> allOfTypeDefinition(name, definition, direction)
         }
 
-        typeDefinitions.getOrPut(definition) { mutableMapOf() }[direction] = typeDefinition
         return typeDefinition
     }
 
@@ -71,26 +70,35 @@ class TypeDefinitionRegistry(private val schemas: MutableMap<SchemaDefinition, S
         return buildTypeDefinition(definition, direction)
     }
 
-    private fun sharedPrimitiveTypeDefinition(name: ClassName, definition: PrimitiveSchemaDefinition) =
-        SharedPrimitiveTypeDefinition(
+    private fun sharedPrimitiveTypeDefinition(name: ClassName, definition: PrimitiveSchemaDefinition): TypeDefinition {
+        val result = SharedPrimitiveTypeDefinition(
             nameRegistry.uniqueNameFor(name),
             primitiveTypeFor(definition.type, definition.format),
             definition
         )
+        typeDefinitions[definition] = mutableMapOf(FlowDirection.Up to result, FlowDirection.Down to result)
+        return result
+    }
 
-    private fun enumTypeDefinition(name: ClassName, definition: EnumSchemaDefinition) =
-        EnumTypeDefinition(
+    private fun enumTypeDefinition(name: ClassName, definition: EnumSchemaDefinition) : TypeDefinition {
+        val result = EnumTypeDefinition(
             nameRegistry.uniqueNameFor(name),
             primitiveTypeFor(definition.type, definition.format),
             definition
         )
+        typeDefinitions[definition] = mutableMapOf(FlowDirection.Up to result, FlowDirection.Down to result)
+        return result
+    }
 
-    private fun collectionTypeDefinition(definition: ArraySchemaDefinition, direction: FlowDirection) =
-        CollectionTypeDefinition(
+    private fun collectionTypeDefinition(definition: ArraySchemaDefinition, direction: FlowDirection) : TypeDefinition {
+        val result = CollectionTypeDefinition(
             "List".rawClassName(),
             getTypeDefinition(definition.itemSchema, direction),
             definition
         )
+        typeDefinitions.getOrPut(definition) { mutableMapOf() }[direction] = result
+        return result
+    }
 
     private fun objectTypeDefinition(
         name: ClassName,
@@ -101,7 +109,10 @@ class TypeDefinitionRegistry(private val schemas: MutableMap<SchemaDefinition, S
             FlowDirection.Up -> { property: SchemaProperty -> property.direction != Direction.ReadOnly }
             FlowDirection.Down -> { property: SchemaProperty -> property.direction != Direction.WriteOnly }
         }
-        return ObjectTypeDefinition(name, definition, filter)
+        val resolver = { property: SchemaProperty -> getTypeDefinition(property.schema, direction) }
+        val result = ObjectTypeDefinition(name, definition, filter, resolver)
+        typeDefinitions.getOrPut(definition) { mutableMapOf() }[direction] = result
+        return result
     }
 
     private fun allOfTypeDefinition(
@@ -113,7 +124,9 @@ class TypeDefinitionRegistry(private val schemas: MutableMap<SchemaDefinition, S
             FlowDirection.Up -> { property: SchemaProperty -> property.direction != Direction.ReadOnly }
             FlowDirection.Down -> { property: SchemaProperty -> property.direction != Direction.WriteOnly }
         }
-        return AllOfTypeDefinition(name, definition, filter)
+        val result = AllOfTypeDefinition(name, definition, filter)
+        typeDefinitions.getOrPut(definition) { mutableMapOf() }[direction] = result
+        return result
     }
 
 

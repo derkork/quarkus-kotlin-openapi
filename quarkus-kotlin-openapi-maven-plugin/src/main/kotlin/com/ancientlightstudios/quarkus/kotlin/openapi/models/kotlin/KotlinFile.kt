@@ -1,15 +1,16 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
+import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.forEachWithStats
-import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
 
 class KotlinFile(val packageName: String, val fileName: ClassName) {
 
     private val imports = mutableSetOf<String>()
     private val content = mutableListOf<KotlinFileContent>()
 
-    fun registerImport(import: String) = apply { imports.add(import) }
+    fun registerImport(import: String, wildcardImport: Boolean = false) =
+        apply { imports.add(import + if (wildcardImport) ".*" else "") }
 
     fun addFileContent(content: KotlinFileContent) = apply { this.content.add(content) }
 
