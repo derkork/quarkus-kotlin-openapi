@@ -1,0 +1,392 @@
+openapi: 3.0.2
+servers:
+  - url: /v3
+info:
+  description: our test interface
+  version: 1.0.17
+  title: Test Interface
+paths:
+  /movies:
+
+    get:
+      operationId: findMovies
+      parameters:
+        - name: genre
+          in: query
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/Genre"
+        - name: score
+          in: query
+          schema:
+            $ref: "#/components/schemas/Score"
+        - name: title
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Movie"
+        '400':
+          $ref: "#/components/responses/BadRequestResponse"
+        default:
+          $ref: "#/components/responses/BadRequestResponse"
+
+    post:
+      operationId: addMovie
+      requestBody:
+        $ref: "#/components/requestBodies/NewMovie"
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Movie"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
+
+  /movies/{movieId}:
+    parameters:
+      - $ref: "#/components/parameters/MovieId"
+
+    get:
+      operationId: getMovie
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Movie"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApplicationError"
+
+    delete:
+      operationId: deleteMovie
+      parameters:
+        - name: movieId
+          in: path
+          description: movieId
+          required: true
+          schema:
+            $ref: "#/components/schemas/Id"
+      responses:
+        '204':
+          description: No Content
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApplicationError"
+
+    put:
+      operationId: modifyMovie
+      parameters:
+        - name: movieId
+          in: path
+          description: movieId
+          required: true
+          schema:
+            $ref: "#/components/schemas/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BaseMovie"
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Movie"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApplicationError"
+
+  /movies/{movieId}/ratings:
+    post:
+      operationId: addRating
+      parameters:
+        - name: movieId
+          in: path
+          description: movieId
+          required: true
+          schema:
+            $ref: "#/components/schemas/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Rating"
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Rating"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApplicationError"
+
+    put:
+      operationId: setRatings
+      parameters:
+        - name: movieId
+          in: path
+          description: movieId
+          required: true
+          schema:
+            $ref: "#/components/schemas/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/Rating"
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Rating"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApplicationError"
+
+components:
+
+  schemas:
+    Id:
+      type: string
+      format: uuid
+
+    Duration:
+      type: integer
+      minimum: 1
+
+    Score:
+      type: number
+      format: double
+      minimum: 1
+      maximum: 10
+
+    IdAware:
+      type: object
+      properties:
+        id:
+          $ref: "#/components/schemas/Id"
+      required:
+        - id
+
+    Genre:
+      type: string
+      enum:
+        - action
+        - adventure
+        - comedy
+        - crime
+        - fantasy
+        - historical
+        - horror
+        - romance
+        - satire
+        - scifi
+        - thriller
+        - other
+      default: scifi
+
+    Cast:
+      type: object
+      properties:
+        character:
+          type: string
+        actor:
+          type: string
+          default: unknown
+      required:
+        - character
+
+    AdditionalInformation:
+      type: object
+      properties:
+        budget:
+          type: integer
+        revenue:
+          type: integer
+
+    BaseMovie:
+      type: object
+      properties:
+        title:
+          type: string
+        releaseDate:
+          type: string
+          format: date
+        genres:
+          type: array
+          items:
+            $ref: "#/components/schemas/Genre"
+        duration:
+          $ref: "#/components/schemas/Duration"
+        cast:
+          type: array
+          items:
+            $ref: "#/components/schemas/Cast"
+        additionalInformation:
+          $ref: "#/components/schemas/AdditionalInformation"
+      required:
+        - title
+        - releaseDate
+        - genres
+        - duration
+        - cast
+
+    Rating:
+      type: object
+      properties:
+        source:
+          type: string
+        score:
+          $ref: "#/components/schemas/Score"
+      required:
+        - source
+        - score
+
+    Movie:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/IdAware"
+        - $ref: "#/components/schemas/BaseMovie"
+        - properties:
+            totalScore:
+              $ref: "#/components/schemas/Score"
+            ratings:
+              type: array
+              items:
+                $ref: "#/components/schemas/Rating"
+          required:
+            - ratings
+
+    ValidationError:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: string
+      required:
+        - errors
+
+    ApplicationError:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+        - message
+
+  parameters:
+    # referenced like this on path or method level
+    # parameters:
+    #   - $ref: "#/components/parameters/MovieId"
+    MovieId:
+      name: movieId
+      in: path
+      description: movieId
+      required: true
+      schema:
+        $ref: "#/components/schemas/Id"
+
+  securitySchemes: {}
+  requestBodies:
+    # referenced like this on a method level
+    # requestBody:
+    #   $ref: "#/components/requestBodies/NewMovie"
+    NewMovie:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/BaseMovie"
+
+  responses:
+    # referenced like this on a method level
+    # responses:
+    #   '400':
+    #     $ref: "#/components/requestBodies/NewMovie"
+    BadRequestResponse:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ValidationError"
+
+
+  headers: {}

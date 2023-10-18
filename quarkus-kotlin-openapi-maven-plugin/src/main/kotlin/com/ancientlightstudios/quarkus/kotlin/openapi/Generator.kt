@@ -1,36 +1,57 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.builder.RequestFilter
-import com.ancientlightstudios.quarkus.kotlin.openapi.builder.SchemaRegistry
-import com.ancientlightstudios.quarkus.kotlin.openapi.builder.parseAsApiSpec
-import com.ancientlightstudios.quarkus.kotlin.openapi.writer.*
-
+import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.*
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ApiSpec
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.RequestSuite
+import com.ancientlightstudios.quarkus.kotlin.openapi.parser.RequestFilter
+import com.ancientlightstudios.quarkus.kotlin.openapi.parser.merge
+import com.ancientlightstudios.quarkus.kotlin.openapi.parser.parseAsApiSpec
+import com.ancientlightstudios.quarkus.kotlin.openapi.parser.read
+import com.ancientlightstudios.quarkus.kotlin.openapi.transformer.ApiSpecTransformer
+import com.ancientlightstudios.quarkus.kotlin.openapi.transformer.FlowDirection
+import com.ancientlightstudios.quarkus.kotlin.openapi.transformer.TypeDefinitionRegistry
 import java.io.File
+import kotlin.io.path.Path
 
 class Generator(private val config: Config) {
 
-    fun generate() {
-        val schemaRegistry = SchemaRegistry()
+    fun generate() = parseApi()
+        .transformApi()
+        .generateApi()
 
-        val apiSpec = config.sourceFiles
-            .map { read(File(it).inputStream()) }
-            .reduce { acc, apiSpec -> acc.merge(apiSpec) }
-            .parseAsApiSpec(schemaRegistry, RequestFilter(config.endpoints))
+    private fun parseApi() = config.sourceFiles
+        .map { read(File(it).inputStream()) }
+        .reduce { acc, apiSpec -> acc.merge(apiSpec) }
+        .parseAsApiSpec(RequestFilter(config.endpoints))
 
-        val modelContext = GenerationContext("", schemaRegistry, config)
-        apiSpec.writeSafeSchemas(modelContext)
-        apiSpec.writeUnsafeSchemas(modelContext)
+    private fun ApiSpec.transformApi() = ApiSpecTransformer(this).transform(config.interfaceName)
 
-        // BOTH is != SERVER AND != CLIENT so both interfaces are generated
+    private fun Pair<RequestSuite, TypeDefinitionRegistry>.generateApi() {
+        val context = EmitterContext(config.packageName, Path(config.outputDirectory))
+
+        val codeEmitter = mutableListOf<CodeEmitter>()
+
+        // Server or Both
         if (config.interfaceType != InterfaceType.CLIENT) {
-            val serverContext = GenerationContext("server", schemaRegistry, config)
-            apiSpec.writeServerInterface(serverContext)
-            apiSpec.writeServerRequests(serverContext)
-            apiSpec.writeServerDelegate(serverContext)
+            codeEmitter.add(ServerRestInterfaceEmitter())
+            codeEmitter.add(ServerDelegateEmitter())
+            codeEmitter.add(ServerRequestContainerEmitter())
+            codeEmitter.add(ServerResponseContainerEmitter())
+            codeEmitter.add(UnsafeObjectModelEmitter(FlowDirection.Up))
         }
+
+        // Client or Both
         if (config.interfaceType != InterfaceType.SERVER) {
-            val clientContext = GenerationContext("client", schemaRegistry, config)
-            apiSpec.writeClientInterface(clientContext)
+            codeEmitter.add(UnsafeObjectModelEmitter(FlowDirection.Down))
+        }
+
+        codeEmitter.add(EnumModelEmitter())
+        codeEmitter.add(SharedPrimitiveModelEmitter())
+        codeEmitter.add(SafeObjectModelEmitter())
+
+        codeEmitter.forEach {
+            it.apply { context.emit(first, second) }
         }
     }
+
 }
