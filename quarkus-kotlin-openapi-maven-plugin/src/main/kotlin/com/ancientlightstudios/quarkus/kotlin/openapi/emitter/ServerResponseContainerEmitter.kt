@@ -8,10 +8,10 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.Cl
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.MethodName.Companion.methodName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.Request
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.RequestSuite
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName.GenericTypeName.Companion.of
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName.SimpleTypeName.Companion.rawTypeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.VariableName.Companion.variableName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.typedefinition.TypeDefinitionUsage
 import com.ancientlightstudios.quarkus.kotlin.openapi.transformer.TypeDefinitionRegistry
 import jakarta.ws.rs.core.Response
 
@@ -62,11 +62,11 @@ class ServerResponseContainerEmitter : CodeEmitter {
         }
     }
 
-    private fun KotlinCompanion.emitStatusMethod(statusCode: ResponseCode.HttpStatusCode, type: TypeName?) {
+    private fun KotlinCompanion.emitStatusMethod(statusCode: ResponseCode.HttpStatusCode, type: TypeDefinitionUsage?) {
         kotlinMethod(statusCode.value.statusCodeReason().methodName(), bodyAsAssignment = true) {
             if (type != null) {
                 val bodyVariable = "body".variableName()
-                kotlinParameter(bodyVariable, type)
+                kotlinParameter(bodyVariable, type.safeType)
                 kotlinStatement {
                     write("status(${statusCode.value}, ${bodyVariable.render()})")
                 }
@@ -78,13 +78,13 @@ class ServerResponseContainerEmitter : CodeEmitter {
         }
     }
 
-    private fun KotlinCompanion.emitDefaultStatusMethod(type: TypeName?) {
+    private fun KotlinCompanion.emitDefaultStatusMethod(type: TypeDefinitionUsage?) {
         kotlinMethod("defaultStatus".methodName(), bodyAsAssignment = true) {
             val statusVariable = "status".variableName()
             kotlinParameter(statusVariable, "Int".rawTypeName())
             if (type != null) {
                 val bodyVariable = "body".variableName()
-                kotlinParameter(bodyVariable, type)
+                kotlinParameter(bodyVariable, type.safeType)
                 kotlinStatement {
                     write("status(${statusVariable.render()}, ${bodyVariable.render()})")
                 }

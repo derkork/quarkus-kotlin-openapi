@@ -10,7 +10,6 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.Cl
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.VariableName.Companion.variableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.typedefinition.ObjectTypeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.transformer.TypeDefinitionRegistry
-import com.ancientlightstudios.quarkus.kotlin.openapi.utils.overrideWhenOptional
 
 class SafeObjectModelEmitter : CodeEmitter {
 
@@ -31,11 +30,12 @@ class SafeObjectModelEmitter : CodeEmitter {
             kotlinClass(fileName, asDataClass = true) {
                 addReflectionAnnotation()
 
-                definition.properties.forEach { (name, property, propertyTypeDefinition) ->
+                definition.properties.forEach { (name, _, propertyTypeUsage) ->
                     kotlinMember(
                         name.variableName(),
-                        propertyTypeDefinition.defaultType.overrideWhenOptional(!property.required),
-                        private = false
+                        propertyTypeUsage.safeType,
+                        private = false,
+                        default = propertyTypeUsage.defaultValue
                     ) {
                         kotlinAnnotation(
                             "field:JsonProperty".rawClassName(),

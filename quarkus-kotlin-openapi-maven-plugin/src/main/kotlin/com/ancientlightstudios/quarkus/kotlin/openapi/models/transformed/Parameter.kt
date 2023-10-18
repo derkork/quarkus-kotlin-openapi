@@ -1,12 +1,11 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.VariableName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.typedefinition.TypeDefinition
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.typedefinition.TypeDefinitionUsage
 
 data class Parameter(
     val name: VariableName,
-    val type: TypeName,
+    val type: TypeDefinitionUsage,
     val source: Source,
     val additionalInformation: AdditionalInformation
 )

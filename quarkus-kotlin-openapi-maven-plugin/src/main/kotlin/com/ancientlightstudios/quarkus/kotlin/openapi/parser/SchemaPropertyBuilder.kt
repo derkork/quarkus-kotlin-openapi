@@ -24,7 +24,6 @@ class SchemaPropertyBuilder(
             parseAsSchema(),
             direction,
             node.getTextOrNull("description"),
-            node.getTextOrNull("default"),
             required
         )
     }

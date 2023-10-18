@@ -148,7 +148,7 @@ class TypeDefinitionRegistry(private val schemas: MutableMap<SchemaDefinition, S
             result.addAll(schema.properties
                 .filter { (_, property) -> filter(property) }
                 .map { (name, property) ->
-                    ObjectProperty(name, property, getTypeDefinition(property.schema, direction))
+                    ObjectProperty(name, property, getTypeDefinition(property.schema, direction).useAs(property.required))
                 }
             )
         } else if (schema is AllOfSchemaDefinition) {

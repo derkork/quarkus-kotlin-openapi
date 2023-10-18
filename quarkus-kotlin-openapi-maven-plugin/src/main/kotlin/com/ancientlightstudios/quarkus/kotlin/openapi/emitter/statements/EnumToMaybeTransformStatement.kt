@@ -15,27 +15,32 @@ class EnumToMaybeTransformStatement(
 
     override fun render(writer: CodeWriter) = with(writer) {
         write("val ${targetName.render()} = ")
-        NestedEnumTransformStatement(sourceName, context, type, defaultValue, required).render(this)
+        renderEnumTransformStatement(sourceName, context, type, defaultValue, required)
     }
 }
 
 class NestedEnumTransformStatement(
-    private val sourceName: VariableName, private val context: StringExpression?,
-    private val type: ClassName, private val defaultValue: Expression?, private val required: Boolean
+    private val sourceName: VariableName, private val type: ClassName, private val required: Boolean
 ) : KotlinStatement {
 
-    override fun render(writer: CodeWriter) = with(writer) {
-        write("${sourceName.render()}.as${type.render()}(")
-        context?.let { write(it.evaluate()) }
-        defaultValue?.let {
-            write(", ${it.evaluate()}")
-        }
-        writeln(")")
-        indent {
-            // TODO: add validation. e.g. allowed values
-            if (required) {
-                writeln(".required()")
-            }
+    override fun render(writer: CodeWriter) = writer.renderEnumTransformStatement(
+        sourceName, null, type, null, required
+    )
+}
+
+fun CodeWriter.renderEnumTransformStatement(
+    sourceName: VariableName, context: StringExpression?,
+    type: ClassName, defaultValue: Expression?, required: Boolean
+) {
+    write("${sourceName.render()}.as${type.render()}(")
+    context?.let { write(it.evaluate()) }
+    writeln(")")
+    indent {
+        // TODO: add validation. e.g. allowed values
+        if (defaultValue != null) {
+            writeln(".default() { ${defaultValue.evaluate()} }")
+        } else if (required) {
+            writeln(".required()")
         }
     }
 }

@@ -2,20 +2,31 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.typede
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.schema.Schema
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName.GenericTypeName.Companion.of
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName.SimpleTypeName.Companion.typeName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName.SimpleTypeName.Companion.rawTypeName
 
 data class CollectionTypeDefinition(
     val name: ClassName,
     val innerType: TypeDefinition,
-    private val sourceSchema: Schema.ArraySchema
+    val sourceSchema: Schema.ArraySchema
 ) : TypeDefinition {
 
-    override val isNullable: Boolean
-        get() = sourceSchema.nullable
+    override fun useAs(valueRequired: Boolean) = CollectionTypeUsage(this, valueRequired)
+}
 
-    override val defaultType: TypeName
-        get() = name.typeName(isNullable).of(innerType.defaultType)
+data class CollectionTypeUsage(
+    private val typeDefinition: CollectionTypeDefinition,
+    private val valueRequired: Boolean
+) : TypeDefinitionUsage {
 
+    val innerType = typeDefinition.innerType.useAs(true)
+
+    // if the value is not required, the property can be nullable, even if the schema doesn't allow null values
+    override val nullable = !valueRequired || typeDefinition.sourceSchema.nullable
+
+    override val safeType = "List".rawTypeName(nullable).of(innerType.safeType)
+
+    override val unsafeType = "List".rawTypeName(true).of(typeDefinition.innerType.useAs(false).unsafeType)
+
+    override val defaultValue = null
 }

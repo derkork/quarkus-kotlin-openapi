@@ -8,11 +8,6 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.L
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.StringExpression.Companion.stringExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName.Companion.rawClassName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName.GenericTypeName.Companion.of
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName.SimpleTypeName.Companion.rawTypeName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName.SimpleTypeName.Companion.typeName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.typedefinition.*
 
 fun ClassName.valueExpression(value: String) = when (this.render()) {
     "String" -> value.stringExpression()
@@ -33,16 +28,3 @@ fun primitiveTypeFor(type: String, format: String?) = when {
     type == "boolean" -> "Boolean"
     else -> throw IllegalArgumentException("unsupported primitive type mapping '$type' with format '$format'")
 }.rawClassName()
-
-fun TypeName.overrideWhenOptional(isOptional: Boolean): TypeName = when (this) {
-    is TypeName.SimpleTypeName -> name.typeName(nullable || isOptional)
-    is TypeName.GenericTypeName -> outerType.name.typeName(outerType.nullable || isOptional).of(innerType)
-}
-
-fun TypeDefinition.asUnsafePropertyType(): TypeName = when (this) {
-    is InlinePrimitiveTypeDefinition -> "String".rawTypeName(true)
-    is SharedPrimitiveTypeDefinition -> "String".rawTypeName(true)
-    is EnumTypeDefinition -> "String".rawTypeName(true)
-    is CollectionTypeDefinition -> "List".rawTypeName(true).of(innerType.asUnsafePropertyType())
-    is ObjectTypeDefinition -> defaultType.extend(postfix = "Unsafe").overrideWhenOptional(true)
-}

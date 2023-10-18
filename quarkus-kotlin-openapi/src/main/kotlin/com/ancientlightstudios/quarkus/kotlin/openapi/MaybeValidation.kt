@@ -122,6 +122,20 @@ fun <T> Maybe<T?>.required(): Maybe<T> =
     }
 
 /**
+ * replaces a null value with the given value
+ * @return the given maybe or a new [Maybe.Success] if the value was null
+ */
+fun <T> Maybe<T?>.default(block: () -> T): Maybe<T> =
+    onSuccess {
+        if (value == null) {
+            success(block())
+        } else {
+            @Suppress("UNCHECKED_CAST")
+            this as Maybe<T>
+        }
+    }
+
+/**
  * executes the given block if this maybe has a value which is not null.
  */
 inline fun <I, O> Maybe<I?>.onNotNull(crossinline block: Maybe.Success<I & Any>.() -> Maybe<O?>): Maybe<O?> =

@@ -5,7 +5,6 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.statements.addTran
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.StringExpression.Companion.stringExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.RequestSuite
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName.Companion.className
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName.Companion.rawClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.MethodName.Companion.methodName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName.GenericTypeName.Companion.of
@@ -15,7 +14,6 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.Va
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.typedefinition.ObjectTypeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.transformer.FlowDirection
 import com.ancientlightstudios.quarkus.kotlin.openapi.transformer.TypeDefinitionRegistry
-import com.ancientlightstudios.quarkus.kotlin.openapi.utils.asUnsafePropertyType
 
 class UnsafeObjectModelEmitter(private val direction: FlowDirection) : CodeEmitter {
 
@@ -36,10 +34,10 @@ class UnsafeObjectModelEmitter(private val direction: FlowDirection) : CodeEmitt
             kotlinClass(fileName, asDataClass = true) {
                 addReflectionAnnotation()
 
-                definition.properties.forEach { (name, _, propertyTypeDefinition) ->
+                definition.properties.forEach { (name, _, propertyTypeUsage) ->
                     kotlinMember(
                         name.variableName(),
-                        propertyTypeDefinition.asUnsafePropertyType(),
+                        propertyTypeUsage.unsafeType,
                         private = false
                     ) {
                         kotlinAnnotation(
@@ -54,13 +52,11 @@ class UnsafeObjectModelEmitter(private val direction: FlowDirection) : CodeEmitt
 
                     val returnStatement = SafeObjectBuilderTransformStatement(definition.name)
 
-                    definition.properties.forEach { (name, property, propertyTypeDefinition) ->
-                        val defaultExpression = null // TODO
-                        val parameterName = addTransformStatement(
-                            name.variableName(), propertyTypeDefinition,
-                            defaultExpression, property.required, "\${context}.$name".stringExpression(), false
-                        )
-                        returnStatement.addParameter(parameterName)
+                    definition.properties.forEach { (name, _, propertyTypeUsage) ->
+                        addTransformStatement(
+                            name.variableName(), propertyTypeUsage,
+                            "\${context}.$name".stringExpression(), false
+                        ).also(returnStatement::addParameter)
                     }
 
                     addStatement(returnStatement)

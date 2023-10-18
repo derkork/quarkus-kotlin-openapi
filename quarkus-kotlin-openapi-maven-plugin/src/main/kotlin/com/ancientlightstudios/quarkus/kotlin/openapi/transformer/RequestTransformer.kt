@@ -6,8 +6,6 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ResponseCod
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.AdditionalInformation
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.Request
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.MethodName.Companion.methodName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName
-import com.ancientlightstudios.quarkus.kotlin.openapi.utils.overrideWhenOptional
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.Request as OpenApiRequest
 
 class RequestTransformer(private val source: OpenApiRequest) {
@@ -43,20 +41,16 @@ class RequestTransformer(private val source: OpenApiRequest) {
         )
     }
 
-    private fun transformRequestBody(body: RequestBody?, typeDefinitionRegistry: TypeDefinitionRegistry): TypeName? {
-        return body?.let {
-            typeDefinitionRegistry.getTypeDefinition(it.schema, FlowDirection.Up)
-                .defaultType.overrideWhenOptional(!it.required)
-        }
+    private fun transformRequestBody(body: RequestBody?, typeDefinitionRegistry: TypeDefinitionRegistry) = body?.let {
+        typeDefinitionRegistry.getTypeDefinition(it.schema, FlowDirection.Up)
+            .useAs(it.required)
     }
 
     private fun transformResponse(
         response: Pair<ResponseCode, ResponseBody>,
         typeDefinitionRegistry: TypeDefinitionRegistry
-    ): Pair<ResponseCode, TypeName?> {
-        val type =
-            response.second.schema?.let { typeDefinitionRegistry.getTypeDefinition(it, FlowDirection.Down).defaultType }
-        return response.first to type
+    ) = response.first to response.second.schema?.let {
+        typeDefinitionRegistry.getTypeDefinition(it, FlowDirection.Down).useAs(true)
     }
 
 }

@@ -1,12 +1,8 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.NullExpression
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.PathExpression.Companion.pathExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.StringExpression.Companion.stringExpression
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.schema.Schema
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.RequestSuite
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName.Companion.className
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName.Companion.rawClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ConstantName.Companion.constantName
@@ -49,16 +45,11 @@ class EnumModelEmitter : CodeEmitter {
                 receiverType = "String".rawTypeName(true)
             ) {
                 kotlinParameter("context".variableName(), "String".typeName())
-                kotlinParameter(
-                    "default".variableName(),
-                    fileName.typeName(true),
-                    getDefault(fileName, definition.sourceSchema)
-                )
 
                 kotlinStatement {
                     write("if (this == null) {")
                     indent(newLineBefore = true, newLineAfter = true) {
-                        write("return default.asMaybe(context)")
+                        write("return asMaybe(context)")
                     }
                     writeln("}")
                     writeln()
@@ -79,19 +70,11 @@ class EnumModelEmitter : CodeEmitter {
                 receiverType = "Maybe".rawTypeName().of("String".rawClassName(), true),
                 bodyAsAssignment = true
             ) {
-                kotlinComment {
-                    addLine("Ignores any default value and is intended for collections")
-                }
                 kotlinStatement {
-                    write("onNotNull { value.as${fileName.render()}(context, null) }")
+                    write("onNotNull { value.as${fileName.render()}(context) }")
                 }
             }
         }.also { generateFile(it) }
-    }
-
-    private fun getDefault(name: ClassName, source: Schema.EnumSchema) = when (val value = source.defaultValue) {
-        null -> NullExpression
-        else -> name.pathExpression().then(value.constantName())
     }
 
 }

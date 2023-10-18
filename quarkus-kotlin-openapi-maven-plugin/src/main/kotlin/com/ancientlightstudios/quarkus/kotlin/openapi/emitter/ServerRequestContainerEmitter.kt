@@ -8,7 +8,6 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.Request
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.RequestSuite
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.VariableName.Companion.variableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.transformer.TypeDefinitionRegistry
-import com.ancientlightstudios.quarkus.kotlin.openapi.utils.overrideWhenOptional
 
 class ServerRequestContainerEmitter : CodeEmitter {
 
@@ -26,11 +25,11 @@ class ServerRequestContainerEmitter : CodeEmitter {
 
             kotlinClass(fileName) {
                 request.parameters.forEach {
-                    kotlinMember(it.name, it.type, private = false)
+                    kotlinMember(it.name, it.type.safeType, private = false)
                 }
 
                 request.body?.let {
-                    kotlinMember("body".variableName(), it, private = false)
+                    kotlinMember("body".variableName(), it.safeType, private = false)
                 }
             }
         }.also { generateFile(it) }

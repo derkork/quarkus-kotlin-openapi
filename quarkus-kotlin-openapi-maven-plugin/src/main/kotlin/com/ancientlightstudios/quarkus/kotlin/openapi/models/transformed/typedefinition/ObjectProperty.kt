@@ -2,4 +2,4 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.typede
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.schema.SchemaProperty
 
-data class ObjectProperty(val name: String, val source: SchemaProperty, val type: TypeDefinition)
+data class ObjectProperty(val name: String, val source: SchemaProperty, val type: TypeDefinitionUsage)

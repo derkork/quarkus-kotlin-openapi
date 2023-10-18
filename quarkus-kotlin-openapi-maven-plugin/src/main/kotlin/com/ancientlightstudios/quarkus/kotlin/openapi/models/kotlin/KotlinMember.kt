@@ -1,14 +1,16 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
+import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.Expression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.VariableName
-import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
 
 class KotlinMember(
     private val name: VariableName,
     private val type: TypeName,
     private val mutable: Boolean = false,
-    private val private: Boolean = true
+    private val private: Boolean = true,
+    private val default: Expression? = null
 ) : AnnotationAware {
 
     private val annotations = KotlinAnnotationContainer()
@@ -24,6 +26,7 @@ class KotlinMember(
         }
         write(if (mutable) "var" else "val")
         write(" ${name.render()}: ${type.render()}")
+        default?.let { write(" = ${it.evaluate()}") }
     }
 
 }
@@ -39,9 +42,10 @@ fun MemberAware.kotlinMember(
     type: TypeName,
     mutable: Boolean = false,
     private: Boolean = true,
+    default: Expression? = null,
     block: KotlinMember.() -> Unit = {}
 ) {
-    val content = KotlinMember(name, type, mutable, private).apply(block)
+    val content = KotlinMember(name, type, mutable, private, default).apply(block)
     addMember(content)
 
 }

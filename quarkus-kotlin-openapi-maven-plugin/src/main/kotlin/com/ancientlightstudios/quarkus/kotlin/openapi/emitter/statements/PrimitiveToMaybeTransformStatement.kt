@@ -15,27 +15,35 @@ class PrimitiveToMaybeTransformStatement(
 
     override fun render(writer: CodeWriter) = with(writer) {
         write("val ${targetName.render()} = ")
-        NestedPrimitiveTransformStatement(sourceName, context, type, defaultValue, required).render(this)
+        renderPrimitiveTransformStatement(sourceName, context, type, defaultValue, required)
     }
+
 }
 
 class NestedPrimitiveTransformStatement(
-    private val sourceName: VariableName, private val context: StringExpression?,
-    private val type: ClassName, private val defaultValue: Expression?, private val required: Boolean
+    private val sourceName: VariableName, private val type: ClassName,
+    private val required: Boolean
 ) : KotlinStatement {
 
-    override fun render(writer: CodeWriter) = with(writer) {
-        write("${sourceName.render()}.as${type.render()}(")
-        context?.let { write(it.evaluate()) }
-        defaultValue?.let {
-            write(", ${it.evaluate()}")
-        }
-        writeln(")")
-        indent {
-            // TODO: add .validateString { } or something like this if necessary (unless it's a shared primitive)
-            if (required) {
-                writeln(".required()")
-            }
+    override fun render(writer: CodeWriter) = writer.renderPrimitiveTransformStatement(
+        sourceName, null, type, null, required
+    )
+
+}
+
+fun CodeWriter.renderPrimitiveTransformStatement(
+    sourceName: VariableName, context: StringExpression?,
+    type: ClassName, defaultValue: Expression?, required: Boolean
+) {
+    write("${sourceName.render()}.as${type.render()}(")
+    context?.let { write(it.evaluate()) }
+    writeln(")")
+    indent {
+        // TODO: add .validateString { } or something like this if necessary (unless it's a shared primitive)
+        if (defaultValue != null) {
+            writeln(".default() { ${defaultValue.evaluate()} }")
+        } else if (required) {
+            writeln(".required()")
         }
     }
 }
