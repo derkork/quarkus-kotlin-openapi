@@ -1,15 +1,100 @@
-POST http://localhost:8080/user/notify
+GET http://localhost:8080/movies
+
+###
+
+POST http://localhost:8080/movies
+Content-Type: application/json
+
+{
+  "title" : "Iron Man",
+  "releaseDate": "2008-05-02",
+  "genres": [
+    "action",
+    "scifi"
+  ],
+  "duration": 126,
+  "cast": [
+    {
+      "character": "Tony Stark",
+      "actor": "Robert Downey Jr."
+    },
+    {
+      "character": "Virginia Potts",
+      "actor": "Gwyneth Paltrow"
+    }
+  ]
+}
+
+> {%
+    client.global.set("movieId", response.body.id);
+%}
+
+###
+
+PUT http://localhost:8080/movies/{{movieId}}
+Content-Type: application/json
+
+{
+  "title" : "Iron Man",
+  "releaseDate": "2008-05-02",
+  "genres": [
+    "action",
+    "scifi"
+  ],
+  "duration": 126,
+  "cast": [
+    {
+      "character": "Tony Stark",
+      "actor": "Robert Downey Jr."
+    },
+    {
+      "character": "Virginia Potts",
+      "actor": "Gwyneth Paltrow"
+    }
+  ],
+  "additionalInformation": {
+    "budget": 140000000
+  }
+}
+
+###
+
+GET http://localhost:8080/movies/{{movieId}}
+
+###
+
+POST http://localhost:8080/movies/{{movieId}}/ratings
+Content-Type: application/json
+
+{
+  "source": "JustWatch",
+  "score": 8.6
+}
+
+###
+
+PUT http://localhost:8080/movies/{{movieId}}/ratings
 Content-Type: application/json
 
 [
   {
-    "id": 4811,
-    "name": "John Doe",
-    "status": "available"
+    "source": "IMDb",
+    "score": 7.9
   },
   {
-    "id": 4812,
-    "name": "Jane Doe",
-    "status": "available"
+    "source": "Rotten Tomatoes",
+    "score": 9.4
   }
 ]
+
+###
+
+GET http://localhost:8080/movies?score=2.3
+
+###
+
+GET http://localhost:8080/movies?genre=horror&genre=scifi
+
+###
+
+DELETE http://localhost:8080/movies/{{movieId}}

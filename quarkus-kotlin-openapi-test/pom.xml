@@ -113,7 +113,7 @@
                 <artifactId>quarkus-kotlin-openapi-maven-plugin</artifactId>
                 <configuration>
                     <sources>
-                        <source>${project.basedir}/src/main/resources/test_api.yaml</source>
+                        <source>${project.basedir}/src/main/resources/test_api_3.0.yaml</source>
                     </sources>
                     <interfaceName>NarfInterface</interfaceName>
                     <packageName>com.ancientlightstudios.example</packageName>

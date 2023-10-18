@@ -1,2 +1,0 @@
-- Wir müssen wissen, ob ein Objekt sowohl als Request als auch Response oder nur als Response benutzt wird. In letzterem Fall brauchen wir dies nicht als Unsafe-Variante zu generieren.
-- Request-Body und Response-Objekt müssen noch geparst werden.
