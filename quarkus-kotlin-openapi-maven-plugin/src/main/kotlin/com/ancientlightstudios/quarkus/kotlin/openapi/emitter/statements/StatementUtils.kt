@@ -2,76 +2,80 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.emitter.statements
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinMethod
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinStatement
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.Expression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.StringExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.VariableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.typedefinition.*
 
 fun KotlinMethod.addTransformStatement(
-    parameterName: VariableName, typeDefinition: TypeDefinition, default: Expression?, required: Boolean,
+    parameterName: VariableName, typeDefinitionUsage: TypeDefinitionUsage,
     parameterContext: StringExpression, fromRequestBody: Boolean
 ): VariableName {
     val targetName = parameterName.extend(prefix = "maybe")
 
-    val statement = when (typeDefinition) {
-        is InlinePrimitiveTypeDefinition -> PrimitiveToMaybeTransformStatement(
+    val statement = when (typeDefinitionUsage) {
+        is InlinePrimitiveTypeUsage -> PrimitiveToMaybeTransformStatement(
             targetName,
             parameterName,
             parameterContext,
-            typeDefinition.primitiveType,
-            default,
-            required
+            typeDefinitionUsage.primitiveTypeName,
+            typeDefinitionUsage.defaultValue,
+            !typeDefinitionUsage.nullable
         )
 
-        is SharedPrimitiveTypeDefinition -> PrimitiveToMaybeTransformStatement(
+        is SharedPrimitiveTypeUsage -> PrimitiveToMaybeTransformStatement(
             targetName,
             parameterName,
             parameterContext,
-            typeDefinition.name,
-            default,
-            required
+            typeDefinitionUsage.name,
+            typeDefinitionUsage.defaultValue,
+            !typeDefinitionUsage.nullable
         )
 
-        is EnumTypeDefinition -> EnumToMaybeTransformStatement(
+        is EnumTypeUsage -> EnumToMaybeTransformStatement(
             targetName,
             parameterName,
             parameterContext,
-            typeDefinition.name,
-            default,
-            required
+            typeDefinitionUsage.name,
+            typeDefinitionUsage.defaultValue,
+            !typeDefinitionUsage.nullable
         )
 
-        is CollectionTypeDefinition -> if (fromRequestBody) {
+        is CollectionTypeUsage -> if (fromRequestBody) {
             CollectionBodyToMaybeTransformStatement(
                 targetName,
                 parameterName,
                 parameterContext,
-                typeDefinition.defaultType,
-                required
+                typeDefinitionUsage.unsafeType,
+                !typeDefinitionUsage.nullable
             ) {
-                nestedTransformStatement(it, typeDefinition.innerType)
+                nestedTransformStatement(it, typeDefinitionUsage.innerType)
             }
         } else {
-            CollectionPropertyToMaybeTransformStatement(targetName, parameterName, parameterContext, required) {
-                nestedTransformStatement(it, typeDefinition.innerType)
+            CollectionPropertyToMaybeTransformStatement(
+                targetName,
+                parameterName,
+                parameterContext,
+                !typeDefinitionUsage.nullable
+            ) {
+                nestedTransformStatement(it, typeDefinitionUsage.innerType)
             }
         }
 
-        is ObjectTypeDefinition -> if (fromRequestBody) {
+        is ObjectTypeUsage -> if (fromRequestBody) {
             ObjectBodyToMaybeTransformStatement(
                 targetName,
                 parameterName,
                 parameterContext,
-                typeDefinition.name.extend(postfix = "Unsafe"),
-                required
+                typeDefinitionUsage.unsafeName,
+                !typeDefinitionUsage.nullable
             )
         } else {
             ObjectPropertyToMaybeTransformStatement(
                 targetName,
                 parameterName,
                 parameterContext,
-                typeDefinition.name.extend(postfix = "Unsafe"),
-                required
+                typeDefinitionUsage.unsafeName,
+                !typeDefinitionUsage.nullable
             )
         }
     }
@@ -82,34 +86,26 @@ fun KotlinMethod.addTransformStatement(
 
 private fun nestedTransformStatement(
     sourceName: VariableName,
-    type: TypeDefinition
+    typeUsage: TypeDefinitionUsage
 ): KotlinStatement {
-    return when (type) {
-        is InlinePrimitiveTypeDefinition -> NestedPrimitiveTransformStatement(
-            sourceName,
-            null,
-            type.primitiveType,
-            null,
-            !type.isNullable
+    return when (typeUsage) {
+        is InlinePrimitiveTypeUsage -> NestedPrimitiveTransformStatement(
+            sourceName, typeUsage.primitiveTypeName, !typeUsage.nullable
         )
 
-        is SharedPrimitiveTypeDefinition -> NestedPrimitiveTransformStatement(
-            sourceName,
-            null,
-            type.name,
-            null,
-            !type.isNullable
+        is SharedPrimitiveTypeUsage -> NestedPrimitiveTransformStatement(
+            sourceName, typeUsage.name, !typeUsage.nullable
         )
 
-        is EnumTypeDefinition -> NestedEnumTransformStatement(sourceName, null, type.name, null, !type.isNullable)
-        is CollectionTypeDefinition -> NestedCollectionTransformStatement(sourceName, !type.isNullable) {
-            nestedTransformStatement(it, type.innerType)
+        is EnumTypeUsage -> NestedEnumTransformStatement(sourceName, typeUsage.name, !typeUsage.nullable)
+        is CollectionTypeUsage -> NestedCollectionTransformStatement(sourceName, !typeUsage.nullable) {
+            nestedTransformStatement(it, typeUsage.innerType)
         }
 
-        is ObjectTypeDefinition -> NestedObjectTransformStatement(
+        is ObjectTypeUsage -> NestedObjectTransformStatement(
             sourceName,
-            type.name.extend(postfix = "Unsafe"),
-            !type.isNullable
+            typeUsage.name.extend(postfix = "Unsafe"),
+            !typeUsage.nullable
         )
     }
 }
