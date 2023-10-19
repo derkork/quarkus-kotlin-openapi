@@ -1,22 +1,22 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName
 
-class KotlinCompanion(private val identifier: ClassName? = null) : MethodAware, CommentAware {
+class KotlinCompanion(private val identifier: ClassName? = null) : KotlinRenderable, MethodAware, CommentAware {
 
-    private val methods = KotlinMethodContainer()
+    private val methods = KotlinRenderableBlockContainer<KotlinMethod>()
     private var comment: KotlinComment? = null
 
     override fun addMethod(method: KotlinMethod) {
-        methods.addMethod(method)
+        methods.addItem(method)
     }
 
     override fun setComment(comment: KotlinComment) {
         this.comment = comment
     }
 
-    fun render(writer: CodeWriter) = with(writer) {
+    override fun render(writer: CodeWriter) = with(writer) {
         comment?.let {
             it.render(this)
             writeln(forceNewLine = false)

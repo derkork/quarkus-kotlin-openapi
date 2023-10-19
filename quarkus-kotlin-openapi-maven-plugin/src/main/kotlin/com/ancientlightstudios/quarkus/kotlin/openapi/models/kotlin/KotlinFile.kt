@@ -2,17 +2,35 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName
-import com.ancientlightstudios.quarkus.kotlin.openapi.utils.forEachWithStats
 
-class KotlinFile(val packageName: String, val fileName: ClassName) {
+class KotlinFile(val packageName: String, val fileName: ClassName) : ClassAware, MethodAware, EnumAware, InterfaceAware,
+    ValueClassAware {
 
     private val imports = mutableSetOf<String>()
-    private val content = mutableListOf<KotlinFileContent>()
+    private val content = KotlinRenderableBlockContainer<KotlinRenderable>()
 
     fun registerImport(import: String, wildcardImport: Boolean = false) =
         apply { imports.add(import + if (wildcardImport) ".*" else "") }
 
-    fun addFileContent(content: KotlinFileContent) = apply { this.content.add(content) }
+    override fun addClass(clazz: KotlinClass) {
+        content.addItem(clazz)
+    }
+
+    override fun addEnum(enum: KotlinEnum) {
+        content.addItem(enum)
+    }
+
+    override fun addInterface(interfaze: KotlinInterface) {
+        content.addItem(interfaze)
+    }
+
+    override fun addMethod(method: KotlinMethod) {
+        content.addItem(method)
+    }
+
+    override fun addValueClass(valueClass: KotlinValueClass) {
+        content.addItem(valueClass)
+    }
 
     fun render(writer: CodeWriter) = with(writer) {
         writeln("// THIS IS A GENERATED FILE. DO NOT EDIT!")
@@ -25,17 +43,10 @@ class KotlinFile(val packageName: String, val fileName: ClassName) {
             }
         }
 
-        if (content.isNotEmpty()) {
+        if (content.isNotEmpty) {
             writeln()
-            content.forEachWithStats { status, item ->
-                item.render(this)
-                if (!status.last) {
-                    writeln(forceNewLine = false) // in case the item already rendered a line break
-                    writeln()
-                }
-            }
+            content.render(this)
         }
-
     }
 }
 

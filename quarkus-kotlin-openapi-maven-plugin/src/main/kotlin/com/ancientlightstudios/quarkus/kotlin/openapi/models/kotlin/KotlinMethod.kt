@@ -12,11 +12,11 @@ class KotlinMethod(
     private val receiverType: TypeName? = null,
     private val bodyAsAssignment: Boolean = false,
     private val private: Boolean = false,
-) : KotlinFileContent, AnnotationAware, ParameterAware, StatementAware, CommentAware {
+) : KotlinRenderable, AnnotationAware, ParameterAware, StatementAware, CommentAware {
 
     private val annotations = KotlinAnnotationContainer()
-    private val parameters = KotlinParameterContainer()
-    private val statements = KotlinStatementContainer()
+    private val parameters = KotlinRenderableWrapContainer<KotlinParameter>()
+    private val statements = KotlinRenderableBlockContainer<KotlinStatement>(false)
     private var comment: KotlinComment? = null
 
     override fun addAnnotation(annotation: KotlinAnnotation) {
@@ -24,11 +24,11 @@ class KotlinMethod(
     }
 
     override fun addParameter(parameter: KotlinParameter) {
-        parameters.addParameter(parameter)
+        parameters.addItem(parameter)
     }
 
     override fun addStatement(statement: KotlinStatement) {
-        statements.addStatement(statement)
+        statements.addItem(statement)
     }
 
     override fun setComment(comment: KotlinComment) {
@@ -99,17 +99,4 @@ fun MethodAware.kotlinMethod(
     val content = KotlinMethod(name, suspend, returnType, receiverType, bodyAsAssignment, private).apply(block)
     addMethod(content)
 
-}
-
-fun KotlinFile.kotlinMethod(
-    name: MethodName,
-    suspend: Boolean = false,
-    returnType: TypeName? = null,
-    receiverType: TypeName? = null,
-    bodyAsAssignment: Boolean = false,
-    private: Boolean = false,
-    block: KotlinMethod.() -> Unit = {}
-) {
-    val content = KotlinMethod(name, suspend, returnType, receiverType, bodyAsAssignment, private).apply(block)
-    addFileContent(content)
 }

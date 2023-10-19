@@ -14,7 +14,6 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-
     <dependencyManagement>
         <dependencies>
             <dependency>

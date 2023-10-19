@@ -1,6 +1,7 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.*
+import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.ClientResponseContainerEmitter
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ApiSpec
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.RequestSuite
 import com.ancientlightstudios.quarkus.kotlin.openapi.parser.RequestFilter
@@ -29,27 +30,30 @@ class Generator(private val config: Config) {
     private fun Pair<RequestSuite, TypeDefinitionRegistry>.generateApi() {
         val context = EmitterContext(config.packageName, Path(config.outputDirectory))
 
-        val codeEmitter = mutableListOf<CodeEmitter>()
+        val codeEmitters = mutableListOf<CodeEmitter>()
 
         // Server or Both
         if (config.interfaceType != InterfaceType.CLIENT) {
-            codeEmitter.add(ServerRestInterfaceEmitter())
-            codeEmitter.add(ServerDelegateEmitter())
-            codeEmitter.add(ServerRequestContainerEmitter())
-            codeEmitter.add(ServerResponseContainerEmitter())
-            codeEmitter.add(UnsafeObjectModelEmitter(FlowDirection.Up))
+            codeEmitters.add(ServerRestInterfaceEmitter())
+            codeEmitters.add(ServerDelegateEmitter())
+            codeEmitters.add(ServerRequestContainerEmitter())
+            codeEmitters.add(ServerResponseContainerEmitter())
+            codeEmitters.add(UnsafeObjectModelEmitter(FlowDirection.Up))
         }
 
         // Client or Both
         if (config.interfaceType != InterfaceType.SERVER) {
-            codeEmitter.add(UnsafeObjectModelEmitter(FlowDirection.Down))
+            codeEmitters.add(ClientRestInterfaceEmitter())
+            codeEmitters.add(ClientDelegateEmitter())
+            codeEmitters.add(ClientResponseContainerEmitter())
+            codeEmitters.add(UnsafeObjectModelEmitter(FlowDirection.Down))
         }
 
-        codeEmitter.add(EnumModelEmitter())
-        codeEmitter.add(SharedPrimitiveModelEmitter())
-        codeEmitter.add(SafeObjectModelEmitter())
+        codeEmitters.add(EnumModelEmitter())
+        codeEmitters.add(SharedPrimitiveModelEmitter())
+        codeEmitters.add(SafeObjectModelEmitter())
 
-        codeEmitter.forEach {
+        codeEmitters.forEach {
             it.apply { context.emit(first, second) }
         }
     }
