@@ -95,6 +95,6 @@ class ServerResponseContainerEmitter : CodeEmitter {
             }
         }
     }
-}
 
-fun Int.statusCodeReason() = Response.Status.fromStatusCode(this)?.reasonPhrase ?: "status${this}"
+    private fun Int.statusCodeReason() = Response.Status.fromStatusCode(this)?.reasonPhrase ?: "status${this}"
+}

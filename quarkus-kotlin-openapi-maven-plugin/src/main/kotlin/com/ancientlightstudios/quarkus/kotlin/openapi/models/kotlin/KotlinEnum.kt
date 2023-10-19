@@ -4,12 +4,12 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.Cl
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.forEachWithStats
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
 
-class KotlinEnum(private val name: ClassName) : KotlinFileContent,
+class KotlinEnum(private val name: ClassName) : KotlinRenderable,
     AnnotationAware, MethodAware, MemberAware, CommentAware {
 
     private val annotations = KotlinAnnotationContainer()
-    private val methods = KotlinMethodContainer()
-    private val members = KotlinMemberContainer()
+    private val methods = KotlinRenderableBlockContainer<KotlinMethod>()
+    private val members = KotlinRenderableWrapContainer<KotlinMember>()
     private val items = mutableListOf<KotlinEnumItem>()
     private var comment: KotlinComment? = null
 
@@ -18,11 +18,11 @@ class KotlinEnum(private val name: ClassName) : KotlinFileContent,
     }
 
     override fun addMethod(method: KotlinMethod) {
-        methods.addMethod(method)
+        methods.addItem(method)
     }
 
     override fun addMember(member: KotlinMember) {
-        members.addMember(member)
+        members.addItem(member)
     }
 
     fun addItem(item: KotlinEnumItem) {
@@ -69,7 +69,13 @@ class KotlinEnum(private val name: ClassName) : KotlinFileContent,
 
 }
 
-fun KotlinFile.kotlinEnum(name: ClassName, block: KotlinEnum.() -> Unit) {
+interface EnumAware {
+
+    fun addEnum(enum: KotlinEnum)
+
+}
+
+fun EnumAware.kotlinEnum(name: ClassName, block: KotlinEnum.() -> Unit) {
     val content = KotlinEnum(name).apply(block)
-    addFileContent(content)
+    addEnum(content)
 }

@@ -8,23 +8,25 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.Request
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.RequestSuite
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName.Companion.className
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName.Companion.rawClassName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName.GenericTypeName.Companion.of
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName.SimpleTypeName.Companion.rawTypeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName.SimpleTypeName.Companion.typeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.VariableName.Companion.variableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.transformer.TypeDefinitionRegistry
 
-class ServerRestInterfaceEmitter : CodeEmitter {
+class ClientRestInterfaceEmitter : CodeEmitter {
 
     override fun EmitterContext.emit(suite: RequestSuite, typeDefinitionRegistry: TypeDefinitionRegistry) {
-        kotlinFile(serverPackage(), suite.name.extend(postfix = "Server")) {
-            registerImport("jakarta.ws.rs", wildcardImport = true)
+        kotlinFile(clientPackage(), suite.name.extend(postfix = "Client")) {
+            registerImport("jakarta.ws.rs.core", wildcardImport = true)
             registerImport("com.fasterxml.jackson.databind.ObjectMapper")
             registerImport(modelPackage(), wildcardImport = true)
             registerImport(apiPackage(), wildcardImport = true)
             registerImport("org.jboss.resteasy.reactive.RestResponse")
+            registerImport("jakarta.enterprise.context.ApplicationScoped")
 
             kotlinClass(fileName, false) {
-                addPathAnnotation("/")
+                kotlinAnnotation("ApplicationScoped".rawClassName())
 
                 kotlinMember("delegate".variableName(), suite.name.extend(postfix = "Delegate").typeName())
                 kotlinMember("objectMapper".variableName(), "ObjectMapper".rawTypeName())
@@ -37,36 +39,19 @@ class ServerRestInterfaceEmitter : CodeEmitter {
     }
 
     private fun KotlinClass.generateRequest(request: Request) {
-        kotlinMethod(request.name, true, "RestResponse<*>".rawTypeName()) {
-            kotlinAnnotation(request.method.name.uppercase().rawClassName())
-            addPathAnnotation(request.path)
-
-            val statement = RequestBuilderTransformStatement(
-                request.name, request.name.extend(postfix = "Request").className()
-            )
-
+        val returnType = request.name.className().extend(postfix = "Response")
+        kotlinMethod(request.name, true, "RequestResult".rawTypeName().of(returnType)) {
             request.parameters.forEach {
-                kotlinParameter(it.name, it.type.unsafeType) {
-                    kotlinAnnotation(
-                        it.source.value.rawClassName(),
-                        "value".variableName() to it.name.render().stringExpression()
-                    )
-                }
-                addTransformStatement(
-                    it.name, it.type,
-                    "request.${it.source.name.lowercase()}.${it.name.render()}".stringExpression(), false
-                ).also(statement::addParameter)
+                kotlinParameter(it.name, it.type.safeType) // TODO: default value for nullable properties
             }
 
             request.body?.let {
-                kotlinParameter("body".variableName(), "String".rawTypeName(true))
-                addTransformStatement(
-                    "body".variableName(), it,
-                    "request.body".stringExpression(), true
-                ).also(statement::addParameter)
+                kotlinParameter("body".variableName(), it.safeType) // TODO: default value for nullable properties
             }
 
-            addStatement(statement)
+            kotlinStatement {
+
+            }
         }
     }
 }

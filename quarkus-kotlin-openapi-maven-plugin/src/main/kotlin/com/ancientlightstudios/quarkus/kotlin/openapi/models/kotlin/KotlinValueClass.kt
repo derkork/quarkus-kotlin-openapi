@@ -4,11 +4,11 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName
 
-class KotlinValueClass(private val name: ClassName, private val nestedType: TypeName) : KotlinFileContent,
+class KotlinValueClass(private val name: ClassName, private val nestedType: TypeName) : KotlinRenderable,
     AnnotationAware, MethodAware, CommentAware {
 
     private val annotations = KotlinAnnotationContainer()
-    private val methods = KotlinMethodContainer()
+    private val methods = KotlinRenderableBlockContainer<KotlinMethod>()
     private var comment: KotlinComment? = null
 
     override fun addAnnotation(annotation: KotlinAnnotation) {
@@ -16,7 +16,7 @@ class KotlinValueClass(private val name: ClassName, private val nestedType: Type
     }
 
     override fun addMethod(method: KotlinMethod) {
-        methods.addMethod(method)
+        methods.addItem(method)
     }
 
     override fun setComment(comment: KotlinComment) {
@@ -48,7 +48,13 @@ class KotlinValueClass(private val name: ClassName, private val nestedType: Type
 
 }
 
-fun KotlinFile.kotlinValueClass(name: ClassName, nestedType: TypeName, block: KotlinValueClass.() -> Unit = {}) {
+interface ValueClassAware {
+
+    fun addValueClass(valueClass: KotlinValueClass)
+
+}
+
+fun ValueClassAware.kotlinValueClass(name: ClassName, nestedType: TypeName, block: KotlinValueClass.() -> Unit = {}) {
     val content = KotlinValueClass(name, nestedType).apply(block)
-    addFileContent(content)
+    addValueClass(content)
 }

@@ -3,10 +3,10 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
 
-class KotlinInterface(private val name: ClassName) : KotlinFileContent, AnnotationAware, MethodAware, CommentAware {
+class KotlinInterface(private val name: ClassName) : KotlinRenderable, AnnotationAware, MethodAware, CommentAware {
 
     private val annotations = KotlinAnnotationContainer()
-    private val methods = KotlinMethodContainer()
+    private val methods = KotlinRenderableBlockContainer<KotlinMethod>()
     private var comment: KotlinComment? = null
 
     override fun addAnnotation(annotation: KotlinAnnotation) {
@@ -14,7 +14,7 @@ class KotlinInterface(private val name: ClassName) : KotlinFileContent, Annotati
     }
 
     override fun addMethod(method: KotlinMethod) {
-        methods.addMethod(method)
+        methods.addItem(method)
     }
 
     override fun setComment(comment: KotlinComment) {
@@ -45,7 +45,13 @@ class KotlinInterface(private val name: ClassName) : KotlinFileContent, Annotati
 
 }
 
-fun KotlinFile.kotlinInterface(name: ClassName, block: KotlinInterface.() -> Unit) {
+interface InterfaceAware {
+
+    fun addInterface(interfaze: KotlinInterface)
+
+}
+
+fun InterfaceAware.kotlinInterface(name: ClassName, block: KotlinInterface.() -> Unit) {
     val content = KotlinInterface(name).apply(block)
-    addFileContent(content)
+    addInterface(content)
 }

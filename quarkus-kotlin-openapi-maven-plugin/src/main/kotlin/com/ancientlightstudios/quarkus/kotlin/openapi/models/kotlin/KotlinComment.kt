@@ -2,7 +2,7 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
 
-class KotlinComment(private val blockComment: Boolean = false) {
+class KotlinComment(private val blockComment: Boolean = false) : KotlinRenderable {
 
     private val lines = mutableListOf<String>()
 
@@ -10,7 +10,7 @@ class KotlinComment(private val blockComment: Boolean = false) {
         lines.add(line)
     }
 
-    fun render(writer: CodeWriter) = with(writer) {
+    override fun render(writer: CodeWriter) = with(writer) {
         val prefix = when (blockComment) {
             true -> " *"
             else -> "//"
