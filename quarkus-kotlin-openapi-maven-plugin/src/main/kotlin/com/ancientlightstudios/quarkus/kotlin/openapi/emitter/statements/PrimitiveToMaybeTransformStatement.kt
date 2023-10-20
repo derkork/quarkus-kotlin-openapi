@@ -8,20 +8,20 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.Cl
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.VariableName
 
 class PrimitiveToMaybeTransformStatement(
-    private val targetName: VariableName, private val sourceName: VariableName,
+    private val targetName: VariableName?, private val sourceName: Expression,
     private val context: StringExpression, private val type: ClassName, private val defaultValue: Expression?,
     private val required: Boolean
 ) : KotlinStatement {
 
     override fun render(writer: CodeWriter) = with(writer) {
-        write("val ${targetName.render()} = ")
+        targetName?.let { write("val ${it.render()} = ") }
         renderPrimitiveTransformStatement(sourceName, context, type, defaultValue, required)
     }
 
 }
 
 class NestedPrimitiveTransformStatement(
-    private val sourceName: VariableName, private val type: ClassName,
+    private val sourceName: Expression, private val type: ClassName,
     private val required: Boolean
 ) : KotlinStatement {
 
@@ -32,10 +32,10 @@ class NestedPrimitiveTransformStatement(
 }
 
 fun CodeWriter.renderPrimitiveTransformStatement(
-    sourceName: VariableName, context: StringExpression?,
+    sourceName: Expression, context: StringExpression?,
     type: ClassName, defaultValue: Expression?, required: Boolean
 ) {
-    write("${sourceName.render()}.as${type.render()}(")
+    write("${sourceName.evaluate()}.as${type.render()}(")
     context?.let { write(it.evaluate()) }
     writeln(")")
     indent {

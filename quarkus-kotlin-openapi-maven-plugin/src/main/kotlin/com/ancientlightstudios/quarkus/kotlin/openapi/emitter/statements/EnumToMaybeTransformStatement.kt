@@ -8,19 +8,19 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.Cl
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.VariableName
 
 class EnumToMaybeTransformStatement(
-    private val targetName: VariableName, private val sourceName: VariableName,
+    private val targetName: VariableName?, private val sourceName: Expression,
     private val context: StringExpression, private val type: ClassName, private val defaultValue: Expression?,
     private val required: Boolean
 ) : KotlinStatement {
 
     override fun render(writer: CodeWriter) = with(writer) {
-        write("val ${targetName.render()} = ")
+        targetName?.let { write("val ${it.render()} = ") }
         renderEnumTransformStatement(sourceName, context, type, defaultValue, required)
     }
 }
 
 class NestedEnumTransformStatement(
-    private val sourceName: VariableName, private val type: ClassName, private val required: Boolean
+    private val sourceName: Expression, private val type: ClassName, private val required: Boolean
 ) : KotlinStatement {
 
     override fun render(writer: CodeWriter) = writer.renderEnumTransformStatement(
@@ -29,10 +29,10 @@ class NestedEnumTransformStatement(
 }
 
 fun CodeWriter.renderEnumTransformStatement(
-    sourceName: VariableName, context: StringExpression?,
+    sourceName: Expression, context: StringExpression?,
     type: ClassName, defaultValue: Expression?, required: Boolean
 ) {
-    write("${sourceName.render()}.as${type.render()}(")
+    write("${sourceName.evaluate()}.as${type.render()}(")
     context?.let { write(it.evaluate()) }
     writeln(")")
     indent {
