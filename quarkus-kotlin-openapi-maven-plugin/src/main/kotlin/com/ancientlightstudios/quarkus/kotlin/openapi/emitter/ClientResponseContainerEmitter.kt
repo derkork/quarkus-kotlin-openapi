@@ -1,9 +1,12 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassAware
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.ExtendFromClassExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.NullExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.PathExpression.Companion.pathExpression
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.kotlinClass
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.kotlinFile
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.kotlinMember
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ResponseCode
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.Request
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.RequestSuite
@@ -13,7 +16,6 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.Cl
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ConstantName.Companion.rawConstantName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName.SimpleTypeName.Companion.rawTypeName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName.SimpleTypeName.Companion.typeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.VariableName.Companion.variableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.transformer.TypeDefinitionRegistry
 import jakarta.ws.rs.core.Response
@@ -29,10 +31,10 @@ class ClientResponseContainerEmitter : CodeEmitter {
     private fun EmitterContext.emitResponseContainer(request: Request) {
         kotlinFile(clientPackage(), request.name.extend(postfix = "Response").className()) {
             registerImport(modelPackage(), wildcardImport = true)
-            registerImport("jakarta.ws.rs.core.Response")
+            registerImport("org.jboss.resteasy.reactive.RestResponse")
 
             kotlinClass(fileName, sealed = true) {
-                kotlinMember("status".variableName(), "Response.Status".rawTypeName(), private = false, open = true)
+                kotlinMember("status".variableName(), "RestResponse.Status".rawTypeName(), private = false, open = true)
                 kotlinMember("unsafeBody".variableName(), "Any".rawTypeName(true), private = false, open = true)
 
                 request.responses.forEach { (responseCode, typeDefinitionUsage) ->
@@ -55,14 +57,14 @@ class ClientResponseContainerEmitter : CodeEmitter {
 
     private fun ClassAware.emitDefaultResponseClass(parentClass: ClassName, bodyType: TypeName?) {
         val statusCodeExpression = "status".variableName().pathExpression()
-        val bodyExpression = when(bodyType) {
+        val bodyExpression = when (bodyType) {
             null -> NullExpression
             else -> "safeBody".variableName().pathExpression()
         }
         val extends = listOf(ExtendFromClassExpression(parentClass, statusCodeExpression, bodyExpression))
 
         kotlinClass("Default".className(), asDataClass = true, extends = extends) {
-            kotlinMember("status".variableName(), "Response.Status".rawTypeName(), private = false, override = true)
+            kotlinMember("status".variableName(), "RestResponse.Status".rawTypeName(), private = false, override = true)
             bodyType?.let {
                 kotlinMember("safeBody".variableName(), bodyType, private = false)
             }
@@ -75,8 +77,9 @@ class ClientResponseContainerEmitter : CodeEmitter {
         bodyType: TypeName?
     ) {
         val statusName = Response.Status.fromStatusCode(responseCode.value).name
-        val statusCodeExpression = "Response.Status".rawClassName().pathExpression().then(statusName.rawConstantName())
-        val bodyExpression = when(bodyType) {
+        val statusCodeExpression =
+            "RestResponse.Status".rawClassName().pathExpression().then(statusName.rawConstantName())
+        val bodyExpression = when (bodyType) {
             null -> NullExpression
             else -> "safeBody".variableName().pathExpression()
         }
