@@ -28,11 +28,14 @@ class ClientRestInterfaceEmitter : CodeEmitter {
             registerImport(apiPackage(), wildcardImport = true)
             registerImport("org.jboss.resteasy.reactive.RestResponse")
             registerImport("jakarta.enterprise.context.ApplicationScoped")
+            registerImport("org.eclipse.microprofile.rest.client.inject.RestClient")
 
             kotlinClass(fileName, false) {
                 kotlinAnnotation("ApplicationScoped".rawClassName())
 
-                kotlinMember("delegate".variableName(), suite.name.extend(postfix = "Delegate").typeName())
+                kotlinMember("delegate".variableName(), suite.name.extend(postfix = "Delegate").typeName()) {
+                    kotlinAnnotation("RestClient".rawClassName())
+                }
                 kotlinMember("objectMapper".variableName(), "ObjectMapper".rawTypeName())
 
                 suite.requests.forEach {

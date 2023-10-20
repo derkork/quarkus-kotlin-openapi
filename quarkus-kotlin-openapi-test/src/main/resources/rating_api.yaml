@@ -1,0 +1,189 @@
+openapi: 3.1.0
+servers:
+  - url: /v3
+info:
+  description: our test interface
+  version: 1.0.17
+  title: Test Interface
+paths:
+  /rating/{movieId}:
+    parameters:
+      - $ref: "#/components/parameters/MovieId"
+
+    get:
+      operationId: getMovieRating
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MovieRating"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvalidInputError"
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApplicationError"
+
+
+    post:
+      operationId: addMovieRating
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Rating"
+      responses:
+        '204':
+          description: Successful operation
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvalidInputError"
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApplicationError"
+
+  /rating/{movieId}/{ratingId}:
+    delete:
+      operationId: deleteMovieRating
+      parameters:
+        - $ref: "#/components/parameters/MovieId"
+        - name: ratingId
+          in: path
+          description: ratingId
+          required: true
+          schema:
+            $ref: "#/components/schemas/Id"
+      responses:
+        '204':
+          description: No Content
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvalidInputError"
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApplicationError"
+
+
+components:
+  schemas:
+    Id:
+      type:
+        - string
+      format: uuid
+
+
+    Score:
+      type:
+        - number
+      format: double
+      minimum: 1
+      maximum: 10
+
+    IdAware:
+      type:
+        - object
+      properties:
+        id:
+          $ref: "#/components/schemas/Id"
+      required:
+        - id
+
+
+    Rating:
+      type:
+        - object
+      properties:
+        id:
+          $ref: "#/components/schemas/Id"
+          readOnly: true
+        source:
+          type:
+            - string
+        score:
+          $ref: "#/components/schemas/Score"
+      required:
+        - source
+        - score
+        - id
+
+    MovieRating:
+      type:
+        - object
+      allOf:
+        - $ref: "#/components/schemas/IdAware"
+        - properties:
+            totalScore:
+              $ref: "#/components/schemas/Score"
+            ratings:
+              type:
+                - array
+              items:
+                $ref: "#/components/schemas/Rating"
+          required:
+            - ratings
+
+    InvalidInputError:
+      type:
+        - object
+      properties:
+        errors:
+          type:
+            - array
+          items:
+            type:
+              - string
+      required:
+        - errors
+
+    ApplicationError:
+      type:
+        - object
+      properties:
+        message:
+          type:
+            - string
+      required:
+        - message
+
+  parameters:
+    # referenced like this on path or method level
+    # parameters:
+    #   - $ref: "#/components/parameters/MovieId"
+    MovieId:
+      name: movieId
+      in: path
+      description: movieId
+      required: true
+      schema:
+        $ref: "#/components/schemas/Id"
+
+  responses:
+    BadRequestResponse:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/InvalidInputError"
+
+

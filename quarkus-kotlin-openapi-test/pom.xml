@@ -110,20 +110,36 @@
             <plugin>
                 <groupId>com.ancientlightstudios</groupId>
                 <artifactId>quarkus-kotlin-openapi-maven-plugin</artifactId>
-                <configuration>
-                    <sources>
-                        <source>${project.basedir}/src/main/resources/test_api_3.0.yaml</source>
-                    </sources>
-                    <interfaceName>NarfInterface</interfaceName>
-                    <packageName>com.ancientlightstudios.example</packageName>
-                </configuration>
                 <executions>
                     <execution>
-                        <id>generate</id>
+                        <id>generate-server</id>
                         <phase>generate-sources</phase>
                         <goals>
                             <goal>generate</goal>
                         </goals>
+                        <configuration>
+                            <sources>
+                                <source>${project.basedir}/src/main/resources/test_api_3.0.yaml</source>
+                            </sources>
+                            <interfaceName>MovieServer</interfaceName>
+                            <interfaceType>SERVER</interfaceType>
+                            <packageName>com.ancientlightstudios.example.movie</packageName>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-remote-server</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${project.basedir}/src/main/resources/rating_api.yaml</source>
+                            </sources>
+                            <interfaceName>RatingService</interfaceName>
+                            <interfaceType>BOTH</interfaceType>
+                            <packageName>com.ancientlightstudios.example.rating</packageName>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>

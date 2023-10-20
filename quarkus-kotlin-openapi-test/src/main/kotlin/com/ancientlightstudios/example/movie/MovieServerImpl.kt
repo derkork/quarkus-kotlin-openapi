@@ -1,15 +1,23 @@
-package com.ancientlightstudios.example
+package com.ancientlightstudios.example.movie
 
-import com.ancientlightstudios.example.model.*
-import com.ancientlightstudios.example.server.*
-import com.ancientlightstudios.example.server.NarfInterfaceDelegate
+import com.ancientlightstudios.example.movie.model.*
+import com.ancientlightstudios.example.movie.server.*
+import com.ancientlightstudios.example.rating.client.AddMovieRatingResponse
+import com.ancientlightstudios.example.rating.client.DeleteMovieRatingResponse
+import com.ancientlightstudios.example.rating.client.GetMovieRatingResponse
+import com.ancientlightstudios.example.rating.client.RatingServiceClient
+import com.ancientlightstudios.example.rating.model.RatingUp
 import com.ancientlightstudios.quarkus.kotlin.openapi.Maybe
+import com.ancientlightstudios.quarkus.kotlin.openapi.RequestResult
+import com.ancientlightstudios.quarkus.kotlin.openapi.ValidationError
 import com.ancientlightstudios.quarkus.kotlin.openapi.validOrElse
 import jakarta.enterprise.context.ApplicationScoped
 import java.util.*
+import com.ancientlightstudios.example.rating.model.Id as RatingId
+import  com.ancientlightstudios.example.rating.model.Score as RatingScore
 
 @ApplicationScoped
-class NarfDelegateImpl : NarfInterfaceDelegate {
+class MovieServerImpl(val ratingClient: RatingServiceClient) : MovieServerDelegate {
 
     private val movieDataBase = mutableMapOf<Id, Movie>()
 
@@ -35,7 +43,7 @@ class NarfDelegateImpl : NarfInterfaceDelegate {
         val body = validRequest.body
         val newMovie = Movie(
             generateId(), body.title, body.releaseDate, body.genres, body.duration,
-            body.cast, body.additionalInformation, null, emptyList()
+            body.cast, body.additionalInformation, null
         )
         movieDataBase[newMovie.id] = newMovie
         return AddMovieResponse.ok(newMovie)
@@ -76,38 +84,68 @@ class NarfDelegateImpl : NarfInterfaceDelegate {
     override suspend fun addRating(request: Maybe<AddRatingRequest>): AddRatingResponse {
         val validRequest = request.validOrElse { return AddRatingResponse.badRequest(it.asResponseBody()) }
         val movie = findMovieOrElse(validRequest.movieId) { return AddRatingResponse.notFound(it) }
-
         val body = validRequest.body
-        val newRatings = movie.ratings.filterNot { it.source == body.source } + body
 
-        val newMovie = movie.copy(totalScore = calculateScore(newRatings), ratings = newRatings)
-        movieDataBase[newMovie.id] = newMovie
-        return AddRatingResponse.ok(newRatings)
+        val clientResponse = ratingClient.addMovieRating(
+            movie.id.toRatingId(),
+            RatingUp(body.source, body.score.toRatingScore())
+        ) as? RequestResult.Response ?: return AddRatingResponse.badGateway(ApplicationError("scheisse passiert"))
+
+        return when (clientResponse.response) {
+            is AddMovieRatingResponse.NoContent -> AddRatingResponse.noContent()
+            else -> AddRatingResponse.badGateway(ApplicationError("Noch mehr scheisse passiert"))
+        }
+
     }
 
-    override suspend fun setRatings(request: Maybe<SetRatingsRequest>): SetRatingsResponse {
-        val validRequest = request.validOrElse { return SetRatingsResponse.badRequest(it.asResponseBody()) }
-        val movie = findMovieOrElse(validRequest.movieId) { return SetRatingsResponse.notFound(it) }
+    override suspend fun getRatings(request: Maybe<GetRatingsRequest>): GetRatingsResponse {
+        val validRequest = request.validOrElse { return GetRatingsResponse.badRequest(it.asResponseBody()) }
+        findMovieOrElse(validRequest.movieId) { return GetRatingsResponse.notFound(it) }
 
-        val body = validRequest.body
+        val clientResponse = ratingClient.getMovieRating(validRequest.movieId.toRatingId())
+                as? RequestResult.Response
+            ?: return GetRatingsResponse.badGateway(ApplicationError("scheisse passiert"))
 
-        val newMovie = movie.copy(totalScore = calculateScore(body), ratings = body)
-        movieDataBase[newMovie.id] = newMovie
-        return SetRatingsResponse.ok(body)
+
+        return when (val theResponse = clientResponse.response) {
+            is GetMovieRatingResponse.Ok -> GetRatingsResponse.ok(
+                theResponse.safeBody.ratings.map { RatingDown(it.id.toId(), it.source, it.score.toScore()) }
+            )
+
+            is GetMovieRatingResponse.NotFound -> GetRatingsResponse.ok(emptyList())
+            else -> GetRatingsResponse.badGateway(ApplicationError("Noch mehr scheisse passiert"))
+        }
+
+    }
+
+    override suspend fun deleteRating(request: Maybe<DeleteRatingRequest>): DeleteRatingResponse {
+        val validRequest = request.validOrElse { return DeleteRatingResponse.badRequest(it.asResponseBody()) }
+        findMovieOrElse(validRequest.movieId) { return DeleteRatingResponse.noContent() }
+        val ratingId = validRequest.ratingId
+
+        val clientResponse = ratingClient.deleteMovieRating(validRequest.movieId.toRatingId(), ratingId.toRatingId())
+                as? RequestResult.Response
+            ?: return DeleteRatingResponse.badGateway(ApplicationError("scheisse passiert"))
+
+        return when (clientResponse.response) {
+            is DeleteMovieRatingResponse.NoContent -> DeleteRatingResponse.noContent()
+            else -> DeleteRatingResponse.badGateway(ApplicationError("Noch mehr scheisse passiert"))
+        }
     }
 
     private inline fun findMovieOrElse(movieId: Id, block: (ApplicationError) -> Nothing) =
         movieDataBase[movieId] ?: block(ApplicationError("movie with id ${movieId.value} not found"))
 
-    private fun calculateScore(ratings: List<Rating>): Score? {
-        if (ratings.isEmpty()) {
-            return null
-        }
-        return Score(ratings.sumOf { it.score.value } / ratings.size)
-    }
 }
 
 fun generateId() = Id(UUID.randomUUID().toString())
 
-fun List<com.ancientlightstudios.quarkus.kotlin.openapi.ValidationError>.asResponseBody() =
-    ValidationError(this.map { "'${it.path}': ${it.message}" })
+fun Id.toRatingId() = RatingId(this.value)
+fun RatingId.toId() = Id(this.value)
+
+fun Score.toRatingScore() = RatingScore(this.value)
+
+fun RatingScore.toScore() = Score(this.value)
+
+fun List<ValidationError>.asResponseBody() =
+    InvalidInputError(this.map { "'${it.path}': ${it.message}" })
