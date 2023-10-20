@@ -11,7 +11,7 @@
 - [ ] Security
 - [ ] Tags
 - [ ] bessere Fehlerbehandlung im Parser
-- [ ] die verschiedenen OpenAPI Versionen unterstützen
+- [x] die verschiedenen OpenAPI Versionen unterstützen
 - [ ] Formate wie date, date-time, uuid unterstützen
 - [ ] Mixed-Datentypen
   ```yaml
@@ -19,7 +19,7 @@
   - type: string
   - type: integer
   ```
-- [ ] `nullable` Datentypen
+- [x] `nullable` Datentypen
   ```yaml  
   "foo":
     # OAS 3.1
@@ -29,11 +29,11 @@
     # type: string
     # nullable: true
   ```
-- [ ] Default-Werte für optionale Parameter und Properties
+- [x] Default-Werte für optionale Parameter und Properties
 - [ ] style und explode für Array Parameter
-- [ ] Default Responses
-- [ ] Referenz auf Response-Definition
-- [ ] Read-Only und Write-Only Properties
+- [x] Default Responses
+- [x] Referenz auf Response-Definition
+- [x] Read-Only und Write-Only Properties
   ```yaml  
   "foo":
     type: object
@@ -49,7 +49,7 @@
         type: string
         writeOnly: true
   ```
-- [ ] Free-Form Objekte
+- [ ] Free-Form Objekte (wahrscheinlich Map)
   ```yaml
   "foo":
     type: object
@@ -62,7 +62,7 @@
     # type: object
     # additionalProperties: {}
   ```
-- [ ] Parameter auf Pfad-Ebene die für alle Methoden gültig sind
+- [x] Parameter auf Pfad-Ebene die für alle Methoden gültig sind
   ```yaml
   paths:
   /user/{id}:
@@ -83,8 +83,8 @@
       summary: Deletes the user with the specified ID
       ...
   ```
-- [ ] Referenz auf gemeinsame Parameter unterhalb von `/components/parameters`
-- [ ] weitere Definitionen unterhalb von `/components` https://swagger.io/docs/specification/components/
+- [x] Referenz auf gemeinsame Parameter unterhalb von `/components/parameters`
+- [x] weitere Definitionen unterhalb von `/components` https://swagger.io/docs/specification/components/
 - [ ] allOf, oneOf und anyOf Besonderheiten (unterschiedlich für Enums, primitive Typen und Mischformen)
   ```yaml
   - name: genre
@@ -99,11 +99,11 @@
  
 ## Generator
                 
-- [ ] referenzen auf referenzen
+- [x] referenzen auf referenzen
 - [ ] Consumes/Produces Annotation für verschiedene Datenformate (Json, Xml, Binär)
 - [ ] @ClientHeaderParam im Client Interface
 - [ ] Zugriff auf Request-Header und setzen von Response-Header
-- [ ] Zugriff auf Cookies
+- [x] Zugriff auf Cookies
 
 
 
