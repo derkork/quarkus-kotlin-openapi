@@ -105,7 +105,8 @@ class TypeDefinitionRegistry(private val schemas: MutableMap<SchemaDefinition, S
         definition: ObjectSchemaDefinition,
         direction: FlowDirection
     ): TypeDefinition {
-        val result = ObjectTypeDefinition(name, definition.nullable, getProperties(definition, direction))
+        val result =
+            ObjectTypeDefinition(name, definition.nullable, definition.validation, getProperties(definition, direction))
         typeDefinitions.getOrPut(definition) { mutableMapOf() }[direction] = result
         return result
     }
@@ -115,7 +116,8 @@ class TypeDefinitionRegistry(private val schemas: MutableMap<SchemaDefinition, S
         definition: AllOfSchemaDefinition,
         direction: FlowDirection
     ): TypeDefinition {
-        val result = ObjectTypeDefinition(name, definition.nullable, getProperties(definition, direction))
+        val result =
+            ObjectTypeDefinition(name, definition.nullable, definition.validation, getProperties(definition, direction))
         typeDefinitions.getOrPut(definition) { mutableMapOf() }[direction] = result
         return result
     }
@@ -148,7 +150,11 @@ class TypeDefinitionRegistry(private val schemas: MutableMap<SchemaDefinition, S
             result.addAll(schema.properties
                 .filter { (_, property) -> filter(property) }
                 .map { (name, property) ->
-                    ObjectProperty(name, property, getTypeDefinition(property.schema, direction).useAs(property.required))
+                    ObjectProperty(
+                        name,
+                        property,
+                        getTypeDefinition(property.schema, direction).useAs(property.required)
+                    )
                 }
             )
         } else if (schema is AllOfSchemaDefinition) {

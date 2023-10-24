@@ -1,6 +1,8 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.ExtendFromClassExpression
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.ExtendFromInterfaceExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.RequestSuite
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName.Companion.className
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName.Companion.rawClassName
@@ -26,7 +28,9 @@ class SharedPrimitiveModelEmitter : CodeEmitter {
         kotlinFile(modelPackage(), definition.name) {
             registerImport(apiPackage(), wildcardImport = true)
 
-            kotlinValueClass(fileName, definition.primitiveTypeName.typeName()) {
+            val nestedType = definition.primitiveTypeName.typeName()
+            val extends = listOf(ExtendFromInterfaceExpression("TypeWrapper<${nestedType.render()}>".rawClassName()))
+            kotlinValueClass(fileName, nestedType, override = true, extends = extends) {
                 kotlinAnnotation("JvmInline".className())
             }
 

@@ -2,9 +2,14 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.emitter.statements
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinStatement
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.Expression
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.InvocationExpression.Companion.invocationExpression
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.PathExpression.Companion.pathExpression
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.StringExpression.Companion.stringExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.MethodName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.VariableName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.VariableName.Companion.variableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.forEachWithStats
 
 abstract class BuilderTransformStatement : KotlinStatement {
@@ -15,8 +20,8 @@ abstract class BuilderTransformStatement : KotlinStatement {
         parameters.add(maybeName)
     }
 
-    protected fun CodeWriter.renderTransformStatement(objectName: ClassName) {
-        write("maybeOf(\"request\"")
+    protected fun CodeWriter.renderTransformStatement(objectName: ClassName, context: Expression) {
+        write("maybeOf(${context.evaluate()}")
         parameters.forEach { maybeName ->
             write(", ${maybeName.render()}")
         }
@@ -42,7 +47,7 @@ class SafeObjectBuilderTransformStatement(private val safeObject: ClassName) : B
 
     override fun render(writer: CodeWriter) = with(writer) {
         write("return ")
-        renderTransformStatement(safeObject)
+        renderTransformStatement(safeObject, "context".variableName().pathExpression())
     }
 
 }
@@ -55,7 +60,7 @@ class RequestBuilderTransformStatement(
     override fun render(writer: CodeWriter) = with(writer) {
         if (requestContainer != null) {
             write("val request = ")
-            renderTransformStatement(requestContainer)
+            renderTransformStatement(requestContainer, "request".stringExpression())
             writeln("return delegate.${methodName.render()}(request).response")
         } else {
             writeln("return delegate.${methodName.render()}().response")
