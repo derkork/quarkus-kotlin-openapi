@@ -24,7 +24,7 @@ class ServerRestInterfaceEmitter : CodeEmitter {
             registerImport("org.jboss.resteasy.reactive.RestResponse")
 
             kotlinClass(fileName, false) {
-                addPathAnnotation("/")
+                addPathAnnotation(pathPrefix)
 
                 kotlinMember("delegate".variableName(), suite.name.extend(postfix = "Delegate").typeName())
                 kotlinMember("objectMapper".variableName(), "ObjectMapper".rawTypeName())

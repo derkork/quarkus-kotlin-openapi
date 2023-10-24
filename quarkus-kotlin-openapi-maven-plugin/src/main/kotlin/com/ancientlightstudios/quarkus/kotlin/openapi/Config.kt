@@ -1,7 +1,7 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi
 
 enum class InterfaceType {
-    SERVER, CLIENT, BOTH
+    SERVER, CLIENT
 }
 
 class Config(
@@ -23,6 +23,11 @@ class Config(
     val outputDirectory: String,
 
     /**
+     * Path prefix to be preprended to generated endpoints.
+     */
+    val pathPrefix:String = "",
+
+    /**
      * The endpoints of the API for which the interface should be generated.
      * If empty, all endpoints are used.
      * Format:
@@ -35,5 +40,5 @@ class Config(
     /**
      * The type of the interface to generate.
      */
-    val interfaceType: InterfaceType = InterfaceType.BOTH
+    val interfaceType: InterfaceType
 )

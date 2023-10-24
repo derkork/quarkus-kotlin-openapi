@@ -34,6 +34,12 @@ class GenerateMojo : AbstractMojo() {
     lateinit var interfaceName: String
 
     /**
+     * Path prefix to be preprended to generated endpoints.
+     */
+    @Parameter(defaultValue = "")
+    var pathPrefix:String = ""
+
+    /**
      * The directory where the generated sources should be put
      */
     @Parameter(defaultValue = "\${project.build.directory}/generated-sources/quarkus-kotlin-openapi")
@@ -42,7 +48,7 @@ class GenerateMojo : AbstractMojo() {
     @Parameter
     var endpoints: List<String> = listOf()
 
-    @Parameter(defaultValue = "BOTH")
+    @Parameter
     lateinit var interfaceType: InterfaceType
 
     override fun execute() {
@@ -51,6 +57,7 @@ class GenerateMojo : AbstractMojo() {
             interfaceName,
             packageName,
             outputDirectory.path,
+            pathPrefix,
             endpoints,
             interfaceType
         )

@@ -4,7 +4,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinFile
 import java.nio.file.Path
 import kotlin.io.path.Path
 
-class EmitterContext(private val packageName: String, private val outputDirectory: Path) {
+class EmitterContext(private val packageName: String, private val outputDirectory: Path, val pathPrefix:String) {
 
     fun serverPackage() = "$packageName.server"
 
