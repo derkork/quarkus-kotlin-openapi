@@ -1,15 +1,19 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.typedefinition
 
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.NullExpression
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.schema.validation.Validation
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName.SimpleTypeName.Companion.typeName
 
 data class ObjectTypeDefinition(
     val name: ClassName,
     val isNullable: Boolean,
+    override val validation: Validation,
     val properties: List<ObjectProperty>
 ) : TypeDefinition {
 
     override fun useAs(valueRequired: Boolean) = ObjectTypeUsage(this, valueRequired)
+
 }
 
 data class ObjectTypeUsage(private val typeDefinition: ObjectTypeDefinition, private val valueRequired: Boolean) :
@@ -26,5 +30,10 @@ data class ObjectTypeUsage(private val typeDefinition: ObjectTypeDefinition, pri
 
     override val unsafeType = unsafeName.typeName(true)
 
+    override val valueTransform = { _: String -> NullExpression }
+
     override val defaultValue = null
+
+    override val validation = typeDefinition.validation
+
 }

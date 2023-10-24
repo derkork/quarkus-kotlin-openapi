@@ -3,6 +3,7 @@ package com.ancientlightstudios.quarkus.kotlin.openapi
 import org.jboss.resteasy.reactive.RestResponse
 
 
+@Suppress("unused")
 sealed interface RequestResult<T> {
 
     class Response<T>(val response: T) : RequestResult<T>
@@ -11,6 +12,7 @@ sealed interface RequestResult<T> {
 
 }
 
+@Suppress("unused")
 enum class RequestErrorReason {
     Timeout,
     Unreachable,

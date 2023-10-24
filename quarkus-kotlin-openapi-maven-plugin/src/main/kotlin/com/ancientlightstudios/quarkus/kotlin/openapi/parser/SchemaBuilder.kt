@@ -2,7 +2,11 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.parser
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiVersion
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.schema.*
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.schema.validation.*
+import com.fasterxml.jackson.databind.node.ArrayNode
 import com.fasterxml.jackson.databind.node.ObjectNode
+import com.fasterxml.jackson.databind.node.TextNode
+import java.util.*
 
 class SchemaBuilder(private val node: ObjectNode) {
 
@@ -67,7 +71,8 @@ class SchemaBuilder(private val node: ObjectNode) {
     private fun ParseContext.extractPrimitiveSchemaDefinition(type: String): PrimitiveSchemaDefinition {
         return PrimitiveSchemaDefinition(
             node.getTextOrNull("description"), isNullable(), type,
-            node.getTextOrNull("format"), node.getTextOrNull("default")
+            node.getTextOrNull("format"), node.getTextOrNull("default"),
+            extractPrimitiveTypeValidation(type)
         )
     }
 
@@ -80,14 +85,16 @@ class SchemaBuilder(private val node: ObjectNode) {
 
         return EnumSchemaDefinition(
             node.getTextOrNull("description"), isNullable(), type,
-            node.getTextOrNull("format"), values, defaultValue
+            node.getTextOrNull("format"), values, defaultValue,
+            extractPrimitiveTypeValidation(type)
         )
     }
 
     private fun ParseContext.extractArraySchemaDefinition(): ArraySchemaDefinition {
         return ArraySchemaDefinition(
             node.getTextOrNull("description"),
-            isNullable(), contextFor("items").parseAsSchema()
+            isNullable(), contextFor("items").parseAsSchema(),
+            extractArrayValidation()
         )
     }
 
@@ -101,7 +108,10 @@ class SchemaBuilder(private val node: ObjectNode) {
                 name to property
             }
 
-        return ObjectSchemaDefinition(node.getTextOrNull("description"), isNullable(), properties)
+        return ObjectSchemaDefinition(
+            node.getTextOrNull("description"),
+            isNullable(), properties, extractDefaultValidation()
+        )
     }
 
     private fun ParseContext.extractOneOfSchemaDefinition(): OneOfSchemaDefinition {
@@ -118,7 +128,8 @@ class SchemaBuilder(private val node: ObjectNode) {
 
         return OneOfSchemaDefinition(
             node.getTextOrNull("description"), isNullable(),
-            schemas, node.getTextOrNull("discriminator")
+            schemas, node.getTextOrNull("discriminator"),
+            extractDefaultValidation()
         )
     }
 
@@ -134,7 +145,10 @@ class SchemaBuilder(private val node: ObjectNode) {
                 it
             }
 
-        return AllOfSchemaDefinition(node.getTextOrNull("description"), isNullable(), schemas)
+        return AllOfSchemaDefinition(
+            node.getTextOrNull("description"), isNullable(),
+            schemas, extractDefaultValidation()
+        )
     }
 
     private fun ParseContext.extractAnyOfSchemaDefinition(): AnyOfSchemaDefinition {
@@ -149,7 +163,59 @@ class SchemaBuilder(private val node: ObjectNode) {
                 it
             }
 
-        return AnyOfSchemaDefinition(node.getTextOrNull("description"), isNullable(), schemas)
+        return AnyOfSchemaDefinition(
+            node.getTextOrNull("description"),
+            isNullable(), schemas, extractDefaultValidation()
+        )
+    }
+
+    private fun ParseContext.extractPrimitiveTypeValidation(type: String) = when (type) {
+        "string" -> StringValidation(
+            node.getTextOrNull("minLength")?.toInt(),
+            node.getTextOrNull("maxLength")?.toInt(),
+            node.getTextOrNull("pattern"),
+            extractCustomValidationRules()
+        )
+
+        "number", "integer" -> NumberValidation(
+            extractComparableNumber("minimum"),
+            extractComparableNumber("maximum"),
+            extractCustomValidationRules()
+        )
+
+        else -> extractDefaultValidation()
+    }
+
+    private fun ParseContext.extractComparableNumber(name: String): ComparableNumber? {
+        val capitalizedPostfix = name.replaceFirstChar {
+            if (it.isLowerCase()) it.titlecase(Locale.ENGLISH) else it.toString()
+        }
+
+        return when (openApiVersion) {
+            OpenApiVersion.V3_0 -> node.getTextOrNull(name)?.let {
+                ComparableNumber(it, node.getBooleanOrNull("exclusive$capitalizedPostfix") ?: false)
+            }
+
+            OpenApiVersion.V3_1 -> node.getTextOrNull(name)?.let {
+                ComparableNumber(it, false)
+            } ?: node.getTextOrNull("exclusive$capitalizedPostfix")?.let {
+                ComparableNumber(it, true)
+            }
+        }
+    }
+
+    private fun extractArrayValidation() = ArrayValidation(
+        node.getTextOrNull("minItems")?.toInt(),
+        node.getTextOrNull("maxItems")?.toInt(),
+        extractCustomValidationRules()
+    )
+
+    private fun extractDefaultValidation() = DefaultValidation(extractCustomValidationRules())
+
+    private fun extractCustomValidationRules() = when (val customConstraints = node["x-constraints"]) {
+        is TextNode -> listOf(customConstraints.asText())
+        is ArrayNode -> customConstraints.map { it.asText() }
+        else -> emptyList()
     }
 
 }

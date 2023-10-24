@@ -1,5 +1,6 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.typedefinition
 
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.NullExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.schema.Schema
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName.SimpleTypeName.Companion.rawTypeName
@@ -12,6 +13,9 @@ data class InlinePrimitiveTypeDefinition(
 ) : TypeDefinition {
 
     override fun useAs(valueRequired: Boolean) = InlinePrimitiveTypeUsage(this, valueRequired)
+
+    override val validation = sourceSchema.validation
+
 }
 
 data class InlinePrimitiveTypeUsage(
@@ -21,7 +25,9 @@ data class InlinePrimitiveTypeUsage(
 
     val primitiveTypeName = typeDefinition.primitiveTypeName
 
-    override val defaultValue = typeDefinition.sourceSchema.defaultValue?.let { primitiveTypeName.valueExpression(it) }
+    override val valueTransform = { value: String -> primitiveTypeName.valueExpression(value) }
+
+    override val defaultValue = typeDefinition.sourceSchema.defaultValue?.let(valueTransform)
 
     // if the value is not required, the property can be nullable, even if the schema doesn't allow null values
     override val nullable = !valueRequired || typeDefinition.sourceSchema.nullable
@@ -29,5 +35,7 @@ data class InlinePrimitiveTypeUsage(
     override val safeType = primitiveTypeName.typeName(nullable && defaultValue == null)
 
     override val unsafeType = "String".rawTypeName(true)
+
+    override val validation = typeDefinition.validation
 
 }

@@ -1,9 +1,12 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.schema
 
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.schema.validation.Validation
+
 data class AllOfSchemaDefinition(
     override val description: String?,
     override val nullable: Boolean,
-    override val schemas: List<Schema>
+    override val schemas: List<Schema>,
+    override val validation: Validation
 ) : SchemaDefinition, Schema.AllOfSchema
 
 data class AllOfSchemaReference(

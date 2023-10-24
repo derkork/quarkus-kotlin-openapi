@@ -4,42 +4,50 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinStatement
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.Expression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.StringExpression
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.schema.validation.Validation
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.VariableName
 
 class PrimitiveToMaybeTransformStatement(
-    private val targetName: VariableName?, private val sourceName: Expression,
-    private val context: StringExpression, private val type: ClassName, private val defaultValue: Expression?,
-    private val required: Boolean
+    private val targetName: VariableName?,
+    private val sourceName: Expression,
+    private val context: StringExpression,
+    private val type: ClassName,
+    private val defaultValue: Expression?,
+    private val required: Boolean,
+    private val validation: Validation,
+    private val valueTransform: (String) -> Expression
 ) : KotlinStatement {
 
     override fun render(writer: CodeWriter) = with(writer) {
         targetName?.let { write("val ${it.render()} = ") }
-        renderPrimitiveTransformStatement(sourceName, context, type, defaultValue, required)
+        renderPrimitiveTransformStatement(sourceName, context, type, defaultValue, required, validation, valueTransform)
     }
 
 }
 
 class NestedPrimitiveTransformStatement(
     private val sourceName: Expression, private val type: ClassName,
-    private val required: Boolean
+    private val required: Boolean, private val validation: Validation,
+    private val valueTransform: (String) -> Expression
 ) : KotlinStatement {
 
     override fun render(writer: CodeWriter) = writer.renderPrimitiveTransformStatement(
-        sourceName, null, type, null, required
+        sourceName, null, type, null, required, validation, valueTransform
     )
 
 }
 
 fun CodeWriter.renderPrimitiveTransformStatement(
     sourceName: Expression, context: StringExpression?,
-    type: ClassName, defaultValue: Expression?, required: Boolean
+    type: ClassName, defaultValue: Expression?, required: Boolean,
+    validation: Validation, valueTransform: (String) -> Expression
 ) {
     write("${sourceName.evaluate()}.as${type.render()}(")
     context?.let { write(it.evaluate()) }
     writeln(")")
     indent {
-        // TODO: add .validateString { } or something like this if necessary (unless it's a shared primitive)
+        render(valueTransform, validation)
         if (defaultValue != null) {
             writeln(".default() { ${defaultValue.evaluate()} }")
         } else if (required) {

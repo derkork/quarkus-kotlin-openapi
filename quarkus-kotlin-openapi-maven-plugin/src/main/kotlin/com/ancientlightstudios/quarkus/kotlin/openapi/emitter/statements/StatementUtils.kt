@@ -22,7 +22,9 @@ fun KotlinMethod.addTransformStatement(
             parameterContext,
             typeDefinitionUsage.primitiveTypeName,
             typeDefinitionUsage.defaultValue,
-            !typeDefinitionUsage.nullable
+            !typeDefinitionUsage.nullable,
+            typeDefinitionUsage.validation,
+            typeDefinitionUsage.valueTransform
         )
 
         is SharedPrimitiveTypeUsage -> PrimitiveToMaybeTransformStatement(
@@ -31,7 +33,9 @@ fun KotlinMethod.addTransformStatement(
             parameterContext,
             typeDefinitionUsage.name,
             typeDefinitionUsage.defaultValue,
-            !typeDefinitionUsage.nullable
+            !typeDefinitionUsage.nullable,
+            typeDefinitionUsage.validation,
+            typeDefinitionUsage.valueTransform
         )
 
         is EnumTypeUsage -> EnumToMaybeTransformStatement(
@@ -40,7 +44,9 @@ fun KotlinMethod.addTransformStatement(
             parameterContext,
             typeDefinitionUsage.name,
             typeDefinitionUsage.defaultValue,
-            !typeDefinitionUsage.nullable
+            !typeDefinitionUsage.nullable,
+            typeDefinitionUsage.validation,
+            typeDefinitionUsage.valueTransform
         )
 
         is CollectionTypeUsage -> if (fromRequestBody) {
@@ -49,7 +55,9 @@ fun KotlinMethod.addTransformStatement(
                 source,
                 parameterContext,
                 typeDefinitionUsage.unsafeType,
-                !typeDefinitionUsage.nullable
+                !typeDefinitionUsage.nullable,
+                typeDefinitionUsage.validation,
+                typeDefinitionUsage.valueTransform
             ) {
                 nestedTransformStatement(it, typeDefinitionUsage.innerType)
             }
@@ -58,7 +66,9 @@ fun KotlinMethod.addTransformStatement(
                 targetName,
                 source,
                 parameterContext,
-                !typeDefinitionUsage.nullable
+                !typeDefinitionUsage.nullable,
+                typeDefinitionUsage.validation,
+                typeDefinitionUsage.valueTransform
             ) {
                 nestedTransformStatement(it, typeDefinitionUsage.innerType)
             }
@@ -70,7 +80,9 @@ fun KotlinMethod.addTransformStatement(
                 source,
                 parameterContext,
                 typeDefinitionUsage.unsafeName,
-                !typeDefinitionUsage.nullable
+                !typeDefinitionUsage.nullable,
+                typeDefinitionUsage.validation,
+                typeDefinitionUsage.valueTransform
             )
         } else {
             ObjectPropertyToMaybeTransformStatement(
@@ -78,7 +90,9 @@ fun KotlinMethod.addTransformStatement(
                 source,
                 parameterContext,
                 typeDefinitionUsage.unsafeName,
-                !typeDefinitionUsage.nullable
+                !typeDefinitionUsage.nullable,
+                typeDefinitionUsage.validation,
+                typeDefinitionUsage.valueTransform
             )
         }
     }
@@ -98,7 +112,9 @@ fun getClientTransformStatement(
             parameterContext,
             typeDefinitionUsage.primitiveTypeName,
             typeDefinitionUsage.defaultValue,
-            !typeDefinitionUsage.nullable
+            !typeDefinitionUsage.nullable,
+            typeDefinitionUsage.validation,
+            typeDefinitionUsage.valueTransform
         )
 
         is SharedPrimitiveTypeUsage -> PrimitiveToMaybeTransformStatement(
@@ -107,7 +123,9 @@ fun getClientTransformStatement(
             parameterContext,
             typeDefinitionUsage.name,
             typeDefinitionUsage.defaultValue,
-            !typeDefinitionUsage.nullable
+            !typeDefinitionUsage.nullable,
+            typeDefinitionUsage.validation,
+            typeDefinitionUsage.valueTransform
         )
 
         is EnumTypeUsage -> EnumToMaybeTransformStatement(
@@ -116,7 +134,9 @@ fun getClientTransformStatement(
             parameterContext,
             typeDefinitionUsage.name,
             typeDefinitionUsage.defaultValue,
-            !typeDefinitionUsage.nullable
+            !typeDefinitionUsage.nullable,
+            typeDefinitionUsage.validation,
+            typeDefinitionUsage.valueTransform
         )
 
         is CollectionTypeUsage -> CollectionBodyToMaybeTransformStatement(
@@ -124,7 +144,9 @@ fun getClientTransformStatement(
             parameterName,
             parameterContext,
             typeDefinitionUsage.unsafeType,
-            !typeDefinitionUsage.nullable
+            !typeDefinitionUsage.nullable,
+            typeDefinitionUsage.validation,
+            typeDefinitionUsage.valueTransform
         ) {
             nestedTransformStatement(it, typeDefinitionUsage.innerType)
         }
@@ -134,7 +156,9 @@ fun getClientTransformStatement(
             parameterName,
             parameterContext,
             typeDefinitionUsage.unsafeName,
-            !typeDefinitionUsage.nullable
+            !typeDefinitionUsage.nullable,
+            typeDefinitionUsage.validation,
+            typeDefinitionUsage.valueTransform
         )
     }
 }
@@ -146,22 +170,36 @@ private fun nestedTransformStatement(
     val source = sourceName.pathExpression()
     return when (typeUsage) {
         is InlinePrimitiveTypeUsage -> NestedPrimitiveTransformStatement(
-            source, typeUsage.primitiveTypeName, !typeUsage.nullable
+            source, typeUsage.primitiveTypeName, !typeUsage.nullable, typeUsage.validation, typeUsage.valueTransform
         )
 
         is SharedPrimitiveTypeUsage -> NestedPrimitiveTransformStatement(
-            source, typeUsage.name, !typeUsage.nullable
+            source, typeUsage.name, !typeUsage.nullable, typeUsage.validation, typeUsage.valueTransform
         )
 
-        is EnumTypeUsage -> NestedEnumTransformStatement(source, typeUsage.name, !typeUsage.nullable)
-        is CollectionTypeUsage -> NestedCollectionTransformStatement(source, !typeUsage.nullable) {
+        is EnumTypeUsage -> NestedEnumTransformStatement(
+            source,
+            typeUsage.name,
+            !typeUsage.nullable,
+            typeUsage.validation,
+            typeUsage.valueTransform
+        )
+
+        is CollectionTypeUsage -> NestedCollectionTransformStatement(
+            source,
+            !typeUsage.nullable,
+            typeUsage.validation,
+            typeUsage.valueTransform
+        ) {
             nestedTransformStatement(it, typeUsage.innerType)
         }
 
         is ObjectTypeUsage -> NestedObjectTransformStatement(
             source,
             typeUsage.name.extend(postfix = "Unsafe"),
-            !typeUsage.nullable
+            !typeUsage.nullable,
+            typeUsage.validation,
+            typeUsage.valueTransform
         )
     }
 }

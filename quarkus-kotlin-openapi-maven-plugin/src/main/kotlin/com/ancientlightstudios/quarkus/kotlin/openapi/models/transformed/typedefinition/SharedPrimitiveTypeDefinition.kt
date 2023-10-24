@@ -14,6 +14,9 @@ data class SharedPrimitiveTypeDefinition(
 ) : TypeDefinition {
 
     override fun useAs(valueRequired: Boolean) = SharedPrimitiveTypeUsage(this, valueRequired)
+
+    override val validation = sourceSchema.validation
+
 }
 
 data class SharedPrimitiveTypeUsage(
@@ -23,10 +26,10 @@ data class SharedPrimitiveTypeUsage(
 
     val name = typeDefinition.name
 
+    override val valueTransform = { value: String -> typeDefinition.primitiveTypeName.valueExpression(value) }
+
     override val defaultValue = typeDefinition.sourceSchema.defaultValue?.let {
-        name.invocationExpression(
-            typeDefinition.primitiveTypeName.valueExpression(it)
-        )
+        name.invocationExpression(valueTransform(it))
     }
 
     // if the value is not required, the property can be nullable, even if the schema doesn't allow null values
@@ -35,5 +38,7 @@ data class SharedPrimitiveTypeUsage(
     override val safeType = name.typeName(nullable && defaultValue == null)
 
     override val unsafeType = "String".rawTypeName(true)
+
+    override val validation = typeDefinition.validation
 
 }

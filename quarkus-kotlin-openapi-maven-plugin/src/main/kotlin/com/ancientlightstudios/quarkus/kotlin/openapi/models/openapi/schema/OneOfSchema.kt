@@ -1,10 +1,13 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.schema
 
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.schema.validation.Validation
+
 data class OneOfSchemaDefinition(
     override val description: String?,
     override val nullable: Boolean,
     override val schemas: List<Schema>,
-    override val discriminator: String?
+    override val discriminator: String?,
+    override val validation: Validation
 ) : SchemaDefinition, Schema.OneOfSchema
 
 data class OneOfSchemaReference(

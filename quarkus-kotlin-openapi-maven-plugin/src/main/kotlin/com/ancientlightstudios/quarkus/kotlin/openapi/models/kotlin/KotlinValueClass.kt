@@ -1,10 +1,14 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.ExtendExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName
 
-class KotlinValueClass(private val name: ClassName, private val nestedType: TypeName) : KotlinRenderable,
+class KotlinValueClass(
+    private val name: ClassName, private val nestedType: TypeName, private val override: Boolean = false,
+    private val extends: List<ExtendExpression> = emptyList()
+) : KotlinRenderable,
     AnnotationAware, MethodAware, CommentAware {
 
     private val annotations = KotlinAnnotationContainer()
@@ -30,7 +34,15 @@ class KotlinValueClass(private val name: ClassName, private val nestedType: Type
         }
 
         annotations.render(this)
-        write("value class ${name.render()}(val value: ${nestedType.render()})")
+        write("value class ${name.render()}(")
+        if (override) {
+            write("override ")
+        }
+        write("val value: ${nestedType.render()})")
+
+        if (extends.isNotEmpty()) {
+            write(extends.joinToString(prefix = " : ") { it.evaluate() })
+        }
 
         if (methods.isNotEmpty) {
             writeln(" {")
@@ -54,7 +66,10 @@ interface ValueClassAware {
 
 }
 
-fun ValueClassAware.kotlinValueClass(name: ClassName, nestedType: TypeName, block: KotlinValueClass.() -> Unit = {}) {
-    val content = KotlinValueClass(name, nestedType).apply(block)
+fun ValueClassAware.kotlinValueClass(
+    name: ClassName, nestedType: TypeName, override: Boolean = false,
+    extends: List<ExtendExpression> = emptyList(), block: KotlinValueClass.() -> Unit = {}
+) {
+    val content = KotlinValueClass(name, nestedType, override, extends).apply(block)
     addValueClass(content)
 }

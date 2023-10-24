@@ -1,12 +1,15 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.schema
 
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.schema.validation.Validation
+
 data class EnumSchemaDefinition(
     override val description: String?,
     override val nullable: Boolean,
     override val type: String,
     override val format: String?,
     override val values: List<String>,
-    override val defaultValue: String?
+    override val defaultValue: String?,
+    override val validation: Validation
 ) : SchemaDefinition, Schema.EnumSchema
 
 data class EnumSchemaReference(

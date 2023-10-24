@@ -1,6 +1,7 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.typedefinition
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.Expression
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.schema.validation.Validation
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName
 
 sealed interface TypeDefinitionUsage {
@@ -11,6 +12,10 @@ sealed interface TypeDefinitionUsage {
 
     val unsafeType: TypeName
 
+    val valueTransform: (String) -> Expression
+
     val defaultValue: Expression?
+
+    val validation: Validation
 
 }

@@ -1,5 +1,6 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.typedefinition
 
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.NullExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.schema.Schema
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName.GenericTypeName.Companion.of
@@ -12,6 +13,9 @@ data class CollectionTypeDefinition(
 ) : TypeDefinition {
 
     override fun useAs(valueRequired: Boolean) = CollectionTypeUsage(this, valueRequired)
+
+    override val validation = sourceSchema.validation
+
 }
 
 data class CollectionTypeUsage(
@@ -28,5 +32,10 @@ data class CollectionTypeUsage(
 
     override val unsafeType = "List".rawTypeName(true).of(typeDefinition.innerType.useAs(false).unsafeType)
 
+    override val valueTransform = { _: String -> NullExpression }
+
     override val defaultValue = null
+
+    override val validation = typeDefinition.validation
+
 }

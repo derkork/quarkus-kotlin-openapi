@@ -1,10 +1,12 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.schema
 
-// TODO: add validation to definition and reference
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.schema.validation.Validation
+
 sealed interface Schema {
 
     val description: String?
     val nullable: Boolean
+    val validation: Validation
 
     sealed interface PrimitiveSchema : Schema {
 
