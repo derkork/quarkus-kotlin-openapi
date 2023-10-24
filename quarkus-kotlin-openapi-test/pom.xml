@@ -127,7 +127,7 @@
                         </configuration>
                     </execution>
                     <execution>
-                        <id>generate-remote-server</id>
+                        <id>generate-mock-server</id>
                         <phase>generate-sources</phase>
                         <goals>
                             <goal>generate</goal>
@@ -137,7 +137,23 @@
                                 <source>${project.basedir}/src/main/resources/rating_api.yaml</source>
                             </sources>
                             <interfaceName>RatingService</interfaceName>
-                            <interfaceType>BOTH</interfaceType>
+                            <interfaceType>SERVER</interfaceType>
+                            <pathPrefix>/test-support</pathPrefix>
+                            <packageName>com.ancientlightstudios.example.rating.testsupport</packageName>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-client</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${project.basedir}/src/main/resources/rating_api.yaml</source>
+                            </sources>
+                            <interfaceName>RatingService</interfaceName>
+                            <interfaceType>CLIENT</interfaceType>
                             <packageName>com.ancientlightstudios.example.rating</packageName>
                         </configuration>
                     </execution>

@@ -1,8 +1,7 @@
 package com.ancientlightstudios.example.rating
 
-import com.ancientlightstudios.example.rating.model.InvalidInputError
-import com.ancientlightstudios.example.rating.model.MovieRating
-import com.ancientlightstudios.example.rating.server.*
+import com.ancientlightstudios.example.rating.testsupport.server.*
+import com.ancientlightstudios.example.rating.testsupport.model.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.Maybe
 import com.ancientlightstudios.quarkus.kotlin.openapi.ValidationError
 import com.ancientlightstudios.quarkus.kotlin.openapi.validOrElse
