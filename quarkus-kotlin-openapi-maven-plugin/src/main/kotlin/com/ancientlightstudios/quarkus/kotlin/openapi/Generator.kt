@@ -4,13 +4,11 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.ClientResponseContainerEmitter
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ApiSpec
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.RequestSuite
-import com.ancientlightstudios.quarkus.kotlin.openapi.parser.RequestFilter
-import com.ancientlightstudios.quarkus.kotlin.openapi.parser.merge
-import com.ancientlightstudios.quarkus.kotlin.openapi.parser.parseAsApiSpec
-import com.ancientlightstudios.quarkus.kotlin.openapi.parser.read
+import com.ancientlightstudios.quarkus.kotlin.openapi.parser.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.transformer.ApiSpecTransformer
 import com.ancientlightstudios.quarkus.kotlin.openapi.transformer.FlowDirection
 import com.ancientlightstudios.quarkus.kotlin.openapi.transformer.TypeDefinitionRegistry
+import com.fasterxml.jackson.databind.node.ObjectNode
 import java.io.File
 import kotlin.io.path.Path
 
@@ -20,10 +18,22 @@ class Generator(private val config: Config) {
         .transformApi()
         .generateApi()
 
-    private fun parseApi() = config.sourceFiles
-        .map { read(File(it).inputStream()) }
-        .reduce { acc, apiSpec -> acc.merge(apiSpec) }
-        .parseAsApiSpec(RequestFilter(config.endpoints))
+    private fun parseApi(): ApiSpec {
+        val mergedSource = config.sourceFiles
+            .map { read(File(it).inputStream()) as ObjectNode }
+            .reduce { acc, apiSpec -> acc.merge(apiSpec) }
+
+        val patchedSource = config.patchFiles.map { read(File(it).inputStream()) }
+            .fold(mergedSource) { document, patch -> document.patch(patch) }
+
+
+        if (config.debugOutputFile != null) {
+            Path(config.debugOutputFile).parent.toFile().mkdirs()
+            File(config.debugOutputFile).writeText(patchedSource.toPrettyString())
+        }
+
+        return patchedSource.parseAsApiSpec(RequestFilter(config.endpoints))
+    }
 
     private fun ApiSpec.transformApi() = ApiSpecTransformer(this).transform(config.interfaceName)
 

@@ -1,12 +1,14 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.parser
 
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ArrayNode
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
+import com.flipkart.zjsonpatch.JsonPatch
 import java.io.InputStream
 
-fun read(inputStream: InputStream) = ObjectMapper(YAMLFactory()).readTree(inputStream) as ObjectNode
+fun read(inputStream: InputStream):JsonNode = ObjectMapper(YAMLFactory()).readTree(inputStream)
 
 fun ObjectNode.merge(updateNode: ObjectNode): ObjectNode {
 
@@ -40,3 +42,5 @@ fun ObjectNode.merge(updateNode: ObjectNode): ObjectNode {
 
     return this
 }
+
+fun ObjectNode.patch(patchNode:JsonNode) : ObjectNode = JsonPatch.apply(patchNode, this) as ObjectNode

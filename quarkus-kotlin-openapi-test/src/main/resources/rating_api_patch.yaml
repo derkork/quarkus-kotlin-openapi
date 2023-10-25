@@ -1,0 +1,3 @@
+- op: add
+  path: /components/schemas/Rating/required/-
+  value: source

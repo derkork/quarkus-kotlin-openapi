@@ -134,8 +134,12 @@
                         </goals>
                         <configuration>
                             <sources>
-                                <source>${project.basedir}/src/main/resources/rating_api.yaml</source>
+                                <source>${project.basedir}/src/main/resources/rating_api_components.yaml</source>
+                                <source>${project.basedir}/src/main/resources/rating_api_operations.yaml</source>
                             </sources>
+                            <patches>
+                                <patch>${project.basedir}/src/main/resources/rating_api_patch.yaml</patch>
+                            </patches>
                             <interfaceName>RatingService</interfaceName>
                             <interfaceType>SERVER</interfaceType>
                             <pathPrefix>/test-support</pathPrefix>
@@ -150,8 +154,13 @@
                         </goals>
                         <configuration>
                             <sources>
-                                <source>${project.basedir}/src/main/resources/rating_api.yaml</source>
+                                <source>${project.basedir}/src/main/resources/rating_api_components.yaml</source>
+                                <source>${project.basedir}/src/main/resources/rating_api_operations.yaml</source>
                             </sources>
+                            <patches>
+                                <patch>${project.basedir}/src/main/resources/rating_api_patch.yaml</patch>
+                            </patches>
+                            <debugOutputFile>${project.basedir}/target/narf.json</debugOutputFile>
                             <interfaceName>RatingService</interfaceName>
                             <interfaceType>CLIENT</interfaceType>
                             <packageName>com.ancientlightstudios.example.rating</packageName>

@@ -9,6 +9,17 @@ class Config(
      * The source files to parse.
      */
     val sourceFiles: List<String>,
+
+    /**
+     * The JSON-Patch files to apply to the OpenAPI specification.
+     */
+    val patchFiles: List<String>,
+
+    /**
+     * Path where the debug output should be written.
+     */
+    val debugOutputFile:String? = null,
+
     /**
      * The name of the interface to generate.
      */
