@@ -1,6 +1,7 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.ArrayExpression.Companion.arrayExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.StringExpression.Companion.stringExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.RequestSuite
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName.Companion.rawClassName
@@ -29,6 +30,9 @@ class ClientDelegateEmitter : CodeEmitter {
                     kotlinMethod(request.name, true, "RestResponse".rawTypeName().of("String".rawTypeName(true))) {
                         kotlinAnnotation(request.method.name.uppercase().rawClassName())
                         addPathAnnotation(request.path)
+                        if (request.responses.any { it.second !=null }) {
+                            kotlinAnnotation("Produces".rawClassName(), "value".variableName() to "application/json".stringExpression().arrayExpression())
+                        }
 
                         request.parameters.forEach { parameter ->
                             kotlinParameter(parameter.name, parameter.type.safeType) {
@@ -41,6 +45,7 @@ class ClientDelegateEmitter : CodeEmitter {
 
                         request.body?.let {
                             kotlinParameter("body".variableName(), it.safeType)
+                            kotlinAnnotation("Consumes".rawClassName(), "value".variableName() to "application/json".stringExpression().arrayExpression())
                         }
                     }
                 }
