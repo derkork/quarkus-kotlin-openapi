@@ -18,8 +18,20 @@ class GenerateMojo : AbstractMojo() {
     /**
      * The list of the source files.
      */
-    @Parameter
+    @Parameter(required = true)
     lateinit var sources: List<String>
+
+    /**
+     * The list of JSON-Patch files to apply to the OpenAPI specification.
+     */
+    @Parameter
+    var patches: List<String> = listOf()
+
+    /**
+     * Path where the debug output should be written.
+     */
+    @Parameter
+    var debugOutputFile:String? = null
 
     /**
      * The package name of the generated classes.
@@ -34,7 +46,7 @@ class GenerateMojo : AbstractMojo() {
     lateinit var interfaceName: String
 
     /**
-     * Path prefix to be preprended to generated endpoints.
+     * Path prefix to be prepended to generated endpoints.
      */
     @Parameter(defaultValue = "")
     var pathPrefix:String = ""
@@ -54,6 +66,8 @@ class GenerateMojo : AbstractMojo() {
     override fun execute() {
         val config = Config(
             sources,
+            patches,
+            debugOutputFile,
             interfaceName,
             packageName,
             outputDirectory.path,
