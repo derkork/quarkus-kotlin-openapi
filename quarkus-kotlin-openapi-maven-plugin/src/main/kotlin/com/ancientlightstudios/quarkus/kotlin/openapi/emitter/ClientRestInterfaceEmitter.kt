@@ -30,6 +30,7 @@ class ClientRestInterfaceEmitter : CodeEmitter {
             registerImport("jakarta.enterprise.context.ApplicationScoped")
             registerImport("org.eclipse.microprofile.rest.client.inject.RestClient")
             registerImport("jakarta.ws.rs", wildcardImport = true)
+            registerImport("java.util.concurrent.TimeoutException")
 
             kotlinClass(fileName, false) {
                 kotlinAnnotation("ApplicationScoped".rawClassName())
@@ -106,6 +107,12 @@ class ClientRestInterfaceEmitter : CodeEmitter {
                         writeln("is Maybe.Failure -> RequestResult.ResponseError(maybe.errors.joinToString { it.message }, response)")
                     }
                     write("}")
+                }
+
+
+                writeln("} catch (_: TimeoutException) {")
+                indent {
+                    writeln("RequestResult.RequestError(RequestErrorReason.Timeout)")
                 }
                 write("} catch (e: Exception) {")
                 indent(newLineBefore = true, newLineAfter = true) {
