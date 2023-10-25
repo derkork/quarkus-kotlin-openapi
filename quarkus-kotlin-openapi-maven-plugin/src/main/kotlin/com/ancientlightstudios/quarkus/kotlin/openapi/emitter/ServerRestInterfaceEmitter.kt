@@ -3,6 +3,7 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.statements.RequestBuilderTransformStatement
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.statements.addTransformStatement
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.ArrayExpression.Companion.arrayExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.StringExpression.Companion.stringExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.Request
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.RequestSuite
@@ -40,6 +41,9 @@ class ServerRestInterfaceEmitter : CodeEmitter {
         kotlinMethod(request.name, true, "RestResponse<*>".rawTypeName()) {
             kotlinAnnotation(request.method.name.uppercase().rawClassName())
             addPathAnnotation(request.path)
+            if (request.responses.any { it.second !=null }) {
+                kotlinAnnotation("Produces".rawClassName(), "value".variableName() to "application/json".stringExpression().arrayExpression())
+            }
 
             val statement = RequestBuilderTransformStatement(
                 request.name, request.name.extend(postfix = "Request").className()
@@ -60,6 +64,8 @@ class ServerRestInterfaceEmitter : CodeEmitter {
 
             request.body?.let {
                 kotlinParameter("body".variableName(), "String".rawTypeName(true))
+                kotlinAnnotation("Consumes".rawClassName(), "value".variableName() to "application/json".stringExpression().arrayExpression())
+
                 addTransformStatement(
                     "body".variableName(), it,
                     "request.body".stringExpression(), true

@@ -29,6 +29,7 @@ class ClientRestInterfaceEmitter : CodeEmitter {
             registerImport("org.jboss.resteasy.reactive.RestResponse")
             registerImport("jakarta.enterprise.context.ApplicationScoped")
             registerImport("org.eclipse.microprofile.rest.client.inject.RestClient")
+            registerImport("jakarta.ws.rs", wildcardImport = true)
 
             kotlinClass(fileName, false) {
                 kotlinAnnotation("ApplicationScoped".rawClassName())
@@ -48,6 +49,8 @@ class ClientRestInterfaceEmitter : CodeEmitter {
     private fun KotlinClass.generateRequest(request: Request) {
         val returnType = request.name.className().extend(postfix = "Response")
         kotlinMethod(request.name, true, "RequestResult".rawTypeName().of(returnType)) {
+
+
             request.parameters.forEach {
                 kotlinParameter(it.name, it.type.safeType) // TODO: default value for nullable properties
             }
@@ -60,11 +63,21 @@ class ClientRestInterfaceEmitter : CodeEmitter {
                 write("return try {")
                 indent(newLineBefore = true, newLineAfter = true) {
                     // call delegate
-                    write("val response = delegate.${request.name.render()}(")
-                    val parameterNames = request.parameters.mapTo(mutableListOf()) { it.name.render() }
-                    request.body?.let { parameterNames.add("body") }
-                    write(parameterNames.joinToString())
-                    writeln(")")
+                    writeln("val response = try {")
+                    indent {
+                        write("delegate.${request.name.render()}(")
+                        val parameterNames = request.parameters.mapTo(mutableListOf()) { it.name.render() }
+                        request.body?.let { parameterNames.add("body") }
+                        write(parameterNames.joinToString())
+                        writeln(").toResponse()")
+                    }
+                    writeln("} catch (e: WebApplicationException) {")
+                    indent {
+                        writeln("e.response")
+                    }
+                    writeln("}")
+
+                    writeln("val entity = response.readEntity(String::class.java)" )
 
                     writeln("val statusCode = RestResponse.Status.fromStatusCode(response.status)")
                     writeln()
@@ -139,7 +152,7 @@ class ClientRestInterfaceEmitter : CodeEmitter {
 
     private fun CodeWriter.emitTypeConversion(typeDefinitionUsage: TypeDefinitionUsage) {
         getClientTransformStatement(
-            "response".variableName().pathExpression().then("entity".variableName()),
+            "entity".variableName().pathExpression(),
             typeDefinitionUsage, "response.body".stringExpression()
         ).render(this)
         writeln(forceNewLine = false)
