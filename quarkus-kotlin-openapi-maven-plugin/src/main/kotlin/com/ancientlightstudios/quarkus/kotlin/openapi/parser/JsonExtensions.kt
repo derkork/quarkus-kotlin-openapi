@@ -3,6 +3,7 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.parser
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ArrayNode
 import com.fasterxml.jackson.databind.node.ObjectNode
+import com.fasterxml.jackson.databind.node.ValueNode
 
 /**
  * returns this node as an object node if possible or throws an IllegalStateException
@@ -18,7 +19,7 @@ fun JsonNode?.asObjectNode(message: () -> String) =
  */
 fun JsonNode?.asArrayNode(message: () -> String) =
     when {
-        this != null&& this.isArray -> this as ArrayNode
+        this != null && this.isArray -> this as ArrayNode
         else -> throw IllegalStateException(message())
     }
 
@@ -44,6 +45,16 @@ fun JsonNode?.getTextOrNull(property: String): String? = this?.get(property)?.as
  */
 fun JsonNode?.getBooleanOrNull(property: String): Boolean? = this?.get(property)?.asBoolean()
 
+/**
+ * returns the value of a property. Supports array properties as well as single-value properties. Returns
+ * null if the property doesn't exist or the current node is null
+ */
+fun JsonNode?.getMultiValue(property: String) = when (val node = this?.get(property)) {
+    null -> null
+    is ArrayNode -> node.toList()
+    is ValueNode -> listOf(node)
+    else -> throw IllegalArgumentException("${node.javaClass.simpleName} not supported")
+}
 
 
 //fun JsonNode?.getAsObjectNode(property: String): ObjectNode =
