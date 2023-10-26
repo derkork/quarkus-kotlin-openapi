@@ -34,18 +34,18 @@ class SchemaBuilder(private val node: ObjectNode) {
 
     private fun ParseContext.extractPrimaryType() = when (openApiVersion) {
         OpenApiVersion.V3_0 -> node.getTextOrNull("type")
-        OpenApiVersion.V3_1 -> node.withArray("type")
-            .map { it.asText() }
-            .filterNot { it == "null" }
-            .also { check(it.size <= 1) { "Schema with multiple types (beside null) not yet supported. $contextPath" } }
-            .firstOrNull()
+        OpenApiVersion.V3_1 -> node.getMultiValue("type")
+            ?.map { it.asText() }
+            ?.filterNot { it == "null" }
+            ?.also { check(it.size <= 1) { "Schema with multiple types (beside null) not yet supported. $contextPath" } }
+            ?.firstOrNull()
     }
 
     private fun ParseContext.isNullable() = when (openApiVersion) {
         OpenApiVersion.V3_0 -> node.getBooleanOrNull("nullable") ?: false
-        OpenApiVersion.V3_1 -> node.withArray("type")
-            .map { it.asText() }
-            .contains("null")
+        OpenApiVersion.V3_1 -> node.getMultiValue("type")
+            ?.map { it.asText() }
+            ?.contains("null") ?: false
     }
 
     private fun ParseContext.extractSchemaReference(ref: String): Schema {

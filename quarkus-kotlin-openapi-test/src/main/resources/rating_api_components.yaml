@@ -1,21 +1,18 @@
 components:
   schemas:
     Id:
-      type:
-        - string
+      type: string
       format: uuid
 
 
     Score:
-      type:
-        - number
+      type: number
       format: double
       minimum: 1
       maximum: 10
 
     IdAware:
-      type:
-        - object
+      type: object
       properties:
         id:
           $ref: "#/components/schemas/Id"
@@ -24,8 +21,7 @@ components:
 
 
     Rating:
-      type:
-        - object
+      type: object
       properties:
         id:
           $ref: "#/components/schemas/Id"
@@ -42,8 +38,7 @@ components:
         - id
 
     MovieRating:
-      type:
-        - object
+      type: object
       allOf:
         - $ref: "#/components/schemas/IdAware"
         - properties:
@@ -58,8 +53,7 @@ components:
             - ratings
 
     InvalidInputError:
-      type:
-        - object
+      type: object
       properties:
         errors:
           type:
@@ -71,12 +65,10 @@ components:
         - errors
 
     ApplicationError:
-      type:
-        - object
+      type: object
       properties:
         message:
-          type:
-            - string
+          type: string
       required:
         - message
 
