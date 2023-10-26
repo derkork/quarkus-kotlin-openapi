@@ -124,7 +124,7 @@ fun Maybe<String?>.validateString(block: StringValidator.(String) -> Unit): Mayb
 
 @JvmName("validateStringWithWrapper")
 @Suppress("unused")
-fun Maybe<TypeWrapper<String>?>.validateString(block: StringValidator.(String) -> Unit): Maybe<TypeWrapper<String>?> =
+fun <W: TypeWrapper<String>> Maybe<W?>.validateString(block: StringValidator.(String) -> Unit): Maybe<W?> =
     onNotNull {
         val errors = StringValidator(context).apply { this.block(value.value) }.validationErrors
         if (errors.isEmpty()) {
