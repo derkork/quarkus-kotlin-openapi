@@ -21,7 +21,7 @@ private fun CodeWriter.render(validation: StringValidation) {
                 writeln("it.minLength(${validation.minLength})")
             }
             if (validation.maxLength != null) {
-                writeln("it.maxLength(${validation.minLength})")
+                writeln("it.maxLength(${validation.maxLength})")
             }
             if (validation.pattern != null) {
                 writeln("it.pattern(\"${validation.pattern}\")")
@@ -40,7 +40,7 @@ private fun CodeWriter.render(valueTransform: (String) -> Expression, validation
                 writeln("it.minimum(${valueTransform(validation.minimum.value).evaluate()}, ${validation.minimum.exclusive})")
             }
             if (validation.maximum != null) {
-                writeln("it.minimum(${valueTransform(validation.maximum.value).evaluate()}, ${validation.maximum.exclusive})")
+                writeln("it.maximum(${valueTransform(validation.maximum.value).evaluate()}, ${validation.maximum.exclusive})")
             }
         }
         writeln("}")
@@ -56,7 +56,7 @@ private fun CodeWriter.render(validation: ArrayValidation) {
                 writeln("it.minSize(${validation.minSize})")
             }
             if (validation.maxSize != null) {
-                writeln("it.maxSize(${validation.minSize})")
+                writeln("it.maxSize(${validation.maxSize})")
             }
         }
         writeln("}")
