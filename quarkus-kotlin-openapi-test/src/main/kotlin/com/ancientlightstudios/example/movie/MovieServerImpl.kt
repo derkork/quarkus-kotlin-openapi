@@ -1,6 +1,9 @@
 package com.ancientlightstudios.example.movie
 
-import com.ancientlightstudios.example.movie.model.*
+import com.ancientlightstudios.example.movie.model.ApplicationError
+import com.ancientlightstudios.example.movie.model.InvalidInputError
+import com.ancientlightstudios.example.movie.model.Movie
+import com.ancientlightstudios.example.movie.model.RatingDown
 import com.ancientlightstudios.example.movie.server.*
 import com.ancientlightstudios.example.rating.client.AddMovieRatingResponse
 import com.ancientlightstudios.example.rating.client.DeleteMovieRatingResponse
@@ -13,13 +16,11 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.ValidationError
 import com.ancientlightstudios.quarkus.kotlin.openapi.validOrElse
 import jakarta.enterprise.context.ApplicationScoped
 import java.util.*
-import com.ancientlightstudios.example.rating.model.Id as RatingId
-import  com.ancientlightstudios.example.rating.model.Score as RatingScore
 
 @ApplicationScoped
 class MovieServerImpl(val ratingClient: RatingServiceClient) : MovieServerDelegate {
 
-    private val movieDataBase = mutableMapOf<Id, Movie>()
+    private val movieDataBase = mutableMapOf<String, Movie>()
 
     override suspend fun findMovies(request: Maybe<FindMoviesRequest>): FindMoviesResponse {
         val validRequest = request.validOrElse { return FindMoviesResponse.badRequest(it.asResponseBody()) }
@@ -29,7 +30,7 @@ class MovieServerImpl(val ratingClient: RatingServiceClient) : MovieServerDelega
             filteredMovies = filteredMovies.filter { it.title.contains(validRequest.title, true) }
         }
         if (validRequest.score != null) {
-            filteredMovies = filteredMovies.filter { (it.totalScore?.value ?: 0.0) >= validRequest.score.value }
+            filteredMovies = filteredMovies.filter { (it.totalScore ?: 0.0) >= validRequest.score }
         }
         if (!validRequest.genre.isNullOrEmpty()) {
             filteredMovies = filteredMovies.filter { it.genres.intersect(validRequest.genre).isNotEmpty() }
@@ -86,10 +87,8 @@ class MovieServerImpl(val ratingClient: RatingServiceClient) : MovieServerDelega
         val movie = findMovieOrElse(validRequest.movieId) { return AddRatingResponse.notFound(it) }
         val body = validRequest.body
 
-        val clientResponse = ratingClient.addMovieRating(
-            movie.id.toRatingId(),
-            RatingUp(body.source, body.score.toRatingScore())
-        ) as? RequestResult.Response ?: return AddRatingResponse.badGateway(ApplicationError("scheisse passiert"))
+        val clientResponse = ratingClient.addMovieRating(movie.id, RatingUp(body.source, body.score))
+                as? RequestResult.Response ?: return AddRatingResponse.badGateway(ApplicationError("scheisse passiert"))
 
         return when (clientResponse.response) {
             is AddMovieRatingResponse.NoContent -> AddRatingResponse.noContent()
@@ -102,14 +101,14 @@ class MovieServerImpl(val ratingClient: RatingServiceClient) : MovieServerDelega
         val validRequest = request.validOrElse { return GetRatingsResponse.badRequest(it.asResponseBody()) }
         findMovieOrElse(validRequest.movieId) { return GetRatingsResponse.notFound(it) }
 
-        val clientResponse = ratingClient.getMovieRating(validRequest.movieId.toRatingId())
+        val clientResponse = ratingClient.getMovieRating(validRequest.movieId)
                 as? RequestResult.Response
             ?: return GetRatingsResponse.badGateway(ApplicationError("scheisse passiert"))
 
 
         return when (val theResponse = clientResponse.response) {
             is GetMovieRatingResponse.Ok -> GetRatingsResponse.ok(
-                theResponse.safeBody.ratings.map { RatingDown(it.id.toId(), it.source, it.score.toScore()) }
+                theResponse.safeBody.ratings.map { RatingDown(it.id, it.source, it.score) }
             )
 
             is GetMovieRatingResponse.NotFound -> GetRatingsResponse.ok(emptyList())
@@ -123,7 +122,7 @@ class MovieServerImpl(val ratingClient: RatingServiceClient) : MovieServerDelega
         findMovieOrElse(validRequest.movieId) { return DeleteRatingResponse.noContent() }
         val ratingId = validRequest.ratingId
 
-        val clientResponse = ratingClient.deleteMovieRating(validRequest.movieId.toRatingId(), ratingId.toRatingId())
+        val clientResponse = ratingClient.deleteMovieRating(validRequest.movieId, ratingId)
                 as? RequestResult.Response
             ?: return DeleteRatingResponse.badGateway(ApplicationError("scheisse passiert"))
 
@@ -133,19 +132,12 @@ class MovieServerImpl(val ratingClient: RatingServiceClient) : MovieServerDelega
         }
     }
 
-    private inline fun findMovieOrElse(movieId: Id, block: (ApplicationError) -> Nothing) =
-        movieDataBase[movieId] ?: block(ApplicationError("movie with id ${movieId.value} not found"))
+    private inline fun findMovieOrElse(movieId: String, block: (ApplicationError) -> Nothing) =
+        movieDataBase[movieId] ?: block(ApplicationError("movie with id $movieId not found"))
 
 }
 
-fun generateId() = Id(UUID.randomUUID().toString())
-
-fun Id.toRatingId() = RatingId(this.value)
-fun RatingId.toId() = Id(this.value)
-
-fun Score.toRatingScore() = RatingScore(this.value)
-
-fun RatingScore.toScore() = Score(this.value)
+fun generateId() = UUID.randomUUID().toString()
 
 fun List<ValidationError>.asResponseBody() =
     InvalidInputError(this.map { "'${it.path}': ${it.message}" })

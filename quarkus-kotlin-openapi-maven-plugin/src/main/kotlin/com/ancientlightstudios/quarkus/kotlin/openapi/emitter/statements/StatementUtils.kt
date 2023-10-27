@@ -27,17 +27,6 @@ fun KotlinMethod.addTransformStatement(
             typeDefinitionUsage.valueTransform
         )
 
-        is SharedPrimitiveTypeUsage -> PrimitiveToMaybeTransformStatement(
-            targetName,
-            source,
-            parameterContext,
-            typeDefinitionUsage.name,
-            typeDefinitionUsage.defaultValue,
-            !typeDefinitionUsage.nullable,
-            typeDefinitionUsage.validation,
-            typeDefinitionUsage.valueTransform
-        )
-
         is EnumTypeUsage -> EnumToMaybeTransformStatement(
             targetName,
             source,
@@ -117,17 +106,6 @@ fun getClientTransformStatement(
             typeDefinitionUsage.valueTransform
         )
 
-        is SharedPrimitiveTypeUsage -> PrimitiveToMaybeTransformStatement(
-            null,
-            parameterName,
-            parameterContext,
-            typeDefinitionUsage.name,
-            typeDefinitionUsage.defaultValue,
-            !typeDefinitionUsage.nullable,
-            typeDefinitionUsage.validation,
-            typeDefinitionUsage.valueTransform
-        )
-
         is EnumTypeUsage -> EnumToMaybeTransformStatement(
             null,
             parameterName,
@@ -171,10 +149,6 @@ private fun nestedTransformStatement(
     return when (typeUsage) {
         is InlinePrimitiveTypeUsage -> NestedPrimitiveTransformStatement(
             source, typeUsage.primitiveTypeName, !typeUsage.nullable, typeUsage.validation, typeUsage.valueTransform
-        )
-
-        is SharedPrimitiveTypeUsage -> NestedPrimitiveTransformStatement(
-            source, typeUsage.name, !typeUsage.nullable, typeUsage.validation, typeUsage.valueTransform
         )
 
         is EnumTypeUsage -> NestedEnumTransformStatement(
