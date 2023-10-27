@@ -31,6 +31,9 @@ class ClientRestInterfaceEmitter : CodeEmitter {
             registerImport("org.eclipse.microprofile.rest.client.inject.RestClient")
             registerImport("jakarta.ws.rs", wildcardImport = true)
             registerImport("java.util.concurrent.TimeoutException")
+            validatorPackage?.let {
+                registerImport(it, wildcardImport = true)
+            }
 
             kotlinClass(fileName, false) {
                 kotlinAnnotation("ApplicationScoped".rawClassName())

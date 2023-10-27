@@ -30,6 +30,10 @@ class UnsafeObjectModelEmitter(private val direction: FlowDirection) : CodeEmitt
             registerImport("io.quarkus.runtime.annotations.RegisterForReflection")
             registerImport("com.fasterxml.jackson.annotation.JsonProperty")
             registerImport(apiPackage(), wildcardImport = true)
+            validatorPackage?.let {
+                registerImport(it, wildcardImport = true)
+            }
+
 
             kotlinClass(fileName, asDataClass = true) {
                 addReflectionAnnotation()

@@ -28,6 +28,12 @@ class Config(
      * The package name of the generated classes.
      */
     val packageName: String,
+
+    /**
+     * The package name where custom validators are located. Defaults to $packageName.model if not set.
+     */
+    val validatorPackageName: String?,
+
     /**
      * The directory where the generated sources should be put
      */

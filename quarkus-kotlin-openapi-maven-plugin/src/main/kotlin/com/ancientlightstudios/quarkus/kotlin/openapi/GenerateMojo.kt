@@ -40,6 +40,12 @@ class GenerateMojo : AbstractMojo() {
     lateinit var packageName: String
 
     /**
+     * The package name where custom validators are located. Defaults to $packageName.model if not set.
+     */
+    @Parameter
+    var validatorPackageName: String? = null
+
+    /**
      * The name of the interface to generate.
      */
     @Parameter(defaultValue = "ExampleInterface")
@@ -70,6 +76,7 @@ class GenerateMojo : AbstractMojo() {
             debugOutputFile,
             interfaceName,
             packageName,
+            validatorPackageName,
             outputDirectory.path,
             pathPrefix,
             endpoints,

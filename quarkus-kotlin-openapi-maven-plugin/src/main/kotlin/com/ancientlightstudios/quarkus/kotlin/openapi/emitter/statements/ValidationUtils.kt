@@ -2,6 +2,7 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.emitter.statements
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.Expression
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.StringExpression.Companion.stringExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.schema.validation.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.MethodName.Companion.methodName
@@ -24,7 +25,7 @@ private fun CodeWriter.render(validation: StringValidation) {
                 writeln("it.maxLength(${validation.maxLength})")
             }
             if (validation.pattern != null) {
-                writeln("it.pattern(\"${validation.pattern}\")")
+                writeln("it.pattern(${validation.pattern.stringExpression().evaluate()})")
             }
         }
         writeln("}")
