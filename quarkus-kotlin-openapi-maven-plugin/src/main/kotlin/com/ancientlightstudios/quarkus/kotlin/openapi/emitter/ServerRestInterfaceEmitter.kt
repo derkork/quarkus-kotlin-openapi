@@ -23,6 +23,9 @@ class ServerRestInterfaceEmitter : CodeEmitter {
             registerImport(modelPackage(), wildcardImport = true)
             registerImport(apiPackage(), wildcardImport = true)
             registerImport("org.jboss.resteasy.reactive.RestResponse")
+            validatorPackage?.let {
+                registerImport(it, wildcardImport = true)
+            }
 
             kotlinClass(fileName, false) {
                 addPathAnnotation(pathPrefix)
