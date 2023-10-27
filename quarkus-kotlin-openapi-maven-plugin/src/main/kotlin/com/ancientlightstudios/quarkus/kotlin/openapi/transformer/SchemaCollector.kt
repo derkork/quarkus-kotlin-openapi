@@ -1,6 +1,7 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.transformer
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.schema.*
+import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
 
 class SchemaInfo(val style: ObjectStyle, direction: FlowDirection, val name: String) {
 
@@ -25,7 +26,7 @@ class SchemaCollector {
     }
 
     private fun registerSchema(schema: Schema, direction: FlowDirection, namingHint: () -> String): ObjectStyle {
-        if (schema is PrimitiveSchemaDefinition) {
+        if (schema is Schema.PrimitiveSchema) {
             // it's an inline primitive type
             return ObjectStyle.Single
         }
@@ -42,7 +43,8 @@ class SchemaCollector {
 
         // TODO: This treats references just as pointers. As soon as they can modify a scheme, we need to change this implementation
         return when (definition) {
-            is PrimitiveSchemaDefinition, is EnumSchemaDefinition -> registerSimpleSchema(definition, direction, name)
+            is PrimitiveSchemaDefinition -> ProbableBug("a PrimitiveSchema should never reach this point.")
+            is EnumSchemaDefinition -> registerSimpleSchema(definition, direction, name)
             is ArraySchemaDefinition -> registerSchema(definition.itemSchema, direction) { "$name item" }
             is ObjectSchemaDefinition, is AllOfSchemaDefinition -> registerObjectSchema(definition, direction, name)
             is OneOfSchemaDefinition -> TODO("OneOf schemas not yet implemented")

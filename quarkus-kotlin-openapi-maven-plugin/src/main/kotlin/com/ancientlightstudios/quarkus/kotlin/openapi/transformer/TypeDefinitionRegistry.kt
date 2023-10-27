@@ -5,6 +5,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.Cl
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName.Companion.className
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName.Companion.rawClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.typedefinition.*
+import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.primitiveTypeFor
 
 class TypeDefinitionRegistry(private val schemas: MutableMap<SchemaDefinition, SchemaInfo>) {
@@ -21,7 +22,7 @@ class TypeDefinitionRegistry(private val schemas: MutableMap<SchemaDefinition, S
         }
     }
 
-    // TODO: can never be an inline primitive. see schema collector and build it in a cleaner way
+    // TODO: can never be an primitive. see schema collector and build it in a cleaner way
     private fun buildTypeDefinition(definition: SchemaDefinition, direction: FlowDirection): TypeDefinition {
         // do we already have a type definition?
         val existingTypeDefinition = typeDefinitions[definition]?.get(direction)
@@ -30,8 +31,7 @@ class TypeDefinitionRegistry(private val schemas: MutableMap<SchemaDefinition, S
         }
 
         // we have to build this thing
-
-        val info = schemas[definition] ?: throw IllegalArgumentException(definition.toString())
+        val info = schemas[definition] ?: ProbableBug("Schema $definition not found")
 
         val asSingleClass = info.style == ObjectStyle.Single ||
                 (info.style == ObjectStyle.Multiple && info.directions.size == 1)
@@ -42,7 +42,7 @@ class TypeDefinitionRegistry(private val schemas: MutableMap<SchemaDefinition, S
         }.className()
 
         val typeDefinition = when (definition) {
-            is PrimitiveSchemaDefinition -> sharedPrimitiveTypeDefinition(name, definition)
+            is PrimitiveSchemaDefinition -> ProbableBug("a PrimitiveSchema should never reach this point.")
             is EnumSchemaDefinition -> enumTypeDefinition(name, definition)
             is ArraySchemaDefinition -> collectionTypeDefinition(definition, direction)
             is ObjectSchemaDefinition -> objectTypeDefinition(name, definition, direction)
@@ -56,8 +56,8 @@ class TypeDefinitionRegistry(private val schemas: MutableMap<SchemaDefinition, S
     }
 
     fun getTypeDefinition(schema: Schema, direction: FlowDirection): TypeDefinition {
-        if (schema is PrimitiveSchemaDefinition) {
-            // it's an inline primitive type
+        if (schema is Schema.PrimitiveSchema) {
+            // it's a primitive type
             return InlinePrimitiveTypeDefinition(primitiveTypeFor(schema.type, schema.format), schema)
         }
         if (schema is ArraySchemaDefinition) {
@@ -68,16 +68,6 @@ class TypeDefinitionRegistry(private val schemas: MutableMap<SchemaDefinition, S
         // TODO: This treats references just as pointers. As soon as they can modify a scheme, we need to change this implementation
         val definition = getSchemaDefinition(schema)
         return buildTypeDefinition(definition, direction)
-    }
-
-    private fun sharedPrimitiveTypeDefinition(name: ClassName, definition: PrimitiveSchemaDefinition): TypeDefinition {
-        val result = SharedPrimitiveTypeDefinition(
-            nameRegistry.uniqueNameFor(name),
-            primitiveTypeFor(definition.type, definition.format),
-            definition
-        )
-        typeDefinitions[definition] = mutableMapOf(FlowDirection.Up to result, FlowDirection.Down to result)
-        return result
     }
 
     private fun enumTypeDefinition(name: ClassName, definition: EnumSchemaDefinition): TypeDefinition {

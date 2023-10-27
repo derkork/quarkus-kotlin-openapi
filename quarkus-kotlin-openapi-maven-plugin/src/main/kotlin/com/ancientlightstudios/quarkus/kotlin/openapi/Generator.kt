@@ -60,7 +60,6 @@ class Generator(private val config: Config) {
         }
 
         codeEmitters.add(EnumModelEmitter())
-        codeEmitters.add(SharedPrimitiveModelEmitter())
         codeEmitters.add(SafeObjectModelEmitter())
 
         codeEmitters.forEach {
