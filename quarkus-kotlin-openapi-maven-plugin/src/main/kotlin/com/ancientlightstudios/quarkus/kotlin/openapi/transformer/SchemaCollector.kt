@@ -47,8 +47,8 @@ class SchemaCollector {
             is EnumSchemaDefinition -> registerSimpleSchema(definition, direction, name)
             is ArraySchemaDefinition -> registerSchema(definition.itemSchema, direction) { "$name item" }
             is ObjectSchemaDefinition, is AllOfSchemaDefinition -> registerObjectSchema(definition, direction, name)
-            is OneOfSchemaDefinition -> TODO("OneOf schemas not yet implemented")
-            is AnyOfSchemaDefinition -> TODO("AnyOf schemas not yet implemented")
+            is OneOfSchemaDefinition -> registerOneOfSchema(definition, direction, name)
+            is AnyOfSchemaDefinition -> registerAnyOfSchema(definition, direction, name)
         }
     }
 
@@ -77,6 +77,36 @@ class SchemaCollector {
         }
 
         val result = if (propertyStyles.contains(ObjectStyle.Multiple)) {
+            ObjectStyle.Multiple
+        } else {
+            ObjectStyle.Single
+        }
+
+        schemaData[definition] = SchemaInfo(result, direction, name)
+        return result
+    }
+
+    fun registerAnyOfSchema(definition: AnyOfSchemaDefinition, direction: FlowDirection, name: String) : ObjectStyle{
+        val styles = definition.schemas.mapIndexed { index, schema ->
+            registerSchema(schema, direction) { "$name option $index" }
+        }
+
+        val result = if (styles.contains(ObjectStyle.Multiple)) {
+            ObjectStyle.Multiple
+        } else {
+            ObjectStyle.Single
+        }
+
+        schemaData[definition] = SchemaInfo(result, direction, name)
+        return result
+    }
+
+    fun registerOneOfSchema(definition: OneOfSchemaDefinition, direction: FlowDirection, name: String) : ObjectStyle{
+        val styles = definition.schemas.mapIndexed { index, schema ->
+            registerSchema(schema, direction) { "$name option $index" }
+        }
+
+        val result = if (styles.contains(ObjectStyle.Multiple)) {
             ObjectStyle.Multiple
         } else {
             ObjectStyle.Single

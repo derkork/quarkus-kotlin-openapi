@@ -64,4 +64,23 @@ class CodeWriter private constructor(
         }
     }
 
+    fun block(
+        newLineBefore: Boolean = false,
+        newLineAfter: Boolean = false,
+        forceNewLine: Boolean = false,
+        block: CodeWriter.() -> Unit
+    ) {
+        if (newLineBefore) {
+            writeln(forceNewLine)
+        }
+
+        writeln("{")
+        indent(newLineAfter = true, forceNewLine = false, block = block)
+        write("}")
+
+        if (newLineAfter) {
+            writeln()
+        }
+    }
+
 }

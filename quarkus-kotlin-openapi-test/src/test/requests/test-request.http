@@ -1,8 +1,8 @@
-GET http://localhost:8080/movies
+GET http://localhost:8080/test-support/movies
 
 ###
 
-POST http://localhost:8080/movies
+POST http://localhost:8080/test-support/movies
 Content-Type: application/json
 
 {

@@ -1,9 +1,6 @@
 package com.ancientlightstudios.example.movie
 
-import com.ancientlightstudios.example.movie.model.ApplicationError
-import com.ancientlightstudios.example.movie.model.InvalidInputError
-import com.ancientlightstudios.example.movie.model.Movie
-import com.ancientlightstudios.example.movie.model.RatingDown
+import com.ancientlightstudios.example.movie.model.*
 import com.ancientlightstudios.example.movie.server.*
 import com.ancientlightstudios.example.rating.client.AddMovieRatingResponse
 import com.ancientlightstudios.example.rating.client.DeleteMovieRatingResponse
@@ -24,7 +21,7 @@ class MovieServerImpl(val ratingClient: RatingServiceClient) : MovieServerDelega
 
     override suspend fun findMovies(request: Maybe<FindMoviesRequest>): FindMoviesResponse {
         val validRequest = request.validOrElse { return FindMoviesResponse.badRequest(it.asResponseBody()) }
-
+             
         var filteredMovies = movieDataBase.values.toList()
         if (validRequest.title != null) {
             filteredMovies = filteredMovies.filter { it.title.contains(validRequest.title, true) }

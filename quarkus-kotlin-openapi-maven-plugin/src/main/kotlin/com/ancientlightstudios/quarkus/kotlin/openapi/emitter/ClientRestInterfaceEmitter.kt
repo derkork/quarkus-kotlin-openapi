@@ -1,9 +1,8 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.statements.getClientTransformStatement
+import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.statements.getTransformStatement
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.PathExpression.Companion.pathExpression
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.StringExpression.Companion.stringExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ResponseCode
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.Request
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.RequestSuite
@@ -35,7 +34,7 @@ class ClientRestInterfaceEmitter : CodeEmitter {
                 registerImport(it, wildcardImport = true)
             }
 
-            kotlinClass(fileName, false) {
+            kotlinClass(fileName) {
                 kotlinAnnotation("ApplicationScoped".rawClassName())
 
                 kotlinMember("delegate".variableName(), suite.name.extend(postfix = "Delegate").typeName()) {
@@ -81,7 +80,10 @@ class ClientRestInterfaceEmitter : CodeEmitter {
                     }
                     writeln("}")
 
-                    writeln("val entity = response.readEntity(String::class.java)" )
+                    writeln("val entity = response.readEntity(String::class.java)")
+                    indent {
+                        writeln(".parseAsJson(\"response.body\", objectMapper)")
+                    }
 
                     writeln("val statusCode = RestResponse.Status.fromStatusCode(response.status)")
                     writeln()
@@ -136,7 +138,7 @@ class ClientRestInterfaceEmitter : CodeEmitter {
         indent(newLineBefore = true, newLineAfter = true) {
             if (typeDefinitionUsage != null) {
                 emitTypeConversion(typeDefinitionUsage)
-                write(".onSuccess { success(RequestResult.Response(${returnType.render()}.${responseCode.statusCodeReason()}(value))) }")
+                write("maybe.onSuccess { success(RequestResult.Response(${returnType.render()}.${responseCode.statusCodeReason()}(value))) }")
             } else {
                 write("Maybe.Success(\"response.body\", RequestResult.Response(${returnType.render()}.${responseCode.statusCodeReason()}()))")
             }
@@ -152,7 +154,7 @@ class ClientRestInterfaceEmitter : CodeEmitter {
         indent(newLineBefore = true, newLineAfter = true) {
             if (typeDefinitionUsage != null) {
                 emitTypeConversion(typeDefinitionUsage)
-                write(".onSuccess { success(RequestResult.Response(${returnType.render()}.Default(statusCode, value))) }")
+                write("maybe.onSuccess { success(RequestResult.Response(${returnType.render()}.Default(statusCode, value))) }")
             } else {
                 write("Maybe.Success(\"response.body\", RequestResult.Response(${returnType.render()}.Default(statusCode)))")
             }
@@ -161,10 +163,9 @@ class ClientRestInterfaceEmitter : CodeEmitter {
     }
 
     private fun CodeWriter.emitTypeConversion(typeDefinitionUsage: TypeDefinitionUsage) {
-        getClientTransformStatement(
-            "entity".variableName().pathExpression(),
-            typeDefinitionUsage, "response.body".stringExpression()
-        ).render(this)
+        val parameter = "maybe".variableName()
+        val source = "entity".variableName().pathExpression()
+        getTransformStatement(source, parameter, typeDefinitionUsage, true).render(this)
         writeln(forceNewLine = false)
     }
 

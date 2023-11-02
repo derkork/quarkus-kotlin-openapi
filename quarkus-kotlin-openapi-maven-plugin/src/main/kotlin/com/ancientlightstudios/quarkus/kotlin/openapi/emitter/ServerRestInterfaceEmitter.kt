@@ -1,9 +1,10 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.statements.RequestBuilderTransformStatement
-import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.statements.addTransformStatement
+import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.statements.getTransformStatement
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.ArrayExpression.Companion.arrayExpression
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.PathExpression.Companion.pathExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.StringExpression.Companion.stringExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.Request
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.RequestSuite
@@ -27,7 +28,7 @@ class ServerRestInterfaceEmitter : CodeEmitter {
                 registerImport(it, wildcardImport = true)
             }
 
-            kotlinClass(fileName, false) {
+            kotlinClass(fileName) {
                 addPathAnnotation(pathPrefix)
 
                 kotlinMember("delegate".variableName(), suite.name.extend(postfix = "Delegate").typeName())
@@ -44,8 +45,11 @@ class ServerRestInterfaceEmitter : CodeEmitter {
         kotlinMethod(request.name, true, "RestResponse<*>".rawTypeName()) {
             kotlinAnnotation(request.method.name.uppercase().rawClassName())
             addPathAnnotation(request.path)
-            if (request.responses.any { it.second !=null }) {
-                kotlinAnnotation("Produces".rawClassName(), "value".variableName() to "application/json".stringExpression().arrayExpression())
+            if (request.responses.any { it.second != null }) {
+                kotlinAnnotation(
+                    "Produces".rawClassName(),
+                    "value".variableName() to "application/json".stringExpression().arrayExpression()
+                )
             }
 
             val statement = RequestBuilderTransformStatement(
@@ -59,20 +63,28 @@ class ServerRestInterfaceEmitter : CodeEmitter {
                         "value".variableName() to it.name.render().stringExpression()
                     )
                 }
-                addTransformStatement(
-                    it.name, it.type,
-                    "request.${it.source.name.lowercase()}.${it.name.render()}".stringExpression(), false
-                ).also(statement::addParameter)
+                val parameter = it.name.extend(postfix = "maybe")
+                val source = it.name.parameterToMaybeExpression(
+                    "request.${it.source.name.lowercase()}.${it.name.render()}".stringExpression()
+                )
+                addStatement(getTransformStatement(source, parameter, it.type, false))
+                statement.addParameter(parameter)
             }
 
             request.body?.let {
                 kotlinParameter("body".variableName(), "String".rawTypeName(true))
-                kotlinAnnotation("Consumes".rawClassName(), "value".variableName() to "application/json".stringExpression().arrayExpression())
+                kotlinAnnotation(
+                    "Consumes".rawClassName(),
+                    "value".variableName() to "application/json".stringExpression().arrayExpression()
+                )
 
-                addTransformStatement(
-                    "body".variableName(), it,
-                    "request.body".stringExpression(), true
-                ).also(statement::addParameter)
+                kotlinStatement {
+                    write("val node = body.parseAsJson(\"request.body\", objectMapper)")
+                }
+                val parameter = "body".variableName().extend(postfix = "maybe")
+                val source = "node".variableName().pathExpression()
+                addStatement(getTransformStatement(source, parameter, it, true))
+                statement.addParameter(parameter)
             }
 
             addStatement(statement)

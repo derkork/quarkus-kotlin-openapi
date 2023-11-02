@@ -1,29 +1,30 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.statements.SafeObjectBuilderTransformStatement
+import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.statements.AnyOfBuilderTransformStatement
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.statements.getTransformStatement
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.PathExpression.Companion.pathExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.RequestSuite
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.MethodName.Companion.methodName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName.GenericTypeName.Companion.of
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName.SimpleTypeName.Companion.rawTypeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName.SimpleTypeName.Companion.typeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.VariableName.Companion.variableName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.typedefinition.ObjectTypeDefinition
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.typedefinition.AnyOfTypeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.transformer.FlowDirection
 import com.ancientlightstudios.quarkus.kotlin.openapi.transformer.TypeDefinitionRegistry
 
-class UnsafeObjectModelEmitter(private val direction: FlowDirection) : CodeEmitter {
+class UnsafeAnyOfModelEmitter(private val direction: FlowDirection) : CodeEmitter {
 
     override fun EmitterContext.emit(suite: RequestSuite, typeDefinitionRegistry: TypeDefinitionRegistry) {
         typeDefinitionRegistry.getAllTypeDefinitions(direction)
-            .filterIsInstance<ObjectTypeDefinition>()
+            .filterIsInstance<AnyOfTypeDefinition>()
             .forEach {
                 emitModel(it)
             }
     }
 
-    private fun EmitterContext.emitModel(definition: ObjectTypeDefinition) {
+    private fun EmitterContext.emitModel(definition: AnyOfTypeDefinition) {
         kotlinFile(modelPackage(), definition.name.extend(postfix = "Unsafe")) {
             registerImport("com.fasterxml.jackson.databind.JsonNode")
             registerImport(apiPackage(), wildcardImport = true)
@@ -38,12 +39,14 @@ class UnsafeObjectModelEmitter(private val direction: FlowDirection) : CodeEmitt
                 kotlinMethod("asSafe".methodName(), returnType = "Maybe".typeName().of(definition.name)) {
                     kotlinParameter("context".variableName(), "String".rawTypeName())
 
-                    val returnStatement = SafeObjectBuilderTransformStatement(definition.name)
+                    val returnStatement = AnyOfBuilderTransformStatement(definition.name)
 
-                    definition.properties.forEach { (name, _, propertyTypeUsage) ->
-                        val source = "node".variableName().propertyToMaybeExpression(name)
-                        val parameter = name.variableName().extend(postfix = "maybe")
-                        addStatement(getTransformStatement(source, parameter, propertyTypeUsage, true))
+                    definition.schemas.forEach { schema ->
+                        val parameter = schema.safeType.variableName().extend(postfix = "maybe")
+                        val source = "node".variableName().parameterToMaybeExpression(
+                            "context".variableName().pathExpression()
+                        )
+                        addStatement(getTransformStatement(source, parameter, schema, true))
                         returnStatement.addParameter(parameter)
                     }
 

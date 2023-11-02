@@ -31,8 +31,8 @@ class ServerResponseContainerEmitter : CodeEmitter {
 
             val defaultResponseExists = request.responses.any { it.first == ResponseCode.Default }
 
-            kotlinClass(fileName, true) {
-                kotlinMember("response".variableName(), "RestResponse".rawTypeName().of("*".rawClassName()), private = false) {}
+            kotlinClass(fileName, constructorAccessModifier = KotlinAccessModifier.Private) {
+                kotlinMember("response".variableName(), "RestResponse".rawTypeName().of("*".rawClassName()), accessModifier = null) {}
                 kotlinCompanion {
                     emitGenericStatusMethod(fileName, defaultResponseExists)
 
@@ -48,7 +48,11 @@ class ServerResponseContainerEmitter : CodeEmitter {
     }
 
     private fun KotlinCompanion.emitGenericStatusMethod(className: ClassName, defaultResponseExists: Boolean) {
-        kotlinMethod("status".methodName(), bodyAsAssignment = true, private = defaultResponseExists) {
+        val accessModifier = when(defaultResponseExists) {
+            true -> KotlinAccessModifier.Private
+            false -> null
+        }
+        kotlinMethod("status".methodName(), bodyAsAssignment = true, accessModifier = accessModifier) {
             val statusVariable = "status".variableName()
             val bodyVariable = "body".variableName()
             kotlinParameter(statusVariable, "Int".rawTypeName())

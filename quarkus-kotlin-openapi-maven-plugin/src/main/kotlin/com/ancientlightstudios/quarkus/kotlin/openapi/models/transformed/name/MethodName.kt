@@ -1,5 +1,6 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name
 
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName.Companion.className
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.toKotlinIdentifier
 
 @Suppress("DataClassPrivateConstructor")
@@ -12,6 +13,8 @@ data class MethodName private constructor(private val name: String) : Name {
     companion object {
 
         fun String.methodName() = MethodName(toKotlinIdentifier())
+
+        fun Name.methodName() = render().methodName()
 
     }
 
