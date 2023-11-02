@@ -1,8 +1,8 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
+import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.MethodName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName
-import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
 
 // TODO: replace suspend, private and other stuff with a bit flag .e.g. Suspend | Private to avoid 5 more members for internal etc
 class KotlinMethod(
@@ -11,7 +11,7 @@ class KotlinMethod(
     private val returnType: TypeName? = null,
     private val receiverType: TypeName? = null,
     private val bodyAsAssignment: Boolean = false,
-    private val private: Boolean = false,
+    private val accessModifier: KotlinAccessModifier? = null,
 ) : KotlinRenderable, AnnotationAware, ParameterAware, StatementAware, CommentAware {
 
     private val annotations = KotlinAnnotationContainer()
@@ -42,9 +42,7 @@ class KotlinMethod(
         }
 
         annotations.render(this)
-        if (private) {
-            write("private ")
-        }
+        accessModifier?.let { write("${it.value} ") }
 
         if (suspend) {
             write("suspend ")
@@ -93,10 +91,10 @@ fun MethodAware.kotlinMethod(
     returnType: TypeName? = null,
     receiverType: TypeName? = null,
     bodyAsAssignment: Boolean = false,
-    private: Boolean = false,
+    accessModifier: KotlinAccessModifier? = null,
     block: KotlinMethod.() -> Unit = {}
 ) {
-    val content = KotlinMethod(name, suspend, returnType, receiverType, bodyAsAssignment, private).apply(block)
+    val content = KotlinMethod(name, suspend, returnType, receiverType, bodyAsAssignment, accessModifier).apply(block)
     addMethod(content)
 
 }

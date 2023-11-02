@@ -3,7 +3,7 @@
 - [ ] Endpunkte anhand der OpenAPI-Tags oder Konfigurationswerte in getrennte Server/Client-Interfaces splitten
 - [ ] Name für Klassen per Konfiguration ändern (z.B. um den erzeugten NAmen für inline-Klassen zu ändern, oder Namenskonflikte zu vermeiden) 
 - [ ] Operation-Id per Konfiguration änderbar (falls man mit einer fremden API arbeiten muß)
-- [ ] Validierung für Klassen änderbar/ergänzbar
+- [x] Validierung für Klassen änderbar/ergänzbar
 
 ## Parser
                
@@ -98,9 +98,13 @@
   ```
  
 ## Generator
-                
+
+- [ ] Discriminator für OneOf
+- [ ] Mehrfache Properties bei AnyOf/AllOf verhindern
+- [ ] Mischform für AllOf einbauen 
+- [ ] Enums können nicht nur vom Typ String sein
 - [x] referenzen auf referenzen
-- [ ] Consumes/Produces Annotation für verschiedene Datenformate (Json, Xml, Binär)
+- [x] Consumes/Produces Annotation für verschiedene Datenformate (Json, Xml, Binär)
 - [ ] @ClientHeaderParam im Client Interface
 - [ ] Zugriff auf Request-Header und setzen von Response-Header
 - [x] Zugriff auf Cookies

@@ -13,6 +13,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.Ty
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.VariableName.Companion.variableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.typedefinition.EnumTypeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.transformer.TypeDefinitionRegistry
+import com.fasterxml.jackson.databind.JsonNode
 
 class EnumModelEmitter : CodeEmitter {
 
@@ -28,9 +29,10 @@ class EnumModelEmitter : CodeEmitter {
         kotlinFile(modelPackage(), definition.name) {
             registerImport("com.fasterxml.jackson.annotation.JsonProperty")
             registerImport(apiPackage(), wildcardImport = true)
+            registerImport("com.fasterxml.jackson.databind.JsonNode")
 
             kotlinEnum(fileName) {
-                kotlinMember("value".variableName(), definition.primitiveType.typeName(), private = false)
+                kotlinMember("value".variableName(), definition.primitiveType.typeName(), accessModifier = null)
                 definition.sourceSchema.values.forEach {
                     // TODO: support different types
                     kotlinEnumItem(it.constantName(), it.stringExpression()) {
@@ -39,8 +41,9 @@ class EnumModelEmitter : CodeEmitter {
                 }
             }
 
+            val extensionMethodName = fileName.render().methodName().extend(prefix = "as")
             kotlinMethod(
-                fileName.render().methodName().extend(prefix = "as"),
+                extensionMethodName,
                 returnType = "Maybe".rawTypeName().of(fileName, true),
                 receiverType = "String".rawTypeName(true)
             ) {
@@ -65,11 +68,36 @@ class EnumModelEmitter : CodeEmitter {
             }
 
             kotlinMethod(
-                fileName.render().methodName().extend(prefix = "as"),
+                extensionMethodName,
                 returnType = "Maybe".rawTypeName().of(fileName, true),
                 receiverType = "Maybe".rawTypeName().of("String".rawClassName(), true),
                 bodyAsAssignment = true
             ) {
+                kotlinStatement {
+                    write("onNotNull { value.as${fileName.render()}(context) }")
+                }
+            }
+
+            kotlinMethod(
+                extensionMethodName,
+                returnType = "Maybe".rawTypeName().of(fileName, true),
+                receiverType = "JsonNode".rawTypeName(true),
+                bodyAsAssignment = true
+            ) {
+                kotlinParameter("context".variableName(), "String".typeName())
+
+                kotlinStatement {
+                    write("asString(context).as${fileName.render()}()")
+                }
+            }
+
+            kotlinMethod(
+                extensionMethodName,
+                returnType = "Maybe".rawTypeName().of(fileName, true),
+                receiverType = "Maybe".rawTypeName().of("JsonNode".rawClassName(), true),
+                bodyAsAssignment = true
+            ) {
+                kotlinAnnotation("JvmName".rawClassName(), "name".variableName() to "${extensionMethodName.render()}FromNode".stringExpression())
                 kotlinStatement {
                     write("onNotNull { value.as${fileName.render()}(context) }")
                 }

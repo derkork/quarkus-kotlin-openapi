@@ -301,15 +301,31 @@ components:
       default: scifi
 
     Cast:
+      oneOf:
+        - $ref: "#/components/schemas/Person"
+        - $ref: "#/components/schemas/Animal"
+
+    Person:
       type: object
       properties:
         character:
           type: string
         actor:
           type: string
-          default: unknown
       required:
         - character
+        - actor
+
+    Animal:
+      type: object
+      properties:
+        character:
+          type: string
+        kind:
+          type: string
+      required:
+        - character
+        - kind
 
     AdditionalInformation:
       type: object

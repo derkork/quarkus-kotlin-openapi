@@ -3,7 +3,7 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.renderWithWrap
 
-class KotlinRenderableWrapContainer<T : KotlinRenderable> {
+class KotlinRenderableWrapContainer<T : KotlinRenderable>(val maxSizeForSingleLine : Int = 1) {
 
     private val items = mutableListOf<T>()
 
@@ -15,7 +15,7 @@ class KotlinRenderableWrapContainer<T : KotlinRenderable> {
         get() = items.isNotEmpty()
 
     fun render(writer: CodeWriter) = with(writer) {
-        renderWithWrap(items) { it.render(this) }
+        renderWithWrap(items, maxSizeForSingleLine = maxSizeForSingleLine) { it.render(this) }
     }
 
 }

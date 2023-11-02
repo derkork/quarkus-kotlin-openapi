@@ -3,7 +3,6 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.emitter.statements
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinStatement
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.Expression
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.InvocationExpression.Companion.invocationExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.PathExpression.Companion.pathExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.StringExpression.Companion.stringExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName
@@ -12,7 +11,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.Va
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.VariableName.Companion.variableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.forEachWithStats
 
-abstract class BuilderTransformStatement : KotlinStatement {
+abstract class ObjectBuilderTransformStatement : KotlinStatement {
 
     private val parameters = mutableListOf<VariableName>()
 
@@ -21,7 +20,7 @@ abstract class BuilderTransformStatement : KotlinStatement {
     }
 
     protected fun CodeWriter.renderTransformStatement(objectName: ClassName, context: Expression) {
-        write("maybeOf(${context.evaluate()}")
+        write("maybeAllOf(${context.evaluate()}")
         parameters.forEach { maybeName ->
             write(", ${maybeName.render()}")
         }
@@ -43,7 +42,7 @@ abstract class BuilderTransformStatement : KotlinStatement {
 
 }
 
-class SafeObjectBuilderTransformStatement(private val safeObject: ClassName) : BuilderTransformStatement() {
+class SafeObjectBuilderTransformStatement(private val safeObject: ClassName) : ObjectBuilderTransformStatement() {
 
     override fun render(writer: CodeWriter) = with(writer) {
         write("return ")
@@ -55,7 +54,7 @@ class SafeObjectBuilderTransformStatement(private val safeObject: ClassName) : B
 class RequestBuilderTransformStatement(
     private val methodName: MethodName,
     private val requestContainer: ClassName?
-) : BuilderTransformStatement() {
+) : ObjectBuilderTransformStatement() {
 
     override fun render(writer: CodeWriter) = with(writer) {
         if (requestContainer != null) {

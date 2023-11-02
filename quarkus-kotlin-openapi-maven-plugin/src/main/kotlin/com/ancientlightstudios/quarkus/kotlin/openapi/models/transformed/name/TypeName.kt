@@ -8,10 +8,14 @@ sealed interface TypeName : Name {
 
     fun extend(prefix: String = "", postfix: String = ""): TypeName
 
+    fun alterNullable(nullable: Boolean) : TypeName
+
     @Suppress("DataClassPrivateConstructor")
     data class SimpleTypeName private constructor(val name: ClassName, val nullable: Boolean) : TypeName {
 
         override fun extend(prefix: String, postfix: String) = name.extend(prefix, postfix).typeName(nullable)
+
+        override fun alterNullable(nullable: Boolean) = SimpleTypeName(name, nullable)
 
         override fun render() = when (nullable) {
             true -> "${name.render()}?"
@@ -36,6 +40,8 @@ sealed interface TypeName : Name {
     data class GenericTypeName private constructor(val outerType: SimpleTypeName, val innerType: TypeName) : TypeName {
 
         override fun extend(prefix: String, postfix: String) = outerType.extend(prefix, postfix).of(innerType)
+
+        override fun alterNullable(nullable: Boolean) = GenericTypeName(outerType.alterNullable(nullable), innerType)
 
         override fun render() = when (outerType.nullable) {
             true -> "${outerType.name.render()}<${innerType.render()}>?"

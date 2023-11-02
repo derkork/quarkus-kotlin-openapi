@@ -9,7 +9,7 @@ class KotlinMember(
     private val name: VariableName,
     private val type: TypeName,
     private val mutable: Boolean = false,
-    private val private: Boolean = true,
+    private val accessModifier: KotlinAccessModifier? = KotlinAccessModifier.Private,
     private val open: Boolean = false,
     private val override: Boolean = false,
     private val default: Expression? = null,
@@ -24,9 +24,7 @@ class KotlinMember(
 
     override fun render(writer: CodeWriter): Unit = with(writer) {
         annotations.render(this, true)
-        if (private) {
-            write("private ")
-        }
+        accessModifier?.let { write("${it.value} ") }
 
         if (open) {
             write("open ")
@@ -53,14 +51,14 @@ fun MemberAware.kotlinMember(
     name: VariableName,
     type: TypeName,
     mutable: Boolean = false,
-    private: Boolean = true,
+    accessModifier: KotlinAccessModifier? = KotlinAccessModifier.Private,
     open: Boolean = false,
     override: Boolean = false,
     default: Expression? = null,
     initializedInConstructor: Boolean = true,
     block: KotlinMember.() -> Unit = {}
 ) {
-    val content = KotlinMember(name, type, mutable, private, open, override, default, initializedInConstructor).apply(block)
+    val content = KotlinMember(name, type, mutable, accessModifier, open, override, default, initializedInConstructor).apply(block)
     addMember(content)
 
 }

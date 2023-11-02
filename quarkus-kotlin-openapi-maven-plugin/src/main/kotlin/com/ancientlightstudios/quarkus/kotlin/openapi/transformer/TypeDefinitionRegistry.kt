@@ -47,8 +47,8 @@ class TypeDefinitionRegistry(private val schemas: MutableMap<SchemaDefinition, S
             is ArraySchemaDefinition -> collectionTypeDefinition(definition, direction)
             is ObjectSchemaDefinition -> objectTypeDefinition(name, definition, direction)
 
-            is OneOfSchemaDefinition -> TODO("OneOf schemas not yet implemented")
-            is AnyOfSchemaDefinition -> TODO("AnyOf schemas not yet implemented")
+            is OneOfSchemaDefinition -> oneOfTypeDefinition(name, definition, direction)
+            is AnyOfSchemaDefinition -> anyOfTypeDefinition(name, definition, direction)
             is AllOfSchemaDefinition -> allOfTypeDefinition(name, definition, direction)
         }
 
@@ -108,6 +108,28 @@ class TypeDefinitionRegistry(private val schemas: MutableMap<SchemaDefinition, S
     ): TypeDefinition {
         val result =
             ObjectTypeDefinition(name, definition.nullable, definition.validation, getProperties(definition, direction))
+        typeDefinitions.getOrPut(definition) { mutableMapOf() }[direction] = result
+        return result
+    }
+
+    private fun anyOfTypeDefinition(
+        name: ClassName,
+        definition: AnyOfSchemaDefinition,
+        direction: FlowDirection
+    ): TypeDefinition {
+        val schemas = definition.schemas.map { getTypeDefinition(it, direction).useAs(false) }
+        val result = AnyOfTypeDefinition(name, definition.nullable, definition.validation, schemas)
+        typeDefinitions.getOrPut(definition) { mutableMapOf() }[direction] = result
+        return result
+    }
+
+    private fun oneOfTypeDefinition(
+        name: ClassName,
+        definition: OneOfSchemaDefinition,
+        direction: FlowDirection
+    ): TypeDefinition {
+        val schemas = definition.schemas.map { getTypeDefinition(it, direction).useAs(false) }
+        val result = OneOfTypeDefinition(name, definition.nullable, definition.validation, schemas)
         typeDefinitions.getOrPut(definition) { mutableMapOf() }[direction] = result
         return result
     }

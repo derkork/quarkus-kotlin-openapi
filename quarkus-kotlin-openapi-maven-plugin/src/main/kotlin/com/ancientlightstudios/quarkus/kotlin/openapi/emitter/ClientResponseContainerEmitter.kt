@@ -34,8 +34,8 @@ class ClientResponseContainerEmitter : CodeEmitter {
             registerImport("org.jboss.resteasy.reactive.RestResponse")
 
             kotlinClass(fileName, sealed = true) {
-                kotlinMember("status".variableName(), "RestResponse.Status".rawTypeName(), private = false, open = true)
-                kotlinMember("unsafeBody".variableName(), "Any".rawTypeName(true), private = false, open = true)
+                kotlinMember("status".variableName(), "RestResponse.Status".rawTypeName(), accessModifier = null, open = true)
+                kotlinMember("unsafeBody".variableName(), "Any".rawTypeName(true), accessModifier = null, open = true)
 
                 request.responses.forEach { (responseCode, typeDefinitionUsage) ->
                     when (responseCode) {
@@ -64,9 +64,9 @@ class ClientResponseContainerEmitter : CodeEmitter {
         val extends = listOf(ExtendFromClassExpression(parentClass, statusCodeExpression, bodyExpression))
 
         kotlinClass("Default".className(), asDataClass = true, extends = extends) {
-            kotlinMember("status".variableName(), "RestResponse.Status".rawTypeName(), private = false, override = true)
+            kotlinMember("status".variableName(), "RestResponse.Status".rawTypeName(), accessModifier = null, override = true)
             bodyType?.let {
-                kotlinMember("safeBody".variableName(), bodyType, private = false)
+                kotlinMember("safeBody".variableName(), bodyType, accessModifier = null)
             }
         }
     }
@@ -87,7 +87,7 @@ class ClientResponseContainerEmitter : CodeEmitter {
 
         kotlinClass(responseCode.statusCodeReason().className(), asDataClass = bodyType != null, extends = extends) {
             bodyType?.let {
-                kotlinMember("safeBody".variableName(), bodyType, private = false)
+                kotlinMember("safeBody".variableName(), bodyType, accessModifier = null)
             }
         }
     }

@@ -6,11 +6,12 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.Cl
 
 class KotlinClass(
     private val name: ClassName,
-    private val privateConstructor: Boolean = false,
+    private val constructorAccessModifier: KotlinAccessModifier? = null,
     private val asDataClass: Boolean = false,
     private val sealed: Boolean = false,
     private val extends: List<ExtendExpression> = emptyList()
-) : KotlinRenderable, AnnotationAware, MethodAware, MemberAware, CompanionAware, CommentAware, ClassAware {
+) : KotlinRenderable, AnnotationAware, MethodAware, MemberAware, CompanionAware,
+    CommentAware, ClassAware, ConstructorAware {
 
     private val annotations = KotlinAnnotationContainer()
     private val items = KotlinRenderableBlockContainer<KotlinRenderable>()
@@ -19,6 +20,7 @@ class KotlinClass(
     private val otherMembers = KotlinRenderableBlockContainer<KotlinMember>(separateItemsWithNewLine = false)
     private var companion: KotlinCompanion? = null
     private var comment: KotlinComment? = null
+    private val additionalConstructors = KotlinRenderableBlockContainer<KotlinConstructor>()
 
     override fun addAnnotation(annotation: KotlinAnnotation) {
         annotations.addAnnotation(annotation)
@@ -47,6 +49,10 @@ class KotlinClass(
         this.comment = comment
     }
 
+    override fun addConstructor(constructor: KotlinConstructor) {
+        additionalConstructors.addItem(constructor)
+    }
+
     override fun render(writer: CodeWriter) = with(writer) {
         comment?.let {
             it.render(this)
@@ -64,11 +70,9 @@ class KotlinClass(
 
         write("class ${name.render()}")
 
-        if (privateConstructor) {
-            write(" private constructor")
-        }
+        constructorAccessModifier?.let {write(" ${it.value} constructor") }
 
-        if (constructorMembers.isNotEmpty || privateConstructor) {
+        if (constructorMembers.isNotEmpty || constructorAccessModifier != null) {
             write("(")
             constructorMembers.render(this)
             write(")")
@@ -78,13 +82,19 @@ class KotlinClass(
             write(extends.joinToString(prefix = " : ") { it.evaluate() })
         }
 
-        if (otherMembers.isNotEmpty || items.isNotEmpty || companion != null) {
+        if (otherMembers.isNotEmpty || items.isNotEmpty || companion != null || additionalConstructors.isNotEmpty) {
             writeln(" {")
             indent {
 
                 if (otherMembers.isNotEmpty) {
                     writeln()
                     otherMembers.render(this)
+                    writeln(forceNewLine = false) // in case the item already rendered a line break
+                }
+
+                if (additionalConstructors.isNotEmpty) {
+                    writeln()
+                    additionalConstructors.render(this)
                     writeln(forceNewLine = false) // in case the item already rendered a line break
                 }
 
@@ -116,12 +126,12 @@ interface ClassAware {
 
 fun ClassAware.kotlinClass(
     name: ClassName,
-    privateConstructor: Boolean = false,
+    constructorAccessModifier: KotlinAccessModifier? = null,
     asDataClass: Boolean = false,
     sealed: Boolean = false,
     extends: List<ExtendExpression> = emptyList(),
     block: KotlinClass.() -> Unit
 ) {
-    val content = KotlinClass(name, privateConstructor, asDataClass, sealed, extends).apply(block)
+    val content = KotlinClass(name, constructorAccessModifier, asDataClass, sealed, extends).apply(block)
     addClass(content)
 }

@@ -49,6 +49,8 @@ class Generator(private val config: Config) {
             codeEmitters.add(ServerRequestContainerEmitter())
             codeEmitters.add(ServerResponseContainerEmitter())
             codeEmitters.add(UnsafeObjectModelEmitter(FlowDirection.Up))
+            codeEmitters.add(UnsafeAnyOfModelEmitter(FlowDirection.Up))
+            codeEmitters.add(UnsafeOneOfModelEmitter(FlowDirection.Up))
         }
 
         // Client or Both
@@ -57,10 +59,14 @@ class Generator(private val config: Config) {
             codeEmitters.add(ClientDelegateEmitter())
             codeEmitters.add(ClientResponseContainerEmitter())
             codeEmitters.add(UnsafeObjectModelEmitter(FlowDirection.Down))
+            codeEmitters.add(UnsafeAnyOfModelEmitter(FlowDirection.Down))
+            codeEmitters.add(UnsafeOneOfModelEmitter(FlowDirection.Down))
         }
 
         codeEmitters.add(EnumModelEmitter())
         codeEmitters.add(SafeObjectModelEmitter())
+        codeEmitters.add(SafeAnyOfModelEmitter())
+        codeEmitters.add(SafeOneOfModelEmitter())
 
         codeEmitters.forEach {
             it.apply { context.emit(first, second) }

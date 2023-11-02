@@ -25,11 +25,11 @@ class ServerRequestContainerEmitter : CodeEmitter {
 
             kotlinClass(fileName) {
                 request.parameters.forEach {
-                    kotlinMember(it.name, it.type.safeType, private = false)
+                    kotlinMember(it.name, it.type.safeType, accessModifier = null)
                 }
 
                 request.body?.let {
-                    kotlinMember("body".variableName(), it.safeType, private = false)
+                    kotlinMember("body".variableName(), it.safeType, accessModifier = null)
                 }
             }
         }.also { generateFile(it) }
