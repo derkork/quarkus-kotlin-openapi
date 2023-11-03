@@ -16,13 +16,14 @@
         <kotlin.version>1.8.21</kotlin.version>
         <maven.compiler.target>17</maven.compiler.target>
         <maven.compiler.source>17</maven.compiler.source>
-        <quarkus.version>3.2.4.Final</quarkus.version>
+        <quarkus.version>3.5.0</quarkus.version>
     </properties>
 
     <modules>
         <module>quarkus-kotlin-openapi</module>
         <module>quarkus-kotlin-openapi-maven-plugin</module>
         <module>quarkus-kotlin-openapi-test</module>
+        <module>quarkus-java-openapi-test</module>
     </modules>
 
     <dependencyManagement>

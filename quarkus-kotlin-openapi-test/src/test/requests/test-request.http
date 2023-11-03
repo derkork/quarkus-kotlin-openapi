@@ -1,8 +1,8 @@
-GET http://localhost:8080/test-support/movies
+GET http://localhost:8080/movies
 
 ###
 
-POST http://localhost:8080/test-support/movies
+POST http://localhost:8080/movies
 Content-Type: application/json
 
 {
@@ -16,11 +16,13 @@ Content-Type: application/json
   "cast": [
     {
       "character": "Tony Stark",
-      "actor": "Robert Downey Jr."
+      "actor": "Robert Downey Jr.",
+      "type": "Person"
     },
     {
       "character": "Virginia Potts",
-      "actor": "Gwyneth Paltrow"
+      "actor": "Gwyneth Paltrow",
+      "type": "Person"
     }
   ]
 }
