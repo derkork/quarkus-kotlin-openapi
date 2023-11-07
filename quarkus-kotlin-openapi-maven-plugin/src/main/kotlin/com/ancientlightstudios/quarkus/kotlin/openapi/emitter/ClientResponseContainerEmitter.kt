@@ -1,12 +1,10 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassAware
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.ExtendFromClassExpression
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.ExtendFromInterfaceExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.NullExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.PathExpression.Companion.pathExpression
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.kotlinClass
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.kotlinFile
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.kotlinMember
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ResponseCode
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.Request
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.RequestSuite
@@ -32,26 +30,52 @@ class ClientResponseContainerEmitter : CodeEmitter {
         kotlinFile(clientPackage(), request.name.extend(postfix = "Response").className()) {
             registerImport(modelPackage(), wildcardImport = true)
             registerImport("org.jboss.resteasy.reactive.RestResponse")
+            registerImport("com.ancientlightstudios.quarkus.kotlin.openapi.RequestErrorReason")
+            registerImport("jakarta.ws.rs.core.Response")
+            registerImport("com.ancientlightstudios.quarkus.kotlin.openapi.IsError")
 
-            kotlinClass(fileName, sealed = true) {
+
+            kotlinInterface(fileName) {}
+
+            val httpResponseName = request.name.extend(postfix = "HttpResponse").className()
+
+            kotlinClass(httpResponseName, sealed = true, extends = listOf(ExtendFromInterfaceExpression(fileName))) {
                 kotlinMember("status".variableName(), "RestResponse.Status".rawTypeName(), accessModifier = null, open = true)
                 kotlinMember("unsafeBody".variableName(), "Any".rawTypeName(true), accessModifier = null, open = true)
 
                 request.responses.forEach { (responseCode, typeDefinitionUsage) ->
                     when (responseCode) {
                         is ResponseCode.Default -> emitDefaultResponseClass(
-                            fileName,
+                            httpResponseName,
                             typeDefinitionUsage?.safeType
                         )
 
                         is ResponseCode.HttpStatusCode -> emitResponseClass(
-                            fileName,
+                            httpResponseName,
                             responseCode,
                             typeDefinitionUsage?.safeType
                         )
                     }
                 }
             }
+
+            val errorInterfaceName = request.name.extend(postfix = "Error").className()
+            kotlinInterface(errorInterfaceName, sealed = true, extends = listOf(ExtendFromInterfaceExpression(fileName), ExtendFromInterfaceExpression("IsError".rawClassName()))) {
+                kotlinClass("RequestError".className(), extends = listOf(ExtendFromInterfaceExpression(errorInterfaceName))) {
+                    kotlinMember("reason".variableName(), "RequestErrorReason".rawTypeName(), accessModifier = null, override = false)
+                    kotlinMember("errorMessage".variableName(), "String".rawTypeName(), accessModifier = null, override = true, initializedInConstructor = false,
+                        default = "reason".variableName().pathExpression().then("message".rawConstantName()))
+                }
+
+                kotlinClass("ResponseError".className(), extends = listOf(ExtendFromInterfaceExpression(errorInterfaceName)))   {
+                    kotlinMember("reason".variableName(), "String".rawTypeName(), accessModifier = null, override = false)
+                    kotlinMember("response".variableName(), "Response".rawTypeName(), accessModifier = null, override = false)
+                    kotlinMember("errorMessage".variableName(), "String".rawTypeName(), accessModifier = null, override = true, initializedInConstructor = false,
+                        default = "reason".variableName().pathExpression())
+                }
+            }
+
+
         }.also { generateFile(it) }
     }
 
