@@ -51,7 +51,10 @@ class ClientRestInterfaceEmitter : CodeEmitter {
 
     private fun KotlinClass.generateRequest(request: Request) {
         val returnType = request.name.className().extend(postfix = "Response")
-        kotlinMethod(request.name, true, "RequestResult".rawTypeName().of(returnType)) {
+        val httpResponseType = request.name.className().extend(postfix = "HttpResponse")
+        val errorType = request.name.className().extend(postfix = "Error")
+
+        kotlinMethod(request.name, true, returnType.typeName()) {
 
 
             request.parameters.forEach {
@@ -88,19 +91,19 @@ class ClientRestInterfaceEmitter : CodeEmitter {
                     writeln("val statusCode = RestResponse.Status.fromStatusCode(response.status)")
                     writeln()
 
-                    write("val maybe: Maybe<RequestResult<${returnType.render()}>> = when (statusCode) {")
+                    write("val maybe: Maybe<${returnType.render()}> = when (statusCode) {")
                     indent(newLineBefore = true, newLineAfter = true) {
                         val defaultResponse = request.responses.firstOrNull { it.first == ResponseCode.Default }
                         request.responses.forEach { (responseCode, typeDefinitionUsage) ->
                             if (responseCode is ResponseCode.HttpStatusCode) {
-                                emitResponseBranch(returnType, responseCode, typeDefinitionUsage)
+                                emitResponseBranch(httpResponseType, responseCode, typeDefinitionUsage)
                             }
                         }
 
                         if (defaultResponse != null) {
-                            emitDefaultResponseBranch(returnType, defaultResponse.second)
+                            emitDefaultResponseBranch(httpResponseType, defaultResponse.second)
                         } else {
-                            writeln("else -> Maybe.Success(\"response.body\", RequestResult.ResponseError(\"unknown status code \${statusCode.name}\", response))")
+                            writeln("else -> Maybe.Success(\"response.body\", ${errorType.render()}.ResponseError(\"unknown status code \${statusCode.name}\", response))")
                         }
 
                     }
@@ -109,7 +112,7 @@ class ClientRestInterfaceEmitter : CodeEmitter {
                     write("when(maybe) {")
                     indent(newLineBefore = true, newLineAfter = true) {
                         writeln("is Maybe.Success -> maybe.value")
-                        writeln("is Maybe.Failure -> RequestResult.ResponseError(maybe.errors.joinToString { it.message }, response)")
+                        writeln("is Maybe.Failure -> ${errorType.render()}.ResponseError(maybe.errors.joinToString { it.message }, response)")
                     }
                     write("}")
                 }
@@ -117,12 +120,12 @@ class ClientRestInterfaceEmitter : CodeEmitter {
 
                 writeln("} catch (_: TimeoutException) {")
                 indent {
-                    writeln("RequestResult.RequestError(RequestErrorReason.Timeout)")
+                    writeln("${errorType.render()}.RequestError(RequestErrorReason.Timeout)")
                 }
                 write("} catch (e: Exception) {")
                 indent(newLineBefore = true, newLineAfter = true) {
                     writeln("// TODO: check exception type")
-                    write("RequestResult.RequestError(RequestErrorReason.Unknown)")
+                    write("${errorType.render()}.RequestError(RequestErrorReason.Unknown)")
                 }
                 write("}")
             }
@@ -138,9 +141,9 @@ class ClientRestInterfaceEmitter : CodeEmitter {
         indent(newLineBefore = true, newLineAfter = true) {
             if (typeDefinitionUsage != null) {
                 emitTypeConversion(typeDefinitionUsage)
-                write("maybe.onSuccess { success(RequestResult.Response(${returnType.render()}.${responseCode.statusCodeReason()}(value))) }")
+                write("maybe.onSuccess { success(${returnType.render()}.${responseCode.statusCodeReason()}(value)) }")
             } else {
-                write("Maybe.Success(\"response.body\", RequestResult.Response(${returnType.render()}.${responseCode.statusCodeReason()}()))")
+                write("Maybe.Success(\"response.body\", ${returnType.render()}.${responseCode.statusCodeReason()}())")
             }
         }
         writeln("}")
@@ -154,9 +157,9 @@ class ClientRestInterfaceEmitter : CodeEmitter {
         indent(newLineBefore = true, newLineAfter = true) {
             if (typeDefinitionUsage != null) {
                 emitTypeConversion(typeDefinitionUsage)
-                write("maybe.onSuccess { success(RequestResult.Response(${returnType.render()}.Default(statusCode, value))) }")
+                write("maybe.onSuccess { success(${returnType.render()}.Default(statusCode, value)) }")
             } else {
-                write("Maybe.Success(\"response.body\", RequestResult.Response(${returnType.render()}.Default(statusCode)))")
+                write("Maybe.Success(\"response.body\", ${returnType.render()}.Default(statusCode))")
             }
         }
         writeln("}")
