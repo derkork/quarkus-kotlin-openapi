@@ -14,7 +14,7 @@ data class ParseContext(
         ParseContext(openApiVersion, newContextNode, "${this.contextPath}/$path", referenceResolver)
 
     fun contextFor(path: String): ParseContext {
-        val newContextNode = contextNode.resolvePath(path)
+        val newContextNode = contextNode.resolvePointer(path)
             ?: throw IllegalStateException("Path ${this.contextPath}/$path not resolvable.")
         return contextFor(newContextNode, path)
     }

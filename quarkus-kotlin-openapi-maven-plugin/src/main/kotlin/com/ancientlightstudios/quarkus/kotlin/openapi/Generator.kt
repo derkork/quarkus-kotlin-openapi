@@ -6,6 +6,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ApiSpec
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.RequestSuite
 import com.ancientlightstudios.quarkus.kotlin.openapi.parser.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.transformer.ApiSpecTransformer
+import com.ancientlightstudios.quarkus.kotlin.openapi.transformer.ApiSpecVerifier
 import com.ancientlightstudios.quarkus.kotlin.openapi.transformer.FlowDirection
 import com.ancientlightstudios.quarkus.kotlin.openapi.transformer.TypeDefinitionRegistry
 import com.fasterxml.jackson.databind.node.ObjectNode
@@ -15,6 +16,7 @@ import kotlin.io.path.Path
 class Generator(private val config: Config) {
 
     fun generate() = parseApi()
+        .verifyApi()
         .transformApi()
         .generateApi()
 
@@ -34,6 +36,8 @@ class Generator(private val config: Config) {
 
         return patchedSource.parseAsApiSpec(RequestFilter(config.endpoints))
     }
+
+    private fun ApiSpec.verifyApi() =  also { ApiSpecVerifier(it).verify() }
 
     private fun ApiSpec.transformApi() = ApiSpecTransformer(this).transform(config.interfaceName)
 

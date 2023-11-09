@@ -17,7 +17,7 @@ class ReferenceResolver(private val openApiVersion: OpenApiVersion, private val 
     private val headers = mutableMapOf<String, Pair<String, ResponseHeader>>()
 
     private fun resolveReference(reference: String, message: () -> String): ParseContext {
-        val node = root.resolvePath(reference) ?: throw IllegalArgumentException(message())
+        val node = root.resolvePointer(reference) ?: throw IllegalArgumentException(message())
         return ParseContext(openApiVersion, node, reference, this)
     }
 

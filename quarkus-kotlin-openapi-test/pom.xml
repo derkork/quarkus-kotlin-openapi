@@ -119,6 +119,41 @@
                         </goals>
                         <configuration>
                             <sources>
+                                <source>${project.basedir}/src/main/resources/Swagger_PD42.json</source>
+                            </sources>
+                            <endpoints>
+                                <endpoint>/openapi/tef/user/{UserSearchTerm}/onboarding:post</endpoint>
+                                <endpoint>/openapi/subscription/{SearchTerm}:get,put,delete</endpoint>
+                                <endpoint>/openapi/subscription/{SearchTerm}/wallet:get</endpoint>
+                                <endpoint>/openapi/subscription/{SearchTerm}/wallet/{ResourceId}/thresholds:put</endpoint>
+                                <endpoint>/openapi/subscription/{SearchTerm}/wallet/{ResourceId}/thresholds/{ThresholdId}:delete</endpoint>
+                                <endpoint>/openapi/subscription/{SearchTerm}/wallet/{ResourceId}/adjustment:put</endpoint>
+                                <endpoint>/openapi/subscription/{SearchTerm}/offers:put,post</endpoint>
+                                <endpoint>/openapi/subscription/{SearchTerm}/offers/{ResourceId}:put</endpoint>
+                                <endpoint>/openapi/subscription/{SearchTerm}/device/{DeviceSearchTerm}:put</endpoint>
+                                <endpoint>/openapi/service/subscription/{SearchTerm}/device/{DeviceTerm}:delete</endpoint>
+                                <endpoint>/openapi/service/subscription/{SearchTerm}/device:post</endpoint>
+                                <endpoint>/openapi/device/{SearchTerm}/offers:put,post</endpoint>
+                                <endpoint>/openapi/device/{SearchTerm}:get,put</endpoint>
+                                <endpoint>/openapi/group/{SearchTerm}/add_members:put</endpoint>
+                                <endpoint>/openapi/group/{SearchTerm}/remove_members:put</endpoint>
+                                <endpoint>/openapi/group/{SearchTerm}/subscriptions:get</endpoint>
+                                <endpoint>/openapi/user:post</endpoint>
+                            </endpoints>
+                            <interfaceName>MatrixxServer</interfaceName>
+                            <interfaceType>SERVER</interfaceType>
+                            <packageName>com.ancientlightstudios.example.matrixx</packageName>
+                        </configuration>
+                    </execution>
+                    <!--
+                    <execution>
+                        <id>generate-server</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
                                 <source>${project.basedir}/src/main/resources/test_api_3.0.yaml</source>
                             </sources>
                             <interfaceName>MovieServer</interfaceName>
@@ -166,6 +201,7 @@
                             <packageName>com.ancientlightstudios.example.rating</packageName>
                         </configuration>
                     </execution>
+                    -->
                 </executions>
             </plugin>
             <plugin>

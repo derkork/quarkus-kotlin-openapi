@@ -62,7 +62,7 @@ fun JsonNode?.getMultiValue(property: String) = when (val node = this?.get(prope
 //
 private val PathPattern = Regex("(?<!\\\\)/").toPattern()
 
-fun JsonNode?.resolvePath(path: String): JsonNode? {
+fun JsonNode?.resolvePointer(path: String): JsonNode? {
     val foo = path.replaceFirst("#/", "")
 
     // we split at / and then walk the tree. We can escape / with \/.
