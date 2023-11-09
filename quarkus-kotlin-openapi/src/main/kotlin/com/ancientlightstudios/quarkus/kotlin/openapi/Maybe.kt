@@ -2,9 +2,7 @@ package com.ancientlightstudios.quarkus.kotlin.openapi
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.Maybe.Failure
 import com.ancientlightstudios.quarkus.kotlin.openapi.Maybe.Success
-import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ArrayNode
 import com.fasterxml.jackson.databind.node.BooleanNode
 import com.fasterxml.jackson.databind.node.NullNode
@@ -92,7 +90,7 @@ fun <T> T?.asMaybe(context: String): Maybe<T?> = Success(context, this)
 /**
  * wraps the requested property or null into a [Success]
  */
-fun JsonNode?.asMaybe(property: String, context: String) : Maybe<JsonNode?> =
+fun JsonNode?.asMaybe(property: String, context: String): Maybe<JsonNode?> =
     Success(context, this?.get(property))
 
 /**

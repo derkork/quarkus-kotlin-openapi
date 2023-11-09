@@ -1,37 +1,47 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi
 
-import com.fasterxml.jackson.databind.ObjectMapper
-
 @Suppress("unused")
 fun <T> Maybe<T?>.validate(block: DefaultValidator.(T) -> Unit): Maybe<T?> =
     onNotNull {
-        val errors = DefaultValidator(context).apply { this.block(value) }.validationErrors
-        if (errors.isEmpty()) {
-            this@validate
-        } else {
-            failure(errors)
+        try {
+            val errors = DefaultValidator(context).apply { this.block(value) }.validationErrors
+            if (errors.isEmpty()) {
+                this@validate
+            } else {
+                failure(errors)
+            }
+        } catch (_: Exception) {
+            failure(ValidationError("is not a valid value", context))
         }
     }
 
 @Suppress("unused")
 fun Maybe<String?>.validateString(block: StringValidator.(String) -> Unit): Maybe<String?> =
     onNotNull {
-        val errors = StringValidator(context).apply { this.block(value) }.validationErrors
-        if (errors.isEmpty()) {
-            this@validateString
-        } else {
-            failure(errors)
+        try {
+            val errors = StringValidator(context).apply { this.block(value) }.validationErrors
+            if (errors.isEmpty()) {
+                this@validateString
+            } else {
+                failure(errors)
+            }
+        } catch (_: Exception) {
+            failure(ValidationError("is not a valid value", context))
         }
     }
 
 @Suppress("unused")
 fun <T : Number> Maybe<T?>.validateNumber(block: NumberValidator<T>.(T) -> Unit): Maybe<T?> =
     onNotNull {
-        val errors = NumberValidator<T>(context).apply { this.block(value) }.validationErrors
-        if (errors.isEmpty()) {
-            this@validateNumber
-        } else {
-            failure(errors)
+        try {
+            val errors = NumberValidator<T>(context).apply { this.block(value) }.validationErrors
+            if (errors.isEmpty()) {
+                this@validateNumber
+            } else {
+                failure(errors)
+            }
+        } catch (_: Exception) {
+            failure(ValidationError("is not a valid value", context))
         }
     }
 
@@ -45,11 +55,15 @@ fun <I, O> Maybe<I?>.validateUnsafe(block: I.(String) -> Maybe<O>): Maybe<O?> =
 @Suppress("unused")
 fun <I> Maybe<List<I?>?>.validateList(block: ListValidator.(List<I?>) -> Unit): Maybe<List<I?>?> =
     onNotNull {
-        val errors = ListValidator(context).apply { this.block(value) }.validationErrors
-        if (errors.isEmpty()) {
-            this@validateList
-        } else {
-            failure(errors)
+        try {
+            val errors = ListValidator(context).apply { this.block(value) }.validationErrors
+            if (errors.isEmpty()) {
+                this@validateList
+            } else {
+                failure(errors)
+            }
+        } catch (_: Exception) {
+            failure(ValidationError("is not a valid value", context))
         }
     }
 
@@ -71,8 +85,8 @@ fun <I, O> Maybe<List<I?>?>.validateListItems(block: (Maybe.Success<I?>) -> Mayb
             } else {
                 success(validated)
             }
-        } catch (e: Exception) {
-            failure(ValidationError(e.message ?: "is not a valid value", context))
+        } catch (_: Exception) {
+            failure(ValidationError("is not a valid value", context))
         }
     }
 
