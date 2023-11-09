@@ -100,6 +100,8 @@
 ## Generator
 
 - [ ] Discriminator für OneOf
+- [x] Bei einer Enum die "String" als enum-wert hat, hupts.
+- [x] Bei header-parametern wird der header-name nicht korrekt eingefügt (X-Matrixx wird zu xMatrixx), betrifft ggf. auch andere Parameter
 - [ ] Mehrfache Properties bei AnyOf/AllOf verhindern
 - [ ] Mischform für AllOf einbauen 
 - [ ] Enums können nicht nur vom Typ String sein

@@ -3,7 +3,10 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.schema
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.schema.validation.Validation
 
 sealed interface Schema {
-
+    /**
+     * Path to the location in the API specification where this schema was defined.
+     */
+    val originPath:String
     val description: String?
     val nullable: Boolean
     val validation: Validation

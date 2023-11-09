@@ -3,6 +3,7 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.schema
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.schema.validation.Validation
 
 data class OneOfSchemaDefinition(
+    override val originPath: String,
     override val description: String?,
     override val nullable: Boolean,
     override val schemas: List<Schema>,
@@ -11,6 +12,7 @@ data class OneOfSchemaDefinition(
 ) : SchemaDefinition, Schema.OneOfSchema
 
 data class OneOfSchemaReference(
+    override val originPath: String,
     override val targetName: String,
     override val target: Schema.OneOfSchema,
     private val descriptionOverride: String? = null

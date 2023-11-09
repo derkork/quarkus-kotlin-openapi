@@ -181,6 +181,37 @@ fun Maybe<JsonNode?>.asInt() = onNotNull { value.asInt(context) }
 // ------------------------------------------------------------
 
 @Suppress("unused")
+fun String?.asUInt(context: String): Maybe<UInt?> = this.asMaybe(context, "is not an uint") { it.toUInt() }
+
+@Suppress("unused")
+fun Maybe<String?>.asUInt(): Maybe<UInt?> = this.mapNotNull("is not an uint") { it.toUInt() }
+
+@Suppress("unused")
+fun JsonNode?.asUInt(context: String): Maybe<UInt?> = this.asMaybe(context, "is not an uint", String::asUInt)
+
+@Suppress("unused")
+@JvmName("asUIntFromNode")
+fun Maybe<JsonNode?>.asUInt() = onNotNull { value.asUInt(context) }
+
+// ------------------------------------------------------------
+
+@Suppress("unused")
+fun String?.asULong(context: String): Maybe<ULong?> = this.asMaybe(context, "is not an ulong") { it.toULong() }
+
+@Suppress("unused")
+fun Maybe<String?>.asULong(): Maybe<ULong?> = this.mapNotNull("is not an ulong") { it.toULong() }
+
+@Suppress("unused")
+fun JsonNode?.asULong(context: String): Maybe<ULong?> = this.asMaybe(context, "is not an ulong", String::asULong)
+
+@Suppress("unused")
+@JvmName("asULongFromNode")
+fun Maybe<JsonNode?>.asULong() = onNotNull { value.asULong(context) }
+
+
+// ------------------------------------------------------------
+
+@Suppress("unused")
 fun String?.asLong(context: String): Maybe<Long?> = this.asMaybe(context, "is not a long") { it.toLong() }
 
 @Suppress("unused")

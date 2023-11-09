@@ -58,18 +58,19 @@ class SchemaBuilder(private val node: ObjectNode) {
 
         // extract into functions if other versions support more overrides for parameter references
         return when (schema) {
-            is Schema.PrimitiveSchema -> PrimitiveSchemaReference(targetName, schema, description)
-            is Schema.EnumSchema -> EnumSchemaReference(targetName, schema, description)
-            is Schema.ArraySchema -> ArraySchemaReference(targetName, schema, description)
-            is Schema.ObjectSchema -> ObjectSchemaReference(targetName, schema, description)
-            is Schema.OneOfSchema -> OneOfSchemaReference(targetName, schema, description)
-            is Schema.AllOfSchema -> AllOfSchemaReference(targetName, schema, description)
-            is Schema.AnyOfSchema -> AnyOfSchemaReference(targetName, schema, description)
+            is Schema.PrimitiveSchema -> PrimitiveSchemaReference(contextPath, targetName, schema, description)
+            is Schema.EnumSchema -> EnumSchemaReference(contextPath, targetName, schema, description)
+            is Schema.ArraySchema -> ArraySchemaReference(contextPath, targetName, schema, description)
+            is Schema.ObjectSchema -> ObjectSchemaReference(contextPath, targetName, schema, description)
+            is Schema.OneOfSchema -> OneOfSchemaReference(contextPath, targetName, schema, description)
+            is Schema.AllOfSchema -> AllOfSchemaReference(contextPath, targetName, schema, description)
+            is Schema.AnyOfSchema -> AnyOfSchemaReference(contextPath, targetName, schema, description)
         }
     }
 
     private fun ParseContext.extractPrimitiveSchemaDefinition(type: String): PrimitiveSchemaDefinition {
         return PrimitiveSchemaDefinition(
+            contextPath,
             node.getTextOrNull("description"), isNullable(), type,
             node.getTextOrNull("format"), node.getTextOrNull("default"),
             extractPrimitiveTypeValidation(type)
@@ -84,6 +85,7 @@ class SchemaBuilder(private val node: ObjectNode) {
         }
 
         return EnumSchemaDefinition(
+            contextPath,
             node.getTextOrNull("description"), isNullable(), type,
             node.getTextOrNull("format"), values, defaultValue,
             extractPrimitiveTypeValidation(type)
@@ -92,6 +94,7 @@ class SchemaBuilder(private val node: ObjectNode) {
 
     private fun ParseContext.extractArraySchemaDefinition(): ArraySchemaDefinition {
         return ArraySchemaDefinition(
+            contextPath,
             node.getTextOrNull("description"),
             isNullable(), contextFor("items").parseAsSchema(),
             extractArrayValidation()
@@ -109,6 +112,7 @@ class SchemaBuilder(private val node: ObjectNode) {
             }
 
         return ObjectSchemaDefinition(
+            contextPath,
             node.getTextOrNull("description"),
             isNullable(), properties, extractDefaultValidation()
         )
@@ -127,8 +131,9 @@ class SchemaBuilder(private val node: ObjectNode) {
             }
 
         return OneOfSchemaDefinition(
+            contextPath,
             node.getTextOrNull("description"), isNullable(),
-            schemas, node.getTextOrNull("discriminator"),
+            schemas, node.resolvePointer("discriminator/propertyName")?.asText(),
             extractDefaultValidation()
         )
     }
@@ -146,6 +151,7 @@ class SchemaBuilder(private val node: ObjectNode) {
             }
 
         return AllOfSchemaDefinition(
+            contextPath,
             node.getTextOrNull("description"), isNullable(),
             schemas, extractDefaultValidation()
         )
@@ -164,6 +170,7 @@ class SchemaBuilder(private val node: ObjectNode) {
             }
 
         return AnyOfSchemaDefinition(
+            contextPath,
             node.getTextOrNull("description"),
             isNullable(), schemas, extractDefaultValidation()
         )

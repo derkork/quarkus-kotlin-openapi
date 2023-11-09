@@ -32,7 +32,7 @@ class EnumModelEmitter : CodeEmitter {
             registerImport("com.fasterxml.jackson.databind.JsonNode")
 
             kotlinEnum(fileName) {
-                kotlinMember("value".variableName(), definition.primitiveType.typeName(), accessModifier = null)
+                kotlinMember("value".variableName(), "kotlin.${definition.primitiveType.render()}".rawTypeName(), accessModifier = null)
                 definition.sourceSchema.values.forEach {
                     // TODO: support different types
                     kotlinEnumItem(it.constantName(), it.stringExpression()) {

@@ -16,7 +16,7 @@ class ResponseBodyBuilder(private val node: ObjectNode) {
     }
 
     private fun ParseContext.extractBodyDefinition(): ResponseBody {
-        val schema = contextNode.resolvePath("content/application\\/json/schema")?.let {
+        val schema = contextNode.resolvePointer("content/application\\/json/schema")?.let {
             contextFor(it, "content/application\\/json/schema").parseAsSchema()
         }
 

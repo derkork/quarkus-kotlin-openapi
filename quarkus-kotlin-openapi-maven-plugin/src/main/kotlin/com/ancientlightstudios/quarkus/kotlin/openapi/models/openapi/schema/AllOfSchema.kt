@@ -3,6 +3,7 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.schema
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.schema.validation.Validation
 
 data class AllOfSchemaDefinition(
+    override val originPath: String,
     override val description: String?,
     override val nullable: Boolean,
     override val schemas: List<Schema>,
@@ -10,6 +11,7 @@ data class AllOfSchemaDefinition(
 ) : SchemaDefinition, Schema.AllOfSchema
 
 data class AllOfSchemaReference(
+    override val originPath: String,
     override val targetName: String,
     override val target: Schema.AllOfSchema,
     private val descriptionOverride: String? = null

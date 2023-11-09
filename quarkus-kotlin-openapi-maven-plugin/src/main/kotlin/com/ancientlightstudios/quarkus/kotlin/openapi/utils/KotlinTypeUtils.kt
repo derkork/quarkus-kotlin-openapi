@@ -22,9 +22,11 @@ fun ClassName.valueExpression(value: String) = when (this.render()) {
 fun primitiveTypeFor(type: String, format: String?) = when {
     type == "string" -> "String"
     type == "number" && format == "float" -> "Float"
-    type == "number" && format == "double" -> "Double"
-    type == "integer" && format == "int64" -> "Long"
-    type == "integer" && (format == null || format == "int32") -> "Int"
+    type == "number" && (format == "double" || format == null) -> "Double"
+    (type == "number" || type == "integer") && format == "int64" -> "Long"
+    type == "integer" && (format == null || format == "int32" || format == "int16") -> "Int"
+    (type == "number" || type == "integer") && (format == "uint32" || format == "uint16") -> "UInt"
+    (type == "number" || type == "integer") && (format == "uint64") -> "ULong"
     type == "boolean" -> "Boolean"
     else -> throw IllegalArgumentException("unsupported primitive type mapping '$type' with format '$format'")
 }.rawClassName()
