@@ -57,15 +57,15 @@ class ServerRestInterfaceEmitter : CodeEmitter {
             )
 
             request.parameters.forEach {
-                kotlinParameter(it.name, it.type.unsafeType) {
+                kotlinParameter(it.name.variableName(), it.type.unsafeType) {
                     kotlinAnnotation(
                         it.source.value.rawClassName(),
-                        "value".variableName() to it.name.render().stringExpression()
+                        "value".variableName() to it.name.stringExpression()
                     )
                 }
-                val parameter = it.name.extend(postfix = "maybe")
-                val source = it.name.parameterToMaybeExpression(
-                    "request.${it.source.name.lowercase()}.${it.name.render()}".stringExpression()
+                val parameter = it.name.variableName().extend(postfix = "maybe")
+                val source = it.name.variableName().parameterToMaybeExpression(
+                    "request.${it.source.name.lowercase()}.${it.name}".stringExpression()
                 )
                 addStatement(getTransformStatement(source, parameter, it.type, false))
                 statement.addParameter(parameter)

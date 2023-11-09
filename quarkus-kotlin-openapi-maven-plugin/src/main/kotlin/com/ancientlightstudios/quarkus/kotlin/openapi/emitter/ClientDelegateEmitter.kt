@@ -35,10 +35,10 @@ class ClientDelegateEmitter : CodeEmitter {
                         }
 
                         request.parameters.forEach { parameter ->
-                            kotlinParameter(parameter.name, parameter.type.safeType) {
+                            kotlinParameter(parameter.name.variableName(), parameter.type.safeType) {
                                 kotlinAnnotation(
                                     parameter.source.value.rawClassName(),
-                                    "value".variableName() to parameter.name.render().stringExpression()
+                                    "value".variableName() to parameter.name.stringExpression()
                                 )
                             }
                         }

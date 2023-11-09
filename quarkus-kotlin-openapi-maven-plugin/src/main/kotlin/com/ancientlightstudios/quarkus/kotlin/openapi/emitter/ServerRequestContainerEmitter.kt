@@ -25,7 +25,7 @@ class ServerRequestContainerEmitter : CodeEmitter {
 
             kotlinClass(fileName) {
                 request.parameters.forEach {
-                    kotlinMember(it.name, it.type.safeType, accessModifier = null)
+                    kotlinMember(it.name.variableName(), it.type.safeType, accessModifier = null)
                 }
 
                 request.body?.let {

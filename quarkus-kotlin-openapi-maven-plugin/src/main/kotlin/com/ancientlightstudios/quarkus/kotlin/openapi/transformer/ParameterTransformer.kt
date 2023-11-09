@@ -3,7 +3,6 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.transformer
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.AdditionalInformation
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.Parameter
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.Source
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.VariableName.Companion.variableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.parameter.Parameter as OpenApiParameter
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.parameter.Parameter.CookieParameter as OpenApiCookieParameter
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.parameter.Parameter.HeaderParameter as OpenApiHeaderParameter
@@ -17,7 +16,7 @@ class ParameterTransformer(private val source: OpenApiParameter) {
     }
 
     fun transform(typeDefinitionRegistry: TypeDefinitionRegistry): Parameter {
-        val name = source.name.variableName()
+        val name = source.name
         val type = typeDefinitionRegistry.getTypeDefinition(source.schema, FlowDirection.Up)
         return when (source) {
             is OpenApiPathParameter -> Parameter(
