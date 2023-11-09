@@ -58,7 +58,7 @@ class ClientRestInterfaceEmitter : CodeEmitter {
 
 
             request.parameters.forEach {
-                kotlinParameter(it.name, it.type.safeType) // TODO: default value for nullable properties
+                kotlinParameter(it.name.variableName(), it.type.safeType) // TODO: default value for nullable properties
             }
 
             request.body?.let {
@@ -72,7 +72,7 @@ class ClientRestInterfaceEmitter : CodeEmitter {
                     writeln("val response = try {")
                     indent {
                         write("delegate.${request.name.render()}(")
-                        val parameterNames = request.parameters.mapTo(mutableListOf()) { it.name.render() }
+                        val parameterNames = request.parameters.mapTo(mutableListOf()) { it.name.variableName().render() }
                         request.body?.let { parameterNames.add("body") }
                         write(parameterNames.joinToString())
                         writeln(").toResponse()")
