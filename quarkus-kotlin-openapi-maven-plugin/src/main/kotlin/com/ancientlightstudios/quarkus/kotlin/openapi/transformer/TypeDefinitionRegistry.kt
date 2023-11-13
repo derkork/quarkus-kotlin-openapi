@@ -128,8 +128,8 @@ class TypeDefinitionRegistry(private val schemas: MutableMap<SchemaDefinition, S
         definition: OneOfSchemaDefinition,
         direction: FlowDirection
     ): TypeDefinition {
-        val schemas = definition.schemas.map { getTypeDefinition(it, direction).useAs(false) }
-        val result = OneOfTypeDefinition(name, definition.nullable, definition.validation, schemas)
+        val schemas = definition.schemas.mapKeysTo(linkedMapOf()) { getTypeDefinition(it.key, direction).useAs(false) }
+        val result = OneOfTypeDefinition(name, definition.nullable, definition.validation, schemas, definition.discriminator)
         typeDefinitions.getOrPut(definition) { mutableMapOf() }[direction] = result
         return result
     }

@@ -120,20 +120,43 @@ class SchemaBuilder(private val node: ObjectNode) {
 
     private fun ParseContext.extractOneOfSchemaDefinition(): OneOfSchemaDefinition {
         val types = node.withArray("oneOf")
-        check(types.all { it is ObjectNode }) { "OneOf schema with other types than objects not yet supported. $contextPath" }
+        val discriminator = node.resolvePointer("discriminator/propertyName")?.asText()
+        check(types.all { it is ObjectNode }) { "OneOf schema with primitive types not yet supported. $contextPath" }
         val schemas = types.filterIsInstance<ObjectNode>()
             .mapIndexed { idx, it ->
                 contextFor(it, "oneOf[$idx]").parseAsSchema()
             }
-            .map {
-                check(it is Schema.ObjectSchema) { "OneOf schema only supports object schemas. $contextPath" }
-                it
+
+
+        val mappings = linkedMapOf<Schema, List<String>>()
+        if (discriminator != null) {
+            schemas.forEach {
+                check(it is SchemaReference<*>) { "OneOf schema with discriminator does not support inline schemas. $contextPath" }
+                mappings[it] = listOf(it.targetName)
+            }
+        }
+        else {
+            schemas.forEach { mappings[it] = emptyList() }
+        }
+
+        // process mapping overrides
+        node.resolvePointer("discriminator/mapping")
+            ?.asObjectNode { "Discriminator mapping must be an object. $contextPath" }
+            ?.propertiesAsList()
+            ?.associate { (name, node) -> name to referenceResolver.resolveSchema(node.asText()).first }
+            ?.forEach {
+                val key =schemas.firstOrNull { schema -> schema is SchemaReference<*> && schema.targetName == it.value }
+                    ?: throw IllegalStateException("Discriminator mapping must reference one of the oneOf schemas. $contextPath" )
+
+                mappings.compute(key) { _, value ->
+                    value?.plus(it.key) ?: listOf(it.key)
+                }
             }
 
         return OneOfSchemaDefinition(
             contextPath,
             node.getTextOrNull("description"), isNullable(),
-            schemas, node.resolvePointer("discriminator/propertyName")?.asText(),
+            mappings, discriminator,
             extractDefaultValidation()
         )
     }

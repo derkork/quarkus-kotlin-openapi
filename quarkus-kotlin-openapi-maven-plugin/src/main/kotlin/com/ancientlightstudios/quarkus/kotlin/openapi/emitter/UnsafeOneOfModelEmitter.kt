@@ -4,6 +4,8 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.statements.OneOfBu
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.statements.getTransformStatement
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.PathExpression.Companion.pathExpression
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.StringExpression.Companion.stringExpression
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.schema.SchemaReference
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.RequestSuite
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.MethodName.Companion.methodName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName.GenericTypeName.Companion.of
@@ -38,21 +40,59 @@ class UnsafeOneOfModelEmitter(private val direction: FlowDirection) : CodeEmitte
 
                 kotlinMethod("asSafe".methodName(), returnType = "Maybe".typeName().of(definition.name)) {
                     kotlinParameter("context".variableName(), "String".rawTypeName())
-
-                    val returnStatement = OneOfBuilderTransformStatement(definition.name)
-
-                    definition.schemas.forEach { schema ->
-                        val parameter = schema.safeType.variableName().extend(postfix = "maybe")
-                        val source = "node".variableName().parameterToMaybeExpression(
-                            "context".variableName().pathExpression()
-                        )
-                        addStatement(getTransformStatement(source, parameter, schema, true))
-                        returnStatement.addParameter(parameter)
+                    if (definition.discriminator != null) {
+                        oneOfWithDiscriminator(definition, definition.discriminator)
+                    } else {
+                        oneOfWithoutDiscriminator(definition)
                     }
-
-                    addStatement(returnStatement)
                 }
             }
         }.also { generateFile(it) }
+    }
+
+    private fun KotlinMethod.oneOfWithoutDiscriminator(definition: OneOfTypeDefinition) {
+        val returnStatement = OneOfBuilderTransformStatement(definition.name)
+
+        definition.schemas.keys.forEach { schema ->
+            val parameter = schema.safeType.variableName().extend(postfix = "maybe")
+            val source = "node".variableName().parameterToMaybeExpression(
+                "context".variableName().pathExpression()
+            )
+            addStatement(getTransformStatement(source, parameter, schema, true))
+            returnStatement.addParameter(parameter)
+        }
+
+        addStatement(returnStatement)
+    }
+
+    private fun KotlinMethod.oneOfWithDiscriminator(definition: OneOfTypeDefinition, discriminatorProperty:String) {
+        kotlinStatement {
+            writeln("val discriminator = node.get(${discriminatorProperty.stringExpression().evaluate()})?.asText() ?: return Maybe.Failure(context, ValidationError(\"discriminator field '${discriminatorProperty}' is missing\", context))")
+            writeln()
+            write("return when(discriminator) ")
+            block {
+                definition.schemas.forEach { (typeDefinition, aliases) ->
+
+                    val joinedAliases = aliases.joinToString { it.stringExpression().evaluate() }
+
+                    write("$joinedAliases -> ")
+                    block(newLineAfter = true) {
+                        val parameter = typeDefinition.safeType.variableName().extend(postfix = "maybe")
+                        val source = "node".variableName().parameterToMaybeExpression(
+                            "context".variableName().pathExpression()
+                        )
+
+                        getTransformStatement(source, parameter, typeDefinition, true).render(this)
+
+                        writeln(parameter.render())
+                        indent {
+                            writeln(".required()")
+                            writeln(".onSuccess { success(${definition.name.render()}(value)) }")
+                        }
+                    }
+                }
+                write("else -> Maybe.Failure(context, ValidationError(\"discriminator field '${discriminatorProperty}' has invalid value '\$discriminator'\", context))")
+            }
+        }
     }
 }

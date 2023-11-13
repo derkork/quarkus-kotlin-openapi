@@ -102,7 +102,7 @@ class SchemaCollector {
     }
 
     fun registerOneOfSchema(definition: OneOfSchemaDefinition, direction: FlowDirection, name: String) : ObjectStyle{
-        val styles = definition.schemas.mapIndexed { index, schema ->
+        val styles = definition.schemas.keys.mapIndexed { index, schema ->
             registerSchema(schema, direction) { "$name option $index" }
         }
 
