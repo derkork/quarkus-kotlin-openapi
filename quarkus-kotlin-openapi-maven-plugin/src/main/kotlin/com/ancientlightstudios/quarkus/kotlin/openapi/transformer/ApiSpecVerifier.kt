@@ -32,11 +32,6 @@ class ApiSpecVerifier(val apiSpec: ApiSpec) {
         // if the oneOf schema has a discriminator, verify that the discriminator property is
         // present in all sub-schemas and that ALL sub-schemas are not inline schemas
         oneOfSchemasWithDiscriminators.forEach {
-            // check that we have no inline schemas
-            if (it.schemas.any { subSchema -> subSchema is SchemaDefinition }) {
-                SpecIssue("Schema ${it.originPath} is a oneOf schema with a discriminator, but has inline schemas as sub-schemas. This is not supported.")
-            }
-
             // check that all sub-schemas have the discriminator property
             if (!guaranteedPropertyNames(it).contains(it.discriminator)) {
                 SpecIssue("Schema ${it.originPath} is a oneOf schema with a discriminator, but not all sub-schemas have the discriminator property.")
@@ -47,7 +42,7 @@ class ApiSpecVerifier(val apiSpec: ApiSpec) {
     private fun guaranteedPropertyNames(schema: Schema): Set<String> {
         return when (schema) {
             is Schema.ObjectSchema -> schema.properties.map { it.first }.toSet()
-            is Schema.OneOfSchema -> schema.schemas.map { guaranteedPropertyNames(it) }
+            is Schema.OneOfSchema -> schema.schemas.keys.map { guaranteedPropertyNames(it) }
                 .reduce { acc, list -> acc.intersect(list) }
 
             is Schema.AnyOfSchema -> schema.schemas.map { guaranteedPropertyNames(it) }
@@ -73,7 +68,7 @@ class ApiSpecVerifier(val apiSpec: ApiSpec) {
             when (aSchema) {
                 is Schema.ObjectSchema -> aSchema.properties.forEach { toProcess.add(it.second.schema) }
                 is Schema.ArraySchema -> toProcess.add(aSchema.itemSchema)
-                is Schema.OneOfSchema -> aSchema.schemas.forEach { toProcess.add(it) }
+                is Schema.OneOfSchema -> aSchema.schemas.keys.forEach { toProcess.add(it) }
                 is Schema.AnyOfSchema -> aSchema.schemas.forEach { toProcess.add(it) }
                 is Schema.AllOfSchema -> aSchema.schemas.forEach { toProcess.add(it) }
                 else -> {}

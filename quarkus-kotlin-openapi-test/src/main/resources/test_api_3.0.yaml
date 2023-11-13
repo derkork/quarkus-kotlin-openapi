@@ -304,10 +304,14 @@ components:
       oneOf:
         - $ref: "#/components/schemas/Person"
         - $ref: "#/components/schemas/Animal"
+      discriminator:
+        propertyName: kind
 
     Person:
       type: object
       properties:
+        kind:
+          type: string
         character:
           type: string
         actor:
@@ -315,6 +319,7 @@ components:
       required:
         - character
         - actor
+        - kind
 
     Animal:
       type: object
@@ -323,9 +328,12 @@ components:
           type: string
         kind:
           type: string
+        furColor:
+          type: string
       required:
         - character
         - kind
+        - furColor
 
     AdditionalInformation:
       type: object

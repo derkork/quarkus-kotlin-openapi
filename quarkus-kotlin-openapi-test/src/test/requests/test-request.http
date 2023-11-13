@@ -17,12 +17,13 @@ Content-Type: application/json
     {
       "character": "Tony Stark",
       "actor": "Robert Downey Jr.",
-      "type": "Person"
+      "kind": "Person"
     },
     {
       "character": "Virginia Potts",
       "actor": "Gwyneth Paltrow",
-      "type": "Person"
+      "furColor" : "red",
+      "kind": "Animal"
     }
   ]
 }

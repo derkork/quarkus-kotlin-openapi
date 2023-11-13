@@ -6,7 +6,7 @@ data class OneOfSchemaDefinition(
     override val originPath: String,
     override val description: String?,
     override val nullable: Boolean,
-    override val schemas: List<Schema>,
+    override val schemas: Map<Schema, List<String>>,
     override val discriminator: String?,
     override val validation: Validation
 ) : SchemaDefinition, Schema.OneOfSchema

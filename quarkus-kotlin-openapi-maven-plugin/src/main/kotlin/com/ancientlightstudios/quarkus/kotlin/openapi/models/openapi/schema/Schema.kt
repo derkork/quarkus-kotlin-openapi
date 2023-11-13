@@ -42,9 +42,8 @@ sealed interface Schema {
 
     sealed interface OneOfSchema : Schema {
 
-        val schemas: List<Schema>
+        val schemas: Map<Schema, List<String>>
         val discriminator: String?
-
     }
 
     sealed interface AnyOfSchema : Schema {
