@@ -1,6 +1,7 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.statements.getDeserializationStatement
+import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.statements.writeToJsonNode
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.PathExpression.Companion.pathExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ResponseCode
@@ -70,9 +71,14 @@ class ClientRestInterfaceEmitter : CodeEmitter {
                     // call delegate
                     writeln("val response = try {")
                     indent {
+                        if (request.body != null) {
+                            write("val bodyPayload:${"String".rawTypeName(request.body.nullable).render()} = objectMapper.writeValueAsString(")
+                            writeToJsonNode("body".variableName(), request.body)
+                            writeln(")")
+                        }
                         write("delegate.${request.name.render()}(")
                         val parameterNames = request.parameters.mapTo(mutableListOf()) { it.name.variableName().render() }
-                        request.body?.let { parameterNames.add("body") }
+                        request.body?.let { parameterNames.add("bodyPayload") }
                         write(parameterNames.joinToString())
                         writeln(").toResponse()")
                     }

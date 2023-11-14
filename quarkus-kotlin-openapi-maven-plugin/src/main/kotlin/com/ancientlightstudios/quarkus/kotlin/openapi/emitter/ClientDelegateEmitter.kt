@@ -44,7 +44,7 @@ class ClientDelegateEmitter : CodeEmitter {
                         }
 
                         request.body?.let {
-                            kotlinParameter("body".variableName(), it.safeType)
+                            kotlinParameter("body".variableName(), "String".rawTypeName(it.nullable))
                             kotlinAnnotation("Consumes".rawClassName(), "value".variableName() to "application/json".stringExpression().arrayExpression())
                         }
                     }
