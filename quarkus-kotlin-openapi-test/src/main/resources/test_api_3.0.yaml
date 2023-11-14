@@ -308,11 +308,11 @@ components:
       default: scifi
 
     Cast:
-      oneOf:
+      anyOf:
         - $ref: "#/components/schemas/Person"
         - $ref: "#/components/schemas/Animal"
-      discriminator:
-        propertyName: kind
+     # discriminator:
+      #  propertyName: kind
 
     Person:
       type: object
