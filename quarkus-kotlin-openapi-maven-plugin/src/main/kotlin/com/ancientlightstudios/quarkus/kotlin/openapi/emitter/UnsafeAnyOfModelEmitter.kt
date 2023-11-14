@@ -1,7 +1,7 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.statements.AnyOfBuilderTransformStatement
-import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.statements.getTransformStatement
+import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.statements.AnyOfBuilderDeserializationStatement
+import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.statements.getDeserializationStatement
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.PathExpression.Companion.pathExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.RequestSuite
@@ -39,14 +39,14 @@ class UnsafeAnyOfModelEmitter(private val direction: FlowDirection) : CodeEmitte
                 kotlinMethod("asSafe".methodName(), returnType = "Maybe".typeName().of(definition.name)) {
                     kotlinParameter("context".variableName(), "String".rawTypeName())
 
-                    val returnStatement = AnyOfBuilderTransformStatement(definition.name)
+                    val returnStatement = AnyOfBuilderDeserializationStatement(definition.name)
 
                     definition.schemas.forEach { schema ->
                         val parameter = schema.safeType.variableName().extend(postfix = "maybe")
                         val source = "node".variableName().parameterToMaybeExpression(
                             "context".variableName().pathExpression()
                         )
-                        addStatement(getTransformStatement(source, parameter, schema, true))
+                        addStatement(getDeserializationStatement(source, parameter, schema, true))
                         returnStatement.addParameter(parameter)
                     }
 

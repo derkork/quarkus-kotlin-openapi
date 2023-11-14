@@ -7,7 +7,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.schema.vali
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.VariableName
 
-class ObjectTransformStatement(
+class ObjectDeserializationStatement(
     private val source: Expression, private val targetName: VariableName, private val type: ClassName,
     private val required: Boolean, private val validation: Validation,
     private val valueTransform: (String) -> Expression
@@ -27,7 +27,7 @@ class ObjectTransformStatement(
 
 }
 
-class NestedObjectTransformStatement(
+class NestedObjectDeserializationStatement(
     private val source: Expression, private val type: ClassName,
     private val required: Boolean, private val validation: Validation,
     private val valueTransform: (String) -> Expression

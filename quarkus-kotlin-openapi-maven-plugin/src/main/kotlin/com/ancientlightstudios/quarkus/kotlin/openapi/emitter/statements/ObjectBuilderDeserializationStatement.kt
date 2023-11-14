@@ -11,7 +11,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.Va
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.VariableName.Companion.variableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.forEachWithStats
 
-abstract class ObjectBuilderTransformStatement : KotlinStatement {
+abstract class ObjectBuilderDeserializationStatement : KotlinStatement {
 
     private val parameters = mutableListOf<VariableName>()
 
@@ -42,7 +42,7 @@ abstract class ObjectBuilderTransformStatement : KotlinStatement {
 
 }
 
-class SafeObjectBuilderTransformStatement(private val safeObject: ClassName) : ObjectBuilderTransformStatement() {
+class SafeObjectBuilderDeserializationStatement(private val safeObject: ClassName) : ObjectBuilderDeserializationStatement() {
 
     override fun render(writer: CodeWriter) = with(writer) {
         write("return ")
@@ -51,10 +51,10 @@ class SafeObjectBuilderTransformStatement(private val safeObject: ClassName) : O
 
 }
 
-class RequestBuilderTransformStatement(
+class RequestBuilderDeserializationStatement(
     private val methodName: MethodName,
     private val requestContainer: ClassName?
-) : ObjectBuilderTransformStatement() {
+) : ObjectBuilderDeserializationStatement() {
 
     override fun render(writer: CodeWriter) = with(writer) {
         if (requestContainer != null) {

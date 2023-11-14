@@ -13,6 +13,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.Ty
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.VariableName.Companion.variableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.typedefinition.EnumTypeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.transformer.TypeDefinitionRegistry
+import com.ancientlightstudios.quarkus.kotlin.openapi.utils.valueExpression
 import com.fasterxml.jackson.databind.JsonNode
 
 class EnumModelEmitter : CodeEmitter {
@@ -27,16 +28,18 @@ class EnumModelEmitter : CodeEmitter {
 
     private fun EmitterContext.emitModel(definition: EnumTypeDefinition) {
         kotlinFile(modelPackage(), definition.name) {
-            registerImport("com.fasterxml.jackson.annotation.JsonProperty")
             registerImport(apiPackage(), wildcardImport = true)
             registerImport("com.fasterxml.jackson.databind.JsonNode")
 
             kotlinEnum(fileName) {
                 kotlinMember("value".variableName(), "kotlin.${definition.primitiveType.render()}".rawTypeName(), accessModifier = null)
                 definition.sourceSchema.values.forEach {
-                    // TODO: support different types
-                    kotlinEnumItem(it.constantName(), it.stringExpression()) {
-                        kotlinAnnotation("JsonProperty".rawClassName(), "value".variableName() to it.stringExpression())
+                    kotlinEnumItem(it.constantName(), definition.primitiveType.valueExpression(it))
+                }
+
+                kotlinMethod("toJsonNode".methodName(), returnType = "JsonNode".rawTypeName(), bodyAsAssignment = true) {
+                    kotlinStatement {
+                        write("value.toJsonNode()")
                     }
                 }
             }

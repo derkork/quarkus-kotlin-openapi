@@ -1,7 +1,7 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.statements.SafeObjectBuilderTransformStatement
-import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.statements.getTransformStatement
+import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.statements.SafeObjectBuilderDeserializationStatement
+import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.statements.getDeserializationStatement
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.RequestSuite
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.MethodName.Companion.methodName
@@ -38,12 +38,12 @@ class UnsafeObjectModelEmitter(private val direction: FlowDirection) : CodeEmitt
                 kotlinMethod("asSafe".methodName(), returnType = "Maybe".typeName().of(definition.name)) {
                     kotlinParameter("context".variableName(), "String".rawTypeName())
 
-                    val returnStatement = SafeObjectBuilderTransformStatement(definition.name)
+                    val returnStatement = SafeObjectBuilderDeserializationStatement(definition.name)
 
                     definition.properties.forEach { (name, _, propertyTypeUsage) ->
                         val source = "node".variableName().propertyToMaybeExpression(name)
                         val parameter = name.variableName().extend(postfix = "maybe")
-                        addStatement(getTransformStatement(source, parameter, propertyTypeUsage, true))
+                        addStatement(getDeserializationStatement(source, parameter, propertyTypeUsage, true))
                         returnStatement.addParameter(parameter)
                     }
 

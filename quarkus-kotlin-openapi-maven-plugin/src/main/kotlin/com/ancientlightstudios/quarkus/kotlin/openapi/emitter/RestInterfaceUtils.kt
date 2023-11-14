@@ -14,9 +14,4 @@ fun AnnotationAware.addPathAnnotation(path: String) {
     )
 }
 
-fun AnnotationAware.addReflectionAnnotation() {
-    addAnnotation(
-        KotlinAnnotation("RegisterForReflection".rawClassName())
-    )
-}
 
