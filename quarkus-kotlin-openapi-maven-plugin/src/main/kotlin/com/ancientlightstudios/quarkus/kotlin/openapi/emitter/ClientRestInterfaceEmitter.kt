@@ -1,6 +1,6 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.statements.getTransformStatement
+import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.statements.getDeserializationStatement
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.PathExpression.Companion.pathExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ResponseCode
@@ -9,7 +9,6 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.Request
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName.Companion.className
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName.Companion.rawClassName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName.GenericTypeName.Companion.of
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName.SimpleTypeName.Companion.rawTypeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName.SimpleTypeName.Companion.typeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.VariableName.Companion.variableName
@@ -168,7 +167,7 @@ class ClientRestInterfaceEmitter : CodeEmitter {
     private fun CodeWriter.emitTypeConversion(typeDefinitionUsage: TypeDefinitionUsage) {
         val parameter = "maybe".variableName()
         val source = "entity".variableName().pathExpression()
-        getTransformStatement(source, parameter, typeDefinitionUsage, true).render(this)
+        getDeserializationStatement(source, parameter, typeDefinitionUsage, true).render(this)
         writeln(forceNewLine = false)
     }
 

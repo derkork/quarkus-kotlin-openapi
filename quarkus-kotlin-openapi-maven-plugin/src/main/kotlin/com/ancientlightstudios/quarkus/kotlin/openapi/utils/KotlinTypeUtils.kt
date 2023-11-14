@@ -6,6 +6,8 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.F
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.IntExpression.Companion.intExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.LongExpression.Companion.longExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.StringExpression.Companion.stringExpression
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.UIntExpression.Companion.uIntExpression
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.ULongExpression.Companion.uLongExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName.Companion.rawClassName
 
@@ -14,7 +16,9 @@ fun ClassName.valueExpression(value: String) = when (this.render()) {
     "Float" -> value.floatExpression()
     "Double" -> value.doubleExpression()
     "Int" -> value.intExpression()
+    "UInt" -> value.uIntExpression()
     "Long" -> value.longExpression()
+    "ULong" -> value.uLongExpression()
     "Boolean" -> value.booleanExpression()
     else -> throw IllegalArgumentException("unsupported primitive type ${this.render()}")
 }

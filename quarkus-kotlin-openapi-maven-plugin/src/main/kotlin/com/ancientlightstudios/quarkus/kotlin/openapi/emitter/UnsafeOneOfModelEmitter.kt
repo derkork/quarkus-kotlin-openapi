@@ -1,11 +1,10 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.statements.OneOfBuilderTransformStatement
-import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.statements.getTransformStatement
+import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.statements.OneOfBuilderDeserializationStatement
+import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.statements.getDeserializationStatement
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.PathExpression.Companion.pathExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.StringExpression.Companion.stringExpression
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.schema.SchemaReference
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.RequestSuite
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.MethodName.Companion.methodName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName.GenericTypeName.Companion.of
@@ -51,14 +50,14 @@ class UnsafeOneOfModelEmitter(private val direction: FlowDirection) : CodeEmitte
     }
 
     private fun KotlinMethod.oneOfWithoutDiscriminator(definition: OneOfTypeDefinition) {
-        val returnStatement = OneOfBuilderTransformStatement(definition.name)
+        val returnStatement = OneOfBuilderDeserializationStatement(definition.name)
 
         definition.schemas.keys.forEach { schema ->
             val parameter = schema.safeType.variableName().extend(postfix = "maybe")
             val source = "node".variableName().parameterToMaybeExpression(
                 "context".variableName().pathExpression()
             )
-            addStatement(getTransformStatement(source, parameter, schema, true))
+            addStatement(getDeserializationStatement(source, parameter, schema, true))
             returnStatement.addParameter(parameter)
         }
 
@@ -82,7 +81,7 @@ class UnsafeOneOfModelEmitter(private val direction: FlowDirection) : CodeEmitte
                             "context".variableName().pathExpression()
                         )
 
-                        getTransformStatement(source, parameter, typeDefinition, true).render(this)
+                        getDeserializationStatement(source, parameter, typeDefinition, true).render(this)
 
                         writeln(parameter.render())
                         indent {

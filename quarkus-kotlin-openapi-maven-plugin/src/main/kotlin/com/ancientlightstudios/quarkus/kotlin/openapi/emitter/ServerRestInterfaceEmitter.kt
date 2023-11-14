@@ -1,7 +1,7 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.statements.RequestBuilderTransformStatement
-import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.statements.getTransformStatement
+import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.statements.RequestBuilderDeserializationStatement
+import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.statements.getDeserializationStatement
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.ArrayExpression.Companion.arrayExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.PathExpression.Companion.pathExpression
@@ -52,7 +52,7 @@ class ServerRestInterfaceEmitter : CodeEmitter {
                 )
             }
 
-            val statement = RequestBuilderTransformStatement(
+            val statement = RequestBuilderDeserializationStatement(
                 request.name, request.name.extend(postfix = "Request").className()
             )
 
@@ -67,7 +67,7 @@ class ServerRestInterfaceEmitter : CodeEmitter {
                 val source = it.name.variableName().parameterToMaybeExpression(
                     "request.${it.source.name.lowercase()}.${it.name}".stringExpression()
                 )
-                addStatement(getTransformStatement(source, parameter, it.type, false))
+                addStatement(getDeserializationStatement(source, parameter, it.type, false))
                 statement.addParameter(parameter)
             }
 
@@ -83,7 +83,7 @@ class ServerRestInterfaceEmitter : CodeEmitter {
                 }
                 val parameter = "body".variableName().extend(postfix = "maybe")
                 val source = "node".variableName().pathExpression()
-                addStatement(getTransformStatement(source, parameter, it, true))
+                addStatement(getDeserializationStatement(source, parameter, it, true))
                 statement.addParameter(parameter)
             }
 

@@ -5,7 +5,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinStatem
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.VariableName
 
-class OneOfBuilderTransformStatement(val objectName: ClassName) : KotlinStatement {
+class OneOfBuilderDeserializationStatement(val objectName: ClassName) : KotlinStatement {
 
     private val parameters = mutableListOf<VariableName>()
 

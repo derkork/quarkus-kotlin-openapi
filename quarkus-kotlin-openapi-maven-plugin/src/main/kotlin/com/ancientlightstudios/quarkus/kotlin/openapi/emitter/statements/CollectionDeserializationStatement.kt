@@ -7,7 +7,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.schema.vali
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.VariableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.VariableName.Companion.variableName
 
-class CollectionTransformStatement(
+class CollectionDeserializationStatement(
     private val source: Expression, private val targetName: VariableName,
     private val required: Boolean, private val validation: Validation,
     private val valueTransform: (String) -> Expression,
@@ -35,7 +35,7 @@ class CollectionTransformStatement(
 
 }
 
-class NestedCollectionTransformStatement(
+class NestedCollectionDeserializationStatement(
     private val source: Expression, private val required: Boolean,
     private val validation: Validation, private val valueTransform: (String) -> Expression,
     private val fromJsonNode: Boolean,

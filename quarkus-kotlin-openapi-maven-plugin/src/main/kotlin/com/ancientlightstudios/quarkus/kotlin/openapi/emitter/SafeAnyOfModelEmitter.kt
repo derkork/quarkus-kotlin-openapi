@@ -22,12 +22,10 @@ class SafeAnyOfModelEmitter : CodeEmitter {
 
     private fun EmitterContext.emitModel(definition: AnyOfTypeDefinition) {
         kotlinFile(modelPackage(), definition.name) {
-            registerImport("io.quarkus.runtime.annotations.RegisterForReflection")
             registerImport("com.fasterxml.jackson.annotation.JsonUnwrapped")
             registerImport(apiPackage(), wildcardImport = true)
 
             kotlinClass(fileName, asDataClass = true) {
-                addReflectionAnnotation()
 
                 definition.schemas.forEach { type ->
                     kotlinMember(

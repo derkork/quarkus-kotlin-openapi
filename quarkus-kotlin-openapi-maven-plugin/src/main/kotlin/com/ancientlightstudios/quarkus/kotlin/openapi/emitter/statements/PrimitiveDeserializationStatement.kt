@@ -7,7 +7,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.schema.vali
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.VariableName
 
-class EnumTransformStatement(
+class PrimitiveDeserializationStatement(
     private val source: Expression, private val targetName: VariableName, private val type: ClassName,
     private val defaultValue: Expression?, private val required: Boolean,
     private val validation: Validation, private val valueTransform: (String) -> Expression
@@ -28,7 +28,7 @@ class EnumTransformStatement(
 
 }
 
-class NestedEnumTransformStatement(
+class NestedPrimitiveDeserializationStatement(
     private val source: Expression, private val type: ClassName,
     private val required: Boolean, private val validation: Validation,
     private val valueTransform: (String) -> Expression

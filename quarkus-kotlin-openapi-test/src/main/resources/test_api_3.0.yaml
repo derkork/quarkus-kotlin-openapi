@@ -283,6 +283,13 @@ components:
       required:
         - id
 
+    Age:
+      type: integer
+      enum:
+        - 5
+        - 10
+        - 20
+
     Genre:
       type: string
       enum:
@@ -310,6 +317,8 @@ components:
     Person:
       type: object
       properties:
+        whiskyAge:
+          $ref: "#/components/schemas/Age"
         kind:
           type: string
         character:
