@@ -1,5 +1,6 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.transformer
 
+import com.ancientlightstudios.quarkus.kotlin.openapi.Config
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.schema.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName.Companion.className
@@ -8,7 +9,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.typedef
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.primitiveTypeFor
 
-class TypeDefinitionRegistry(private val schemas: MutableMap<SchemaDefinition, SchemaInfo>) {
+class TypeDefinitionRegistry(private val schemas: MutableMap<SchemaDefinition, SchemaInfo>, private val config: Config) {
 
     private val nameRegistry = NameRegistry()
 
@@ -58,7 +59,8 @@ class TypeDefinitionRegistry(private val schemas: MutableMap<SchemaDefinition, S
     fun getTypeDefinition(schema: Schema, direction: FlowDirection): TypeDefinition {
         if (schema is Schema.PrimitiveSchema) {
             // it's a primitive type
-            return InlinePrimitiveTypeDefinition(primitiveTypeFor(schema.type, schema.format), schema)
+            val primitiveTypeInfo = primitiveTypeFor(config, schema.type, schema.format)
+            return InlinePrimitiveTypeDefinition(primitiveTypeInfo.className, primitiveTypeInfo.serializeMethodName, primitiveTypeInfo.deserializeMethodName, schema)
         }
         if (schema is ArraySchemaDefinition) {
             // it's an inline primitive type
@@ -73,7 +75,7 @@ class TypeDefinitionRegistry(private val schemas: MutableMap<SchemaDefinition, S
     private fun enumTypeDefinition(name: ClassName, definition: EnumSchemaDefinition): TypeDefinition {
         val result = EnumTypeDefinition(
             nameRegistry.uniqueNameFor(name),
-            primitiveTypeFor(definition.type, definition.format),
+            primitiveTypeFor(config, definition.type, definition.format).className,
             definition
         )
         typeDefinitions[definition] = mutableMapOf(FlowDirection.Up to result, FlowDirection.Down to result)

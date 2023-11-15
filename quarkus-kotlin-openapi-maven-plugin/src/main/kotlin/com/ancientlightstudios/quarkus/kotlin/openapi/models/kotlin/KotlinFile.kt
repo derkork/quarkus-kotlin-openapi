@@ -12,6 +12,8 @@ class KotlinFile(val packageName: String, val fileName: ClassName) : ClassAware,
     fun registerImport(import: String, wildcardImport: Boolean = false) =
         apply { imports.add(import + if (wildcardImport) ".*" else "") }
 
+    fun registerImports(imports:List<String>) = imports.forEach { registerImport(it) }
+
     override fun addClass(clazz: KotlinClass) {
         content.addItem(clazz)
     }

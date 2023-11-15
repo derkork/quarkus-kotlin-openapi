@@ -1,5 +1,6 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
+import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.statements.writeSerializationStatement
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ResponseCode
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName
@@ -27,6 +28,8 @@ class ServerResponseContainerEmitter : CodeEmitter {
         kotlinFile(serverPackage(), request.name.extend(postfix = "Response").className()) {
             registerImport("org.jboss.resteasy.reactive.RestResponse.ResponseBuilder")
             registerImport("org.jboss.resteasy.reactive.RestResponse")
+            registerImport(apiPackage(), wildcardImport = true)
+            registerImports(additionalImports)
             registerImport(modelPackage(), wildcardImport = true)
 
             val defaultResponseExists = request.responses.any { it.first == ResponseCode.Default }
@@ -72,7 +75,9 @@ class ServerResponseContainerEmitter : CodeEmitter {
                 val bodyVariable = "body".variableName()
                 kotlinParameter(bodyVariable, type.safeType)
                 kotlinStatement {
-                    write("status(${statusCode.value}, ${bodyVariable.render()})")
+                    write("status(${statusCode.value}, ")
+                    writeSerializationStatement(bodyVariable, type)
+                    write(")")
                 }
             } else {
                 kotlinStatement {
@@ -90,7 +95,9 @@ class ServerResponseContainerEmitter : CodeEmitter {
                 val bodyVariable = "body".variableName()
                 kotlinParameter(bodyVariable, type.safeType)
                 kotlinStatement {
-                    write("status(${statusVariable.render()}, ${bodyVariable.render()})")
+                    write("status(${statusVariable.render()}, ")
+                    writeSerializationStatement(bodyVariable, type)
+                    write(")")
                 }
             } else {
                 kotlinStatement {

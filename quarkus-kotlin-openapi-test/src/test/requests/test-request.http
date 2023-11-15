@@ -7,7 +7,7 @@ Content-Type: application/json
 
 {
   "title" : "Iron Man",
-  "releaseDate": "2008-05-02",
+  "releaseDate": "2008-05-02T10:00:00.123Z",
   "genres": [
     "action",
     "scifi"

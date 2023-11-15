@@ -1,16 +1,14 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.statements.writeToJsonNode
+import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.statements.writeSerializationStatement
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.InvocationExpression.Companion.invocationExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.NullExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.PathExpression.Companion.pathExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.StringExpression.Companion.stringExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.RequestSuite
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName.Companion.rawClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.MethodName.Companion.methodName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName.SimpleTypeName.Companion.rawTypeName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName.SimpleTypeName.Companion.typeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.VariableName.Companion.variableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.typedefinition.OneOfTypeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.transformer.TypeDefinitionRegistry
@@ -71,12 +69,12 @@ class SafeOneOfModelEmitter : CodeEmitter {
                     kotlinStatement {
                         definition.schemas.keys.forEachWithStats { status, typeDefinitionUsage ->
                             if (status.first) {
-                                writeToJsonNode(typeDefinitionUsage.safeType.variableName(), typeDefinitionUsage)
+                                writeSerializationStatement(typeDefinitionUsage.safeType.variableName(), typeDefinitionUsage)
                             }
                             else {
                                 indent {
                                     write(".shallowMerge(")
-                                    writeToJsonNode(typeDefinitionUsage.safeType.variableName(), typeDefinitionUsage)
+                                    writeSerializationStatement(typeDefinitionUsage.safeType.variableName(), typeDefinitionUsage)
                                     write(")")
                                 }
                             }

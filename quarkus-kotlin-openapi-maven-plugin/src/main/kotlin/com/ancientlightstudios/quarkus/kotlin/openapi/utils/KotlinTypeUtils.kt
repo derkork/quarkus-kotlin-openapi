@@ -1,5 +1,6 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.utils
 
+import com.ancientlightstudios.quarkus.kotlin.openapi.Config
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.BooleanExpression.Companion.booleanExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.DoubleExpression.Companion.doubleExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.FloatExpression.Companion.floatExpression
@@ -10,6 +11,8 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.U
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.ULongExpression.Companion.uLongExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName.Companion.rawClassName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.MethodName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.MethodName.Companion.methodName
 
 fun ClassName.valueExpression(value: String) = when (this.render()) {
     "String" -> value.stringExpression()
@@ -23,14 +26,52 @@ fun ClassName.valueExpression(value: String) = when (this.render()) {
     else -> throw IllegalArgumentException("unsupported primitive type ${this.render()}")
 }
 
-fun primitiveTypeFor(type: String, format: String?) = when {
-    type == "string" -> "String"
-    type == "number" && format == "float" -> "Float"
-    type == "number" && (format == "double" || format == null) -> "Double"
-    (type == "number" || type == "integer") && format == "int64" -> "Long"
-    type == "integer" && (format == null || format == "int32" || format == "int16") -> "Int"
-    (type == "number" || type == "integer") && (format == "uint32" || format == "uint16") -> "UInt"
-    (type == "number" || type == "integer") && (format == "uint64") -> "ULong"
-    type == "boolean" -> "Boolean"
-    else -> throw IllegalArgumentException("unsupported primitive type mapping '$type' with format '$format'")
-}.rawClassName()
+data class PrimitiveTypeInfo(val className: ClassName, val serializeMethodName:MethodName, val deserializeMethodName:MethodName)
+
+private fun make(type:String, format: String?, customType:String?, defaultType:String) : PrimitiveTypeInfo {
+    if (customType != null) {
+        return PrimitiveTypeInfo(customType.rawClassName(), "from $type $format".methodName(), "as $type $format".methodName())
+    }
+    return PrimitiveTypeInfo(defaultType.rawClassName(), "from $defaultType".methodName(), "as $defaultType".methodName())
+}
+
+
+fun primitiveTypeFor(config: Config, type: String, format: String?): PrimitiveTypeInfo {
+    if (type == "string") {
+        return when {
+            format.isNullOrEmpty() -> make(type, format, null, "String")
+            else -> make(type, format, config.typeNameFor(type, format), "String")
+        }
+    }
+
+    if (type == "boolean") {
+        return when {
+            format.isNullOrEmpty() -> make(type, format, null, "Boolean")
+            else -> make(type, format, config.typeNameFor(type, format), "Boolean")
+        }
+    }
+
+    if (type == "number") {
+        return when (format) {
+            "float" -> make(type, format, null, "Float")
+            "double", null, "" -> make(type, format, null, "Double")
+            "int32" -> make(type, format, null, "Int")
+            "int64" -> make(type, format, null, "Long")
+            "uint16", "uint32" -> make(type, format, null, "UInt")
+            "uint64" -> make(type, format, null, "ULong")
+            else -> make(type, format, config.typeNameFor(type, format), "Double")
+        }
+    }
+
+    if (type == "integer") {
+        return when (format) {
+            "int32", null, "" -> make(type, format, null, "Int")
+            "int64" -> make(type, format, null, "Long")
+            "uint16", "uint32" -> make(type, format, null, "UInt")
+            "uint64" -> make(type, format, null, "ULong")
+            else -> make(type, format, config.typeNameFor(type, format), "Int")
+        }
+    }
+
+    throw IllegalArgumentException("unsupported primitive type mapping '$type' with format '$format'")
+}

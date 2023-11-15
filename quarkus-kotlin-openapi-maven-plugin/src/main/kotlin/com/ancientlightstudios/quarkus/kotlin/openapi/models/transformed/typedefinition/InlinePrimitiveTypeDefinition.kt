@@ -3,12 +3,15 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.typede
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.NullExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.schema.Schema
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.MethodName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName.SimpleTypeName.Companion.rawTypeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName.SimpleTypeName.Companion.typeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.valueExpression
 
 data class InlinePrimitiveTypeDefinition(
     val primitiveTypeName: ClassName,
+    val serializeMethodName:MethodName,
+    val deserializeMethodName:MethodName,
     val sourceSchema: Schema.PrimitiveSchema
 ) : TypeDefinition {
 
@@ -24,6 +27,10 @@ data class InlinePrimitiveTypeUsage(
 ) : TypeDefinitionUsage {
 
     val primitiveTypeName = typeDefinition.primitiveTypeName
+
+    val serializeMethodName = typeDefinition.serializeMethodName
+
+    val deserializeMethodName = typeDefinition.deserializeMethodName
 
     override val valueTransform = { value: String -> primitiveTypeName.valueExpression(value) }
 

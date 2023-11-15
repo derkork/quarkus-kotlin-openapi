@@ -18,7 +18,7 @@ class Config(
     /**
      * Path where the debug output should be written.
      */
-    val debugOutputFile:String? = null,
+    val debugOutputFile: String? = null,
 
     /**
      * The name of the interface to generate.
@@ -30,9 +30,9 @@ class Config(
     val packageName: String,
 
     /**
-     * The package name where custom validators are located. Defaults to $packageName.model if not set.
+     * Additional package/class imports that should be included. These can contain custom validators or custom type converters.
      */
-    val validatorPackageName: String?,
+    val additionalImports: List<String>,
 
     /**
      * The directory where the generated sources should be put
@@ -40,9 +40,9 @@ class Config(
     val outputDirectory: String,
 
     /**
-     * Path prefix to be preprended to generated endpoints.
+     * Path prefix to be prepended to generated endpoints.
      */
-    val pathPrefix:String = "",
+    val pathPrefix: String = "",
 
     /**
      * The endpoints of the API for which the interface should be generated.
@@ -55,7 +55,18 @@ class Config(
     val endpoints: List<String> = emptyList(),
 
     /**
+     * The custom type mappings to use for the generated interface.
+     * Format:
+     * - <type>:<format>=<fully qualified class name>
+     * - string:uuid=java.util.UUID
+     */
+    private val typeMappings: List<String>,
+    /**
      * The type of the interface to generate.
      */
     val interfaceType: InterfaceType
-)
+) {
+    fun typeNameFor(type:String, format:String) :String? {
+        return typeMappings.firstOrNull { it.startsWith("$type:$format=") }?.substringAfter("=")
+    }
+}

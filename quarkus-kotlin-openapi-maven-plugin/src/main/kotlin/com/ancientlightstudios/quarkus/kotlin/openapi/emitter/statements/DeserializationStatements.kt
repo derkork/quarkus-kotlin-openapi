@@ -12,7 +12,7 @@ fun getDeserializationStatement(
     fromJsonNode: Boolean
 ) = when (typeDefinitionUsage) {
     is InlinePrimitiveTypeUsage -> PrimitiveDeserializationStatement(
-        source, targetName, typeDefinitionUsage.primitiveTypeName, typeDefinitionUsage.defaultValue,
+        source, targetName, typeDefinitionUsage.deserializeMethodName, typeDefinitionUsage.defaultValue,
         !typeDefinitionUsage.nullable, typeDefinitionUsage.validation, typeDefinitionUsage.valueTransform
     )
 
@@ -52,7 +52,7 @@ private fun nestedDeserializationStatement(
     val source = sourceName.pathExpression()
     return when (typeUsage) {
         is InlinePrimitiveTypeUsage -> NestedPrimitiveDeserializationStatement(
-            source, typeUsage.primitiveTypeName, !typeUsage.nullable,
+            source, typeUsage.deserializeMethodName, !typeUsage.nullable,
             typeUsage.validation, typeUsage.valueTransform
         )
 
