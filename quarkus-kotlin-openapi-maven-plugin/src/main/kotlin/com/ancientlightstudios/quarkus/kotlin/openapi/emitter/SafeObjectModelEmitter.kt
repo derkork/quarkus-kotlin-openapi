@@ -1,13 +1,11 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.statements.writeToJsonNode
+import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.statements.writeSerializationStatement
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.StringExpression.Companion.stringExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.RequestSuite
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName.Companion.rawClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.MethodName.Companion.methodName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName.SimpleTypeName.Companion.rawTypeName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName.SimpleTypeName.Companion.typeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.VariableName.Companion.variableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.typedefinition.ObjectTypeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.transformer.TypeDefinitionRegistry
@@ -26,6 +24,7 @@ class SafeObjectModelEmitter : CodeEmitter {
         kotlinFile(modelPackage(), definition.name) {
             registerImport(apiPackage(), wildcardImport = true)
             registerImport("com.fasterxml.jackson.databind.JsonNode")
+            registerImports(additionalImports)
 
             kotlinClass(fileName, asDataClass = true) {
 
@@ -52,7 +51,7 @@ class SafeObjectModelEmitter : CodeEmitter {
                                 }
                                 write(name.stringExpression().evaluate())
                                 write(", ")
-                                writeToJsonNode(name.variableName(), propertyTypeUsage)
+                                writeSerializationStatement(name.variableName(), propertyTypeUsage)
                                 writeln(")")
                             }
                         }

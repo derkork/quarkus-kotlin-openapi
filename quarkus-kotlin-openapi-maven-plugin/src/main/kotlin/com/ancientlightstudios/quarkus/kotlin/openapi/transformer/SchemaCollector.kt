@@ -1,5 +1,6 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.transformer
 
+import com.ancientlightstudios.quarkus.kotlin.openapi.Config
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.schema.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
 
@@ -17,7 +18,7 @@ class SchemaInfo(val style: ObjectStyle, direction: FlowDirection, val name: Str
 
 }
 
-class SchemaCollector {
+class SchemaCollector() {
 
     private val schemaData = mutableMapOf<SchemaDefinition, SchemaInfo>()
 
@@ -122,6 +123,6 @@ class SchemaCollector {
             is SchemaReference<*> -> getSchemaDefinition(schema.target) { schema.targetName }
         }
 
-    fun getTypeDefinitionRegistry() = TypeDefinitionRegistry(schemaData)
+    fun getTypeDefinitionRegistry(config: Config) = TypeDefinitionRegistry(schemaData, config)
 
 }

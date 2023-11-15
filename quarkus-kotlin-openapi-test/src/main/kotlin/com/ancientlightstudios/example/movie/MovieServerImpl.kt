@@ -11,7 +11,7 @@ import java.util.*
 @ApplicationScoped
 class MovieServerImpl(val ratingClient: RatingServiceClient) : MovieServerDelegate {
 
-    private val movieDataBase = mutableMapOf<String, Movie>()
+    private val movieDataBase = mutableMapOf<UUID, Movie>()
 
     override suspend fun findMovies(request: Maybe<FindMoviesRequest>): FindMoviesResponse {
         val validRequest = request.validOrElse { return FindMoviesResponse.badRequest(it.asResponseBody()) }
@@ -115,12 +115,12 @@ class MovieServerImpl(val ratingClient: RatingServiceClient) : MovieServerDelega
         }
     }
 
-    private inline fun findMovieOrElse(movieId: String, block: (ApplicationError) -> Nothing) =
+    private inline fun findMovieOrElse(movieId: UUID, block: (ApplicationError) -> Nothing) =
         movieDataBase[movieId] ?: block(ApplicationError("movie with id $movieId not found"))
 
 }
 
-fun generateId() = UUID.randomUUID().toString()
+fun generateId() = UUID.randomUUID()
 
 fun List<ValidationError>.asResponseBody() =
     InvalidInputError(this.map { "'${it.path}': ${it.message}" })

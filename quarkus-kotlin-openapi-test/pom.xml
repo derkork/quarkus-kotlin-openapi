@@ -10,7 +10,7 @@
     <parent>
         <groupId>com.ancientlightstudios</groupId>
         <artifactId>quarkus-kotlin-openapi-root</artifactId>
-        <version>0.0.6</version>
+        <version>0.0.7</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -110,6 +110,15 @@
             <plugin>
                 <groupId>com.ancientlightstudios</groupId>
                 <artifactId>quarkus-kotlin-openapi-maven-plugin</artifactId>
+                <configuration>
+                    <typeMappings>
+                        <typeMapping>string:uuid=java.util.UUID</typeMapping>
+                        <typeMapping>string:date=java.time.Instant</typeMapping>
+                    </typeMappings>
+                    <additionalImports>
+                        <additionalImport>com.ancientlightstudios.example.custom.*</additionalImport>
+                    </additionalImports>
+                </configuration>
                 <executions>
                     <execution>
                         <id>generate-server</id>

@@ -27,10 +27,7 @@ class UnsafeObjectModelEmitter(private val direction: FlowDirection) : CodeEmitt
         kotlinFile(modelPackage(), definition.name.extend(postfix = "Unsafe")) {
             registerImport("com.fasterxml.jackson.databind.JsonNode")
             registerImport(apiPackage(), wildcardImport = true)
-            validatorPackage?.let {
-                registerImport(it, wildcardImport = true)
-            }
-
+            registerImports(additionalImports)
 
             kotlinClass(fileName, asDataClass = true) {
                 kotlinMember("node".variableName(), "JsonNode".rawTypeName())

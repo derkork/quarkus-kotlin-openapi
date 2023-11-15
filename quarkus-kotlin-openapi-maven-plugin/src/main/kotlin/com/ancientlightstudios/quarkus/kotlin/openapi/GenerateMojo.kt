@@ -31,7 +31,7 @@ class GenerateMojo : AbstractMojo() {
      * Path where the debug output should be written.
      */
     @Parameter
-    var debugOutputFile:String? = null
+    var debugOutputFile: String? = null
 
     /**
      * The package name of the generated classes.
@@ -40,10 +40,10 @@ class GenerateMojo : AbstractMojo() {
     lateinit var packageName: String
 
     /**
-     * The package name where custom validators are located. Defaults to $packageName.model if not set.
+     * Additional package/class imports that should be included. These can contain custom validators or custom type converters.
      */
     @Parameter
-    var validatorPackageName: String? = null
+    var additionalImports: List<String> = listOf()
 
     /**
      * The name of the interface to generate.
@@ -55,7 +55,7 @@ class GenerateMojo : AbstractMojo() {
      * Path prefix to be prepended to generated endpoints.
      */
     @Parameter(defaultValue = "")
-    var pathPrefix:String = ""
+    var pathPrefix: String = ""
 
     /**
      * The directory where the generated sources should be put
@@ -67,6 +67,9 @@ class GenerateMojo : AbstractMojo() {
     var endpoints: List<String> = listOf()
 
     @Parameter
+    var typeMappings: List<String> = listOf()
+
+    @Parameter
     lateinit var interfaceType: InterfaceType
 
     override fun execute() {
@@ -76,10 +79,11 @@ class GenerateMojo : AbstractMojo() {
             debugOutputFile,
             interfaceName,
             packageName,
-            validatorPackageName,
+            additionalImports,
             outputDirectory.path,
             pathPrefix,
             endpoints,
+            typeMappings,
             interfaceType
         )
 

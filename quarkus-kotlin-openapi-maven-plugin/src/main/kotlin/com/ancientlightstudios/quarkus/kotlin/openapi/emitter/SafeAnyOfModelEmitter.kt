@@ -1,9 +1,8 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.statements.writeToJsonNode
+import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.statements.writeSerializationStatement
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.RequestSuite
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName.Companion.rawClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.MethodName.Companion.methodName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName.SimpleTypeName.Companion.rawTypeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.VariableName.Companion.variableName
@@ -41,12 +40,12 @@ class SafeAnyOfModelEmitter : CodeEmitter {
                     kotlinStatement {
                         definition.schemas.forEachWithStats { status, typeDefinitionUsage ->
                             if (status.first) {
-                                writeToJsonNode(typeDefinitionUsage.safeType.variableName(), typeDefinitionUsage)
+                                writeSerializationStatement(typeDefinitionUsage.safeType.variableName(), typeDefinitionUsage)
                             }
                             else {
                                 indent {
                                     write(".shallowMerge(")
-                                    writeToJsonNode(typeDefinitionUsage.safeType.variableName(), typeDefinitionUsage)
+                                    writeSerializationStatement(typeDefinitionUsage.safeType.variableName(), typeDefinitionUsage)
                                     write(")")
                                 }
                             }

@@ -30,45 +30,30 @@ class EnumModelEmitter : CodeEmitter {
         kotlinFile(modelPackage(), definition.name) {
             registerImport(apiPackage(), wildcardImport = true)
             registerImport("com.fasterxml.jackson.databind.JsonNode")
+            registerImports(additionalImports)
 
             kotlinEnum(fileName) {
-                kotlinMember("value".variableName(), "kotlin.${definition.primitiveType.render()}".rawTypeName(), accessModifier = null)
+                kotlinMember(
+                    "value".variableName(),
+                    "kotlin.${definition.primitiveType.render()}".rawTypeName(),
+                    accessModifier = null
+                )
                 definition.sourceSchema.values.forEach {
                     kotlinEnumItem(it.constantName(), definition.primitiveType.valueExpression(it))
                 }
 
-                kotlinMethod("toJsonNode".methodName(), returnType = "JsonNode".rawTypeName(), bodyAsAssignment = true) {
+                kotlinMethod(
+                    fileName.render().methodName().extend(prefix = "from"),
+                    returnType = "JsonNode".rawTypeName(),
+                    bodyAsAssignment = true
+                ) {
                     kotlinStatement {
-                        write("value.toJsonNode()")
+                        write("value.from${definition.primitiveType.render()}()")
                     }
                 }
             }
 
             val extensionMethodName = fileName.render().methodName().extend(prefix = "as")
-            kotlinMethod(
-                extensionMethodName,
-                returnType = "Maybe".rawTypeName().of(fileName, true),
-                receiverType = "String".rawTypeName(true)
-            ) {
-                kotlinParameter("context".variableName(), "String".typeName())
-
-                kotlinStatement {
-                    write("if (this == null) {")
-                    indent(newLineBefore = true, newLineAfter = true) {
-                        write("return asMaybe(context)")
-                    }
-                    writeln("}")
-                    writeln()
-                    write("return when (this) {")
-                    indent(newLineBefore = true, newLineAfter = true) {
-                        definition.sourceSchema.values.forEach {
-                            writeln("\"$it\" -> ${fileName.render()}.${it.className().render()}.asMaybe(context)")
-                        }
-                        write("else -> Maybe.Failure(context, ValidationError(\"Invalid value for ${fileName.render()}: \$this\", context))")
-                    }
-                    write("}")
-                }
-            }
 
             kotlinMethod(
                 extensionMethodName,
@@ -77,20 +62,16 @@ class EnumModelEmitter : CodeEmitter {
                 bodyAsAssignment = true
             ) {
                 kotlinStatement {
-                    write("onNotNull { value.as${fileName.render()}(context) }")
-                }
-            }
-
-            kotlinMethod(
-                extensionMethodName,
-                returnType = "Maybe".rawTypeName().of(fileName, true),
-                receiverType = "JsonNode".rawTypeName(true),
-                bodyAsAssignment = true
-            ) {
-                kotlinParameter("context".variableName(), "String".typeName())
-
-                kotlinStatement {
-                    write("asString(context).as${fileName.render()}()")
+                    write("onNotNull ")
+                    block {
+                        write("when (value) ")
+                        block {
+                            definition.sourceSchema.values.forEach {
+                                writeln("\"$it\" -> ${fileName.render()}.${it.className().render()}.asMaybe(context)")
+                            }
+                            write("else -> Maybe.Failure(context, ValidationError(\"Invalid value for ${fileName.render()}: \$value\", context))")
+                        }
+                    }
                 }
             }
 
@@ -100,9 +81,12 @@ class EnumModelEmitter : CodeEmitter {
                 receiverType = "Maybe".rawTypeName().of("JsonNode".rawClassName(), true),
                 bodyAsAssignment = true
             ) {
-                kotlinAnnotation("JvmName".rawClassName(), "name".variableName() to "${extensionMethodName.render()}FromNode".stringExpression())
+                kotlinAnnotation(
+                    "JvmName".rawClassName(),
+                    "name".variableName() to "${extensionMethodName.render()}FromNode".stringExpression()
+                )
                 kotlinStatement {
-                    write("onNotNull { value.as${fileName.render()}(context) }")
+                    write("asString().as${fileName.render()}()")
                 }
             }
         }.also { generateFile(it) }

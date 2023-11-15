@@ -8,26 +8,26 @@ import java.math.BigDecimal
 
 private val factory = JsonNodeFactory.instance
 
-fun String.toJsonNode(): JsonNode = factory.textNode(this)
+fun String.fromString(): JsonNode = factory.textNode(this)
 
-fun Int.toJsonNode(): JsonNode = factory.numberNode(this)
+fun Int.fromInt(): JsonNode = factory.numberNode(this)
 
-fun UInt.toJsonNode(): JsonNode = factory.numberNode(this.toLong())
+fun UInt.fromUInt(): JsonNode = factory.numberNode(this.toLong())
 
-fun Long.toJsonNode(): JsonNode = factory.numberNode(this)
+fun Long.fromLong(): JsonNode = factory.numberNode(this)
 
-fun ULong.toJsonNode(): JsonNode = factory.numberNode(BigDecimal(this.toString()))
+fun ULong.fromULong(): JsonNode = factory.numberNode(BigDecimal(this.toString()))
 
-fun Double.toJsonNode(): JsonNode = factory.numberNode(this)
+fun Double.fromDouble(): JsonNode = factory.numberNode(this)
 
-fun Float.toJsonNode(): JsonNode = factory.numberNode(this)
+fun Float.fromFloat(): JsonNode = factory.numberNode(this)
 
-fun Boolean.toJsonNode(): JsonNode = factory.booleanNode(this)
+fun Boolean.fromBoolean(): JsonNode = factory.booleanNode(this)
 
 
-fun <T> List<T>.toJsonNode(block: (T) -> JsonNode): JsonNode =
+fun <T> List<T>.fromList(block: (T) -> JsonNode): JsonNode =
     factory.arrayNode().apply {
-        this@toJsonNode.forEach { add(block(it)) }
+        this@fromList.forEach { add(block(it)) }
     }
 
 fun objectNode(): ObjectNode = factory.objectNode()
