@@ -69,8 +69,18 @@ class GenerateMojo : AbstractMojo() {
     @Parameter
     var typeMappings: List<String> = listOf()
 
+
     @Parameter
     lateinit var interfaceType: InterfaceType
+
+    @Parameter(defaultValue = "true")
+    var omitNullsInSerialization: Boolean = true
+
+    /**
+     * A list of additional provider classes which should be added as @RegisterProvider annotations to the generated interface.
+     */
+    @Parameter
+    var additionalProviders: List<String> = listOf()
 
     override fun execute() {
         val config = Config(
@@ -84,7 +94,9 @@ class GenerateMojo : AbstractMojo() {
             pathPrefix,
             endpoints,
             typeMappings,
-            interfaceType
+            interfaceType,
+            omitNullsInSerialization,
+            additionalProviders
         )
 
         val generator = Generator(config)
