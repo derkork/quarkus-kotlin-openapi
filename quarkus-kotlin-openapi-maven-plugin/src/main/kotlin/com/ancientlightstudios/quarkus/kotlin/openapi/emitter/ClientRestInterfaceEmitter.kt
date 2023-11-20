@@ -123,12 +123,12 @@ class ClientRestInterfaceEmitter : CodeEmitter {
 
                 writeln("} catch (_: TimeoutException) {")
                 indent {
-                    writeln("${errorType.render()}.RequestError(RequestErrorReason.Timeout)")
+                    writeln("${errorType.render()}.RequestErrorTimeout()")
                 }
                 write("} catch (e: Exception) {")
                 indent(newLineBefore = true, newLineAfter = true) {
-                    writeln("// TODO: check exception type")
-                    write("${errorType.render()}.RequestError(RequestErrorReason.Unknown)")
+                    // TODO: check exception type
+                    write("${errorType.render()}.RequestErrorUnknown()")
                 }
                 write("}")
             }

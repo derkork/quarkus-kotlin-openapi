@@ -5,6 +5,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.E
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.ExtendFromInterfaceExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.NullExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.PathExpression.Companion.pathExpression
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.StringExpression.Companion.stringExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ResponseCode
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.Request
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.RequestSuite
@@ -30,7 +31,6 @@ class ClientResponseContainerEmitter : CodeEmitter {
         kotlinFile(clientPackage(), request.name.extend(postfix = "Response").className()) {
             registerImport(modelPackage(), wildcardImport = true)
             registerImport("org.jboss.resteasy.reactive.RestResponse")
-            registerImport("com.ancientlightstudios.quarkus.kotlin.openapi.RequestErrorReason")
             registerImport("jakarta.ws.rs.core.Response")
             registerImport("com.ancientlightstudios.quarkus.kotlin.openapi.IsError")
 
@@ -61,10 +61,24 @@ class ClientResponseContainerEmitter : CodeEmitter {
 
             val errorInterfaceName = request.name.extend(postfix = "Error").className()
             kotlinInterface(errorInterfaceName, sealed = true, extends = listOf(ExtendFromInterfaceExpression(fileName), ExtendFromInterfaceExpression("IsError".rawClassName()))) {
-                kotlinClass("RequestError".className(), extends = listOf(ExtendFromInterfaceExpression(errorInterfaceName))) {
-                    kotlinMember("reason".variableName(), "RequestErrorReason".rawTypeName(), accessModifier = null, override = false)
+                kotlinClass("RequestErrorTimeout".className(), extends = listOf(ExtendFromInterfaceExpression(errorInterfaceName))) {
                     kotlinMember("errorMessage".variableName(), "String".rawTypeName(), accessModifier = null, override = true, initializedInConstructor = false,
-                        default = "reason".variableName().pathExpression().then("message".rawConstantName()))
+                        default = "A timeout occurred when communicating with the server.".stringExpression())
+                }
+
+                kotlinClass("RequestErrorUnreachable".className(), extends = listOf(ExtendFromInterfaceExpression(errorInterfaceName))) {
+                    kotlinMember("errorMessage".variableName(), "String".rawTypeName(), accessModifier = null, override = true, initializedInConstructor = false,
+                        default = "The server could not be reached.".stringExpression())
+                }
+
+                kotlinClass("RequestErrorConnectionReset".className(), extends = listOf(ExtendFromInterfaceExpression(errorInterfaceName))) {
+                    kotlinMember("errorMessage".variableName(), "String".rawTypeName(), accessModifier = null, override = true, initializedInConstructor = false,
+                        default = "The connection was reset while communicating with the server.".stringExpression())
+                }
+
+                kotlinClass("RequestErrorUnknown".className(), extends = listOf(ExtendFromInterfaceExpression(errorInterfaceName))) {
+                    kotlinMember("errorMessage".variableName(), "String".rawTypeName(), accessModifier = null, override = true, initializedInConstructor = false,
+                        default = "An unknown error occurred when communicating with the server.".stringExpression())
                 }
 
                 kotlinClass("ResponseError".className(), extends = listOf(ExtendFromInterfaceExpression(errorInterfaceName)))   {
