@@ -64,7 +64,15 @@ class Config(
     /**
      * The type of the interface to generate.
      */
-    val interfaceType: InterfaceType
+    val interfaceType: InterfaceType,
+    /**
+     * Whether null values should be omitted in serialization.
+     */
+    val omitNullsInSerialization: Boolean = true,
+    /**
+     * A list of additional provider classes which should be added as @RegisterProvider annotations to the generated interface.
+     */
+    val additionalProviders: List<String> = listOf()
 ) {
     fun typeNameFor(type:String, format:String) :String? {
         return typeMappings.firstOrNull { it.startsWith("$type:$format=") }?.substringAfter("=")

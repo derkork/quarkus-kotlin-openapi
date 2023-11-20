@@ -42,7 +42,14 @@ class Generator(private val config: Config) {
     private fun ApiSpec.transformApi() = ApiSpecTransformer(this, config).transform()
 
     private fun Pair<RequestSuite, TypeDefinitionRegistry>.generateApi() {
-        val context = EmitterContext(config.packageName, Path(config.outputDirectory), config.pathPrefix, config.additionalImports)
+        val context = EmitterContext(
+            config.packageName,
+            Path(config.outputDirectory),
+            config.pathPrefix,
+            config.additionalImports,
+            config.omitNullsInSerialization,
+            config.additionalProviders
+        )
 
         val codeEmitters = mutableListOf<CodeEmitter>()
 

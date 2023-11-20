@@ -2,6 +2,8 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.ArrayExpression.Companion.arrayExpression
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.ClassExpression.Companion.classExpression
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.PathExpression.Companion.pathExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.StringExpression.Companion.stringExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.RequestSuite
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName.Companion.rawClassName
@@ -20,12 +22,18 @@ class ClientDelegateEmitter : CodeEmitter {
             registerImport(modelPackage(), wildcardImport = true)
             registerImport("jakarta.ws.rs", wildcardImport = true)
             registerImport("org.jboss.resteasy.reactive.RestResponse")
+            registerImport("org.eclipse.microprofile.rest.client.annotation.RegisterProvider")
 
             kotlinInterface(fileName) {
                 kotlinAnnotation(
                     "RegisterRestClient".rawClassName(),
                     "configKey".variableName() to suite.name.extend(postfix = "Client").render().toKebabCase().stringExpression()
                 )
+
+                additionalProviders.forEach {
+                    kotlinAnnotation("RegisterProvider".rawClassName(), "value".variableName() to it.rawClassName().classExpression())
+                }
+
                 suite.requests.forEach { request ->
                     kotlinMethod(request.name, true, "RestResponse".rawTypeName().of("String".rawTypeName(true))) {
                         kotlinAnnotation(request.method.name.uppercase().rawClassName())
