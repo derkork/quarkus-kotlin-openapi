@@ -6,7 +6,7 @@
 
     <artifactId>quarkus-kotlin-openapi-root</artifactId>
     <groupId>com.ancientlightstudios</groupId>
-    <version>0.0.9</version>
+    <version>0.0.10</version>
     <packaging>pom</packaging>
 
     <properties>
@@ -211,5 +211,22 @@
         </pluginManagement>
     </build>
 
+    <profiles>
+        <profile>
+            <id>release</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.sonatype.plugins</groupId>
+                        <artifactId>nexus-staging-maven-plugin</artifactId>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
 </project>
