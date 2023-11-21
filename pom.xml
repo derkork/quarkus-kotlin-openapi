@@ -6,7 +6,7 @@
 
     <artifactId>quarkus-kotlin-openapi-root</artifactId>
     <groupId>com.ancientlightstudios</groupId>
-    <version>0.0.14</version>
+    <version>0.0.15</version>
     <packaging>pom</packaging>
 
     <name>Quarkus Kotlin OpenAPI - ROOT</name>
@@ -54,7 +54,6 @@
 
     <modules>
         <module>quarkus-kotlin-openapi-test</module>
-        <module>quarkus-java-openapi-test</module>
         <module>quarkus-kotlin-openapi</module>
         <module>quarkus-kotlin-openapi-maven-plugin</module>
     </modules>
