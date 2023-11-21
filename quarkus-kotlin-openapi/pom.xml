@@ -6,11 +6,13 @@
 
     <artifactId>quarkus-kotlin-openapi</artifactId>
     <packaging>jar</packaging>
+    <name>Quarkus Kotlin OpenAPI - Support Library</name>
+    <description>A support library providing shared classes that the generated code will use.</description>
 
     <parent>
         <groupId>com.ancientlightstudios</groupId>
         <artifactId>quarkus-kotlin-openapi-root</artifactId>
-        <version>0.0.10</version>
+        <version>0.0.11</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 

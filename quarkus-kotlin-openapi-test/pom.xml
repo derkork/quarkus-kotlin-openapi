@@ -6,11 +6,13 @@
 
     <artifactId>quarkus-kotlin-openapi-test</artifactId>
     <packaging>jar</packaging>
+    <name>Quarkus Kotlin OpenAPI - Kotlin Test</name>
+    <description>An example application using the Kotlin OpenAPI generator.</description>
 
     <parent>
         <groupId>com.ancientlightstudios</groupId>
         <artifactId>quarkus-kotlin-openapi-root</artifactId>
-        <version>0.0.10</version>
+        <version>0.0.11</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -110,6 +112,7 @@
             <plugin>
                 <groupId>com.ancientlightstudios</groupId>
                 <artifactId>quarkus-kotlin-openapi-maven-plugin</artifactId>
+                <version>${project.version}</version>
                 <configuration>
                     <typeMappings>
                         <typeMapping>string:uuid=java.util.UUID</typeMapping>
@@ -195,6 +198,7 @@
             <plugin>
                 <groupId>org.jetbrains.kotlin</groupId>
                 <artifactId>kotlin-maven-plugin</artifactId>
+                <version>${kotlin.version}</version>
                 <executions>
                     <execution>
                         <id>compile</id>
@@ -236,4 +240,25 @@
             </plugin>
         </plugins>
     </build>
+
+    <!-- Don't release this -->
+    <profiles>
+        <profile>
+            <id>release</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.sonatype.plugins</groupId>
+                        <artifactId>nexus-staging-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>default-deploy</id>
+                                <phase>none</phase>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
