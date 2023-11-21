@@ -6,8 +6,41 @@
 
     <artifactId>quarkus-kotlin-openapi-root</artifactId>
     <groupId>com.ancientlightstudios</groupId>
-    <version>0.0.10</version>
+    <version>0.0.11</version>
     <packaging>pom</packaging>
+
+    <name>Quarkus Kotlin OpenAPI - ROOT</name>
+    <description>An OpenAPI server/client generator for Quarkus and Kotlin.</description>
+    <url>https://github.com/derkork/quarkus-kotlin-openapi</url>
+
+    <developers>
+        <developer>
+            <name>Jan Thomae</name>
+            <email>janthomae@janthomae.de</email>
+            <organization>Ancient Light Studios</organization>
+            <organizationUrl>https://www.ancientlightstudios.com</organizationUrl>
+        </developer>
+        <developer>
+            <name>Maik Liebing</name>
+            <email>maikliebing@maikliebing.de</email>
+            <organization>Ancient Light Studios</organization>
+            <organizationUrl>https://www.ancientlightstudios.com</organizationUrl>
+        </developer>
+    </developers>
+
+    <scm>
+        <url>https://github.com/derkork/quarkus-kotlin-openapi.git</url>
+        <connection>scm:git:git@github.com:derkork/quarkus-kotlin-openapi.git</connection>
+        <developerConnection>scm:git:git@github.com:derkork/quarkus-kotlin-openapi.git</developerConnection>
+    </scm>
+
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>http://www.opensource.org/licenses/mit-license.php</url>
+        </license>
+    </licenses>
+
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
