@@ -13,7 +13,7 @@
     <parent>
         <groupId>com.ancientlightstudios</groupId>
         <artifactId>quarkus-kotlin-openapi-root</artifactId>
-        <version>0.0.13</version>
+        <version>0.0.14</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -161,6 +161,15 @@
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-javadoc-plugin</artifactId>
                         <version>3.6.2</version>
+                        <executions>
+                            <execution>
+                                <id>jar</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                                <phase>deploy</phase>
+                            </execution>
+                        </executions>
                     </plugin>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
