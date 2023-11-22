@@ -10,7 +10,7 @@ class ApiSpecVerifier(val apiSpec: ApiSpec) {
     fun verify() {
         verifyOneOfSchemas()
     }
-
+//TODO: verify that default value for enum types is one of the enum values
     private fun verifyOneOfSchemas() {
         val directSchemas = mutableSetOf<Schema>()
 

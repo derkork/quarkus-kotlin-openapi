@@ -7,7 +7,7 @@ data class ObjectSchemaDefinition(
     override val description: String?,
     override val nullable: Boolean,
     override val properties: List<Pair<String, SchemaProperty>>,
-    override val validation: Validation
+    override val validations: List<Validation>
 ) : SchemaDefinition, Schema.ObjectSchema
 
 data class ObjectSchemaReference(

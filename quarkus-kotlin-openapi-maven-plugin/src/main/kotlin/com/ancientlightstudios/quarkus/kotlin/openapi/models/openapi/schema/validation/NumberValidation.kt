@@ -3,7 +3,6 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.schema.val
 data class NumberValidation(
     val minimum: ComparableNumber?,
     val maximum: ComparableNumber?,
-    override val customConstraints: List<String>
 ) : Validation {
 
     val hasNumberValidationRules = minimum != null || maximum != null

@@ -9,7 +9,7 @@ data class PrimitiveSchemaDefinition(
     override val type: String,
     override val format: String?,
     override val defaultValue: String?,
-    override val validation: Validation
+    override val validations: List<Validation>
 ) : SchemaDefinition, Schema.PrimitiveSchema
 
 data class PrimitiveSchemaReference(

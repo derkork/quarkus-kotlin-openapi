@@ -9,21 +9,12 @@ sealed interface Schema {
     val originPath:String
     val description: String?
     val nullable: Boolean
-    val validation: Validation
+    val validations: List<Validation>
 
     sealed interface PrimitiveSchema : Schema {
 
         val type: String
         val format: String?
-        val defaultValue: String?
-
-    }
-
-    sealed interface EnumSchema : Schema {
-
-        val type: String
-        val format: String?
-        val values: List<String>
         val defaultValue: String?
 
     }

@@ -7,7 +7,7 @@ data class ArraySchemaDefinition(
     override val description: String?,
     override val nullable: Boolean,
     override val itemSchema: Schema,
-    override val validation: Validation
+    override val validations: List<Validation>
 ) : SchemaDefinition, Schema.ArraySchema
 
 data class ArraySchemaReference(

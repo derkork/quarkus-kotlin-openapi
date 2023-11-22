@@ -6,6 +6,6 @@ sealed interface TypeDefinition {
 
     fun useAs(valueRequired: Boolean): TypeDefinitionUsage
 
-    val validation: Validation
+    val validations: List<Validation>
 
 }

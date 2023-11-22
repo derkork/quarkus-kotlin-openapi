@@ -11,18 +11,18 @@ fun getDeserializationStatement(
     typeDefinitionUsage: TypeDefinitionUsage,
     fromJsonNode: Boolean
 ) = when (typeDefinitionUsage) {
-    is InlinePrimitiveTypeUsage -> PrimitiveDeserializationStatement(
+    is PrimitiveTypeUsage -> PrimitiveDeserializationStatement(
         source, targetName, typeDefinitionUsage.deserializeMethodName, typeDefinitionUsage.defaultValue,
-        !typeDefinitionUsage.nullable, typeDefinitionUsage.validation, typeDefinitionUsage.valueTransform
+        !typeDefinitionUsage.nullable, typeDefinitionUsage.validations, typeDefinitionUsage.valueTransform
     )
 
     is EnumTypeUsage -> EnumDeserializationStatement(
         source, targetName, typeDefinitionUsage.name, typeDefinitionUsage.defaultValue,
-        !typeDefinitionUsage.nullable, typeDefinitionUsage.validation, typeDefinitionUsage.valueTransform
+        !typeDefinitionUsage.nullable, typeDefinitionUsage.validations, typeDefinitionUsage.valueTransform
     )
 
     is CollectionTypeUsage -> CollectionDeserializationStatement(
-        source, targetName, !typeDefinitionUsage.nullable, typeDefinitionUsage.validation,
+        source, targetName, !typeDefinitionUsage.nullable, typeDefinitionUsage.validations,
         typeDefinitionUsage.valueTransform, fromJsonNode
     ) {
         nestedDeserializationStatement(it, typeDefinitionUsage.innerType, fromJsonNode)
@@ -30,17 +30,17 @@ fun getDeserializationStatement(
 
     is ObjectTypeUsage -> ObjectDeserializationStatement(
         source, targetName, typeDefinitionUsage.unsafeName, !typeDefinitionUsage.nullable,
-        typeDefinitionUsage.validation, typeDefinitionUsage.valueTransform
+        typeDefinitionUsage.validations, typeDefinitionUsage.valueTransform
     )
 
     is AnyOfTypeUsage -> ObjectDeserializationStatement(
         source, targetName, typeDefinitionUsage.unsafeName, !typeDefinitionUsage.nullable,
-        typeDefinitionUsage.validation, typeDefinitionUsage.valueTransform
+        typeDefinitionUsage.validations, typeDefinitionUsage.valueTransform
     )
 
     is OneOfTypeUsage -> ObjectDeserializationStatement(
         source, targetName, typeDefinitionUsage.unsafeName, !typeDefinitionUsage.nullable,
-        typeDefinitionUsage.validation, typeDefinitionUsage.valueTransform
+        typeDefinitionUsage.validations, typeDefinitionUsage.valueTransform
     )
 }
 
@@ -51,35 +51,35 @@ private fun nestedDeserializationStatement(
 ): KotlinStatement {
     val source = sourceName.pathExpression()
     return when (typeUsage) {
-        is InlinePrimitiveTypeUsage -> NestedPrimitiveDeserializationStatement(
+        is PrimitiveTypeUsage -> NestedPrimitiveDeserializationStatement(
             source, typeUsage.deserializeMethodName, !typeUsage.nullable,
-            typeUsage.validation, typeUsage.valueTransform
+            typeUsage.validations, typeUsage.valueTransform
         )
 
         is EnumTypeUsage -> NestedEnumDeserializationStatement(
-            source, typeUsage.name, !typeUsage.nullable, typeUsage.validation,
+            source, typeUsage.name, !typeUsage.nullable, typeUsage.validations,
             typeUsage.valueTransform
         )
 
         is CollectionTypeUsage -> NestedCollectionDeserializationStatement(
-            source, !typeUsage.nullable, typeUsage.validation, typeUsage.valueTransform, fromJsonNode
+            source, !typeUsage.nullable, typeUsage.validations, typeUsage.valueTransform, fromJsonNode
         ) {
             nestedDeserializationStatement(it, typeUsage.innerType, fromJsonNode)
         }
 
         is ObjectTypeUsage -> NestedObjectDeserializationStatement(
             source, typeUsage.unsafeName, !typeUsage.nullable,
-            typeUsage.validation, typeUsage.valueTransform
+            typeUsage.validations, typeUsage.valueTransform
         )
 
         is AnyOfTypeUsage -> NestedObjectDeserializationStatement(
             source, typeUsage.unsafeName, !typeUsage.nullable,
-            typeUsage.validation, typeUsage.valueTransform
+            typeUsage.validations, typeUsage.valueTransform
         )
 
         is OneOfTypeUsage -> NestedObjectDeserializationStatement(
             source, typeUsage.unsafeName, !typeUsage.nullable,
-            typeUsage.validation, typeUsage.valueTransform
+            typeUsage.validations, typeUsage.valueTransform
         )
 
     }
