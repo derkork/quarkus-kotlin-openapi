@@ -71,7 +71,7 @@ class ClientRestInterfaceEmitter : CodeEmitter {
                     indent {
                         if (request.body != null) {
                             write("val bodyPayload:${"String".rawTypeName(request.body.nullable).render()} = objectMapper.writeValueAsString(")
-                            writeSerializationStatement("body".variableName(), request.body)
+                            writeSerializationStatement("body".variableName().pathExpression(), request.body)
                             writeln(")")
                         }
                         write("delegate.${request.name.render()}(")

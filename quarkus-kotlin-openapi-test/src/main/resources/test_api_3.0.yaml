@@ -308,7 +308,7 @@ components:
       default: scifi
 
     Cast:
-      anyOf:
+      oneOf:
         - $ref: "#/components/schemas/Person"
         - $ref: "#/components/schemas/Animal"
      # discriminator:
@@ -316,6 +316,7 @@ components:
 
     Person:
       type: object
+      nullable: true
       properties:
         whiskyAge:
           $ref: "#/components/schemas/Age"

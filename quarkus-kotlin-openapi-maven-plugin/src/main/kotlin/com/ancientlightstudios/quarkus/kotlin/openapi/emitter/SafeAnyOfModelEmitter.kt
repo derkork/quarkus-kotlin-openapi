@@ -2,6 +2,7 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.statements.writeSerializationStatement
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.PathExpression.Companion.pathExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.RequestSuite
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.MethodName.Companion.methodName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName.SimpleTypeName.Companion.rawTypeName
@@ -40,12 +41,12 @@ class SafeAnyOfModelEmitter : CodeEmitter {
                     kotlinStatement {
                         definition.schemas.forEachWithStats { status, typeDefinitionUsage ->
                             if (status.first) {
-                                writeSerializationStatement(typeDefinitionUsage.safeType.variableName(), typeDefinitionUsage)
+                                writeSerializationStatement(typeDefinitionUsage.safeType.variableName().pathExpression(), typeDefinitionUsage)
                             }
                             else {
                                 indent {
                                     write(".shallowMerge(")
-                                    writeSerializationStatement(typeDefinitionUsage.safeType.variableName(), typeDefinitionUsage)
+                                    writeSerializationStatement(typeDefinitionUsage.safeType.variableName().pathExpression(), typeDefinitionUsage)
                                     write(")")
                                 }
                             }

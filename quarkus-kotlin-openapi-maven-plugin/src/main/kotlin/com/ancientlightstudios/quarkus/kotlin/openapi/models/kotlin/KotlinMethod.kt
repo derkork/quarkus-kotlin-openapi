@@ -12,6 +12,7 @@ class KotlinMethod(
     private val receiverType: TypeName? = null,
     private val bodyAsAssignment: Boolean = false,
     private val accessModifier: KotlinAccessModifier? = null,
+    private val override: Boolean = false
 ) : KotlinRenderable, AnnotationAware, ParameterAware, StatementAware, CommentAware {
 
     private val annotations = KotlinAnnotationContainer()
@@ -43,6 +44,10 @@ class KotlinMethod(
 
         annotations.render(this)
         accessModifier?.let { write("${it.value} ") }
+
+        if (override) {
+            write("override ")
+        }
 
         if (suspend) {
             write("suspend ")
@@ -92,9 +97,10 @@ fun MethodAware.kotlinMethod(
     receiverType: TypeName? = null,
     bodyAsAssignment: Boolean = false,
     accessModifier: KotlinAccessModifier? = null,
+    override : Boolean = false,
     block: KotlinMethod.() -> Unit = {}
 ) {
-    val content = KotlinMethod(name, suspend, returnType, receiverType, bodyAsAssignment, accessModifier).apply(block)
+    val content = KotlinMethod(name, suspend, returnType, receiverType, bodyAsAssignment, accessModifier, override).apply(block)
     addMethod(content)
 
 }

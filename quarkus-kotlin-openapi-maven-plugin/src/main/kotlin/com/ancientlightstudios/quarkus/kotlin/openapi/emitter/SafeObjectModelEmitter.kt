@@ -2,6 +2,7 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.statements.writeSerializationStatement
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.PathExpression.Companion.pathExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.StringExpression.Companion.stringExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.RequestSuite
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.MethodName.Companion.methodName
@@ -51,7 +52,7 @@ class SafeObjectModelEmitter : CodeEmitter {
                                 }
                                 write(name.stringExpression().evaluate())
                                 write(", ")
-                                writeSerializationStatement(name.variableName(), propertyTypeUsage)
+                                writeSerializationStatement(name.variableName().pathExpression(), propertyTypeUsage)
                                 writeln(")")
                             }
                         }
