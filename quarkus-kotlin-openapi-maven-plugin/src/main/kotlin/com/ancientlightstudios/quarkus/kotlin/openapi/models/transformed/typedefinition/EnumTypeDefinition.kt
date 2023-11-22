@@ -10,7 +10,8 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.Ty
 data class EnumTypeDefinition(
     val name: ClassName,
     val primitiveType: ClassName,
-    val sourceSchema: Schema.PrimitiveSchema
+    val sourceSchema: Schema.PrimitiveSchema,
+    val enumValues: List<String>
 ) : TypeDefinition {
 
     override fun useAs(valueRequired: Boolean) = EnumTypeUsage(this, valueRequired)
@@ -23,6 +24,8 @@ data class EnumTypeUsage(private val typeDefinition: EnumTypeDefinition, private
     TypeDefinitionUsage {
 
     val name = typeDefinition.name
+
+    val enumValues = typeDefinition.enumValues
 
     override val valueTransform = { value: String -> name.pathExpression().then(value.constantName()) }
 

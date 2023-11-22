@@ -8,7 +8,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.Ty
 data class ObjectTypeDefinition(
     val name: ClassName,
     val isNullable: Boolean,
-    override val validations: Validation,
+    override val validations: List<Validation>,
     val properties: List<ObjectProperty>
 ) : TypeDefinition {
 

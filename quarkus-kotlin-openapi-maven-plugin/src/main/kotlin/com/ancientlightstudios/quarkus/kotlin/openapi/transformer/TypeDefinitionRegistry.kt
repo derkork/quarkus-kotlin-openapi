@@ -2,6 +2,7 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.transformer
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.Config
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.schema.*
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.schema.validation.EnumValidation
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName.Companion.className
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName.Companion.rawClassName
@@ -18,21 +19,17 @@ class TypeDefinitionRegistry(private val schemas: MutableMap<SchemaDefinition, S
     init {
         schemas.forEach { (definition, info) ->
             info.directions.forEach {
-                buildTypeDefinition(definition, it)
+                buildTypeDefinition(definition, info, it)
             }
         }
     }
 
-    // TODO: can never be an primitive. see schema collector and build it in a cleaner way
-    private fun buildTypeDefinition(definition: SchemaDefinition, direction: FlowDirection): TypeDefinition {
+    private fun buildTypeDefinition(definition: SchemaDefinition, info: SchemaInfo, direction: FlowDirection): TypeDefinition {
         // do we already have a type definition?
         val existingTypeDefinition = typeDefinitions[definition]?.get(direction)
         if (existingTypeDefinition != null) {
             return existingTypeDefinition
         }
-
-        // we have to build this thing
-        val info = schemas[definition] ?: ProbableBug("Schema $definition not found")
 
         val asSingleClass = info.style == ObjectStyle.Single ||
                 (info.style == ObjectStyle.Multiple && info.directions.size == 1)
@@ -43,8 +40,7 @@ class TypeDefinitionRegistry(private val schemas: MutableMap<SchemaDefinition, S
         }.className()
 
         val typeDefinition = when (definition) {
-            is PrimitiveSchemaDefinition -> ProbableBug("a PrimitiveSchema should never reach this point.")
-            is EnumSchemaDefinition -> enumTypeDefinition(name, definition)
+            is PrimitiveSchemaDefinition -> primitiveTypeDefinition(name, definition)
             is ArraySchemaDefinition -> collectionTypeDefinition(definition, direction)
             is ObjectSchemaDefinition -> objectTypeDefinition(name, definition, direction)
 
@@ -57,27 +53,30 @@ class TypeDefinitionRegistry(private val schemas: MutableMap<SchemaDefinition, S
     }
 
     fun getTypeDefinition(schema: Schema, direction: FlowDirection): TypeDefinition {
-        if (schema is Schema.PrimitiveSchema) {
-            // it's a primitive type
-            val primitiveTypeInfo = primitiveTypeFor(config, schema.type, schema.format)
-            return PrimitiveTypeDefinition(primitiveTypeInfo.className, primitiveTypeInfo.serializeMethodName, primitiveTypeInfo.deserializeMethodName, schema)
-        }
-        if (schema is ArraySchemaDefinition) {
-            // it's an inline primitive type
-            return collectionTypeDefinition(schema, direction)
-        }
-
         // TODO: This treats references just as pointers. As soon as they can modify a scheme, we need to change this implementation
         val definition = getSchemaDefinition(schema)
-        return buildTypeDefinition(definition, direction)
+
+        val info = schemas[definition] ?: ProbableBug("Schema $definition not found")
+
+        return buildTypeDefinition(definition, info, direction)
     }
 
-    private fun enumTypeDefinition(name: ClassName, definition: EnumSchemaDefinition): TypeDefinition {
-        val result = EnumTypeDefinition(
-            nameRegistry.uniqueNameFor(name),
-            primitiveTypeFor(config, definition.type, definition.format).className,
-            definition
-        )
+    private fun primitiveTypeDefinition(name: ClassName, definition: PrimitiveSchemaDefinition) : TypeDefinition {
+        val primitiveTypeInfo = primitiveTypeFor(config, definition.type, definition.format)
+
+        // for a plain primitive type there is only one enum validation, so we can search for the first one
+        val enumValidation = definition.validations.filterIsInstance<EnumValidation>().firstOrNull()
+        val result = if (enumValidation != null) {
+            EnumTypeDefinition(
+                nameRegistry.uniqueNameFor(name),
+                primitiveTypeInfo.className,
+                definition,
+                enumValidation.values
+            )
+        } else {
+            PrimitiveTypeDefinition(primitiveTypeInfo.className, primitiveTypeInfo.serializeMethodName,
+                primitiveTypeInfo.deserializeMethodName, definition)
+        }
         typeDefinitions[definition] = mutableMapOf(FlowDirection.Up to result, FlowDirection.Down to result)
         return result
     }

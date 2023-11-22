@@ -4,73 +4,78 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.Expression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.StringExpression.Companion.stringExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.schema.validation.*
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.MethodName.Companion.methodName
 
-fun CodeWriter.render(valueTransform: (String) -> Expression, validation: Validation) = when (validation) {
-    is StringValidation -> render(validation)
-    is NumberValidation -> render(valueTransform, validation)
-    is ArrayValidation -> render(validation)
-    is DefaultValidation -> render(validation)
+fun CodeWriter.render(valueTransform: (String) -> Expression, validations: List<Validation>) {
+    renderStringValidation(validations)
+    renderNumberValidation(valueTransform, validations)
+    renderArrayValidation(validations)
+    renderCustomConstraintsValidation(validations)
 }
 
-private fun CodeWriter.render(validation: StringValidation) {
-    if (validation.hasStringValidationRules) {
-        writeln(".validateString {")
-        indent {
-            if (validation.minLength != null) {
-                writeln("it.minLength(${validation.minLength})")
-            }
-            if (validation.maxLength != null) {
-                writeln("it.maxLength(${validation.maxLength})")
-            }
-            if (validation.pattern != null) {
-                writeln("it.pattern(${validation.pattern.stringExpression().evaluate()})")
+private fun CodeWriter.renderStringValidation(validations: List<Validation>) {
+    val stringValidations = validations.filterIsInstance<StringValidation>()
+
+    if (stringValidations.isNotEmpty()) {
+        write(".validateString ")
+        block(newLineAfter = true) {
+            stringValidations.forEach {
+                if (it.minLength != null) {
+                    writeln("it.minLength(${it.minLength})")
+                }
+                if (it.maxLength != null) {
+                    writeln("it.maxLength(${it.maxLength})")
+                }
+                if (it.pattern != null) {
+                    writeln("it.pattern(${it.pattern.stringExpression().evaluate()})")
+                }
             }
         }
-        writeln("}")
     }
-    renderCustomConstraints(validation.customConstraints)
 }
 
-private fun CodeWriter.render(valueTransform: (String) -> Expression, validation: NumberValidation) {
-    if (validation.hasNumberValidationRules) {
-        writeln(".validateNumber {")
-        indent {
-            if (validation.minimum != null) {
-                writeln("it.minimum(${valueTransform(validation.minimum.value).evaluate()}, ${validation.minimum.exclusive})")
-            }
-            if (validation.maximum != null) {
-                writeln("it.maximum(${valueTransform(validation.maximum.value).evaluate()}, ${validation.maximum.exclusive})")
+private fun CodeWriter.renderNumberValidation(valueTransform: (String) -> Expression, validations: List<Validation>) {
+    val numberValidations = validations.filterIsInstance<NumberValidation>()
+
+    if (numberValidations.isNotEmpty()) {
+        write(".validateNumber ")
+        block(newLineAfter = true) {
+            numberValidations.forEach {
+                if (it.minimum != null) {
+                    writeln("it.minimum(${valueTransform(it.minimum.value).evaluate()}, ${it.minimum.exclusive})")
+                }
+                if (it.maximum != null) {
+                    writeln("it.maximum(${valueTransform(it.maximum.value).evaluate()}, ${it.maximum.exclusive})")
+                }
             }
         }
-        writeln("}")
     }
-    renderCustomConstraints(validation.customConstraints)
 }
 
-private fun CodeWriter.render(validation: ArrayValidation) {
-    if (validation.hasArrayValidationRules) {
-        writeln(".validateList {")
-        indent {
-            if (validation.minSize != null) {
-                writeln("it.minSize(${validation.minSize})")
-            }
-            if (validation.maxSize != null) {
-                writeln("it.maxSize(${validation.maxSize})")
+private fun CodeWriter.renderArrayValidation(validations: List<Validation>) {
+    val arrayValidations = validations.filterIsInstance<ArrayValidation>()
+
+    if (arrayValidations.isNotEmpty()) {
+        write(".validateList ")
+        block(newLineAfter = true) {
+            arrayValidations.forEach {
+                if (it.minSize != null) {
+                    writeln("it.minSize(${it.minSize})")
+                }
+                if (it.maxSize != null) {
+                    writeln("it.maxSize(${it.maxSize})")
+                }
             }
         }
-        writeln("}")
     }
-    renderCustomConstraints(validation.customConstraints)
 }
 
-private fun CodeWriter.render(validation: DefaultValidation) = renderCustomConstraints(validation.customConstraints)
+private fun CodeWriter.renderCustomConstraintsValidation(validations: List<Validation>) {
+    val customConstraintsValidations = validations.filterIsInstance<CustomConstraintsValidation>()
+        .flatMap { it.constraints }
 
-private fun CodeWriter.renderCustomConstraints(customConstraints: List<String>) {
-    customConstraints.forEach {
+    customConstraintsValidations.forEach {
         val methodName = "validate".methodName().extend(postfix = it)
         writeln(".validate(DefaultValidator::${methodName.render()})")
     }
-
 }

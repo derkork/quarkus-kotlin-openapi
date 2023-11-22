@@ -9,7 +9,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.Va
 
 class ObjectDeserializationStatement(
     private val source: Expression, private val targetName: VariableName, private val type: ClassName,
-    private val required: Boolean, private val validation: Validation,
+    private val required: Boolean, private val validations: List<Validation>,
     private val valueTransform: (String) -> Expression
 ) : KotlinStatement {
 
@@ -18,7 +18,7 @@ class ObjectDeserializationStatement(
         indent {
             writeln(".asObject(::${type.render()})")
             writeln(".validateUnsafe(${type.render()}::asSafe)")
-            render(valueTransform, validation)
+            render(valueTransform, validations)
             if (required) {
                 writeln(".required()")
             }
@@ -29,7 +29,7 @@ class ObjectDeserializationStatement(
 
 class NestedObjectDeserializationStatement(
     private val source: Expression, private val type: ClassName,
-    private val required: Boolean, private val validation: Validation,
+    private val required: Boolean, private val validations: List<Validation>,
     private val valueTransform: (String) -> Expression
 ) : KotlinStatement {
 
@@ -37,7 +37,7 @@ class NestedObjectDeserializationStatement(
         writeln("${source.evaluate()}.asObject(::${type.render()})")
         indent {
             writeln(".validateUnsafe(${type.render()}::asSafe)")
-            render(valueTransform, validation)
+            render(valueTransform, validations)
             if (required) {
                 writeln(".required()")
             }

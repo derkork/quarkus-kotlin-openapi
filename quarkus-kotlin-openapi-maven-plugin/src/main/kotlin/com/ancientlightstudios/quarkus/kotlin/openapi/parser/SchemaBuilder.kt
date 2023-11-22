@@ -185,20 +185,22 @@ class SchemaBuilder(private val node: ObjectNode) {
     private fun ParseContext.extractPrimitiveTypeValidation(type: String): List<Validation> {
         val result = mutableListOf<Validation>()
         when (type) {
-            "string" -> result.add(
-                StringValidation(
-                    node.getTextOrNull("minLength")?.toInt(),
-                    node.getTextOrNull("maxLength")?.toInt(),
-                    node.getTextOrNull("pattern"),
-                )
-            )
+            "string" -> {
+                val minLength = node.getTextOrNull("minLength")?.toInt()
+                val maxLength = node.getTextOrNull("maxLength")?.toInt()
+                val pattern = node.getTextOrNull("pattern")
+                if (minLength != null || maxLength != null || pattern != null) {
+                    result.add(StringValidation(minLength, maxLength, pattern))
+                }
+            }
 
-            "number", "integer" -> result.add(
-                NumberValidation(
-                    extractComparableNumber("minimum"),
-                    extractComparableNumber("maximum"),
-                )
-            )
+            "number", "integer" -> {
+                val minimum = extractComparableNumber("minimum")
+                val maximum = extractComparableNumber("maximum")
+                if (minimum != null || maximum != null) {
+                    result.add(NumberValidation(minimum, maximum))
+                }
+            }
         }
 
         val enumValues = node.withArray("enum").map { it.asText() }

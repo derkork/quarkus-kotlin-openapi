@@ -9,7 +9,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.Va
 
 class CollectionDeserializationStatement(
     private val source: Expression, private val targetName: VariableName,
-    private val required: Boolean, private val validation: Validation,
+    private val required: Boolean, private val validations: List<Validation>,
     private val valueTransform: (String) -> Expression,
     private val fromJsonNode: Boolean,
     private val block: (VariableName) -> KotlinStatement
@@ -21,7 +21,7 @@ class CollectionDeserializationStatement(
             if (fromJsonNode) {
                 writeln(".asList()")
             }
-            render(valueTransform, validation)
+            render(valueTransform, validations)
             writeln(".validateListItems {")
             indent {
                 block("it".variableName()).render(this)
@@ -37,7 +37,7 @@ class CollectionDeserializationStatement(
 
 class NestedCollectionDeserializationStatement(
     private val source: Expression, private val required: Boolean,
-    private val validation: Validation, private val valueTransform: (String) -> Expression,
+    private val validations: List<Validation>, private val valueTransform: (String) -> Expression,
     private val fromJsonNode: Boolean,
     private val block: (VariableName) -> KotlinStatement
 ) : KotlinStatement {
@@ -48,7 +48,7 @@ class NestedCollectionDeserializationStatement(
             write(".asList()")
         }
         indent(newLineBefore = true) {
-            render(valueTransform, validation)
+            render(valueTransform, validations)
             writeln(".validateListItems {")
             indent {
                 block("it".variableName()).render(this)

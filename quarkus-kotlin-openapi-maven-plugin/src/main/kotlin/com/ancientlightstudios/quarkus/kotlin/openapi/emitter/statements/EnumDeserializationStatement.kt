@@ -10,14 +10,14 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.Va
 class EnumDeserializationStatement(
     private val source: Expression, private val targetName: VariableName, private val type: ClassName,
     private val defaultValue: Expression?, private val required: Boolean,
-    private val validation: Validation, private val valueTransform: (String) -> Expression
+    private val validations: List<Validation>, private val valueTransform: (String) -> Expression
 ) : KotlinStatement {
 
     override fun render(writer: CodeWriter) = with(writer) {
         writeln("val ${targetName.render()} = ${source.evaluate()}")
         indent {
             writeln(".as${type.render()}()")
-            render(valueTransform, validation)
+            render(valueTransform, validations)
             if (defaultValue != null) {
                 writeln(".default() { ${defaultValue.evaluate()} }")
             } else if (required) {
@@ -30,14 +30,14 @@ class EnumDeserializationStatement(
 
 class NestedEnumDeserializationStatement(
     private val source: Expression, private val type: ClassName,
-    private val required: Boolean, private val validation: Validation,
+    private val required: Boolean, private val validations: List<Validation>,
     private val valueTransform: (String) -> Expression
 ) : KotlinStatement {
 
     override fun render(writer: CodeWriter) = with(writer) {
         writeln("${source.evaluate()}.as${type.render()}()")
         indent {
-            render(valueTransform, validation)
+            render(valueTransform, validations)
             if (required) {
                 writeln(".required()")
             }
