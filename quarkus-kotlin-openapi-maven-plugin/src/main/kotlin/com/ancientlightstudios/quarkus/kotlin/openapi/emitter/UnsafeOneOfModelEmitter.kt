@@ -6,6 +6,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.PathExpression.Companion.pathExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.StringExpression.Companion.stringExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.RequestSuite
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName.Companion.className
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.MethodName.Companion.methodName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName.GenericTypeName.Companion.of
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName.SimpleTypeName.Companion.rawTypeName
@@ -55,7 +56,7 @@ class UnsafeOneOfModelEmitter(private val direction: FlowDirection) : CodeEmitte
                 "context".variableName().pathExpression()
             )
             addStatement(getDeserializationStatement(source, parameter, schema, true))
-            returnStatement.addParameter(parameter)
+            returnStatement.addParameter(parameter, schema)
         }
 
         addStatement(returnStatement)
@@ -82,8 +83,7 @@ class UnsafeOneOfModelEmitter(private val direction: FlowDirection) : CodeEmitte
 
                         writeln(parameter.render())
                         indent {
-                            writeln(".required()")
-                            writeln(".onSuccess { success(${definition.name.render()}(value)) }")
+                            writeln(".onSuccess { success(${definition.name.extend(postfix = typeDefinition.safeType.className().render()).render()}(value)) }")
                         }
                     }
                 }

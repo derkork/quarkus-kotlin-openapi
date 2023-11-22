@@ -1,6 +1,8 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.emitter.statements
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.Expression
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.PathExpression.Companion.pathExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.VariableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.VariableName.Companion.variableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.typedefinition.CollectionTypeUsage
@@ -8,8 +10,8 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.typedef
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.typedefinition.InlinePrimitiveTypeUsage
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.typedefinition.TypeDefinitionUsage
 
-fun CodeWriter.writeSerializationStatement(variableName:VariableName, type:TypeDefinitionUsage) {
-    write(variableName.render())
+fun CodeWriter.writeSerializationStatement(variableName:Expression, type:TypeDefinitionUsage) {
+    write(variableName.evaluate())
     if (type.nullable) {
         write("?")
     }
@@ -21,10 +23,11 @@ fun CodeWriter.writeSerializationStatement(variableName:VariableName, type:TypeD
         else -> write(".toJsonNode")
     }
 
+
     if (type is CollectionTypeUsage) {
         write(" ")
         block {
-            writeSerializationStatement("it".variableName(), type.innerType)
+            writeSerializationStatement("it".variableName().pathExpression(), type.innerType)
         }
     } else {
         write("()")

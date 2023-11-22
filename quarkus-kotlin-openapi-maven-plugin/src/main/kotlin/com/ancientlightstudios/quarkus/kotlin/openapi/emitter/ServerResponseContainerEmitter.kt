@@ -2,6 +2,7 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.statements.writeSerializationStatement
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.PathExpression.Companion.pathExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ResponseCode
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName.Companion.className
@@ -76,7 +77,7 @@ class ServerResponseContainerEmitter : CodeEmitter {
                 kotlinParameter(bodyVariable, type.safeType)
                 kotlinStatement {
                     write("status(${statusCode.value}, ")
-                    writeSerializationStatement(bodyVariable, type)
+                    writeSerializationStatement(bodyVariable.pathExpression(), type)
                     write(")")
                 }
             } else {
@@ -96,7 +97,7 @@ class ServerResponseContainerEmitter : CodeEmitter {
                 kotlinParameter(bodyVariable, type.safeType)
                 kotlinStatement {
                     write("status(${statusVariable.render()}, ")
-                    writeSerializationStatement(bodyVariable, type)
+                    writeSerializationStatement(bodyVariable.pathExpression(), type)
                     write(")")
                 }
             } else {
