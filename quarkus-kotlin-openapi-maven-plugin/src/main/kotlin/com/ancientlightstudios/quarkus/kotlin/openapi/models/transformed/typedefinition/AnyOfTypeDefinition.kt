@@ -7,7 +7,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.Ty
 
 data class AnyOfTypeDefinition(
     val name: ClassName, val isNullable: Boolean,
-    override val validations: Validation, val schemas: List<TypeDefinitionUsage>
+    override val validations: List<Validation>, val schemas: List<TypeDefinitionUsage>
 ) : TypeDefinition {
 
     override fun useAs(valueRequired: Boolean) = AnyOfTypeUsage(this, valueRequired)

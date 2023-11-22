@@ -38,7 +38,7 @@ class EnumModelEmitter : CodeEmitter {
                     "kotlin.${definition.primitiveType.render()}".rawTypeName(),
                     accessModifier = null
                 )
-                definition.sourceSchema.values.forEach {
+                definition.enumValues.forEach {
                     kotlinEnumItem(it.constantName(), definition.primitiveType.valueExpression(it))
                 }
 
@@ -66,7 +66,7 @@ class EnumModelEmitter : CodeEmitter {
                     block {
                         write("when (value) ")
                         block {
-                            definition.sourceSchema.values.forEach {
+                            definition.enumValues.forEach {
                                 writeln("\"$it\" -> ${fileName.render()}.${it.className().render()}.asMaybe(context)")
                             }
                             write("else -> Maybe.Failure(context, ValidationError(\"Invalid value for ${fileName.render()}: \$value\", context))")
