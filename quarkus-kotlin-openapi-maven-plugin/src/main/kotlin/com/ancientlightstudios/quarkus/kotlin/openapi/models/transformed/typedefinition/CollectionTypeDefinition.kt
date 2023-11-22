@@ -14,7 +14,7 @@ data class CollectionTypeDefinition(
 
     override fun useAs(valueRequired: Boolean) = CollectionTypeUsage(this, valueRequired)
 
-    override val validation = sourceSchema.validation
+    override val validations = sourceSchema.validations
 
 }
 
@@ -36,6 +36,6 @@ data class CollectionTypeUsage(
 
     override val defaultValue = null
 
-    override val validation = typeDefinition.validation
+    override val validations = typeDefinition.validations
 
 }

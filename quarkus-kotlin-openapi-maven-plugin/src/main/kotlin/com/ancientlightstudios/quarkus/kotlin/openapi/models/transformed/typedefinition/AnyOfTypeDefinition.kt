@@ -1,15 +1,13 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.typedefinition
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.NullExpression
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.schema.AnyOfSchemaDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.schema.validation.Validation
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName.SimpleTypeName.Companion.typeName
 
 data class AnyOfTypeDefinition(
     val name: ClassName, val isNullable: Boolean,
-    override val validation: Validation, val schemas: List<TypeDefinitionUsage>
+    override val validations: Validation, val schemas: List<TypeDefinitionUsage>
 ) : TypeDefinition {
 
     override fun useAs(valueRequired: Boolean) = AnyOfTypeUsage(this, valueRequired)
@@ -32,6 +30,6 @@ data class AnyOfTypeUsage(private val typeDefinition: AnyOfTypeDefinition, priva
 
     override val defaultValue = null
 
-    override val validation = typeDefinition.validation
+    override val validations = typeDefinition.validations
     
 }

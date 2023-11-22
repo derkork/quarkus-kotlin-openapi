@@ -16,6 +16,6 @@ sealed interface TypeDefinitionUsage {
 
     val defaultValue: Expression?
 
-    val validation: Validation
+    val validations: List<Validation>
 
 }

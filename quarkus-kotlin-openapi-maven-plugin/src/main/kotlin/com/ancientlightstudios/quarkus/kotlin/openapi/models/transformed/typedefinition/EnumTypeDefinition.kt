@@ -1,6 +1,5 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.typedefinition
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.NullExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.PathExpression.Companion.pathExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.schema.Schema
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName
@@ -11,12 +10,12 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.Ty
 data class EnumTypeDefinition(
     val name: ClassName,
     val primitiveType: ClassName,
-    val sourceSchema: Schema.EnumSchema
+    val sourceSchema: Schema.PrimitiveSchema
 ) : TypeDefinition {
 
     override fun useAs(valueRequired: Boolean) = EnumTypeUsage(this, valueRequired)
 
-    override val validation = sourceSchema.validation
+    override val validations = sourceSchema.validations
 
 }
 
@@ -36,6 +35,6 @@ data class EnumTypeUsage(private val typeDefinition: EnumTypeDefinition, private
 
     override val unsafeType = "String".rawTypeName(true)
 
-    override val validation = typeDefinition.validation
+    override val validations = typeDefinition.validations
 
 }

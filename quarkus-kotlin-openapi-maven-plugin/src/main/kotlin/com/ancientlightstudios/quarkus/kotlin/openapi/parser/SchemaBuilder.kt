@@ -25,7 +25,6 @@ class SchemaBuilder(private val node: ObjectNode) {
             node.has("anyOf") -> extractAnyOfSchemaDefinition()
             type == null && node.has("properties") -> extractObjectSchemaDefinition()
             type == null -> throw IllegalStateException("Unsupported schema type in $contextPath")
-            node.has("enum") -> extractEnumSchemaDefinition(type)
             type == "object" -> extractObjectSchemaDefinition()
             type == "array" -> extractArraySchemaDefinition()
             else -> extractPrimitiveSchemaDefinition(type)
@@ -59,7 +58,6 @@ class SchemaBuilder(private val node: ObjectNode) {
         // extract into functions if other versions support more overrides for parameter references
         return when (schema) {
             is Schema.PrimitiveSchema -> PrimitiveSchemaReference(contextPath, targetName, schema, description)
-            is Schema.EnumSchema -> EnumSchemaReference(contextPath, targetName, schema, description)
             is Schema.ArraySchema -> ArraySchemaReference(contextPath, targetName, schema, description)
             is Schema.ObjectSchema -> ObjectSchemaReference(contextPath, targetName, schema, description)
             is Schema.OneOfSchema -> OneOfSchemaReference(contextPath, targetName, schema, description)
@@ -73,21 +71,6 @@ class SchemaBuilder(private val node: ObjectNode) {
             contextPath,
             node.getTextOrNull("description"), isNullable(), type,
             node.getTextOrNull("format"), node.getTextOrNull("default"),
-            extractPrimitiveTypeValidation(type)
-        )
-    }
-
-    private fun ParseContext.extractEnumSchemaDefinition(type: String): EnumSchemaDefinition {
-        val values = node.withArray("enum").map { it.asText() }
-        val defaultValue = node.get("default")?.asText()
-        if (defaultValue != null) {
-            check(values.contains(defaultValue)) { "Default value '$defaultValue' is not a valid enum value for $contextPath" }
-        }
-
-        return EnumSchemaDefinition(
-            contextPath,
-            node.getTextOrNull("description"), isNullable(), type,
-            node.getTextOrNull("format"), values, defaultValue,
             extractPrimitiveTypeValidation(type)
         )
     }
@@ -134,8 +117,7 @@ class SchemaBuilder(private val node: ObjectNode) {
                 check(it is SchemaReference<*>) { "OneOf schema with discriminator does not support inline schemas. $contextPath" }
                 mappings[it] = listOf(it.targetName)
             }
-        }
-        else {
+        } else {
             schemas.forEach { mappings[it] = emptyList() }
         }
 
@@ -145,8 +127,9 @@ class SchemaBuilder(private val node: ObjectNode) {
             ?.propertiesAsList()
             ?.associate { (name, node) -> name to referenceResolver.resolveSchema(node.asText()).first }
             ?.forEach {
-                val key =schemas.firstOrNull { schema -> schema is SchemaReference<*> && schema.targetName == it.value }
-                    ?: throw IllegalStateException("Discriminator mapping must reference one of the oneOf schemas. $contextPath" )
+                val key =
+                    schemas.firstOrNull { schema -> schema is SchemaReference<*> && schema.targetName == it.value }
+                        ?: throw IllegalStateException("Discriminator mapping must reference one of the oneOf schemas. $contextPath")
 
                 mappings.compute(key) { _, value ->
                     value?.plus(it.key) ?: listOf(it.key)
@@ -199,21 +182,32 @@ class SchemaBuilder(private val node: ObjectNode) {
         )
     }
 
-    private fun ParseContext.extractPrimitiveTypeValidation(type: String) = when (type) {
-        "string" -> StringValidation(
-            node.getTextOrNull("minLength")?.toInt(),
-            node.getTextOrNull("maxLength")?.toInt(),
-            node.getTextOrNull("pattern"),
-            extractCustomValidationRules()
-        )
+    private fun ParseContext.extractPrimitiveTypeValidation(type: String): List<Validation> {
+        val result = mutableListOf<Validation>()
+        when (type) {
+            "string" -> result.add(
+                StringValidation(
+                    node.getTextOrNull("minLength")?.toInt(),
+                    node.getTextOrNull("maxLength")?.toInt(),
+                    node.getTextOrNull("pattern"),
+                )
+            )
 
-        "number", "integer" -> NumberValidation(
-            extractComparableNumber("minimum"),
-            extractComparableNumber("maximum"),
-            extractCustomValidationRules()
-        )
+            "number", "integer" -> result.add(
+                NumberValidation(
+                    extractComparableNumber("minimum"),
+                    extractComparableNumber("maximum"),
+                )
+            )
+        }
 
-        else -> extractDefaultValidation()
+        val enumValues = node.withArray("enum").map { it.asText() }
+        if (enumValues.isNotEmpty()) {
+            result.add(EnumValidation(enumValues))
+        }
+
+        extractCustomValidationRules()?.let { result.add(it) }
+        return result
     }
 
     private fun ParseContext.extractComparableNumber(name: String): ComparableNumber? {
@@ -234,18 +228,33 @@ class SchemaBuilder(private val node: ObjectNode) {
         }
     }
 
-    private fun extractArrayValidation() = ArrayValidation(
-        node.getTextOrNull("minItems")?.toInt(),
-        node.getTextOrNull("maxItems")?.toInt(),
-        extractCustomValidationRules()
-    )
+    private fun extractArrayValidation(): List<Validation> {
+        val result = mutableListOf<Validation>()
 
-    private fun extractDefaultValidation() = DefaultValidation(extractCustomValidationRules())
+        val minItems = node.getTextOrNull("minItems")?.toInt()
+        val maxItems = node.getTextOrNull("maxItems")?.toInt()
+        if (minItems != null || maxItems != null) {
+            result.add(ArrayValidation(minItems, maxItems))
+        }
 
-    private fun extractCustomValidationRules() = when (val customConstraints = node["x-constraints"]) {
-        is TextNode -> listOf(customConstraints.asText())
-        is ArrayNode -> customConstraints.map { it.asText() }
-        else -> emptyList()
+        extractCustomValidationRules()?.let { result.add(it) }
+        return result
+    }
+
+
+    private fun extractDefaultValidation(): List<Validation> {
+        val result = mutableListOf<Validation>()
+        extractCustomValidationRules()?.let { result.add(it) }
+        return result
+    }
+
+    private fun extractCustomValidationRules(): CustomConstraintsValidation? {
+        val list = when (val customConstraints = node["x-constraints"]) {
+            is TextNode -> listOf(customConstraints.asText())
+            is ArrayNode -> customConstraints.map { it.asText() }
+            else -> return null
+        }
+        return CustomConstraintsValidation(list)
     }
 
 }

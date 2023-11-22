@@ -1,6 +1,5 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.typedefinition
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.expression.NullExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.schema.Schema
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.MethodName
@@ -8,21 +7,21 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.Ty
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName.SimpleTypeName.Companion.typeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.valueExpression
 
-data class InlinePrimitiveTypeDefinition(
+data class PrimitiveTypeDefinition(
     val primitiveTypeName: ClassName,
     val serializeMethodName:MethodName,
     val deserializeMethodName:MethodName,
     val sourceSchema: Schema.PrimitiveSchema
 ) : TypeDefinition {
 
-    override fun useAs(valueRequired: Boolean) = InlinePrimitiveTypeUsage(this, valueRequired)
+    override fun useAs(valueRequired: Boolean) = PrimitiveTypeUsage(this, valueRequired)
 
-    override val validation = sourceSchema.validation
+    override val validations = sourceSchema.validations
 
 }
 
-data class InlinePrimitiveTypeUsage(
-    private val typeDefinition: InlinePrimitiveTypeDefinition,
+data class PrimitiveTypeUsage(
+    private val typeDefinition: PrimitiveTypeDefinition,
     private val valueRequired: Boolean
 ) : TypeDefinitionUsage {
 
@@ -43,6 +42,6 @@ data class InlinePrimitiveTypeUsage(
 
     override val unsafeType = "String".rawTypeName(true)
 
-    override val validation = typeDefinition.validation
+    override val validations = typeDefinition.validations
 
 }

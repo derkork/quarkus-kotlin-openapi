@@ -7,7 +7,7 @@ data class AnyOfSchemaDefinition(
     override val description: String?,
     override val nullable: Boolean,
     override val schemas: List<Schema>,
-    override val validation: Validation
+    override val validations: List<Validation>
 ) : SchemaDefinition, Schema.AnyOfSchema
 
 data class AnyOfSchemaReference(

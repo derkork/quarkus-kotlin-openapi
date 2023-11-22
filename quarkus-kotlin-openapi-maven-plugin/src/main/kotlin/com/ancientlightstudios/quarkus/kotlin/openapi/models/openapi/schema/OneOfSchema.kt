@@ -8,7 +8,7 @@ data class OneOfSchemaDefinition(
     override val nullable: Boolean,
     override val schemas: Map<Schema, List<String>>,
     override val discriminator: String?,
-    override val validation: Validation
+    override val validations: List<Validation>
 ) : SchemaDefinition, Schema.OneOfSchema
 
 data class OneOfSchemaReference(
