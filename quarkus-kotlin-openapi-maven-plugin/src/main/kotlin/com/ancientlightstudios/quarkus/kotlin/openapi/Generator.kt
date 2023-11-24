@@ -6,7 +6,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ApiSpec
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.RequestSuite
 import com.ancientlightstudios.quarkus.kotlin.openapi.parser.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.transformer.ApiSpecTransformer
-import com.ancientlightstudios.quarkus.kotlin.openapi.transformer.ApiSpecVerifier
+import com.ancientlightstudios.quarkus.kotlin.openapi.verify.ApiSpecVerifier
 import com.ancientlightstudios.quarkus.kotlin.openapi.transformer.FlowDirection
 import com.ancientlightstudios.quarkus.kotlin.openapi.transformer.TypeDefinitionRegistry
 import com.fasterxml.jackson.databind.node.ObjectNode
