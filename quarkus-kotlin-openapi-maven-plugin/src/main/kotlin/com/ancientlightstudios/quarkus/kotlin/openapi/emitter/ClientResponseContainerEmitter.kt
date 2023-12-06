@@ -79,6 +79,7 @@ class ClientResponseContainerEmitter : CodeEmitter {
                 kotlinClass("RequestErrorUnknown".className(), extends = listOf(ExtendFromInterfaceExpression(errorInterfaceName))) {
                     kotlinMember("errorMessage".variableName(), "String".rawTypeName(), accessModifier = null, override = true, initializedInConstructor = false,
                         default = "An unknown error occurred when communicating with the server.".stringExpression())
+                    kotlinMember("cause".variableName(), "Exception".rawTypeName(), accessModifier = null)
                 }
 
                 kotlinClass("ResponseError".className(), extends = listOf(ExtendFromInterfaceExpression(errorInterfaceName)))   {
