@@ -128,7 +128,7 @@ class ClientRestInterfaceEmitter : CodeEmitter {
                 write("} catch (e: Exception) {")
                 indent(newLineBefore = true, newLineAfter = true) {
                     // TODO: check exception type
-                    write("${errorType.render()}.RequestErrorUnknown()")
+                    write("${errorType.render()}.RequestErrorUnknown(e)")
                 }
                 write("}")
             }
