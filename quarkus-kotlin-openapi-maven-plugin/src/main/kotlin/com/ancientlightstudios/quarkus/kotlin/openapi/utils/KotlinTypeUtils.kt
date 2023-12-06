@@ -13,6 +13,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.Cl
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName.Companion.rawClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.MethodName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.MethodName.Companion.methodName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.MethodName.Companion.rawMethodName
 
 fun ClassName.valueExpression(value: String) = when (this.render()) {
     "String" -> value.stringExpression()
@@ -32,7 +33,7 @@ private fun make(type:String, format: String?, customType:String?, defaultType:S
     if (customType != null) {
         return PrimitiveTypeInfo(customType.rawClassName(), "from $type $format".methodName(), "as $type $format".methodName())
     }
-    return PrimitiveTypeInfo(defaultType.rawClassName(), "from $defaultType".methodName(), "as $defaultType".methodName())
+    return PrimitiveTypeInfo(defaultType.rawClassName(), "from$defaultType".rawMethodName(), "as$defaultType".rawMethodName())
 }
 
 
