@@ -14,6 +14,8 @@ data class MethodName private constructor(private val name: String) : Name {
 
         fun String.methodName() = MethodName(toKotlinIdentifier())
 
+        fun String.rawMethodName() = MethodName(this)
+
         fun Name.methodName() = render().methodName()
 
     }
