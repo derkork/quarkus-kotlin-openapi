@@ -20,7 +20,7 @@ data class AnyOfTypeUsage(private val typeDefinition: AnyOfTypeDefinition, priva
 
     val unsafeName = name.extend(postfix = "Unsafe")
 
-    override val nullable = typeDefinition.isNullable
+    override val nullable = !valueRequired || typeDefinition.isNullable
 
     override val safeType = name.typeName(nullable)
 
