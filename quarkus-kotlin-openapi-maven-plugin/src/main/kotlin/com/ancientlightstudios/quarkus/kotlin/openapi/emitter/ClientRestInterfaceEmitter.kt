@@ -115,7 +115,7 @@ class ClientRestInterfaceEmitter : CodeEmitter {
                     write("when(maybe) {")
                     indent(newLineBefore = true, newLineAfter = true) {
                         writeln("is Maybe.Success -> maybe.value")
-                        writeln("is Maybe.Failure -> ${errorType.render()}.ResponseError(maybe.errors.joinToString { it.message }, response)")
+                        writeln("is Maybe.Failure -> ${errorType.render()}.ResponseError(maybe.errors.joinToString { \"\${it.path}: \${it.message}\" }, response)")
                     }
                     write("}")
                 }
