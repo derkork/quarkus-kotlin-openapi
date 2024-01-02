@@ -10,9 +10,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.typedef
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.primitiveTypeFor
 
-class TypeDefinitionRegistry(private val schemas: MutableMap<SchemaDefinition, SchemaInfo>, private val config: Config) {
-
-    private val nameRegistry = NameRegistry()
+class TypeDefinitionRegistry(private val schemas: MutableMap<SchemaDefinition, SchemaInfo>, private val nameRegistry:NameRegistry, private val config: Config) {
 
     private val typeDefinitions = mutableMapOf<SchemaDefinition, MutableMap<FlowDirection, TypeDefinition>>()
 
@@ -34,10 +32,18 @@ class TypeDefinitionRegistry(private val schemas: MutableMap<SchemaDefinition, S
         val asSingleClass = info.style == ObjectStyle.Single ||
                 (info.style == ObjectStyle.Multiple && info.directions.size == 1)
 
-        val name = when (asSingleClass) {
-            true -> info.name
-            false -> "${info.name} $direction"
-        }.className()
+        // if we have a single class, try to get the already made type definition from the other direction
+        val otherDirection = if (direction == FlowDirection.Up) FlowDirection.Down else FlowDirection.Up
+
+
+        val otherDirectionTypeDefinition = if (asSingleClass) typeDefinitions[definition]?.get(otherDirection) else null
+
+        val name = when {
+            // re-use the same name if we have a single class for both directions
+            otherDirectionTypeDefinition != null -> otherDirectionTypeDefinition.name
+            asSingleClass -> nameRegistry.uniqueNameFor( info.name.className())
+            else -> nameRegistry.uniqueNameFor( "${info.name} $direction".className())
+        }
 
         val typeDefinition = when (definition) {
             is PrimitiveSchemaDefinition -> primitiveTypeDefinition(name, definition)
@@ -68,7 +74,7 @@ class TypeDefinitionRegistry(private val schemas: MutableMap<SchemaDefinition, S
         val enumValidation = definition.validations.filterIsInstance<EnumValidation>().firstOrNull()
         val result = if (enumValidation != null) {
             EnumTypeDefinition(
-                nameRegistry.uniqueNameFor(name),
+                name,
                 primitiveTypeInfo.className,
                 definition,
                 enumValidation.values

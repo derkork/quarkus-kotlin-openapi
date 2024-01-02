@@ -6,7 +6,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.Cl
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName.SimpleTypeName.Companion.typeName
 
 data class OneOfTypeDefinition(
-    val name: ClassName, val isNullable: Boolean,
+    override val name: ClassName, val isNullable: Boolean,
     override val validations: List<Validation>, val schemas: Map<TypeDefinitionUsage, List<String>>,
     val discriminator: String?
 ) : TypeDefinition {

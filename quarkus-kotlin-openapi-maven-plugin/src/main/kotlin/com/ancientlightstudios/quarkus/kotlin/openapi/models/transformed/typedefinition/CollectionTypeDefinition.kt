@@ -7,7 +7,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.Ty
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName.SimpleTypeName.Companion.rawTypeName
 
 data class CollectionTypeDefinition(
-    val name: ClassName,
+    override val name: ClassName,
     val innerType: TypeDefinition,
     val sourceSchema: Schema.ArraySchema
 ) : TypeDefinition {

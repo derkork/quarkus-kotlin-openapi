@@ -13,6 +13,10 @@ class MovieServerImpl(val ratingClient: RatingServiceClient) : MovieServerDelega
 
     private val movieDataBase = mutableMapOf<UUID, Movie>()
 
+    override suspend fun getHealth(): GetHealthResponse {
+        return GetHealthResponse.ok()
+    }
+
     override suspend fun findMovies(request: Maybe<FindMoviesRequest>): FindMoviesResponse {
         val validRequest = request.validOrElse { return FindMoviesResponse.badRequest(it.asResponseBody()) }
              
@@ -100,6 +104,10 @@ class MovieServerImpl(val ratingClient: RatingServiceClient) : MovieServerDelega
             else -> GetRatingsResponse.badGateway(ApplicationError("Noch mehr scheisse passiert"))
         }
 
+    }
+
+    override suspend fun getHealthDetail(): GetHealthDetailResponse {
+        return GetHealthDetailResponse.ok(GetHealthDetailResponse1("healthy", "1.0.0"))
     }
 
     override suspend fun deleteRating(request: Maybe<DeleteRatingRequest>): DeleteRatingResponse {
