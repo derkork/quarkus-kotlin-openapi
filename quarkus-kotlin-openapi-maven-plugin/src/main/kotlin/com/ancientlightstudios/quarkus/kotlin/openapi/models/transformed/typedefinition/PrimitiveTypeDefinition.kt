@@ -14,6 +14,9 @@ data class PrimitiveTypeDefinition(
     val sourceSchema: Schema.PrimitiveSchema
 ) : TypeDefinition {
 
+    override val name: ClassName
+        get() = primitiveTypeName
+
     override fun useAs(valueRequired: Boolean) = PrimitiveTypeUsage(this, valueRequired)
 
     override val validations = sourceSchema.validations

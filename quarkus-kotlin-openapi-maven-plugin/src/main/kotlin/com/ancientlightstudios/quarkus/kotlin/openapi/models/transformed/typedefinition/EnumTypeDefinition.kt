@@ -8,7 +8,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.Ty
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.TypeName.SimpleTypeName.Companion.typeName
 
 data class EnumTypeDefinition(
-    val name: ClassName,
+    override val name: ClassName,
     val primitiveType: ClassName,
     val sourceSchema: Schema.PrimitiveSchema,
     val enumValues: List<String>

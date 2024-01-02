@@ -19,6 +19,8 @@ abstract class ObjectBuilderDeserializationStatement : KotlinStatement {
         parameters.add(maybeName)
     }
 
+    fun hasParameters() = parameters.isNotEmpty()
+
     protected fun CodeWriter.renderTransformStatement(objectName: ClassName, context: Expression) {
         write("maybeAllOf(${context.evaluate()}")
         parameters.forEach { maybeName ->
@@ -53,11 +55,11 @@ class SafeObjectBuilderDeserializationStatement(private val safeObject: ClassNam
 
 class RequestBuilderDeserializationStatement(
     private val methodName: MethodName,
-    private val requestContainer: ClassName?
+    private val requestContainer: ClassName
 ) : ObjectBuilderDeserializationStatement() {
 
     override fun render(writer: CodeWriter) = with(writer) {
-        if (requestContainer != null) {
+        if (hasParameters()) {
             write("val request = ")
             renderTransformStatement(requestContainer, "request".stringExpression())
             writeln("return delegate.${methodName.render()}(request).response")

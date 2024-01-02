@@ -17,7 +17,7 @@ class SchemaInfo(val style: ObjectStyle, direction: FlowDirection, val name: Str
 
 }
 
-class SchemaCollector {
+class SchemaCollector(private val nameRegistry: NameRegistry) {
 
     private val schemaData = mutableMapOf<SchemaDefinition, SchemaInfo>()
 
@@ -112,6 +112,6 @@ class SchemaCollector {
             is SchemaReference<*> -> getSchemaDefinition(schema.target) { schema.targetName }
         }
 
-    fun getTypeDefinitionRegistry(config: Config) = TypeDefinitionRegistry(schemaData, config)
+    fun getTypeDefinitionRegistry(config: Config) = TypeDefinitionRegistry(schemaData, nameRegistry, config)
 
 }

@@ -6,8 +6,23 @@ info:
   version: 1.0.17
   title: Test Interface
 paths:
-  /movies:
+  /health:
+    get:
+      responses:
+        200:
+          description: Nacksch
 
+  /health/detail:
+    get:
+      responses:
+        200:
+          description: Is Pflicht
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetHealthDetailResponse"
+
+  /movies:
     get:
       operationId: findMovies
       parameters:
@@ -421,6 +436,14 @@ components:
           type: string
       required:
         - message
+
+    GetHealthDetailResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        version:
+          type: string
 
   parameters:
     # referenced like this on path or method level

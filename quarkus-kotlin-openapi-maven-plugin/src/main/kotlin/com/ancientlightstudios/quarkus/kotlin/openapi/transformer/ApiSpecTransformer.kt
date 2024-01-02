@@ -14,7 +14,12 @@ class ApiSpecTransformer(private val source: ApiSpec, private val config:Config)
     }
 
     private fun initializeTypeDefinitionRegistry(): TypeDefinitionRegistry {
-        val schemaCollector = SchemaCollector()
+        val nameRegistry = NameRegistry()
+        source.requests.forEach {
+            RequestTransformer(it).registerNames(nameRegistry)
+        }
+
+        val schemaCollector = SchemaCollector(nameRegistry)
 
         source.requests.forEach {
             RequestTransformer(it).initializeSchemaRegistry(schemaCollector)

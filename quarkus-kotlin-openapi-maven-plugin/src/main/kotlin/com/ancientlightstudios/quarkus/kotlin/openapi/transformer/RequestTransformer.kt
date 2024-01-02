@@ -5,10 +5,18 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ResponseBod
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ResponseCode
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.AdditionalInformation
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.Request
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.ClassName.Companion.className
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformed.name.MethodName.Companion.methodName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.Request as OpenApiRequest
 
 class RequestTransformer(private val source: OpenApiRequest) {
+
+    fun registerNames(nameRegistry: NameRegistry) {
+        if (source.body != null || source.parameters.isNotEmpty()) {
+            nameRegistry.uniqueNameFor(source.operationId.methodName().className().extend(postfix = "Request"))
+        }
+        nameRegistry.uniqueNameFor(source.operationId.methodName().className().extend(postfix = "Response"))
+    }
 
     fun initializeSchemaRegistry(schemaCollector: SchemaCollector) {
         schemaCollector.registerSchema(source.body?.schema, FlowDirection.Up) { "${source.operationId} body" }
