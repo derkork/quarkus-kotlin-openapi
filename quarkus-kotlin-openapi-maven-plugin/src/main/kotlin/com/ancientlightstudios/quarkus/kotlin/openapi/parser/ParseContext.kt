@@ -1,22 +1,36 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.parser
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiVersion
+import com.ancientlightstudios.quarkus.kotlin.openapi.utils.SpecIssue
 import com.fasterxml.jackson.databind.JsonNode
 
 data class ParseContext(
-    val openApiVersion: OpenApiVersion,
+    val openApiVersion: ApiVersion,
     val contextNode: JsonNode,
-    val contextPath: String,
-    val referenceResolver: ReferenceResolver
+    val contextPointer: JsonPointer
 ) {
 
-    fun contextFor(newContextNode: JsonNode, path: String) =
-        ParseContext(openApiVersion, newContextNode, "${this.contextPath}/$path", referenceResolver)
+    // the root context is the first context from which everything else derived
+    var rootContext: ParseContext = this
+        private set
 
-    fun contextFor(path: String): ParseContext {
-        val newContextNode = contextNode.resolvePointer(path)
-            ?: throw IllegalStateException("Path ${this.contextPath}/$path not resolvable.")
-        return contextFor(newContextNode, path)
+    val contextPath: String
+        get() = contextPointer.path
+
+    fun contextFor(newContextNode: JsonNode, vararg segments: String) =
+        ParseContext(openApiVersion, newContextNode, contextPointer.append(*segments))
+            .also { it.rootContext = rootContext }
+
+    fun contextFor(vararg segments: String): ParseContext {
+        val newContextNode = contextNode.resolvePointer(JsonPointer.fromSegments(*segments))
+            ?: SpecIssue("Path ${this.contextPointer.append(*segments).path} not resolvable.")
+        return contextFor(newContextNode, *segments)
+    }
+
+    fun contextFor(pointer: JsonPointer): ParseContext {
+        val newContextNode = contextNode.resolvePointer(pointer)
+            ?: SpecIssue("Path ${pointer.path} not resolvable.")
+        return ParseContext(openApiVersion, newContextNode, pointer)
+            .also { it.rootContext = rootContext }
     }
 
 }

@@ -1,25 +1,35 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.parser
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ApiSpec
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiVersion
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.Request
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.RequestMethod
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.RequestMethod
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableRequest
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableRequestBundle
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSpec
+import com.ancientlightstudios.quarkus.kotlin.openapi.utils.SpecIssue
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ObjectNode
 
-class ApiSpecBuilder(private val node: ObjectNode) {
+class ApiSpecBuilder(
+    private val spec: TransformableSpec,
+    private val requestFilter: RequestFilter,
+    private val node: ObjectNode
+) {
 
-    private val openApiVersion = extractOpenApiVersion()
-    private val referenceResolver = ReferenceResolver(openApiVersion, node)
+    private val parseContext = ParseContext(extractOpenApiVersion(), node, JsonPointer.fromPath("#"))
 
-    fun build(requestFilter: RequestFilter): ApiSpec {
+//    private val schemaCollector = SchemaCollector()
+//    private val referenceResolver = ReferenceResolver(openApiVersion, node, schemaCollector)
+
+    fun build() {
         val requests = extractRequests(requestFilter)
-        val infoNode = node.with("info")
-        return ApiSpec(requests, infoNode.getTextOrNull("description"), infoNode.getTextOrNull("version"))
+//        val schemas = extractSchemas()
+
+        // just create a default bundle with all the available requests
+        spec.bundles = listOf(TransformableRequestBundle(requests))
+        spec.version = node.with("info").getTextOrNull("version")
     }
 
-    private fun extractOpenApiVersion() = node.getTextOrNull("openapi")?.let { OpenApiVersion.fromString(it) }
-        ?: throw IllegalStateException("OpenAPI version not specified")
+    private fun extractOpenApiVersion() = node.getTextOrNull("openapi")?.let(ApiVersion::fromString)
+        ?: SpecIssue("OpenAPI version not specified")
 
     private fun extractRequests(requestFilter: RequestFilter) = node.with("paths")
         .propertiesAsList()
@@ -29,15 +39,8 @@ class ApiSpecBuilder(private val node: ObjectNode) {
         }
         .flatten()
 
-    private fun ObjectNode.extractPathRequests(path: String, requestFilter: RequestFilter): List<Request> {
-        val context = ParseContext(openApiVersion, this, "#/paths$path", referenceResolver)
-
-        // a path can define default parameters for all of its operations
-        val defaultParameter = withArray("parameters")
-            .mapIndexed { index, itemNode ->
-                context.contextFor(itemNode, "parameters[$index]")
-                    .parseAsRequestParameter()
-            }
+    private fun ObjectNode.extractPathRequests(path: String, requestFilter: RequestFilter): List<TransformableRequest> {
+        val context = parseContext.contextFor(node, "paths", path)
 
         // now extract all defined operations in this path
         return propertiesAsList()
@@ -46,12 +49,40 @@ class ApiSpecBuilder(private val node: ObjectNode) {
             // ignore all operations which are not required
             .filter { (operation, _) -> requestFilter.accept(path, RequestMethod.fromString(operation)) }
             .map { (operation, operationNode) ->
-                context.contextFor(operationNode, operation)
-                    .parseAsRequest(path, RequestMethod.fromString(operation), defaultParameter)
+                context.contextFor(operationNode, operation).parseAsRequest(path, RequestMethod.fromString(operation)) {
+                    // extract default parameters defined next to the operations
+                    // this is done for every operation again to avoid side effects later in the transformation
+                    withArray("parameters")
+                        .mapIndexed { index, itemNode ->
+                            context.contextFor(itemNode, "parameters[$index]").parseAsRequestParameter()
+                        }
+                }
             }
     }
 
+//    private fun extractSchemas(): List<OpenApiSchema> {
+//        var nextRef = schemaCollector.nextUnresolvedReference()
+//        while (nextRef != null) {
+//            val pointer = JsonPointer.fromPath(nextRef)
+//            val schemaNode =
+//                node.resolvePointer(pointer) ?: throw IllegalArgumentException("Unresolvable schema reference $nextRef")
+//            ParseContext(
+//                openApiVersion,
+//                schemaNode,
+//                pointer,
+//                referenceResolver,
+//                schemaCollector
+//            ).parseAsSchema(nextRef.targetName())
+//
+//            nextRef = schemaCollector.nextUnresolvedReference()
+//        }
+//
+//        return schemaCollector.allSchemas
+//    }
+
 }
 
-fun JsonNode.parseAsApiSpec(requestFilter: RequestFilter) = asObjectNode { "Json object expected" }
-    .let { ApiSpecBuilder(it).build(requestFilter) }
+fun JsonNode.parseInto(spec: TransformableSpec, requestFilter: RequestFilter) {
+    asObjectNode { "Json object expected" }.let { ApiSpecBuilder(spec, requestFilter, it).build() }
+}
+

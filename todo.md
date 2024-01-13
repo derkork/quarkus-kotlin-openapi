@@ -1,3 +1,8 @@
+- `description` everywhere if we want to include them in the generated sources
+- `deprecated` everywhere if we want to include them in the generated sources
+
+
+
 ## Config
 
 - [ ] Endpunkte anhand der OpenAPI-Tags oder Konfigurationswerte in getrennte Server/Client-Interfaces splitten

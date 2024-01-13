@@ -1,6 +1,7 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.parser
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.RequestMethod
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.RequestMethod
+
 
 class RequestFilter(endpoints: List<String>) {
 
@@ -27,7 +28,7 @@ class RequestFilter(endpoints: List<String>) {
         if (endpoints.contains(path)) {
             return true
         }
-        
+
         return endpoints.contains(toFilterValue(path, method))
     }
 
