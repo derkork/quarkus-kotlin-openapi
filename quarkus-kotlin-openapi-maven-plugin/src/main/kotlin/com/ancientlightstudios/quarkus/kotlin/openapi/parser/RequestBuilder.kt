@@ -1,56 +1,56 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.parser
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.Request
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.RequestMethod
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ResponseCode
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.parameter.Parameter
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.OriginPathHint.setOriginPath
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.RequestMethod
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ResponseCode
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableParameter
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableRequest
 import com.fasterxml.jackson.databind.node.ObjectNode
 
 class RequestBuilder(
     private val path: String, private val method: RequestMethod,
-    private val defaultParameter: List<Parameter>, private val node: ObjectNode
+    private val defaultParameter: () -> List<TransformableParameter>, private val node: ObjectNode
 ) {
 
-    private val operationId = node.getTextOrNull("operationId") ?: "${method.name} $path"
-
-    fun ParseContext.build(): Request {
-        val parameters = extractParameters()
-        val bodyType = extractRequestBody()
-        val returnType = extractResponseBodies()
-
-        return Request(
-            path, method, operationId,
-            node.getTextOrNull("description"),
-            node.getBooleanOrNull("deprecated") ?: false,
-            parameters, bodyType, returnType
-        )
+    fun ParseContext.build() = TransformableRequest(
+        path, method,
+        node.getTextOrNull("operationId") ?: "",
+        node.withArray("tags").map { it.asText() },
+        extractParameters(),
+        extractRequestBody(),
+        extractResponses()
+    ).apply {
+        setOriginPath(contextPath)
     }
 
-    private fun ParseContext.extractParameters(): List<Parameter> {
-        val definedParameter = node
+    private fun ParseContext.extractParameters(): List<TransformableParameter> {
+        val localParameter = node
             .withArray("parameters")
             .mapIndexed { index, itemNode ->
                 contextFor(itemNode, "parameters[$index]").parseAsRequestParameter()
             }
 
-        val definedParameterNames = definedParameter.map { it.name }.toSet()
+        val localParameterNames = localParameter.map { it.name }.toSet()
         // overwrite parameters in the default list if they are redefined here
-        return defaultParameter.filterNot { definedParameterNames.contains(it.name) } + definedParameter
+        return defaultParameter().filterNot { localParameterNames.contains(it.name) } + localParameter
     }
 
     private fun ParseContext.extractRequestBody() = node.get("requestBody")
         ?.let { contextFor(it, "requestBody").parseAsRequestBody() }
 
-    private fun ParseContext.extractResponseBodies() = node.with("responses")
+    private fun ParseContext.extractResponses() = node.with("responses")
         .propertiesAsList()
         .map { (code, responseNode) ->
-            val body = contextFor(responseNode, "responses/$code").parseAsResponseBody()
-            ResponseCode.fromString(code) to body
+            contextFor(responseNode, "responses", code).parseAsResponse(ResponseCode.fromString(code))
         }
 
 }
 
-fun ParseContext.parseAsRequest(path: String, method: RequestMethod, defaultParameter: List<Parameter>) =
+fun ParseContext.parseAsRequest(
+    path: String,
+    method: RequestMethod,
+    defaultParameter: () -> List<TransformableParameter>
+) =
     contextNode.asObjectNode { "Json object expected for ${this.contextPath}" }
         .let {
             RequestBuilder(path, method, defaultParameter, it).run { this@parseAsRequest.build() }

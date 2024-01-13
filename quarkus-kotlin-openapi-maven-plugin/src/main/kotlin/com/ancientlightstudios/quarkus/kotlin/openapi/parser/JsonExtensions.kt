@@ -1,27 +1,21 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.parser
 
+import com.ancientlightstudios.quarkus.kotlin.openapi.utils.SpecIssue
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ArrayNode
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.databind.node.ValueNode
+import com.flipkart.zjsonpatch.JsonPatch
 
 /**
- * returns this node as an object node if possible or throws an IllegalStateException
+ * returns this node as an object node or generates a SpecIssue
  */
-fun JsonNode?.asObjectNode(message: () -> String) =
-    when {
-        this != null && this.isObject -> this as ObjectNode
-        else -> throw IllegalStateException(message())
-    }
+fun JsonNode?.asObjectNode(message: () -> String) = this as? ObjectNode ?: SpecIssue(message())
 
 /**
- * returns this node as an array node if possible or throws an IllegalStateException
+ * returns this node as an array node or generates a SpecIssue
  */
-fun JsonNode?.asArrayNode(message: () -> String) =
-    when {
-        this != null && this.isArray -> this as ArrayNode
-        else -> throw IllegalStateException(message())
-    }
+fun JsonNode?.asArrayNode(message: () -> String) = this as? ArrayNode ?: SpecIssue(message())
 
 /**
  * returns the properties of this object node as a list of name-value pairs
@@ -53,24 +47,50 @@ fun JsonNode?.getMultiValue(property: String) = when (val node = this?.get(prope
     null -> null
     is ArrayNode -> node.toList()
     is ValueNode -> listOf(node)
-    else -> throw IllegalArgumentException("${node.javaClass.simpleName} not supported")
+    else -> SpecIssue("${node.javaClass.simpleName} not supported")
 }
 
 
-//fun JsonNode?.getAsObjectNode(property: String): ObjectNode =
-//    this?.get(property) as? ObjectNode ?: throw IllegalArgumentException("$property is not of type ObjectNode")
-//
-private val PathPattern = Regex("(?<!\\\\)/").toPattern()
+fun JsonNode?.resolvePointer(pointer: JsonPointer): JsonNode? {
+    val path = pointer.path.trimStart('#')
+    if (path.contains("#")) {
+        SpecIssue("References to external files not yet supported. ${pointer.path}")
+    }
 
-fun JsonNode?.resolvePointer(path: String): JsonNode? {
-    val foo = path.replaceFirst("#/", "")
+    if (this == null) {
+        return null
+    }
 
-    // we split at / and then walk the tree. We can escape / with \/.
-    var result = this
-    for (segment in foo.split(PathPattern)) {
-        val cleanSegment = segment.replace("\\/", "/")
-        result = result?.get(cleanSegment)
+    val result = this.at(path)
+    if (result.isMissingNode) {
+        return null
     }
 
     return result
 }
+
+fun JsonNode.merge(other: JsonNode) = when (this) {
+    is ObjectNode -> merge(other)
+    is ArrayNode -> merge(other)
+    else -> SpecIssue("Merge for ${this.javaClass.simpleName} not supported")
+}
+
+fun ObjectNode.merge(other: JsonNode): ObjectNode {
+    val otherObject = other.asObjectNode { "Only objects can be merged into objects" }
+    otherObject.propertiesAsList()
+        .forEach { (name, value) ->
+            when (val current = this[name]) {
+                is ObjectNode -> current.merge(value)
+                is ArrayNode -> current.merge(value)
+                else -> replace(name, value)
+            }
+        }
+    return this
+}
+
+fun ArrayNode.merge(other: JsonNode): ArrayNode = addAll(other.asArrayNode { "Only arrays can be merged into arrays" })
+
+/**
+ * applies the specified patch to this json node
+ */
+fun JsonNode.patch(patchNode: JsonNode): JsonNode = JsonPatch.apply(patchNode, this)
