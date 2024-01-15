@@ -54,6 +54,8 @@ class Config(
      */
     val endpoints: List<String> = emptyList(),
 
+    val splitByTags: Boolean = false,
+
     /**
      * The custom type mappings to use for the generated interface.
      * Format:

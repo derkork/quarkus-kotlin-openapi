@@ -24,7 +24,7 @@ class ApiSpecBuilder(
 //        val schemas = extractSchemas()
 
         // just create a default bundle with all the available requests
-        spec.bundles = listOf(TransformableRequestBundle(requests))
+        spec.bundles = listOf(TransformableRequestBundle(null, requests))
         spec.version = node.with("info").getTextOrNull("version")
     }
 

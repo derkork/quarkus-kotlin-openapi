@@ -1,6 +1,6 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.parser
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.OriginPathHint.setOriginPath
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.OriginPathHint.originPath
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableHeaderParameter
 import com.fasterxml.jackson.databind.node.ObjectNode
 
@@ -18,7 +18,7 @@ class ResponseHeaderBuilder(private val name: String, private val node: ObjectNo
             name,
             node.getBooleanOrNull("required") ?: false
         ).apply {
-            setOriginPath(contextPath)
+            originPath = contextPath
         }
 
         // TODO: schemas

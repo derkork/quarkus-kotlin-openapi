@@ -1,6 +1,6 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.parser
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.OriginPathHint.setOriginPath
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.OriginPathHint.originPath
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.SpecIssue
 import com.fasterxml.jackson.databind.node.ObjectNode
@@ -29,7 +29,7 @@ class RequestParameterBuilder(private val node: ObjectNode) {
             "cookie" -> extractCookieParameterDefinition(name)
             else -> SpecIssue("Unknown type '$kind' for parameter $contextPath")
         }.apply {
-            setOriginPath(contextPath)
+            originPath = contextPath
         }
     }
 

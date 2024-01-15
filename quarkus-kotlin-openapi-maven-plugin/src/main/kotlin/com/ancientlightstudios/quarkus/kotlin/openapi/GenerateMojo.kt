@@ -67,6 +67,9 @@ class GenerateMojo : AbstractMojo() {
     var endpoints: List<String> = listOf()
 
     @Parameter
+    var splitByTags: Boolean = false
+
+    @Parameter
     var typeMappings: List<String> = listOf()
 
 
@@ -93,14 +96,14 @@ class GenerateMojo : AbstractMojo() {
             outputDirectory.path,
             pathPrefix,
             endpoints,
+            splitByTags,
             typeMappings,
             interfaceType,
             omitNullsInSerialization,
             additionalProviders
         )
 
-        val generator = Generator(config)
-        generator.generate()
+        Generator(config).generate()
 
         project.addCompileSourceRoot(outputDirectory.path)
     }

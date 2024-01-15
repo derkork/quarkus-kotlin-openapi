@@ -1,6 +1,6 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.parser
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.OriginPathHint.setOriginPath
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.OriginPathHint.originPath
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.RequestMethod
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ResponseCode
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableParameter
@@ -14,13 +14,13 @@ class RequestBuilder(
 
     fun ParseContext.build() = TransformableRequest(
         path, method,
-        node.getTextOrNull("operationId") ?: "",
+        node.getTextOrNull("operationId"),
         node.withArray("tags").map { it.asText() },
         extractParameters(),
         extractRequestBody(),
         extractResponses()
     ).apply {
-        setOriginPath(contextPath)
+        originPath = contextPath
     }
 
     private fun ParseContext.extractParameters(): List<TransformableParameter> {
