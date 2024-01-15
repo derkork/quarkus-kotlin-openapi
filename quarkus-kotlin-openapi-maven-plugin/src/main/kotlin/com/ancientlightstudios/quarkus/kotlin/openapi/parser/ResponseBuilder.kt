@@ -1,6 +1,6 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.parser
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.OriginPathHint.setOriginPath
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.OriginPathHint.originPath
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ResponseCode
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableResponse
 import com.fasterxml.jackson.databind.node.ObjectNode
@@ -29,7 +29,7 @@ class ResponseBuilder(private val code: ResponseCode, private val node: ObjectNo
             body,
             headers
         ).apply {
-            setOriginPath(contextPath)
+            originPath = contextPath
         }
     }
 

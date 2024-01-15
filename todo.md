@@ -1,6 +1,6 @@
 - `description` everywhere if we want to include them in the generated sources
 - `deprecated` everywhere if we want to include them in the generated sources
-
+- set content-type for every response-option
 
 
 ## Config
