@@ -8,4 +8,8 @@ class TransformableRequest(
     var parameters: List<TransformableParameter> = listOf(),
     var body: TransformableBody? = null,
     var responses: List<TransformableResponse> = listOf()
-) : TransformableObject()
+) : TransformableObject() {
+
+    fun hasInputParameter() = parameters.isNotEmpty() || body != null
+
+}

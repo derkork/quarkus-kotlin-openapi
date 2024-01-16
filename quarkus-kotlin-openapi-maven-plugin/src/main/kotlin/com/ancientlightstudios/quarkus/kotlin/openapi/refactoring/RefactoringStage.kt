@@ -13,6 +13,7 @@ class RefactoringStage(private val config: Config) : GeneratorStage {
             context.performRefactoring(SplitByTagsRefactoring())
         }
 
+        context.performRefactoring(PrepareBundleIdentifierRefactoring(config.interfaceName))
         context.performRefactoring(PrepareRequestIdentifierRefactoring())
     }
 
