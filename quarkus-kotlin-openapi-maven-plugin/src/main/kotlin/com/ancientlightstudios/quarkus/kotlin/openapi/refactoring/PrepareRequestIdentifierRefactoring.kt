@@ -30,7 +30,7 @@ class PrepareRequestIdentifierRefactoring : SpecRefactoring {
         return if (operationId.isNullOrBlank()) {
             "${request.method.name} ${request.path}"
         } else {
-            operationId
+            operationId.trim()
         }
     }
 

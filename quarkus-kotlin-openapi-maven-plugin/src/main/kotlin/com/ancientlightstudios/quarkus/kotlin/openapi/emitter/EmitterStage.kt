@@ -20,7 +20,7 @@ class EmitterStage(private val config: Config) : GeneratorStage {
 
     private fun serverEmitters() = listOf(
         ServerDelegateEmitter(),
-        ServerRestInterfaceEmitter()
+        ServerRestInterfaceEmitter(config.pathPrefix)
     )
 
     private fun clientEmitters() = listOf<CodeEmitter>()
