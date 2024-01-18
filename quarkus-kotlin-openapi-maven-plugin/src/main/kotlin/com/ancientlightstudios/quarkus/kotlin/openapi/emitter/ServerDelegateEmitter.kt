@@ -2,10 +2,10 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.RequestBundleInspection
 import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.inspect
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.RequestContainerNameHint.requestContainerName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.RequestNameHint.requestName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ResponseContainerContainerHint.responseContainerName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ServerDelegateNameHint.serverDelegateName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.RequestContainerClassNameHint.requestContainerClassName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.RequestMethodNameHint.requestMethodName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ResponseContainerClassNameHint.responseContainerClassName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ServerDelegateClassNameHint.serverDelegateClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.GenericTypeName.Companion.of
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.SimpleTypeName.Companion.typeName
@@ -21,15 +21,15 @@ class ServerDelegateEmitter : CodeEmitter {
         }
     }
 
-    private fun RequestBundleInspection.emitDelegateFile() = kotlinFile(bundle.serverDelegateName) {
+    private fun RequestBundleInspection.emitDelegateFile() = kotlinFile(bundle.serverDelegateClassName) {
         registerImports(Library.AllClasses)
 
         kotlinInterface(fileName) {
             requests {
-                kotlinMethod(request.requestName, true, request.responseContainerName.typeName()) {
+                kotlinMethod(request.requestMethodName, true, request.responseContainerClassName.typeName()) {
                     if (request.hasInputParameter()) {
                         val requestType =
-                            Library.MaybeClass.typeName().of(request.requestContainerName.typeName())
+                            Library.MaybeClass.typeName().of(request.requestContainerClassName.typeName())
                         kotlinParameter("request".variableName(), requestType)
                     }
                 }

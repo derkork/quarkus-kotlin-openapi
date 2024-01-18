@@ -29,7 +29,7 @@ object Kotlin {
 
 }
 
-object Misc {
+object Jakarta {
 
     val PathAnnotationClass = "Path".rawClassName("jakarta.ws.rs", false)
     val GetAnnotationClass = "GET".rawClassName("jakarta.ws.rs", false)
@@ -40,8 +40,20 @@ object Misc {
     val HeadAnnotationClass = "HEAD".rawClassName("jakarta.ws.rs", false)
     val PatchAnnotationClass = "PATCH".rawClassName("jakarta.ws.rs", false)
     val TraceAnnotationClass = "TRACE".rawClassName("jakarta.ws.rs", false)
+    val ProducesAnnotationClass = "Produces".rawClassName("jakarta.ws.rs", false)
+    val ConsumesAnnotationClass = "Consumes".rawClassName("jakarta.ws.rs", false)
+    val PathParamAnnotationClass = "PathParam".rawClassName("jakarta.ws.rs", false)
+    val QueryParamAnnotationClass = "QueryParam".rawClassName("jakarta.ws.rs", false)
+    val HeaderParamAnnotationClass = "HeaderParam".rawClassName("jakarta.ws.rs", false)
+    val CookieParamAnnotationClass = "CookieParam".rawClassName("jakarta.ws.rs", false)
+
+}
+
+object Misc {
+
     val ObjectMapperClass = "ObjectMapper".rawClassName("com.fasterxml.jackson.databind", false)
     val RestResponseClass = "RestResponse".rawClassName("org.jboss.resteasy.reactive", false)
+
 }
 
 object Library {

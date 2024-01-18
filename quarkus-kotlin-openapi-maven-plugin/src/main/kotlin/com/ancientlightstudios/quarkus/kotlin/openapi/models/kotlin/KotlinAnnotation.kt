@@ -39,3 +39,7 @@ interface AnnotationAware {
 fun AnnotationAware.kotlinAnnotation(name: ClassName, vararg parameters: Pair<VariableName, KotlinExpression>) {
     addAnnotation(KotlinAnnotation(name, *parameters))
 }
+
+fun AnnotationAware.kotlinAnnotation(name: ClassName, parameter: KotlinExpression) {
+    addAnnotation(KotlinAnnotation(name, null to parameter))
+}

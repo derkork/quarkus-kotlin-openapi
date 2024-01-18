@@ -4,7 +4,8 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.Trans
 
 class RequestInspection(val request: TransformableRequest) {
 
-    // TODO: parameters
+    fun parameters(block: ParameterInspection.() -> Unit) =
+        request.parameters.forEach { ParameterInspection(it).block() }
 
     fun body(block: BodyInspection.() -> Unit) = request.body?.let { BodyInspection(it).block() }
 
