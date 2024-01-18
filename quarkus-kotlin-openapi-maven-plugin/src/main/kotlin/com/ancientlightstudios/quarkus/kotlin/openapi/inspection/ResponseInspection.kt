@@ -4,7 +4,8 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.Trans
 
 class ResponseInspection(val response: TransformableResponse) {
 
-    // TODO: headers
+    fun headers(block: ResponseHeaderInspection.() -> Unit) =
+        response.headers.forEach { ResponseHeaderInspection(it).block() }
 
     fun body(block: BodyInspection.() -> Unit) = response.body?.let { BodyInspection(it).block() }
 

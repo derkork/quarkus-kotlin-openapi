@@ -1,11 +1,13 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.refactoring
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.inspect
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.RequestContainerNameHint.requestContainerName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.RequestNameHint.requestName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ResponseContainerContainerHint.responseContainerName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ParameterVariableNameHint.parameterVariableName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.RequestContainerClassNameHint.requestContainerClassName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.RequestMethodNameHint.requestMethodName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ResponseContainerClassNameHint.responseContainerClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName.Companion.className
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.methodName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableRequest
 
 class PrepareRequestIdentifierRefactoring : SpecRefactoring {
@@ -15,11 +17,21 @@ class PrepareRequestIdentifierRefactoring : SpecRefactoring {
             bundles {
                 requests {
                     val name = generateName(request)
-                    request.requestName = name.methodName()
-                    request.requestContainerName = name.className(serverPackage, postfix = "Request")
-                    request.responseContainerName = name.className(serverPackage, postfix = "Response")
-
                     // TODO: add names to the name registry to avoid collisions
+                    request.requestMethodName = name.methodName()
+                    request.requestContainerClassName = name.className(serverPackage, postfix = "Request")
+                    request.responseContainerClassName = name.className(serverPackage, postfix = "Response")
+
+                    parameters {
+                        // TODO: avoid collisions e.g. if path and query params have the same name
+                        parameter.parameterVariableName = parameter.name.variableName()
+                    }
+
+                    responses {
+                        headers {
+                            header.parameterVariableName = header.name.variableName()
+                        }
+                    }
                 }
             }
         }

@@ -2,9 +2,9 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.SpecIssue
 
-enum class ContentType(private val value: String) {
-    ApplicationJson("application/json"),
-    TextPlain("text/plain");
+enum class ContentType(val value: String) {
+    ApplicationJson("application/json");
+    // TODO add text/plain and other stuff
 
     companion object {
 
