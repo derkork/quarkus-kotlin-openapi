@@ -1,11 +1,8 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable
 
-sealed class TransformableParameter(
+class TransformableParameter(
     var name: String,
-    var required: Boolean
+    var kind: ParameterKind,
+    var required: Boolean,
+    val schema: TransformableSchemaUsage
 ) : TransformableObject()
-
-class TransformablePathParameter(name: String) : TransformableParameter(name, true)
-class TransformableQueryParameter(name: String, required: Boolean) : TransformableParameter(name, required)
-class TransformableHeaderParameter(name: String, required: Boolean) : TransformableParameter(name, required)
-class TransformableCookieParameter(name: String, required: Boolean) : TransformableParameter(name, required)

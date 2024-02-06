@@ -1,9 +1,7 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.parser
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.RequestMethod
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableRequest
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableRequestBundle
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSpec
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.OriginPathHint.originPath
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.SpecIssue
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ObjectNode
@@ -11,20 +9,23 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 class ApiSpecBuilder(
     private val spec: TransformableSpec,
     private val requestFilter: RequestFilter,
+    private val contentTypeMapper: ContentTypeMapper,
     private val node: ObjectNode
 ) {
 
-    private val parseContext = ParseContext(extractOpenApiVersion(), node, JsonPointer.fromPath("#"))
-
-//    private val schemaCollector = SchemaCollector()
-//    private val referenceResolver = ReferenceResolver(openApiVersion, node, schemaCollector)
+    private val schemaDefinitionCollector = SchemaDefinitionCollector()
+    private val parseContext = ParseContext(
+        extractOpenApiVersion(), node,
+        JsonPointer.fromPath("#"), schemaDefinitionCollector, contentTypeMapper
+    )
 
     fun build() {
         val requests = extractRequests(requestFilter)
-//        val schemas = extractSchemas()
+        val schemas = extractSchemas()
 
         // just create a default bundle with all the available requests
         spec.bundles = listOf(TransformableRequestBundle(null, requests))
+        spec.schemaDefinitions = schemas
         spec.version = node.with("info").getTextOrNull("version")
     }
 
@@ -54,35 +55,28 @@ class ApiSpecBuilder(
                     // this is done for every operation again to avoid side effects later in the transformation
                     withArray("parameters")
                         .mapIndexed { index, itemNode ->
-                            context.contextFor(itemNode, "parameters[$index]").parseAsRequestParameter()
+                            context.contextFor(itemNode, "parameters", "$index").parseAsRequestParameter()
                         }
                 }
             }
     }
 
-//    private fun extractSchemas(): List<OpenApiSchema> {
-//        var nextRef = schemaCollector.nextUnresolvedReference()
-//        while (nextRef != null) {
-//            val pointer = JsonPointer.fromPath(nextRef)
-//            val schemaNode =
-//                node.resolvePointer(pointer) ?: throw IllegalArgumentException("Unresolvable schema reference $nextRef")
-//            ParseContext(
-//                openApiVersion,
-//                schemaNode,
-//                pointer,
-//                referenceResolver,
-//                schemaCollector
-//            ).parseAsSchema(nextRef.targetName())
-//
-//            nextRef = schemaCollector.nextUnresolvedReference()
-//        }
-//
-//        return schemaCollector.allSchemas
-//    }
+    private fun extractSchemas(): List<TransformableSchemaDefinition> {
+        val result = mutableListOf<TransformableSchemaDefinition>()
+        var current = schemaDefinitionCollector.nextUnresolvedSchemaDefinition
+        while (current != null) {
+            parseContext.contextFor(JsonPointer.fromPath(current.originPath))
+                .parseAsSchemaDefinitionInto(current)
+            result.add(current)
+            current = schemaDefinitionCollector.nextUnresolvedSchemaDefinition
+        }
+
+        return result
+    }
 
 }
 
-fun JsonNode.parseInto(spec: TransformableSpec, requestFilter: RequestFilter) {
-    asObjectNode { "Json object expected" }.let { ApiSpecBuilder(spec, requestFilter, it).build() }
+fun JsonNode.parseInto(spec: TransformableSpec, requestFilter: RequestFilter, contentTypeMapper: ContentTypeMapper) {
+    asObjectNode { "Json object expected" }.let { ApiSpecBuilder(spec, requestFilter, contentTypeMapper, it).build() }
 }
 

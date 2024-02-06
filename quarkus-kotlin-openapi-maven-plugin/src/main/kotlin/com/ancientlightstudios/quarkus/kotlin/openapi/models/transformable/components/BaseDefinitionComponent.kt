@@ -1,0 +1,5 @@
+package com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components
+
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchemaUsage
+
+class BaseDefinitionComponent(var innerSchema: TransformableSchemaUsage) : SchemaDefinitionComponent

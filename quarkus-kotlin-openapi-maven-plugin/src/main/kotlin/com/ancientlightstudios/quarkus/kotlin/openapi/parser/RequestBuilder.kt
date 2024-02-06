@@ -27,7 +27,7 @@ class RequestBuilder(
         val localParameter = node
             .withArray("parameters")
             .mapIndexed { index, itemNode ->
-                contextFor(itemNode, "parameters[$index]").parseAsRequestParameter()
+                contextFor(itemNode, "parameters", "$index").parseAsRequestParameter()
             }
 
         val localParameterNames = localParameter.map { it.name }.toSet()
@@ -51,7 +51,7 @@ fun ParseContext.parseAsRequest(
     method: RequestMethod,
     defaultParameter: () -> List<TransformableParameter>
 ) =
-    contextNode.asObjectNode { "Json object expected for ${this.contextPath}" }
+    contextNode.asObjectNode { "Json object expected for $contextPath" }
         .let {
             RequestBuilder(path, method, defaultParameter, it).run { this@parseAsRequest.build() }
         }

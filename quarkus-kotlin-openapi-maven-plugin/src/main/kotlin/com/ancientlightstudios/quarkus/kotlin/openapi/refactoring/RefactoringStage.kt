@@ -13,8 +13,24 @@ class RefactoringStage(private val config: Config) : GeneratorStage {
             context.performRefactoring(SplitByTagsRefactoring())
         }
 
+        context.performRefactoring(LinkSchemasAndSchemaDefinitionsRefactoring())
+
+        context.performRefactoring(OptimizeSchemeDefinitionRefactoring())
+
+        context.performRefactoring(SchemaDefinitionNameRefactoring())
+
+        // mark up/down
+
+        // mark readonly/writeonly
+        // split schemadefintion/schema by direction
+
+        // create types for schemadefinition
+        // apply types to schemausage
+
         context.performRefactoring(PrepareBundleIdentifierRefactoring(config.interfaceName))
         context.performRefactoring(PrepareRequestIdentifierRefactoring())
+
+        // verify unique names
     }
 
 }

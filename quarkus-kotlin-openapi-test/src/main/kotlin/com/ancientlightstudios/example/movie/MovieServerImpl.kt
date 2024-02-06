@@ -6,6 +6,8 @@ import com.ancientlightstudios.example.rating.client.*
 import com.ancientlightstudios.example.rating.model.RatingUp
 import com.ancientlightstudios.quarkus.kotlin.openapi.*
 import jakarta.enterprise.context.ApplicationScoped
+import jakarta.ws.rs.Consumes
+import jakarta.ws.rs.Produces
 import java.util.*
 
 @ApplicationScoped
