@@ -72,6 +72,8 @@ class GenerateMojo : AbstractMojo() {
     @Parameter
     var typeMappings: List<String> = listOf()
 
+    @Parameter
+    var contentTypeMappings: List<String> = listOf()
 
     @Parameter
     lateinit var interfaceType: InterfaceType
@@ -98,6 +100,7 @@ class GenerateMojo : AbstractMojo() {
             endpoints,
             splitByTags,
             typeMappings,
+            contentTypeMappings,
             interfaceType,
             omitNullsInSerialization,
             additionalProviders

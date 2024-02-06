@@ -63,6 +63,16 @@ class Config(
      * - string:uuid=java.util.UUID
      */
     private val typeMappings: List<String>,
+
+    /**
+     * Custom content type mappings to use for the generated interface. Requests and responses will still use the
+     * content type defined in the spec, but the generator knows how to handle these content types.
+     * Format:
+     * - <contentType>=<mappedContentType>
+     * - application/jrd+json=application/json
+     */
+    private val contentTypeMappings: List<String>,
+
     /**
      * The type of the interface to generate.
      */
@@ -76,7 +86,13 @@ class Config(
      */
     val additionalProviders: List<String> = listOf()
 ) {
-    fun typeNameFor(type:String, format:String) :String? {
+
+    fun typeNameFor(type: String, format: String): String? {
         return typeMappings.firstOrNull { it.startsWith("$type:$format=") }?.substringAfter("=")
     }
+
+    fun contentTypeFor(contentType: String): String? {
+        return contentTypeMappings.firstOrNull { it.startsWith("$contentType=") }?.substringAfter("=")
+    }
+
 }

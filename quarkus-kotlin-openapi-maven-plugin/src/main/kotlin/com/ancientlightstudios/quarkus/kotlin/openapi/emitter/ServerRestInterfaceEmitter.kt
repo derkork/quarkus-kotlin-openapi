@@ -9,7 +9,6 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ServerDelegat
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ServerRestInterfaceClassNameHint.serverRestInterfaceClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.InvocationExpression.Companion.invoke
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.rawMethodName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.GenericTypeName.Companion.of
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.SimpleTypeName.Companion.typeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
@@ -43,51 +42,43 @@ class ServerRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitter {
             addPathAnnotation(request.path)
 
             // TODO: is this still correct, if we support different content-types for a request (e.g. 200 as text/plain, but 404 as application/json or even multiple for the same code)
-            val contentTypes = request.responses.flatMap { it.body?.contentTypes ?: emptyList() }.toSet()
-            if (contentTypes.isNotEmpty()) {
-                addProducesAnnotation(contentTypes)
-            }
+//            val contentTypes = request.responses.flatMap { it.body?.contentTypes ?: emptyList() }.toSet()
+//            if (contentTypes.isNotEmpty()) {
+//                addProducesAnnotation(contentTypes)
+//            }
 
             parameters {
+                val parameterKind = parameter.kind
                 // TODO: replace with the correct type, e.g. List<...>
                 kotlinParameter(parameter.parameterVariableName, Kotlin.StringClass.typeName(true)) {
-                    addSourceAnnotation(parameter)
+                    addSourceAnnotation(parameterKind, parameter.name)
                 }
 
-//                val parameter = it.name.variableName().extend(postfix = "maybe")
-//                val source = it.name.variableName().parameterToMaybeExpression(
-//                    "request.${it.source.name.lowercase()}.${it.name}".stringExpression()
-//                )
+                val maybe = parameter.parameterVariableName
+                    .invoke(Library.AsMaybeMethod, "request.${parameterKind.value}.${parameter.name}".literal())
+                    .assignment()
+
 //                addStatement(getDeserializationStatement(source, parameter, it.type, false))
-//                statement.addParameter(parameter)
             }
 
             body {
-                val rawVariable = "body".variableName()
-                kotlinParameter(rawVariable, Kotlin.StringClass.typeName(true)) {
+                val source = "body".variableName()
+                kotlinParameter(source, Kotlin.StringClass.typeName(true))
+                content {
                     // TODO: is this still correct, if we support different content-types for a body?
-                    addConsumesAnnotation(body.contentTypes)
+                    addConsumesAnnotation(content.mappedContentType)
                 }
 
-                val jsonVariable = rawVariable.invoke("parseAsJson".rawMethodName(), "request.body".literal(), "objectMapper".variableName())
+                val maybe = source
+                    .invoke(Library.ParseAsJsonMethod, "request.body".literal(), "objectMapper".variableName())
                     .assignment()
 //
-//                kotlinStatement {
-//                    write("val node = body.parseAsJson(\"request.body\", objectMapper)")
-//                }
-//                val parameter = "body".variableName().extend(postfix = "maybe")
-//                val source = "node".variableName().pathExpression()
 //                addStatement(getDeserializationStatement(source, parameter, it, true))
-//                statement.addParameter(parameter)
 
             }
 //            val statement = RequestBuilderDeserializationStatement(
 //                request.name, request.name.extend(postfix = "Request").className()
 //            )
-//
-//
-//
-//            addStatement(statement)
         }
     }
 }

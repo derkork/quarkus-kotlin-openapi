@@ -6,7 +6,9 @@ import com.fasterxml.jackson.databind.JsonNode
 data class ParseContext(
     val openApiVersion: ApiVersion,
     val contextNode: JsonNode,
-    val contextPointer: JsonPointer
+    val contextPointer: JsonPointer,
+    val schemaDefinitionCollector: SchemaDefinitionCollector,
+    val contentTypeMapper: ContentTypeMapper
 ) {
 
     // the root context is the first context from which everything else derived
@@ -16,9 +18,14 @@ data class ParseContext(
     val contextPath: String
         get() = contextPointer.path
 
-    fun contextFor(newContextNode: JsonNode, vararg segments: String) =
-        ParseContext(openApiVersion, newContextNode, contextPointer.append(*segments))
-            .also { it.rootContext = rootContext }
+    fun contextFor(newContextNode: JsonNode, vararg segments: String) = ParseContext(
+        openApiVersion,
+        newContextNode,
+        contextPointer.append(*segments),
+        schemaDefinitionCollector,
+        contentTypeMapper
+    )
+        .also { it.rootContext = rootContext }
 
     fun contextFor(vararg segments: String): ParseContext {
         val newContextNode = contextNode.resolvePointer(JsonPointer.fromSegments(*segments))
@@ -27,9 +34,8 @@ data class ParseContext(
     }
 
     fun contextFor(pointer: JsonPointer): ParseContext {
-        val newContextNode = contextNode.resolvePointer(pointer)
-            ?: SpecIssue("Path ${pointer.path} not resolvable.")
-        return ParseContext(openApiVersion, newContextNode, pointer)
+        val newContextNode = contextNode.resolvePointer(pointer) ?: SpecIssue("Path ${pointer.path} not resolvable.")
+        return ParseContext(openApiVersion, newContextNode, pointer, schemaDefinitionCollector, contentTypeMapper)
             .also { it.rootContext = rootContext }
     }
 

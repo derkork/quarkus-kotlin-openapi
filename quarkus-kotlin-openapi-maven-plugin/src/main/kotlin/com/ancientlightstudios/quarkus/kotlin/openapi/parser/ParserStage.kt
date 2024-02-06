@@ -28,7 +28,7 @@ class ParserStage(private val config: Config) : GeneratorStage {
             File(config.debugOutputFile).writeText(patchedSource.toPrettyString())
         }
 
-        patchedSource.parseInto(spec, RequestFilter(config.endpoints))
+        patchedSource.parseInto(spec, RequestFilter(config.endpoints), ContentTypeMapper(config))
     }
 
     private fun read(source: String): JsonNode = File(source).inputStream().use { objectMapper.readTree(it) }

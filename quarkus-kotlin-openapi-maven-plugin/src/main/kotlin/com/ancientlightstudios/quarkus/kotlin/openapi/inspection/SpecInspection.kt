@@ -7,6 +7,9 @@ class SpecInspection(val spec: TransformableSpec) {
     fun bundles(block: RequestBundleInspection.() -> Unit) =
         spec.bundles.forEach { RequestBundleInspection(it).block() }
 
+    fun schemaDefinitions(block: SchemaDefinitionInspection.() -> Unit) =
+        spec.schemaDefinitions.forEach { SchemaDefinitionInspection(it).block() }
+
 }
 
 fun TransformableSpec.inspect(block: SpecInspection.() -> Unit) = SpecInspection(this).block()

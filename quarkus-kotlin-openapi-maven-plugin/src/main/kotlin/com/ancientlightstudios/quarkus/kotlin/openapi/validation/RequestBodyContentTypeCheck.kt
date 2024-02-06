@@ -8,12 +8,15 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.utils.SpecIssue
 class RequestBodyContentTypeCheck : Check {
 
     override fun verify(spec: TransformableSpec) {
-        // fail, if there is more than one content-type for a request body
         spec.inspect {
             bundles {
                 requests {
                     body {
-                        if (body.contentTypes.size > 1) {
+                        if (body.content.isEmpty()) {
+                            SpecIssue("At least one content type for the body of a request is required. Found in ${request.originPath}")
+                        }
+
+                        if (body.content.size > 1) {
                             SpecIssue("More than one content type for the body of a request is not yet supported. Found in ${request.originPath}")
                         }
                     }

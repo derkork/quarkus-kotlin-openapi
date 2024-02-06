@@ -1,26 +1,28 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.parser
 
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.NameSuggestionHint.nameSuggestion
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableBody
 import com.fasterxml.jackson.databind.node.ObjectNode
 
 class RequestBodyBuilder(private val node: ObjectNode) {
 
-    fun ParseContext.build(referencedName: String): TransformableBody {
+    fun ParseContext.build(): TransformableBody {
         return when (val ref = node.getTextOrNull("\$ref")) {
-            null -> extractBodyDefinition(referencedName)
+            null -> extractBodyDefinition()
             else -> extractBodyReference(ref)
         }
     }
 
-    private fun ParseContext.extractBodyDefinition(referencedName: String) =
-        contextFor("content").parseAsBody(node.getBooleanOrNull("required") ?: false, referencedName)
+    private fun ParseContext.extractBodyDefinition() = contextFor("content")
+        .parseAsBody(node.getBooleanOrNull("required") ?: false)
 
     private fun ParseContext.extractBodyReference(ref: String) = rootContext.contextFor(JsonPointer.fromPath(ref))
-        .parseAsRequestBody(ref.substringAfterLast("/"))
+        .parseAsRequestBody()
+        .apply { nameSuggestion = ref.nameSuggestion() }
 }
 
-fun ParseContext.parseAsRequestBody(referencedName: String = "") =
-    contextNode.asObjectNode { "Json object expected for ${this.contextPath}" }
+fun ParseContext.parseAsRequestBody() =
+    contextNode.asObjectNode { "Json object expected for $contextPath" }
         .let {
-            RequestBodyBuilder(it).run { this@parseAsRequestBody.build(referencedName) }
+            RequestBodyBuilder(it).run { this@parseAsRequestBody.build() }
         }
