@@ -1,6 +1,5 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName.Companion.rawClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.rawMethodName
 import java.util.*
 

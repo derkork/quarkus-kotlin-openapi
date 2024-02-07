@@ -43,8 +43,7 @@ object Misc {
 
     val ObjectMapperClass = "ObjectMapper".rawClassName("com.fasterxml.jackson.databind")
     val RestResponseClass = "RestResponse".rawClassName("org.jboss.resteasy.reactive")
-    // TODO: should we find a better solution?
-    val ResponseBuilderClass = "ResponseBuilder".rawClassName("org.jboss.resteasy.reactive.RestResponse")
+    val ResponseBuilderClass = "RestResponse.ResponseBuilder".rawClassName("org.jboss.resteasy.reactive")
 
 }
 
@@ -52,8 +51,10 @@ object Library {
 
     val AllClasses = "*".rawClassName("com.ancientlightstudios.quarkus.kotlin.openapi")
     val MaybeClass = "Maybe".rawClassName("com.ancientlightstudios.quarkus.kotlin.openapi")
+    val MaybeSuccessClass = "Maybe.Success".rawClassName("com.ancientlightstudios.quarkus.kotlin.openapi")
 
     val AsMaybeMethod = "asMaybe".rawMethodName()
     val ParseAsJsonMethod = "parseAsJson".rawMethodName()
+    val MaybeAllOfMethod = "maybeAllOf".rawMethodName()
 
 }

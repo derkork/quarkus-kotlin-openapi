@@ -1,7 +1,6 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.CompanionObjectExpression.Companion.companionObject
 
 
 class PropertyExpression(private val receiver: KotlinExpression, private val name: KotlinExpression) :

@@ -3,7 +3,6 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.refactoring
 import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.inspect
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.SchemaDefinitionUsageHint.addUsage
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchemaUsage
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.BaseDefinitionComponent
 
 class LinkSchemasAndSchemaDefinitionsRefactoring : SpecRefactoring {
 
@@ -14,14 +13,14 @@ class LinkSchemasAndSchemaDefinitionsRefactoring : SpecRefactoring {
                     parameters { linkDefinitionToUsage(parameter.schema) }
 
                     body {
-                        content { linkDefinitionToUsage(content.schema) }
+                        linkDefinitionToUsage(body.content.schema)
                     }
 
                     responses {
                         headers { linkDefinitionToUsage(header.schema) }
 
                         body {
-                            content { linkDefinitionToUsage(content.schema) }
+                            linkDefinitionToUsage(body.content.schema)
                         }
                     }
                 }

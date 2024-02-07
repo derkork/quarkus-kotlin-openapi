@@ -24,9 +24,7 @@ class SchemaDefinitionNameRefactoring : SpecRefactoring {
                     }
 
                     body {
-                        content {
-                            assignName(content.schema, body.nameSuggestion, "$requestPrefix body")
-                        }
+                        assignName(body.content.schema, body.nameSuggestion, "$requestPrefix body")
                     }
 
                     responses {
@@ -40,9 +38,7 @@ class SchemaDefinitionNameRefactoring : SpecRefactoring {
                         }
 
                         body {
-                            content {
-                                assignName(content.schema, body.nameSuggestion, "$responsePrefix response")
-                            }
+                            assignName(body.content.schema, body.nameSuggestion, "$responsePrefix response")
                         }
                     }
                 }

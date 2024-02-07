@@ -4,13 +4,10 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.RequestInspecti
 import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.inspect
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ParameterVariableNameHint.parameterVariableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.RequestContainerClassNameHint.requestContainerClassName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeUsageHint.typeUsage
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.GenericTypeName.Companion.of
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.SimpleTypeName.Companion.typeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchemaUsage
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.*
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.kotlinClass
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.kotlinFile
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.kotlinMember
 
 class ServerRequestContainerEmitter : CodeEmitter {
 
@@ -33,9 +30,7 @@ class ServerRequestContainerEmitter : CodeEmitter {
             }
 
             body {
-                content {
-                    kotlinMember("body".variableName(), content.schema.buildValidType(), accessModifier = null)
-                }
+                kotlinMember("body".variableName(), body.content.schema.buildValidType(), accessModifier = null)
             }
         }
     }

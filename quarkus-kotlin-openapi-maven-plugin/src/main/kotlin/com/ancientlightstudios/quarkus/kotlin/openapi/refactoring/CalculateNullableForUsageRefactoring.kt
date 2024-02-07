@@ -19,9 +19,7 @@ class CalculateNullableForUsageRefactoring : SpecRefactoring {
 
                     body {
                         if (!body.required) {
-                            content {
-                                content.schema.forceNullable()
-                            }
+                            body.content.schema.forceNullable()
                         }
                     }
 
@@ -34,9 +32,7 @@ class CalculateNullableForUsageRefactoring : SpecRefactoring {
 
                         body {
                             if (!body.required) {
-                                content {
-                                    content.schema.forceNullable()
-                                }
+                                body.content.schema.forceNullable()
                             }
                         }
                     }
