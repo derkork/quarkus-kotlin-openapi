@@ -1,6 +1,7 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName.Companion.rawClassName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.rawMethodName
 import java.util.*
 
 @Suppress("DataClassPrivateConstructor")
@@ -8,6 +9,8 @@ data class ClassName private constructor(val packageName: String, val value: Str
 
     fun extend(prefix: String = "", postfix: String = "", packageName: String = this.packageName) =
         value.className(packageName, prefix, postfix)
+
+    val constructorName = value.rawMethodName()
 
     companion object {
 

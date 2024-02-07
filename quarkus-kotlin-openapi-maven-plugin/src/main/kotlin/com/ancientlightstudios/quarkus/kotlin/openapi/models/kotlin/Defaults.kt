@@ -6,6 +6,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.C
 object Kotlin {
 
     val Star = "*".rawClassName("", true)
+    val AnyClass = "Any".rawClassName("kotlin", true)
     val StringClass = "String".rawClassName("kotlin", true)
     val BooleanClass = "Boolean".rawClassName("kotlin", true)
     val FloatClass = "Float".rawClassName("kotlin", true)
@@ -14,6 +15,7 @@ object Kotlin {
     val LongClass = "Long".rawClassName("kotlin", true)
     val UIntClass = "UInt".rawClassName("kotlin", true)
     val ULongClass = "ULong".rawClassName("kotlin", true)
+    val ListClass = "List".rawClassName("kotlin.collections", true)
 
 }
 
@@ -41,6 +43,8 @@ object Misc {
 
     val ObjectMapperClass = "ObjectMapper".rawClassName("com.fasterxml.jackson.databind")
     val RestResponseClass = "RestResponse".rawClassName("org.jboss.resteasy.reactive")
+    // TODO: should we find a better solution?
+    val ResponseBuilderClass = "ResponseBuilder".rawClassName("org.jboss.resteasy.reactive.RestResponse")
 
 }
 
