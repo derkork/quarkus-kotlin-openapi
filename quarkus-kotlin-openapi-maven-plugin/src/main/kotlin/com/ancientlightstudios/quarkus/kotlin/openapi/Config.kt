@@ -1,5 +1,7 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi
 
+import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ConfigIssue
+
 enum class InterfaceType {
     SERVER, CLIENT
 }
@@ -60,7 +62,7 @@ class Config(
      * The custom type mappings to use for the generated interface.
      * Format:
      * - <type>:<format>=<fully qualified class name>
-     * - string:uuid=java.util.UUID
+     * - string:uuid=java.util:UUID
      */
     private val typeMappings: List<String>,
 
@@ -87,8 +89,13 @@ class Config(
     val additionalProviders: List<String> = listOf()
 ) {
 
-    fun typeNameFor(type: String, format: String): String? {
-        return typeMappings.firstOrNull { it.startsWith("$type:$format=") }?.substringAfter("=")
+    fun typeNameFor(type: String, format: String): Pair<String, String>? {
+        val mapping = typeMappings.firstOrNull { it.startsWith("$type:$format=") }?.substringAfter("=") ?: return null
+        val parts = mapping.split(':', limit = 2)
+        if (parts.size != 2) {
+            ConfigIssue("Illegal value for type mapping $type:$format")
+        }
+        return parts[0] to parts[1]
     }
 
     fun contentTypeFor(contentType: String): String? {

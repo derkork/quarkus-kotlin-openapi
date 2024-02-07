@@ -2,6 +2,8 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.comp
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchemaUsage
 
-class OneOfComponent(override var schemas: List<TransformableSchemaUsage>) : SomeOfComponent
+interface SomeOfComponent : SchemaDefinitionComponent {
 
-// TODO: discriminator, additionalMapping
+    var schemas: List<TransformableSchemaUsage>
+
+}

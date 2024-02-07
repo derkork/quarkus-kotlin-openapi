@@ -64,7 +64,7 @@ class SchemaDefinitionNameRefactoring : SpecRefactoring {
             definitionsWithNames.pop { current ->
                 current.inspect {
                     val prefix = schemaDefinition.name
-                    components<ArrayComponent> { assignAndSchedule(component.itemsSchema, "$prefix items") }
+                    components<ArrayItemsComponent> { assignAndSchedule(component.itemsSchema, "$prefix items") }
                     components<ObjectComponent> {
                         component.properties.forEach {
                             assignAndSchedule(it.schema, "$prefix ${it.name}")

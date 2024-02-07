@@ -56,16 +56,23 @@ class SchemaDefinitionBuilder(
 
     private fun ParseContext.addTypeComponent(components: MutableList<SchemaDefinitionComponent>) {
         val types = mutableListOf<SchemaTypes>()
+        var nullable: Boolean? = null
 
         when (openApiVersion) {
             ApiVersion.V3_0 -> {
                 node.getTextOrNull("type")?.let { types.add(SchemaTypes.fromString(it)) }
-                if (node.getBooleanOrNull("nullable") == true) {
-                    types.add(SchemaTypes.Null)
-                }
+                nullable = node.getBooleanOrNull("nullable") == true
             }
 
-            ApiVersion.V3_1 -> node.getMultiValue("type")?.mapTo(types) { SchemaTypes.fromString(it.asText()) }
+            ApiVersion.V3_1 -> {
+                node.getMultiValue("type")?.map { it.asText() }?.forEach {
+                    if (it == "null") {
+                        nullable = true
+                    } else {
+                        types.add(SchemaTypes.fromString(it))
+                    }
+                }
+            }
         }
 
         val format = node.getTextOrNull("format")
@@ -96,7 +103,7 @@ class SchemaDefinitionBuilder(
     private fun ParseContext.addArrayComponent(components: MutableList<SchemaDefinitionComponent>) {
         node.get("items")?.let {
             val schema = contextFor(it, "items").parseAsSchemaUsage()
-            components.add(ArrayComponent(schema))
+            components.add(ArrayItemsComponent(schema))
         }
     }
 

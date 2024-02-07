@@ -9,28 +9,15 @@ class RefactoringStage(private val config: Config) : GeneratorStage {
     override fun process(spec: TransformableSpec) {
         val context = RefactoringContext(spec, config)
 
-        if (config.splitByTags) {
-            context.performRefactoring(SplitByTagsRefactoring())
-        }
-
+        context.performRefactoring(SplitByTagsRefactoring(config.splitByTags))
         context.performRefactoring(LinkSchemasAndSchemaDefinitionsRefactoring())
-
         context.performRefactoring(OptimizeSchemeDefinitionRefactoring())
-
         context.performRefactoring(SchemaDefinitionNameRefactoring())
-
-        // mark up/down
-
-        // mark readonly/writeonly
-        // split schemadefintion/schema by direction
-
-        // create types for schemadefinition
-        // apply types to schemausage
-
+        context.performRefactoring(SplitSchemaDefinitionsRefactoring())
+        context.performRefactoring(AssignTypesRefactoring(TypeMapper(config)))
         context.performRefactoring(PrepareBundleIdentifierRefactoring(config.interfaceName))
         context.performRefactoring(PrepareRequestIdentifierRefactoring())
-
-        // verify unique names
+        context.performRefactoring(EnsureUniqueNamesRefactoring())
     }
 
 }

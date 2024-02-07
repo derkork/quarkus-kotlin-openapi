@@ -4,6 +4,9 @@ class OptimizeSchemeDefinitionRefactoring : SpecRefactoring {
 
     override fun RefactoringContext.perform() {
         performRefactoring(ReplaceForwardSchemaDefinitionsRefactoring())
-        // apply forcenullabel to schemas usage
+        performRefactoring(ReplaceNullableOverrideRefactoring())
+
+        performRefactoring(RemoveUnusedSchemaDefinitionsRefactoring())
     }
+
 }

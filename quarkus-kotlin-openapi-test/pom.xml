@@ -115,8 +115,8 @@
                 <version>${project.version}</version>
                 <configuration>
                     <typeMappings>
-                        <typeMapping>string:uuid=java.util.UUID</typeMapping>
-                        <typeMapping>string:date=java.time.Instant</typeMapping>
+                        <typeMapping>string:uuid=java.util:UUID</typeMapping>
+                        <typeMapping>string:date=java.time:Instant</typeMapping>
                     </typeMappings>
                     <additionalImports>
                         <additionalImport>com.ancientlightstudios.example.custom.*</additionalImport>
