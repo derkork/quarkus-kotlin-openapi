@@ -5,7 +5,6 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.inspect
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ResponseContainerClassNameHint.responseContainerClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName.Companion.rawClassName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.CompanionObjectExpression.Companion.companionObject
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.InvocationExpression.Companion.invoke
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.methodName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.rawMethodName
@@ -79,15 +78,14 @@ class ServerResponseContainerEmitter : CodeEmitter {
     private fun KotlinCompanion.emitStatusMethod(statusCode: ResponseCode.HttpStatusCode, body: TransformableBody?) {
         kotlinMethod(statusCode.value.statusCodeReason().methodName(), bodyAsAssignment = true) {
             if (body != null) {
-                val content = body.content.first()
                 val bodyVariable = "body".variableName()
-                kotlinParameter(bodyVariable, content.schema.buildValidType())
+                kotlinParameter(bodyVariable, body.content.schema.buildValidType())
                 // TODO: deserialize statement
                 invoke(
                     "status".rawMethodName(),
                     statusCode.value.literal(),
-                    content.rawContentType.literal(),
-                    bodyVariable.invoke(content.mappedContentType.serializeMethod)
+                    body.content.rawContentType.literal(),
+                    bodyVariable.invoke(body.content.mappedContentType.serializeMethod)
                 ).statement()
             } else {
                 invoke("status".rawMethodName(), statusCode.value.literal()).statement()
@@ -100,14 +98,13 @@ class ServerResponseContainerEmitter : CodeEmitter {
             val statusVariable = "status".variableName()
             kotlinParameter(statusVariable, Kotlin.IntClass.typeName())
             if (body != null) {
-                val content = body.content.first()
                 val bodyVariable = "body".variableName()
-                kotlinParameter(bodyVariable, content.schema.buildValidType())
+                kotlinParameter(bodyVariable, body.content.schema.buildValidType())
                 invoke(
                     "status".rawMethodName(),
                     statusVariable,
-                    content.rawContentType.literal(),
-                    bodyVariable.invoke(content.mappedContentType.serializeMethod)
+                    body.content.rawContentType.literal(),
+                    bodyVariable.invoke(body.content.mappedContentType.serializeMethod)
                 ).statement()
             } else {
                 invoke("status".rawMethodName(), statusVariable).statement()

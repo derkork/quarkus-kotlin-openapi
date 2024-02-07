@@ -51,4 +51,17 @@ interface StatementAware {
         })
     }
 
+    fun KotlinExpression.returnStatement() {
+        addStatement(object : KotlinStatement {
+            override fun ImportCollector.registerImports() {
+                registerFrom(this@returnStatement)
+            }
+
+            override fun render(writer: CodeWriter) = with(writer) {
+                write("return ")
+                this@returnStatement.render(this)
+            }
+        })
+    }
+
 }

@@ -30,14 +30,9 @@ fun AnnotationAware.addRequestMethodAnnotation(method: RequestMethod) {
     kotlinAnnotation(className)
 }
 
-fun AnnotationAware.addProducesAnnotation(vararg contentTypes: ContentType) {
-    kotlinAnnotation(Jakarta.ProducesAnnotationClass,
-        "value".variableName() to contentTypes.toList().arrayLiteral { it.value.literal() })
-}
-
-fun AnnotationAware.addConsumesAnnotation(vararg contentTypes: ContentType) {
+fun AnnotationAware.addConsumesAnnotation(vararg contentTypes: String) {
     kotlinAnnotation(Jakarta.ConsumesAnnotationClass,
-        "value".variableName() to contentTypes.toList().arrayLiteral { it.value.literal() })
+        "value".variableName() to contentTypes.toList().arrayLiteral { it.literal() })
 }
 
 fun AnnotationAware.addSourceAnnotation(source: ParameterKind, name: String) {

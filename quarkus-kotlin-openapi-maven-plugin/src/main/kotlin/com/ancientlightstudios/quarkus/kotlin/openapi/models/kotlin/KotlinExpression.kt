@@ -18,6 +18,39 @@ fun ClassName.literalFor(value: String) = when (this) {
     else -> ProbableBug("Unknown type ${this.value} for literal")
 }
 
+fun KotlinExpression.cast(target: TypeName, safe: Boolean = true) = object : KotlinExpression {
+
+    override fun ImportCollector.registerImports() {
+        registerFrom(this@cast)
+        register(target)
+    }
+
+    override fun render(writer: CodeWriter) = with(writer) {
+        write("(")
+        this@cast.render(this)
+        if (safe) {
+            write(" as ")
+        } else {
+            write(" as? ")
+        }
+        write(target.value)
+        write(")")
+    }
+
+}
+
+fun ClassName.companionObject() = object : KotlinExpression {
+
+    override fun ImportCollector.registerImports() {
+        register(this@companionObject)
+    }
+
+    override fun render(writer: CodeWriter) = with(writer) {
+        write(this@companionObject.value)
+    }
+
+}
+
 fun String.literal() = object : KotlinExpression {
 
     override fun ImportCollector.registerImports() {}

@@ -12,6 +12,9 @@ class KotlinRenderableBlockContainer<T : KotlinRenderable>(private val separateI
         items.add(item)
     }
 
+    val isEmpty: Boolean
+        get() = items.isEmpty()
+
     val isNotEmpty: Boolean
         get() = items.isNotEmpty()
 
