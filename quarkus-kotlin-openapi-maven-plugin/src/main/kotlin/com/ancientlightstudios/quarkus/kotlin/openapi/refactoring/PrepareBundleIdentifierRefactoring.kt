@@ -14,7 +14,6 @@ class PrepareBundleIdentifierRefactoring(private val interfaceName: String) : Sp
         spec.inspect {
             bundles {
                 val name = generateName(bundle)
-                // TODO: add names to the name registry to avoid collisions
                 bundle.serverDelegateClassName = name.className(serverPackage, postfix = "Delegate")
                 bundle.serverRestInterfaceClassName = name.className(serverPackage, postfix = "Server")
                 bundle.clientDelegateClassName = name.className(clientPackage, postfix = "Delegate")

@@ -17,13 +17,11 @@ class PrepareRequestIdentifierRefactoring : SpecRefactoring {
             bundles {
                 requests {
                     val name = generateName(request)
-                    // TODO: add names to the name registry to avoid collisions
                     request.requestMethodName = name.methodName()
                     request.requestContainerClassName = name.className(serverPackage, postfix = "Request")
                     request.responseContainerClassName = name.className(serverPackage, postfix = "Response")
 
                     parameters {
-                        // TODO: avoid collisions e.g. if path and query params have the same name
                         parameter.parameterVariableName = parameter.name.variableName()
                     }
 

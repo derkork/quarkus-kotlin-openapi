@@ -6,6 +6,18 @@ interface SchemaDefinitionComponent {
 
     companion object {
 
+        fun <T: SchemaDefinitionComponent> List<T>.singleOrNone(): T? {
+            if (isEmpty()) {
+                return null
+            }
+
+            if (size == 1) {
+                return first()
+            }
+
+            ProbableBug("Component defined multiple times. Not yet supported.")
+        }
+
          fun <T : SchemaDefinitionComponent> List<T>.baseMerge(block: (List<T>) -> T): T? {
             if (isEmpty()) {
                 return null

@@ -11,6 +11,10 @@ class RefactoringStage(private val config: Config) : GeneratorStage {
 
         context.performRefactoring(SplitByTagsRefactoring(config.splitByTags))
         context.performRefactoring(LinkSchemasAndSchemaDefinitionsRefactoring())
+
+        // context.performRefactoring(AssignContentTypesToSchemaDefinitionsRefactoring())
+        context.performRefactoring(CalculateNullableForUsageRefactoring())
+
         context.performRefactoring(OptimizeSchemeDefinitionRefactoring())
         context.performRefactoring(SchemaDefinitionNameRefactoring())
         context.performRefactoring(SplitSchemaDefinitionsRefactoring())

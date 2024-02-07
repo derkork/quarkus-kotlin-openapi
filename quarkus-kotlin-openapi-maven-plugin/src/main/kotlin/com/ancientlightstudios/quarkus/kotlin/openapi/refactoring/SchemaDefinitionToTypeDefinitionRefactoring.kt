@@ -6,12 +6,13 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeDefinitio
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName.Companion.className
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.SchemaTypes
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchemaDefinition
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.BaseDefinitionComponent
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.SomeOfComponent
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.TypeComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchemaProperty
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.*
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.SchemaDefinitionComponent.Companion.singleOrNone
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.TypeComponent.Companion.merge
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.PrimitiveTypeDefinition
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
+import com.ancientlightstudios.quarkus.kotlin.openapi.utils.SpecIssue
 
 class SchemaDefinitionToTypeDefinitionRefactoring(private val typeMapper: TypeMapper) : SpecRefactoring {
 
@@ -27,19 +28,21 @@ class SchemaDefinitionToTypeDefinitionRefactoring(private val typeMapper: TypeMa
                     else -> ProbableBug("Unambiguous type for schema definition ${schemaDefinition.originPath}")
                 }
 
+                val nullable = mergedTypeComponent.nullable ?: false
+
                 val type = when (effectiveSchemaType) {
                     SchemaTypes.String,
                     SchemaTypes.Number,
                     SchemaTypes.Integer,
-                    SchemaTypes.Boolean -> schemaDefinition.toSimpleTypeDefinition(
+                    SchemaTypes.Boolean -> toSimpleTypeDefinition(
+                        schemaDefinition,
                         effectiveSchemaType,
                         mergedTypeComponent.format,
-                        mergedTypeComponent.nullable
+                        nullable
                     )
 
-                    // TODO
-                    SchemaTypes.Object -> PrimitiveTypeDefinition("ObjectFoo".className("narf"), false)
-                    SchemaTypes.Array -> PrimitiveTypeDefinition("ArrayFoo".className("narf"), false)
+                    SchemaTypes.Object -> toObjectTypeDefinition(schemaDefinition, nullable)
+                    SchemaTypes.Array -> toCollectionTypeDefinition(schemaDefinition, nullable)
                 }
 
                 schemaDefinition.typeDefinition = type
@@ -47,7 +50,7 @@ class SchemaDefinitionToTypeDefinitionRefactoring(private val typeMapper: TypeMa
         }
     }
 
-    private inline fun <reified T> TransformableSchemaDefinition.searchInHierarchy(): List<T> {
+    private inline fun <reified T : SchemaDefinitionComponent> TransformableSchemaDefinition.searchInHierarchy(): List<T> {
         val result = mutableListOf<T>()
 
         var next: TransformableSchemaDefinition? = this
@@ -64,9 +67,95 @@ class SchemaDefinitionToTypeDefinitionRefactoring(private val typeMapper: TypeMa
         return result
     }
 
-    private fun TransformableSchemaDefinition.toSimpleTypeDefinition(
+    private fun RefactoringContext.toSimpleTypeDefinition(
+        definition: TransformableSchemaDefinition,
         effectiveType: SchemaTypes,
         format: String?,
-        nullable: Boolean?
-    ) = PrimitiveTypeDefinition(typeMapper.mapToPrimitiveType(effectiveType, format), nullable ?: false)
+        nullable: Boolean
+    ): TypeDefinition {
+        val baseType = typeMapper.mapToPrimitiveType(effectiveType, format)
+        return when (val enumComponent = definition.searchInHierarchy<EnumValidationComponent>().singleOrNone()) {
+            null -> PrimitiveTypeDefinition(baseType, nullable)
+            else -> EnumTypeDefinition(
+                definition.name.className(modelPackage),
+                nullable,
+                baseType,
+                enumComponent.values
+            )
+        }
+    }
+
+    private fun RefactoringContext.toObjectTypeDefinition(
+        definition: TransformableSchemaDefinition,
+        nullable: Boolean
+    ): TypeDefinition {
+        val allOfComponent = definition.searchInHierarchy<AllOfComponent>().singleOrNone()
+        if (allOfComponent != null) {
+            return toAllOfObjectTypeDefinition(definition, allOfComponent, nullable)
+        }
+
+        val anyOfComponent = definition.searchInHierarchy<AnyOfComponent>().singleOrNone()
+        if (anyOfComponent != null) {
+            return toAnyOfObjectTypeDefinition(definition, anyOfComponent, nullable)
+        }
+
+        val oneOfComponent = definition.searchInHierarchy<OneOfComponent>().singleOrNone()
+        if (oneOfComponent != null) {
+            return toOneOfObjectTypeDefinition(definition, oneOfComponent, nullable)
+        }
+
+        return toDefaultObjectTypeDefinition(definition, nullable)
+    }
+
+    // TODO: this doesn't cover deeply nested objects and all other kind of allOf combinations
+    private fun RefactoringContext.toAllOfObjectTypeDefinition(
+        definition: TransformableSchemaDefinition,
+        allOfComponent: AllOfComponent,
+        nullable: Boolean
+    ): TypeDefinition {
+        val properties = mutableSetOf<TransformableSchemaProperty>()
+        properties.addAll(definition.searchInHierarchy<ObjectComponent>().flatMap { it.properties })
+
+        allOfComponent.schemas.forEach {
+            properties.addAll(it.schemaDefinition.searchInHierarchy<ObjectComponent>().flatMap { it.properties })
+        }
+
+        return ObjectTypeDefinition(definition.name.className(modelPackage), nullable, properties.toList())
+    }
+
+    private fun RefactoringContext.toAnyOfObjectTypeDefinition(
+        definition: TransformableSchemaDefinition,
+        anyOfComponent: AnyOfComponent,
+        nullable: Boolean
+    ): TypeDefinition {
+        return AnyOfTypeDefinition(definition.name.className(modelPackage), nullable, anyOfComponent.schemas)
+    }
+
+    private fun RefactoringContext.toOneOfObjectTypeDefinition(
+        definition: TransformableSchemaDefinition,
+        oneOfComponent: OneOfComponent,
+        nullable: Boolean
+    ): TypeDefinition {
+        return OneOfTypeDefinition(definition.name.className(modelPackage), nullable, oneOfComponent.schemas)
+    }
+
+    private fun RefactoringContext.toDefaultObjectTypeDefinition(
+        definition: TransformableSchemaDefinition,
+        nullable: Boolean
+    ): TypeDefinition {
+        val properties = mutableSetOf<TransformableSchemaProperty>()
+        properties.addAll(definition.searchInHierarchy<ObjectComponent>().flatMap { it.properties })
+        return ObjectTypeDefinition(definition.name.className(modelPackage), nullable, properties.toList())
+    }
+
+    private fun RefactoringContext.toCollectionTypeDefinition(
+        definition: TransformableSchemaDefinition,
+        nullable: Boolean
+    ): TypeDefinition {
+
+        val itemsComponent = definition.searchInHierarchy<ArrayItemsComponent>().singleOrNone()
+            ?: SpecIssue("array type without items schema is not supported")
+
+        return CollectionTypeDefinition(itemsComponent.itemsSchema, nullable)
+    }
 }

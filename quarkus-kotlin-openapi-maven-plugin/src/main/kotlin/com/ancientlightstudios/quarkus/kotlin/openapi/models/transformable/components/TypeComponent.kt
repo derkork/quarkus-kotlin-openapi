@@ -12,10 +12,12 @@ class TypeComponent(
 
     companion object {
 
+        // in the schema hierarchy the types and format can only appear once each
         fun List<TypeComponent>.merge() = baseMerge { component ->
             val types = component.extract { it.types } ?: emptyList()
             val format = component.extract { it.format }
-            TypeComponent(types, format)
+            val nullable = component.extract { it.nullable }
+            TypeComponent(types, format, nullable)
         }
     }
 

@@ -24,7 +24,7 @@ class ReplaceNullableOverrideRefactoring : SpecRefactoring {
                             if (component.schemas.size == 1) {
                                 val target = component.schemas.first().schemaDefinition
                                 schemaDefinition.usage.forEach {
-                                    it.forceNullable = true
+                                    it.forceNullable()
                                 }
                                 performRefactoring(SwapSchemaDefinitionRefactoring(schemaDefinition, target))
                                 performRefactoring(DeleteSchemaDefinitionRefactoring(schemaDefinition))
