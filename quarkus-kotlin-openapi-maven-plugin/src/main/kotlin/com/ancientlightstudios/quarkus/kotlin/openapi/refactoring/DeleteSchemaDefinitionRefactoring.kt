@@ -22,7 +22,5 @@ class DeleteSchemaDefinitionRefactoring(private val current: TransformableSchema
         }
 
         spec.schemaDefinitions -= current
-
-        // TODO: do we need to also remove now unused schema definitions too?
     }
 }

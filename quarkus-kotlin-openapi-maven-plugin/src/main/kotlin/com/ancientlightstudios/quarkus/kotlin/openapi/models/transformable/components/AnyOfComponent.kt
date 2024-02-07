@@ -2,4 +2,4 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.comp
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchemaUsage
 
-class AnyOfComponent(var schemas: List<TransformableSchemaUsage>) : SchemaDefinitionComponent
+class AnyOfComponent(override var schemas: List<TransformableSchemaUsage>) : SomeOfComponent

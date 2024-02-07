@@ -7,6 +7,13 @@ object Kotlin {
 
     val Star = "*".rawClassName("", true)
     val StringClass = "String".rawClassName("kotlin", true)
+    val BooleanClass = "Boolean".rawClassName("kotlin", true)
+    val FloatClass = "Float".rawClassName("kotlin", true)
+    val DoubleClass = "Double".rawClassName("kotlin", true)
+    val IntClass = "Int".rawClassName("kotlin", true)
+    val LongClass = "Long".rawClassName("kotlin", true)
+    val UIntClass = "UInt".rawClassName("kotlin", true)
+    val ULongClass = "ULong".rawClassName("kotlin", true)
 
 }
 

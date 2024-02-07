@@ -8,8 +8,7 @@ enum class SchemaTypes(val value: kotlin.String) {
     Integer("integer"),
     Boolean("boolean"),
     Object("object"),
-    Array("array"),
-    Null("null");
+    Array("array");
 
     companion object {
 

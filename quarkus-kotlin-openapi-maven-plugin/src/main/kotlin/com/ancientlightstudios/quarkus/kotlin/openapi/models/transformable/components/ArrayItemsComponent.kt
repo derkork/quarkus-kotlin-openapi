@@ -2,4 +2,4 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.comp
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchemaUsage
 
-class ArrayComponent(var itemsSchema: TransformableSchemaUsage) : SchemaDefinitionComponent
+class ArrayItemsComponent(var itemsSchema: TransformableSchemaUsage) : SchemaDefinitionComponent
