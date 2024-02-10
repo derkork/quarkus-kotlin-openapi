@@ -9,6 +9,8 @@ class EmitterContext(val spec: TransformableSpec, private val config: Config) {
 
     private val outputDirectory = Path(config.outputDirectory)
 
+    fun getAdditionalImports() = config.additionalImports()
+
     fun KotlinFile.writeFile() {
         val packageName = fileName.packageName
         val targetPath = if (packageName.isNotBlank()) {

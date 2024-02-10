@@ -4,6 +4,6 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.Trans
 
 interface SomeOfComponent : SchemaDefinitionComponent {
 
-    var schemas: List<TransformableSchemaUsage>
+    val schemas: List<TransformableSchemaUsage>
 
 }

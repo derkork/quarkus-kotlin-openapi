@@ -7,6 +7,7 @@ object Kotlin {
 
     val Star = "*".rawClassName("", true)
     val AnyClass = "Any".rawClassName("kotlin", true)
+    val ByteArrayClass = "ByteArray".rawClassName("kotlin", true)
     val StringClass = "String".rawClassName("kotlin", true)
     val BooleanClass = "Boolean".rawClassName("kotlin", true)
     val FloatClass = "Float".rawClassName("kotlin", true)
@@ -30,7 +31,6 @@ object Jakarta {
     val HeadAnnotationClass = "HEAD".rawClassName("jakarta.ws.rs")
     val PatchAnnotationClass = "PATCH".rawClassName("jakarta.ws.rs")
     val TraceAnnotationClass = "TRACE".rawClassName("jakarta.ws.rs")
-    val ProducesAnnotationClass = "Produces".rawClassName("jakarta.ws.rs")
     val ConsumesAnnotationClass = "Consumes".rawClassName("jakarta.ws.rs")
     val PathParamAnnotationClass = "PathParam".rawClassName("jakarta.ws.rs")
     val QueryParamAnnotationClass = "QueryParam".rawClassName("jakarta.ws.rs")
@@ -52,9 +52,5 @@ object Library {
     val AllClasses = "*".rawClassName("com.ancientlightstudios.quarkus.kotlin.openapi")
     val MaybeClass = "Maybe".rawClassName("com.ancientlightstudios.quarkus.kotlin.openapi")
     val MaybeSuccessClass = "Maybe.Success".rawClassName("com.ancientlightstudios.quarkus.kotlin.openapi")
-
-    val AsMaybeMethod = "asMaybe".rawMethodName()
-    val ParseAsJsonMethod = "parseAsJson".rawMethodName()
-    val MaybeAllOfMethod = "maybeAllOf".rawMethodName()
 
 }

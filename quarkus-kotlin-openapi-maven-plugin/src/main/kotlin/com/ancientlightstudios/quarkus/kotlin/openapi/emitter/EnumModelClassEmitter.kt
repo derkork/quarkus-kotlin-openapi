@@ -3,10 +3,12 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 import com.ancientlightstudios.quarkus.kotlin.openapi.InterfaceType
 import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.inspect
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeDefinitionHint.typeDefinition
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ConstantName.Companion.constantName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.SimpleTypeName.Companion.typeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.kotlinEnum
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.kotlinEnumItem
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.kotlinFile
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.kotlinMember
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.EnumTypeDefinition
 
 class EnumModelClassEmitter(private val interfaceType: InterfaceType) : CodeEmitter {
@@ -19,7 +21,7 @@ class EnumModelClassEmitter(private val interfaceType: InterfaceType) : CodeEmit
         }
     }
 
-    private fun EnumTypeDefinition.emitModelFile() = kotlinFile(className) {
+    private fun EnumTypeDefinition.emitModelFile() = kotlinFile(modelName) {
         kotlinEnum(fileName) {
             kotlinMember(
                 "value".variableName(),
@@ -27,7 +29,7 @@ class EnumModelClassEmitter(private val interfaceType: InterfaceType) : CodeEmit
                 accessModifier = null
             )
             items.forEach {
-                kotlinEnumItem(it.constantName(), baseType.literalFor(it))
+                kotlinEnumItem(it.name, it.value)
             }
         }
     }

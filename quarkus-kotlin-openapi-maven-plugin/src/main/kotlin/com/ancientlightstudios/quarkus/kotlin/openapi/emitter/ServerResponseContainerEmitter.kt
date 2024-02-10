@@ -1,8 +1,10 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
+import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.serialization.getSerializationMethod
 import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.RequestInspection
 import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.inspect
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ResponseContainerClassNameHint.responseContainerClassName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeDefinitionHint.typeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName.Companion.rawClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.InvocationExpression.Companion.invoke
@@ -63,7 +65,6 @@ class ServerResponseContainerEmitter : CodeEmitter {
             kotlinParameter(typeVariable, Kotlin.StringClass.typeName(true), nullLiteral())
             kotlinParameter(bodyVariable, Kotlin.AnyClass.typeName(true), nullLiteral())
 
-
             val statusCodeStatement = Misc.RestResponseClass.companionObject()
                 .property("Status".rawClassName("", true))
                 .invoke("fromStatusCode".rawMethodName(), statusVariable)
@@ -79,13 +80,13 @@ class ServerResponseContainerEmitter : CodeEmitter {
         kotlinMethod(statusCode.value.statusCodeReason().methodName(), bodyAsAssignment = true) {
             if (body != null) {
                 val bodyVariable = "body".variableName()
-                kotlinParameter(bodyVariable, body.content.schema.buildValidType())
-                // TODO: deserialize statement
+                val typeDefinition = body.content.schema.typeDefinition
+                kotlinParameter(bodyVariable, typeDefinition.buildValidType(!body.required))
                 invoke(
                     "status".rawMethodName(),
                     statusCode.value.literal(),
                     body.content.rawContentType.literal(),
-                    bodyVariable.invoke(body.content.mappedContentType.serializeMethod)
+                    bodyVariable.invoke(body.content.mappedContentType.getSerializationMethod())
                 ).statement()
             } else {
                 invoke("status".rawMethodName(), statusCode.value.literal()).statement()
@@ -99,12 +100,13 @@ class ServerResponseContainerEmitter : CodeEmitter {
             kotlinParameter(statusVariable, Kotlin.IntClass.typeName())
             if (body != null) {
                 val bodyVariable = "body".variableName()
-                kotlinParameter(bodyVariable, body.content.schema.buildValidType())
+                val typeDefinition = body.content.schema.typeDefinition
+                kotlinParameter(bodyVariable, typeDefinition.buildValidType(!body.required))
                 invoke(
                     "status".rawMethodName(),
                     statusVariable,
                     body.content.rawContentType.literal(),
-                    bodyVariable.invoke(body.content.mappedContentType.serializeMethod)
+                    bodyVariable.invoke(body.content.mappedContentType.getSerializationMethod())
                 ).statement()
             } else {
                 invoke("status".rawMethodName(), statusVariable).statement()

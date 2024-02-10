@@ -9,7 +9,7 @@ class InvocationExpression(
     trailingLambda: StatementAware.() -> Unit = {}
 ) : KotlinExpression {
 
-    private val trailingLambdaStatements = KotlinRenderableBlockContainer<KotlinStatement>(false)
+    private val trailingLambdaStatements = KotlinStatementContainer()
 
     init {
         object : StatementAware {
@@ -21,6 +21,7 @@ class InvocationExpression(
 
     override fun ImportCollector.registerImports() {
         receiver?.let { registerFrom(it) }
+        register(method)
         registerFrom(parameters.map { (_, expression) -> expression })
         registerFrom(trailingLambdaStatements)
     }

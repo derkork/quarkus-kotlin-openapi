@@ -1,3 +1,4 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components
 
-class ArrayValidationComponent(var minSize: Int? = null, var maxSize: Int? = null) : SchemaDefinitionComponent
+class ArrayValidationComponent(val minSize: Int? = null, val maxSize: Int? = null) : SchemaDefinitionComponent,
+    MetaComponent

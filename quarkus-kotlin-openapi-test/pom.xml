@@ -116,10 +116,11 @@
                 <configuration>
                     <typeMappings>
                         <typeMapping>string:uuid=java.util:UUID</typeMapping>
+                        <typeMapping>string:instant=java.time:Instant</typeMapping>
                         <typeMapping>string:date=java.time:Instant</typeMapping>
                     </typeMappings>
                     <additionalImports>
-                        <additionalImport>com.ancientlightstudios.example.custom.*</additionalImport>
+                        <additionalImport>com.ancientlightstudios.example.custom:*</additionalImport>
                     </additionalImports>
                 </configuration>
                 <executions>
@@ -131,31 +132,11 @@
                         </goals>
                         <configuration>
                             <sources>
-                                <source>${project.basedir}/src/main/resources/test_api_3.0.yaml</source>
+                                <source>${project.basedir}/src/main/resources/test-openapi.yaml</source>
                             </sources>
-                            <interfaceName>MovieServer</interfaceName>
+                            <interfaceName>FileStorage</interfaceName>
                             <interfaceType>SERVER</interfaceType>
-                            <packageName>com.ancientlightstudios.example.movie</packageName>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>generate-mock-server</id>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>generate</goal>
-                        </goals>
-                        <configuration>
-                            <sources>
-                                <source>${project.basedir}/src/main/resources/rating_api_components.yaml</source>
-                                <source>${project.basedir}/src/main/resources/rating_api_operations.yaml</source>
-                            </sources>
-                            <patches>
-                                <patch>${project.basedir}/src/main/resources/rating_api_patch.yaml</patch>
-                            </patches>
-                            <interfaceName>RatingService</interfaceName>
-                            <interfaceType>SERVER</interfaceType>
-                            <pathPrefix>/test-support</pathPrefix>
-                            <packageName>com.ancientlightstudios.example.rating.testsupport</packageName>
+                            <packageName>com.ancientlightstudios.example.storage.server</packageName>
                         </configuration>
                     </execution>
                     <execution>
@@ -166,18 +147,68 @@
                         </goals>
                         <configuration>
                             <sources>
-                                <source>${project.basedir}/src/main/resources/rating_api_components.yaml</source>
-                                <source>${project.basedir}/src/main/resources/rating_api_operations.yaml</source>
+                                <source>${project.basedir}/src/main/resources/test-openapi.yaml</source>
                             </sources>
-                            <patches>
-                                <patch>${project.basedir}/src/main/resources/rating_api_patch.yaml</patch>
-                            </patches>
-                            <debugOutputFile>${project.basedir}/target/narf.json</debugOutputFile>
-                            <interfaceName>RatingService</interfaceName>
+                            <interfaceName>FileStorage</interfaceName>
                             <interfaceType>CLIENT</interfaceType>
-                            <packageName>com.ancientlightstudios.example.rating</packageName>
+                            <packageName>com.ancientlightstudios.example.storage.client</packageName>
                         </configuration>
                     </execution>
+<!--                    <execution>-->
+<!--                        <id>generate-server2</id>-->
+<!--                        <phase>generate-sources</phase>-->
+<!--                        <goals>-->
+<!--                            <goal>generate</goal>-->
+<!--                        </goals>-->
+<!--                        <configuration>-->
+<!--                            <sources>-->
+<!--                                <source>${project.basedir}/src/main/resources/test_api_3.0.yaml</source>-->
+<!--                            </sources>-->
+<!--                            <interfaceName>Movie</interfaceName>-->
+<!--                            <interfaceType>SERVER</interfaceType>-->
+<!--                            <packageName>com.ancientlightstudios.example.movie.server</packageName>-->
+<!--                        </configuration>-->
+<!--                    </execution>-->
+<!--                    <execution>-->
+<!--                        <id>generate-mock-server</id>-->
+<!--                        <phase>generate-sources</phase>-->
+<!--                        <goals>-->
+<!--                            <goal>generate</goal>-->
+<!--                        </goals>-->
+<!--                        <configuration>-->
+<!--                            <sources>-->
+<!--                                <source>${project.basedir}/src/main/resources/rating_api_components.yaml</source>-->
+<!--                                <source>${project.basedir}/src/main/resources/rating_api_operations.yaml</source>-->
+<!--                            </sources>-->
+<!--                            <patches>-->
+<!--                                <patch>${project.basedir}/src/main/resources/rating_api_patch.yaml</patch>-->
+<!--                            </patches>-->
+<!--                            <interfaceName>RatingService</interfaceName>-->
+<!--                            <interfaceType>SERVER</interfaceType>-->
+<!--                            <pathPrefix>/test-support</pathPrefix>-->
+<!--                            <packageName>com.ancientlightstudios.example.rating.testsupport</packageName>-->
+<!--                        </configuration>-->
+<!--                    </execution>-->
+<!--                    <execution>-->
+<!--                        <id>generate-client</id>-->
+<!--                        <phase>generate-sources</phase>-->
+<!--                        <goals>-->
+<!--                            <goal>generate</goal>-->
+<!--                        </goals>-->
+<!--                        <configuration>-->
+<!--                            <sources>-->
+<!--                                <source>${project.basedir}/src/main/resources/rating_api_components.yaml</source>-->
+<!--                                <source>${project.basedir}/src/main/resources/rating_api_operations.yaml</source>-->
+<!--                            </sources>-->
+<!--                            <patches>-->
+<!--                                <patch>${project.basedir}/src/main/resources/rating_api_patch.yaml</patch>-->
+<!--                            </patches>-->
+<!--                            <debugOutputFile>${project.basedir}/target/narf.json</debugOutputFile>-->
+<!--                            <interfaceName>RatingService</interfaceName>-->
+<!--                            <interfaceType>CLIENT</interfaceType>-->
+<!--                            <packageName>com.ancientlightstudios.example.rating</packageName>-->
+<!--                        </configuration>-->
+<!--                    </execution>-->
                 </executions>
             </plugin>
             <plugin>

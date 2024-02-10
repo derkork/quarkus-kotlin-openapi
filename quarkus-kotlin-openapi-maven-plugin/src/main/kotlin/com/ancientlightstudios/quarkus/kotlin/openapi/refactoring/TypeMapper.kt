@@ -2,8 +2,6 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.refactoring
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.Config
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName.Companion.className
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName.Companion.rawClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.Kotlin
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.SchemaTypes
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
@@ -23,12 +21,13 @@ class TypeMapper(private val config: Config) {
             return fallback
         }
 
-        val (packageName, name) = config.typeNameFor(type.value, format) ?: return fallback
-
-        return name.rawClassName(packageName)
+        return config.typeNameFor(type.value, format) ?: fallback
     }
 
-    private fun mapStringType(format: String?) = mapCustomType(SchemaTypes.String, format, Kotlin.StringClass)
+    private fun mapStringType(format: String?) = when (format) {
+        "binary" -> Kotlin.ByteArrayClass
+        else -> mapCustomType(SchemaTypes.String, format, Kotlin.StringClass)
+    }
 
     private fun mapNumberType(format: String?) = when (format) {
         "float" -> Kotlin.FloatClass

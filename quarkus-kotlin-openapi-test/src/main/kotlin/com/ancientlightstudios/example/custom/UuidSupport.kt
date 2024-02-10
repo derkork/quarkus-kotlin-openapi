@@ -4,16 +4,16 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.*
 import com.fasterxml.jackson.databind.JsonNode
 import java.util.*
 
-fun Maybe<String?>.asStringUuid(): Maybe<UUID?> = onNotNull {
+fun Maybe<String?>.asUuid(): Maybe<UUID?> = onNotNull {
     try {
-        UUID.fromString(value).asMaybe(context)
+        success(UUID.fromString(value))
     } catch (e: IllegalArgumentException) {
-        Maybe.Failure(context, ValidationError("Invalid UUID: $value", context))
+        failure(ValidationError("Invalid UUID: $value", context))
     }
 }
 
-@JvmName("asStringUuidFromNode")
-fun Maybe<JsonNode?>.asStringUuid(): Maybe<UUID?> = asString().asStringUuid()
+@JvmName("asUuidFromJson")
+fun Maybe<JsonNode?>.asUuid(): Maybe<UUID?> = asString().asUuid()
 
 
-fun UUID.fromStringUuid(): JsonNode = toString().fromString()
+fun UUID.fromUuid(): JsonNode = toString().fromString()

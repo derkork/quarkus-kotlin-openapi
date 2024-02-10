@@ -2,4 +2,5 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.comp
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchemaUsage
 
-class BaseDefinitionComponent(var innerSchema: TransformableSchemaUsage) : SchemaDefinitionComponent
+class BaseDefinitionComponent(val innerSchema: TransformableSchemaUsage) : SchemaDefinitionComponent,
+    ReferencingComponent

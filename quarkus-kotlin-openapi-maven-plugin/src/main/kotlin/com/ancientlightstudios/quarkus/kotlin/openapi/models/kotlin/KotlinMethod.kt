@@ -15,7 +15,7 @@ class KotlinMethod(
 
     private val annotations = KotlinAnnotationContainer()
     private val parameters = KotlinRenderableWrapContainer<KotlinParameter>()
-    private val statements = KotlinRenderableBlockContainer<KotlinStatement>(false)
+    private val statements = KotlinStatementContainer()
     private var comment: KotlinComment? = null
 
     override fun addAnnotation(annotation: KotlinAnnotation) {

@@ -1,11 +1,14 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.methodName
 
 @Suppress("DataClassPrivateConstructor")
 data class VariableName private constructor(val value: String) : KotlinExpression {
 
     override fun ImportCollector.registerImports() {}
+
+    fun extend(prefix: String = "", postfix: String = "") = value.variableName(prefix, postfix)
 
     override fun render(writer: CodeWriter) {
         writer.write(value)
