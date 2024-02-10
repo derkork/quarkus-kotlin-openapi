@@ -1,8 +1,8 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.parser
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.OriginPathHint.originPath
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.SchemaModifier
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.SchemaTypes
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.SchemaUsageDirection
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchemaDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchemaUsage
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.*
@@ -26,6 +26,8 @@ class SchemaDefinitionBuilder(
             addDirectionComponent(components)
             addDefaultComponent(components)
             addTypeComponent(components)
+            addFormatComponent(components)
+            addNullableComponent(components)
             addArrayComponent(components)
             addObjectComponent(components)
             addAllOfComponent(components)
@@ -55,29 +57,37 @@ class SchemaDefinitionBuilder(
     }
 
     private fun ParseContext.addTypeComponent(components: MutableList<SchemaDefinitionComponent>) {
-        val types = mutableListOf<SchemaTypes>()
-        var nullable: Boolean? = null
+        val types = when (openApiVersion) {
+            ApiVersion.V3_0 -> node.getTextOrNull("type")?.let { listOf(it) }
+            ApiVersion.V3_1 -> node.getMultiValue("type")?.map { it.asText() }?.filterNot { it == "null" }
+        }?.map(SchemaTypes::fromString)
 
-        when (openApiVersion) {
-            ApiVersion.V3_0 -> {
-                node.getTextOrNull("type")?.let { types.add(SchemaTypes.fromString(it)) }
-                nullable = node.getBooleanOrNull("nullable") == true
-            }
-
-            ApiVersion.V3_1 -> {
-                node.getMultiValue("type")?.map { it.asText() }?.forEach {
-                    if (it == "null") {
-                        nullable = true
-                    } else {
-                        types.add(SchemaTypes.fromString(it))
-                    }
-                }
-            }
+        if (types.isNullOrEmpty()) {
+            return
         }
 
+        if (types.size > 1) {
+            SpecIssue("Schemas with more than one type is not supported. Found in $contextPath")
+        }
+
+        components.add(TypeComponent(types.first()))
+    }
+
+    private fun ParseContext.addFormatComponent(components: MutableList<SchemaDefinitionComponent>) {
         val format = node.getTextOrNull("format")
-        if (types.isNotEmpty() || format != null) {
-            components.add(TypeComponent(types, format))
+        if (format != null) {
+            components.add(FormatComponent(format))
+        }
+    }
+
+    private fun ParseContext.addNullableComponent(components: MutableList<SchemaDefinitionComponent>) {
+        val nullable = when (openApiVersion) {
+            ApiVersion.V3_0 -> node.getBooleanOrNull("nullable")
+            ApiVersion.V3_1 -> node.getMultiValue("type")?.any { it.asText() == "null" }
+        }
+
+        if (nullable != null) {
+            components.add(NullableComponent(nullable))
         }
     }
 
@@ -87,12 +97,12 @@ class SchemaDefinitionBuilder(
 
         val direction = when {
             readOnly && writeOnly -> SpecIssue("Property can't be read-only and write-only at the same time. $contextPath")
-            readOnly -> SchemaUsageDirection.ReadOnly
-            writeOnly -> SchemaUsageDirection.WriteOnly
+            readOnly -> SchemaModifier.ReadOnly
+            writeOnly -> SchemaModifier.WriteOnly
             else -> null
         }
 
-        direction?.let { components.add(DirectionComponent(direction)) }
+        direction?.let { components.add(SchemaModifierComponent(direction)) }
     }
 
     private fun addCustomConstraintsValidationComponent(components: MutableList<SchemaDefinitionComponent>) {
@@ -107,7 +117,7 @@ class SchemaDefinitionBuilder(
         }
     }
 
-    private fun ParseContext.addArrayValidationComponent(components: MutableList<SchemaDefinitionComponent>) {
+    private fun addArrayValidationComponent(components: MutableList<SchemaDefinitionComponent>) {
         val minItems = node.getTextOrNull("minItems")?.toInt()
         val maxItems = node.getTextOrNull("maxItems")?.toInt()
         if (minItems != null || maxItems != null) {

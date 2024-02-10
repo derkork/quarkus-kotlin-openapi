@@ -5,13 +5,9 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.Trans
 
 class RefactoringContext(val spec: TransformableSpec, private val config: Config) {
 
-    val packageName = config.packageName
+    val interfacePackage = config.packageName
 
-    val serverPackage = "$packageName.server"
-
-    val clientPackage = "$packageName.client"
-
-    val modelPackage = "$packageName.model"
+    val modelPackage = "${config.packageName}.model"
 
     val apiPackage = "com.ancientlightstudios.quarkus.kotlin.openapi"
 

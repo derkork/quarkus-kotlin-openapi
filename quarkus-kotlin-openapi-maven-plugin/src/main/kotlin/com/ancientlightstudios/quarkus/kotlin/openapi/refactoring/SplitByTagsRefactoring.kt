@@ -4,6 +4,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.inspect
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableRequest
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableRequestBundle
 
+// creates new request bundles if requests should be separated by tags
 class SplitByTagsRefactoring(private val apply: Boolean) : SpecRefactoring {
 
     override fun RefactoringContext.perform() {

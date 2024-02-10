@@ -7,8 +7,9 @@ class KotlinFile(val fileName: ClassName) : ClassAware, MethodAware, EnumAware, 
     private val imports = mutableSetOf<ClassName>()
     private val content = KotlinRenderableBlockContainer<KotlinRenderable>()
 
-    // TODO: should use classnames as argument?
     fun registerImports(vararg imports: ClassName) = this.imports.addAll(imports)
+
+    fun registerImports(imports: List<ClassName>) = this.imports.addAll(imports)
 
     override fun addClass(clazz: KotlinClass) {
         content.addItem(clazz)

@@ -5,6 +5,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.Trans
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchemaDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
 
+// specifies where a schema is used
 object SchemaDefinitionUsageHint : Hint<MutableSet<TransformableSchemaUsage>> {
 
     val TransformableSchemaDefinition.usage: Set<TransformableSchemaUsage>

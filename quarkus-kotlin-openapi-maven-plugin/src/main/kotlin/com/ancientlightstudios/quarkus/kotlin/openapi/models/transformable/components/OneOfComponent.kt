@@ -2,6 +2,6 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.comp
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchemaUsage
 
-class OneOfComponent(override var schemas: List<TransformableSchemaUsage>) : SomeOfComponent
+class OneOfComponent(override val schemas: List<TransformableSchemaUsage>) : SomeOfComponent, ReferencingComponent
 
 // TODO: discriminator, additionalMapping

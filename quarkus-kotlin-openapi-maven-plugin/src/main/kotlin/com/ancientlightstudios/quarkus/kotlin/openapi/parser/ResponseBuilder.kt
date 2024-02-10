@@ -25,11 +25,7 @@ class ResponseBuilder(private val code: ResponseCode, private val node: ObjectNo
             .propertiesAsList()
             .map { (name, headerNode) -> contextFor(headerNode, "headers", name).parseAsResponseHeader(name) }
 
-        return TransformableResponse(
-            code,
-            body,
-            headers
-        ).apply {
+        return TransformableResponse(code, body, headers).apply {
             originPath = contextPath
         }
     }

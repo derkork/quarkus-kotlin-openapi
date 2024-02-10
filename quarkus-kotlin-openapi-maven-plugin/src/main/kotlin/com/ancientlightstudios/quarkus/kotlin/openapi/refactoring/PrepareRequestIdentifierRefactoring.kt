@@ -18,16 +18,24 @@ class PrepareRequestIdentifierRefactoring : SpecRefactoring {
                 requests {
                     val name = generateName(request)
                     request.requestMethodName = name.methodName()
-                    request.requestContainerClassName = name.className(serverPackage, postfix = "Request")
-                    request.responseContainerClassName = name.className(serverPackage, postfix = "Response")
+                    request.requestContainerClassName = name.className(interfacePackage, postfix = "Request")
+                    request.responseContainerClassName = name.className(interfacePackage, postfix = "Response")
 
                     parameters {
                         parameter.parameterVariableName = parameter.name.variableName()
                     }
 
+                    body {
+                        body.parameterVariableName = "body".variableName()
+                    }
+
                     responses {
                         headers {
                             header.parameterVariableName = header.name.variableName()
+                        }
+
+                        body {
+                            body.parameterVariableName = "body".variableName()
                         }
                     }
                 }

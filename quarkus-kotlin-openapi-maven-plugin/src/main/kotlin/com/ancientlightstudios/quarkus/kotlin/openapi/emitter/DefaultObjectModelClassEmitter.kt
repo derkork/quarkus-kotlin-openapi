@@ -3,7 +3,6 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 import com.ancientlightstudios.quarkus.kotlin.openapi.InterfaceType
 import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.inspect
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeDefinitionHint.typeDefinition
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.kotlinClass
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.kotlinFile
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.kotlinMember
@@ -19,14 +18,14 @@ class DefaultObjectModelClassEmitter(private val interfaceType: InterfaceType) :
         }
     }
 
-    private fun ObjectTypeDefinition.emitModelFile() = kotlinFile(className) {
+    private fun ObjectTypeDefinition.emitModelFile() = kotlinFile(modelName) {
         kotlinClass(fileName, asDataClass = true) {
             properties.forEach {
                 kotlinMember(
-                    it.name.variableName(),
-                    it.schema.buildValidType(),
+                    it.name,
+                    it.schema.typeDefinition.buildValidType(!required.contains(it.sourceName)),
                     accessModifier = null,
-                    // default = propertyTypeUsage.defaultValue // TODO: default value
+                    // default = propertyTypeUsage.defaultValue // TODO: default value or null if nullable
                 )
             }
 

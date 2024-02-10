@@ -3,10 +3,11 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.refactoring
 class OptimizeSchemeDefinitionRefactoring : SpecRefactoring {
 
     override fun RefactoringContext.perform() {
-        performRefactoring(ReplaceForwardSchemaDefinitionsRefactoring())
-        performRefactoring(ReplaceNullableOverrideRefactoring())
+        // if there is a single one-item *Of component, convert it into an allOf
+        performRefactoring(ReplaceSimpleOfComponentsRefactoring())
 
-        performRefactoring(RemoveUnusedSchemaDefinitionsRefactoring())
+        // if there is just a single base-ref with nothing else, replace it
+        performRefactoring(ReplaceForwardSchemaDefinitionsRefactoring())
     }
 
 }

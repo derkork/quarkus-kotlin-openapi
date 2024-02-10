@@ -48,10 +48,17 @@ class CodeWriter private constructor(
         newLineBefore: Boolean = false,
         newLineAfter: Boolean = false,
         forceNewLine: Boolean = false,
+        skipFirstLine: Boolean = false,
         block: CodeWriter.() -> Unit
     ) {
         if (newLineBefore) {
             writeln(forceNewLine)
+        }
+
+        // this is a small hack to support line breaks in statements with more or less proper indentation
+        if (skipFirstLine && onEmptyLine) {
+            writer.write("    ".repeat(level))
+            onEmptyLine = false
         }
 
         // tell the nested writer if there is already content on the current line

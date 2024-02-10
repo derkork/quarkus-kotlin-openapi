@@ -1,8 +1,6 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
-import java.util.*
 
 interface KotlinStatement : KotlinRenderable
 
@@ -14,8 +12,10 @@ interface StatementAware {
         addStatement(this)
     }
 
-    fun KotlinExpression.assignment(modifiable: Boolean = false): VariableName {
-        val result = UUID.randomUUID().toString().variableName()
+    fun KotlinExpression.assignment(
+        variableName: VariableName, modifiable: Boolean = false, reassignment: Boolean = false
+    ): VariableName {
+
         addStatement(object : KotlinStatement {
 
             override fun ImportCollector.registerImports() {
@@ -24,31 +24,21 @@ interface StatementAware {
 
             override fun render(writer: CodeWriter) = with(writer) {
                 val modifier = if (modifiable) {
-                    "var"
+                    "var "
                 } else {
-                    "val"
+                    "val "
                 }
 
-                write("$modifier ${result.value} = ")
+                if (!reassignment) {
+                    write(modifier)
+                }
+
+                write("${variableName.value} = ")
                 this@assignment.render(this)
             }
         })
 
-        return result
-    }
-
-    fun KotlinExpression.assignment(name: VariableName) {
-        addStatement(object : KotlinStatement {
-
-            override fun ImportCollector.registerImports() {
-                registerFrom(this@assignment)
-            }
-
-            override fun render(writer: CodeWriter) = with(writer) {
-                write("${name.value} = ")
-                this@assignment.render(this)
-            }
-        })
+        return variableName
     }
 
     fun KotlinExpression.returnStatement() {

@@ -10,7 +10,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.utils.pop
 class SchemaDefinitionNameRefactoring : SpecRefactoring {
 
     override fun RefactoringContext.perform() {
-        // first step: name every schema (if required) used directly by a request or response
+        // first step: name every schema used directly by a request or response if no name is set yet
         spec.inspect {
             bundles {
                 requests {
@@ -45,8 +45,9 @@ class SchemaDefinitionNameRefactoring : SpecRefactoring {
             }
         }
 
-        // second step: assign names (if required) to every schema used within another schema
-        val definitionsWithNames = spec.schemaDefinitions.filter { it.name.isNotBlank() }.toMutableSet()
+        // second step: assign names to every schema used within other schema if no name is set yet
+        // we start with already named schemas
+        val definitionsWithNames = spec.schemaDefinitions.filterNot { it.name.isBlank() }.toMutableSet()
 
         // helper function to avoid code duplication
         val assignAndSchedule: (TransformableSchemaUsage, fallback: String) -> Unit = { schema, name ->
@@ -56,6 +57,7 @@ class SchemaDefinitionNameRefactoring : SpecRefactoring {
             }
         }
 
+        // we can ignore BaseDefinitionComponents here, because these schemas should already have a name based on the reference
         while (definitionsWithNames.isNotEmpty()) {
             definitionsWithNames.pop { current ->
                 current.inspect {

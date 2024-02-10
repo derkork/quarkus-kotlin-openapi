@@ -2,14 +2,18 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
 class ImportCollector(private val basePackage: String) {
 
-    private val imports = mutableSetOf<ClassName>()
+    private val imports = mutableSetOf<ImportData>()
 
     fun register(className: ClassName) {
-        imports.add(className)
+        imports.add(ImportData(className.packageName, className.value, className.provided))
+    }
+
+    fun register(methodName: MethodName) {
+        imports.add(ImportData(methodName.packageName, methodName.value, methodName.provided))
     }
 
     fun register(className: List<ClassName>) {
-        imports.addAll(className)
+        className.forEach { register(it) }
     }
 
     fun register(typeName: TypeName) {
@@ -32,14 +36,22 @@ class ImportCollector(private val basePackage: String) {
 
     fun getImports(): List<String> {
         // all packages covered by a wildcard import
-        val wildcardImports = imports.filter { it.value == "*" }.map { it.packageName }.toSet()
+        val wildcardImports = imports.filter { it.objectName == "*" }.map { it.packageName }.toSet()
 
-        return imports
-            .filterNot { it.provided } // skip everything provided by the runtime
-            .filterNot { it.packageName == basePackage } // skip everything located in the current package
-            .filterNot { it.packageName in wildcardImports && it.value != "*" }
-            .map { "${it.packageName}.${it.value}" }
+        return imports.asSequence()
+            // skip everything provided by the runtime
+            .filterNot { it.provided }
+            // everything with an invalid package. most likely methods
+            .filterNot { it.packageName.isBlank() }
+            // skip everything located in the current package
+            .filterNot { it.packageName == basePackage }
+            // skip everything covered by a wildcard package, unless it's the wildcard itself
+            .filterNot { it.packageName in wildcardImports && it.objectName != "*" }
+            // create the import statement. in case of a subclass, use the base class for the import
+            .mapTo(mutableSetOf()) { "${it.packageName}.${it.objectName.substringBefore('.')}" }
             .sorted()
+            .toList()
     }
 
+    private data class ImportData(val packageName: String, val objectName: String, val provided: Boolean)
 }

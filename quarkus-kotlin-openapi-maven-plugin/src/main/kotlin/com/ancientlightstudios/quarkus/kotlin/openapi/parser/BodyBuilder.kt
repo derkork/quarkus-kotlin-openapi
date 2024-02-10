@@ -6,7 +6,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.Trans
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.SpecIssue
 import com.fasterxml.jackson.databind.node.ObjectNode
 
-class ResponseBodyBuilder(private val required: Boolean, private val node: ObjectNode) {
+class BodyBuilder(private val required: Boolean, private val node: ObjectNode) {
 
     fun ParseContext.build(): TransformableBody {
         val contents = node.propertiesAsList()
@@ -31,5 +31,5 @@ class ResponseBodyBuilder(private val required: Boolean, private val node: Objec
 fun ParseContext.parseAsBody(required: Boolean) =
     contextNode.asObjectNode { "Json object expected for $contextPath" }
         .let {
-            ResponseBodyBuilder(required, it).run { this@parseAsBody.build() }
+            BodyBuilder(required, it).run { this@parseAsBody.build() }
         }

@@ -68,7 +68,7 @@ fun <I> Maybe<List<I?>?>.validateList(block: ListValidator.(List<I?>) -> Unit): 
     }
 
 @Suppress("unused")
-fun <I, O> Maybe<List<I?>?>.validateListItems(block: (Maybe.Success<I?>) -> Maybe<O>): Maybe<List<O>?> =
+fun <I, O> Maybe<List<I?>?>.mapItems(block: (Maybe.Success<I?>) -> Maybe<O>): Maybe<List<O>?> =
     onNotNull {
         try {
             val validated = mutableListOf<O>()

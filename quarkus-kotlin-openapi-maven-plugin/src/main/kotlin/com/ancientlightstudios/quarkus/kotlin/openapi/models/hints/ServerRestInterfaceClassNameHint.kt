@@ -4,6 +4,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableRequestBundle
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
 
+// specifies the name of the server class (the class which does the actual request handling)
 object ServerRestInterfaceClassNameHint : Hint<ClassName> {
 
     var TransformableRequestBundle.serverRestInterfaceClassName: ClassName

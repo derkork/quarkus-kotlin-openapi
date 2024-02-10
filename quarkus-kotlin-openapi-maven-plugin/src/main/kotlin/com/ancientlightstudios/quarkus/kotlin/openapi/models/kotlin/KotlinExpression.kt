@@ -39,6 +39,18 @@ fun KotlinExpression.cast(target: TypeName, safe: Boolean = true) = object : Kot
 
 }
 
+fun KotlinExpression.wrap() = object : KotlinExpression {
+
+    override fun ImportCollector.registerImports() {
+    }
+
+    override fun render(writer: CodeWriter) = with(writer) {
+        this@wrap.render(this)
+        writeln(false)
+    }
+
+}
+
 fun ClassName.companionObject() = object : KotlinExpression {
 
     override fun ImportCollector.registerImports() {

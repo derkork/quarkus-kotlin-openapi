@@ -4,6 +4,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.RequestInspecti
 import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.inspect
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ParameterVariableNameHint.parameterVariableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.RequestContainerClassNameHint.requestContainerClassName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeDefinitionHint.typeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.kotlinClass
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.kotlinFile
@@ -26,11 +27,18 @@ class ServerRequestContainerEmitter : CodeEmitter {
     private fun RequestInspection.emitContainerFile() = kotlinFile(request.requestContainerClassName) {
         kotlinClass(fileName) {
             parameters {
-                kotlinMember(parameter.parameterVariableName, parameter.schema.buildValidType(), accessModifier = null)
+                val typeDefinition = parameter.schema.typeDefinition
+                kotlinMember(
+                    parameter.parameterVariableName, typeDefinition.buildValidType(!parameter.required),
+                    accessModifier = null
+                )
             }
 
             body {
-                kotlinMember("body".variableName(), body.content.schema.buildValidType(), accessModifier = null)
+                val typeDefinition = body.content.schema.typeDefinition
+                kotlinMember(
+                    "body".variableName(), typeDefinition.buildValidType(!body.required), accessModifier = null
+                )
             }
         }
     }

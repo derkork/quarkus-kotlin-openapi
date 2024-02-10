@@ -1,5 +1,7 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi
 
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName.Companion.rawClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ConfigIssue
 
 enum class InterfaceType {
@@ -33,8 +35,12 @@ class Config(
 
     /**
      * Additional package/class imports that should be included. These can contain custom validators or custom type converters.
+     * Format:
+     * - <fully qualified class name>
+     * - com.example:Foo
+     * - com.example.bar:*
      */
-    val additionalImports: List<String>,
+    private val additionalImports: List<String>,
 
     /**
      * The directory where the generated sources should be put
@@ -89,17 +95,23 @@ class Config(
     val additionalProviders: List<String> = listOf()
 ) {
 
-    fun typeNameFor(type: String, format: String): Pair<String, String>? {
+    fun additionalImports() = additionalImports.map { it.toRawClassName("Illegal value for additional import $it") }
+
+    fun typeNameFor(type: String, format: String): ClassName? {
         val mapping = typeMappings.firstOrNull { it.startsWith("$type:$format=") }?.substringAfter("=") ?: return null
-        val parts = mapping.split(':', limit = 2)
-        if (parts.size != 2) {
-            ConfigIssue("Illegal value for type mapping $type:$format")
-        }
-        return parts[0] to parts[1]
+        return mapping.toRawClassName("Illegal value for type mapping $type:$format")
     }
 
     fun contentTypeFor(contentType: String): String? {
         return contentTypeMappings.firstOrNull { it.startsWith("$contentType=") }?.substringAfter("=")
+    }
+
+    private fun String.toRawClassName(errorMessage: String): ClassName {
+        val parts = split(':', limit = 2)
+        if (parts.size != 2) {
+            ConfigIssue(errorMessage)
+        }
+        return parts[1].rawClassName(parts[0])
     }
 
 }
