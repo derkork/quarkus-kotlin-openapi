@@ -35,6 +35,6 @@ class SplitByTagsRefactoring(private val apply: Boolean) : SpecRefactoring {
     }
 
     // the main tag is just the first tag if any is specified.
-    private fun List<String>.getMainTag() = firstOrNull()?.lowercase()?.trim()
+    private fun List<String>.getMainTag() = firstOrNull()?.trim()
 
 }

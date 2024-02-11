@@ -5,16 +5,15 @@ import com.fasterxml.jackson.databind.JsonNode
 import java.time.Instant
 
 
-fun Maybe<String?>.asStringDate(): Maybe<Instant?> = onNotNull {
+fun Maybe<String?>.asInstant(): Maybe<Instant?> = onNotNull {
     try {
-        Instant.parse(value).asMaybe(context)
+        success(Instant.parse(value))
     } catch (e: Exception) {
-        Maybe.Failure(context, ValidationError("Invalid date: $value", context))
+        failure(ValidationError("Invalid date: $value", context))
     }
 }
 
-@JvmName("asStringDateFromNode")
-fun Maybe<JsonNode?>.asStringDate(): Maybe<Instant?> = asString().asStringDate()
+@JvmName("asInstantFromJson")
+fun Maybe<JsonNode?>.asInstant(): Maybe<Instant?> = asString().asInstant()
 
-
-fun Instant.fromStringDate(): JsonNode = toString().fromString()
+fun Instant.toJson(): JsonNode = toString().asJson()

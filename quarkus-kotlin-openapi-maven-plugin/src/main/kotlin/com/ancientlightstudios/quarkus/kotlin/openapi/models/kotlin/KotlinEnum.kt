@@ -4,12 +4,13 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.forEachWithStats
 
 class KotlinEnum(private val name: ClassName) : KotlinRenderable,
-    AnnotationAware, MethodAware, MemberAware, CommentAware {
+    AnnotationAware, MethodAware, MemberAware, CompanionAware, CommentAware {
 
     private val annotations = KotlinAnnotationContainer()
     private val methods = KotlinRenderableBlockContainer<KotlinMethod>()
     private val members = KotlinRenderableWrapContainer<KotlinMember>()
     private val items = mutableListOf<KotlinEnumItem>()
+    private var companion: KotlinCompanion? = null
     private var comment: KotlinComment? = null
 
     override fun addAnnotation(annotation: KotlinAnnotation) {
@@ -26,6 +27,10 @@ class KotlinEnum(private val name: ClassName) : KotlinRenderable,
 
     fun addItem(item: KotlinEnumItem) {
         items.add(item)
+    }
+
+    override fun setCompanion(companion: KotlinCompanion) {
+        this.companion = companion
     }
 
     override fun setComment(comment: KotlinComment) {
@@ -67,7 +72,15 @@ class KotlinEnum(private val name: ClassName) : KotlinRenderable,
             if (methods.isNotEmpty) {
                 writeln()
                 methods.render(this)
+                writeln(forceNewLine = false) // in case the item already rendered a line break
             }
+
+            companion?.let {
+                writeln()
+                it.render(this)
+                writeln(forceNewLine = false) // in case the item already rendered a line break
+            }
+
         }
     }
 

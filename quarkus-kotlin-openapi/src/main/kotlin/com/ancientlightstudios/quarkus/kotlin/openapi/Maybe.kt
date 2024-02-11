@@ -78,22 +78,6 @@ fun <T> maybeOneOf(context: String, vararg maybes: Maybe<*>, builder: () -> T): 
     }
 }
 
-/**
- * wraps the requested property or null into a [Success]
- */
-fun JsonNode?.asMaybe(property: String, context: String): Maybe<JsonNode?> =
-    Success(context, this?.get(property))
-
-///**
-// * wraps the result of the block into a [Success]. Returns a [Failure] if an exception occurred
-// */
-//inline fun <T> String?.asMaybe(context: String, validationMessage: String, block: (String) -> T): Maybe<T?> =
-//    try {
-//        Success(context, this?.let(block))
-//    } catch (e: Exception) {
-//        Failure(context, ValidationError(validationMessage, context))
-//    }
-
 @Suppress("unused")
 inline fun <T> JsonNode?.asMaybe(
     context: String,

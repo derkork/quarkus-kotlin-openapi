@@ -78,9 +78,6 @@ class GenerateMojo : AbstractMojo() {
     @Parameter
     lateinit var interfaceType: InterfaceType
 
-    @Parameter(defaultValue = "true")
-    var omitNullsInSerialization: Boolean = true
-
     /**
      * A list of additional provider classes which should be added as @RegisterProvider annotations to the generated interface.
      */
@@ -102,7 +99,6 @@ class GenerateMojo : AbstractMojo() {
             typeMappings,
             contentTypeMappings,
             interfaceType,
-            omitNullsInSerialization,
             additionalProviders
         )
 

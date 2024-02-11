@@ -43,14 +43,6 @@ fun Maybe<JsonNode?>.asString() = onNotNull {
 }
 
 @Suppress("unused")
-@JvmName("asFloatFromJson")
-fun Maybe<JsonNode?>.asFloat() = asString().asFloat()
-
-@Suppress("unused")
-@JvmName("asDoubleFromJson")
-fun Maybe<JsonNode?>.asDouble() = asString().asDouble()
-
-@Suppress("unused")
 @JvmName("asIntFromJson")
 fun Maybe<JsonNode?>.asInt() = asString().asInt()
 
@@ -59,12 +51,21 @@ fun Maybe<JsonNode?>.asInt() = asString().asInt()
 fun Maybe<JsonNode?>.asUInt() = asString().asUInt()
 
 @Suppress("unused")
+@JvmName("asLongFromJson")
+fun Maybe<JsonNode?>.asLong() = asString().asLong()
+
+@Suppress("unused")
 @JvmName("asULongFromJson")
 fun Maybe<JsonNode?>.asULong() = asString().asULong()
 
 @Suppress("unused")
-@JvmName("asLongFromJson")
-fun Maybe<JsonNode?>.asLong() = asString().asLong()
+@JvmName("asFloatFromJson")
+fun Maybe<JsonNode?>.asFloat() = asString().asFloat()
+
+@Suppress("unused")
+@JvmName("asDoubleFromJson")
+fun Maybe<JsonNode?>.asDouble() = asString().asDouble()
+
 
 @Suppress("unused")
 @JvmName("asBooleanFromJson")
