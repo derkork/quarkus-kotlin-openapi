@@ -11,6 +11,10 @@ class EmitterContext(val spec: TransformableSpec, private val config: Config) {
 
     fun getAdditionalImports() = config.additionalImports()
 
+    fun runEmitter(codeEmitter: CodeEmitter) {
+        codeEmitter.apply { emit() }
+    }
+
     fun KotlinFile.writeFile() {
         val packageName = fileName.packageName
         val targetPath = if (packageName.isNotBlank()) {

@@ -114,6 +114,7 @@
                 <artifactId>quarkus-kotlin-openapi-maven-plugin</artifactId>
                 <version>${project.version}</version>
                 <configuration>
+                    <splitByTags>true</splitByTags>
                     <typeMappings>
                         <typeMapping>string:uuid=java.util:UUID</typeMapping>
                         <typeMapping>string:instant=java.time:Instant</typeMapping>

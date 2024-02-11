@@ -1,6 +1,5 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.types
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.Direction
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ContentType
@@ -35,11 +34,7 @@ class RealEnumTypeDefinition(
 
     override fun addContentType(contentType: ContentType) = _contentTypes.add(contentType)
 
-    override fun addContentTypes(contentTypes: Collection<ContentType>) = _contentTypes.addAll(contentTypes)
-
     override fun addDirection(direction: Direction) = _directions.add(direction)
-
-    override fun addDirections(directions: Collection<Direction>) = _directions.addAll(directions)
 
 }
 

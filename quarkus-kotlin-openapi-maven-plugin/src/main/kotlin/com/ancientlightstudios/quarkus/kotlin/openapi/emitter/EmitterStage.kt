@@ -14,7 +14,7 @@ class EmitterStage(private val config: Config) : GeneratorStage {
             InterfaceType.CLIENT -> clientEmitters()
             InterfaceType.SERVER -> serverEmitters()
         }.forEach {
-            it.apply { context.emit() }
+            context.runEmitter(it)
         }
     }
 

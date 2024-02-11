@@ -2,9 +2,9 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.refactoring
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeDefinitionHint.hasTypeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeDefinitionHint.typeDefinition
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.SchemaTypes
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchemaDefinition
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.*
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.BaseDefinitionComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.SomeOfComponent
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.CollectionTypeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.EnumTypeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.ObjectTypeDefinition
@@ -25,7 +25,7 @@ class AssignTypesToSimpleExtendedDefinitionsRefactoring(
             .filter { definition -> definition.components.none { it is SomeOfComponent } }
             .map { it to it.getComponent<BaseDefinitionComponent>() }
             .filter { it.second != null }
-            .filterNot { it.second!!.innerSchema.hasTypeDefinition }
+            .filter { it.second!!.innerSchema.hasTypeDefinition }
                 as List<Pair<TransformableSchemaDefinition, BaseDefinitionComponent>>
 
         // remove them from the tasks list, because nobody has to handle them anymore

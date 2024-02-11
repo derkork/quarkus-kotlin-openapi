@@ -17,8 +17,4 @@ object ParameterVariableNameHint : Hint<VariableName> {
         get() = get(ParameterVariableNameHint) ?: ProbableBug("Name of the parameter not set")
         set(value) = set(ParameterVariableNameHint, value)
 
-    var TransformableSchemaProperty.parameterVariableName: VariableName
-        get() = get(ParameterVariableNameHint) ?: ProbableBug("Name of the parameter not set")
-        set(value) = set(ParameterVariableNameHint, value)
-
 }
