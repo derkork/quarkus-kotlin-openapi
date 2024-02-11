@@ -15,5 +15,4 @@ class RefactoringContext(val spec: TransformableSpec, private val config: Config
         refactoring.apply { perform() }
     }
 
-
 }

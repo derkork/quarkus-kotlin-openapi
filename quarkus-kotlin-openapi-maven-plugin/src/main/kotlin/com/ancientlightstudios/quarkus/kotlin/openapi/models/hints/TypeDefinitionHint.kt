@@ -1,7 +1,6 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.hints
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchemaDefinition
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchemaUsage
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.TypeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
 
@@ -15,11 +14,22 @@ object TypeDefinitionHint : Hint<TypeDefinition> {
     val TransformableSchemaDefinition.hasTypeDefinition: Boolean
         get() = get(TypeDefinitionHint) != null
 
+    val TransformableParameter.typeDefinition : TypeDefinition
+        get() = schema.schemaDefinition.typeDefinition
+
+    val ContentMapping.typeDefinition : TypeDefinition
+        get() = schema.schemaDefinition.typeDefinition
+
+    val TransformableSchemaProperty.typeDefinition : TypeDefinition
+        get() = schema.schemaDefinition.typeDefinition
+
+
     val TransformableSchemaUsage.typeDefinition: TypeDefinition
         get() = schemaDefinition.typeDefinition
 
     val TransformableSchemaUsage.hasTypeDefinition: Boolean
         get() = schemaDefinition.hasTypeDefinition
+
 
 
 }

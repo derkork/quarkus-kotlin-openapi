@@ -18,11 +18,11 @@ class RefactoringStage(private val config: Config) : GeneratorStage {
         // apply names to schema definitions if they don't have one yet
         context.performRefactoring(SchemaDefinitionNameRefactoring())
 
-        // apply flow information (up/down usage)
-        context.performRefactoring(AssignFlowDirectionRefactoring())
-
         // adds type information to schema usages and schema definitions
         context.performRefactoring(AssignTypesRefactoring(TypeMapper(config)))
+
+        // apply flow information (up/down usage)
+        context.performRefactoring(AssignFlowDirectionRefactoring())
 
         // split schema definitions if necessary (we need the types for this,
         // because this is not important for primitive types)

@@ -1,6 +1,7 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
+import com.ancientlightstudios.quarkus.kotlin.openapi.utils.forEachWithStats
 
 class KotlinComment(private val blockComment: Boolean = false) : KotlinRenderable {
 
@@ -22,11 +23,15 @@ class KotlinComment(private val blockComment: Boolean = false) : KotlinRenderabl
             writeln("/**")
         }
 
-        lines.forEach {
-            write("$prefix $it")
+        lines.forEachWithStats { stats, item ->
+            write("$prefix $item")
+            if (!stats.last) {
+                writeln(forceNewLine = false)
+            }
         }
 
         if (blockComment) {
+            writeln(forceNewLine = false)
             write(" */")
         }
     }

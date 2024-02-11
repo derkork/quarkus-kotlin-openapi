@@ -88,6 +88,28 @@ paths:
         '400':
           $ref: '#/components/responses/OperationError400'
 
+    put:
+      tags:
+        - narf
+      operationId: fooo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                first:
+                  $ref: '#/components/schemas/Test'
+                second:
+                  $ref: '#/components/schemas/Test2'
+              required:
+                - first
+                - second
+      responses:
+        '204':
+          description: Ok
+
 components:
 
   schemas:
@@ -142,6 +164,16 @@ components:
           type: string
       required:
         - message
+
+    Test:
+      type: object
+      properties:
+        narf:
+          type: string
+
+    Test2:
+      $ref: '#/components/schemas/Test'
+      type: 'null'
 
   parameters:
     FileId:
