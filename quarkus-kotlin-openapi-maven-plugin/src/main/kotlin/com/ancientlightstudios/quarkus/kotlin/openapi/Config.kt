@@ -85,10 +85,7 @@ class Config(
      * The type of the interface to generate.
      */
     val interfaceType: InterfaceType,
-    /**
-     * Whether null values should be omitted in serialization.
-     */
-    val omitNullsInSerialization: Boolean = true,
+
     /**
      * A list of additional provider classes which should be added as @RegisterProvider annotations to the generated interface.
      */

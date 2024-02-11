@@ -1,0 +1,81 @@
+openapi: 3.1.0
+info:
+  title: Filestore
+  version: 1.0.0
+tags:
+  - name: plainOptional
+  - name: plainRequired
+
+paths:
+  /features/plain/optional/enum:
+    post:
+      tags:
+        - plainOptional
+      operationId: plainOptionalEnum
+      requestBody:
+        content:
+          text/plain:
+            schema:
+              $ref: '#/components/schemas/SimpleEnumOptional'
+      responses:
+        '200':
+          description: Ok
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/SimpleEnumOptional'
+        '400':
+          $ref: '#/components/responses/OperationError400'
+
+  /features/plain/required/enum:
+    post:
+      tags:
+        - plainRequired
+      operationId: plainRequiredEnum
+      requestBody:
+        required: true
+        content:
+          text/plain:
+            schema:
+              $ref: '#/components/schemas/SimpleEnum'
+      responses:
+        '200':
+          description: Ok
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/SimpleEnum'
+        '400':
+          $ref: '#/components/responses/OperationError400'
+
+components:
+
+  schemas:
+    SimpleEnum:
+      type: string
+      enum:
+        - first
+        - second
+
+    SimpleEnumOptional:
+      $ref: '#/components/schemas/SimpleEnum'
+      type:
+        - 'null'
+
+    OperationError:
+      type: object
+      properties:
+        messages:
+          type: array
+          items:
+            type: string
+      required:
+        - messages
+
+  responses:
+    OperationError400:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/OperationError'

@@ -1,7 +1,8 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.deserialization.emitDeserializationStatement
-import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.deserialization.getDeserializationSourceType
+import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.deserialization.CombineIntoObjectStatementEmitter
+import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.deserialization.DeserializationStatementEmitter
+import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.deserialization.DeserializationStatementEmitter.Companion.getDeserializationSourceType
 import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.RequestBundleInspection
 import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.RequestInspection
 import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.inspect
@@ -10,6 +11,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.RequestContai
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.RequestMethodNameHint.requestMethodName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ServerDelegateClassNameHint.serverDelegateClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ServerRestInterfaceClassNameHint.serverRestInterfaceClassName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeDefinitionHint.typeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.InvocationExpression.Companion.invoke
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.rawMethodName
@@ -25,19 +27,21 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.Trans
 
 class ServerRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitter {
 
+    private lateinit var emitterContext: EmitterContext
+
     override fun EmitterContext.emit() {
+        emitterContext = this
         spec.inspect {
             bundles {
                 emitRestInterfaceFile()
-                    .apply { registerImports(getAdditionalImports()) }
                     .writeFile()
             }
         }
     }
 
     private fun RequestBundleInspection.emitRestInterfaceFile() = kotlinFile(bundle.serverRestInterfaceClassName) {
-
         registerImports(Library.AllClasses)
+        registerImports(emitterContext.getAdditionalImports())
 
         kotlinClass(fileName) {
             addPathAnnotation(pathPrefix)
@@ -60,7 +64,11 @@ class ServerRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitter {
             parameters { requestContainerParts.add(emitParameter(parameter)) }
             body { requestContainerParts.add(emitBody(body)) }
 
-            val requestContainerName = emitRequestContainerConversion(request, requestContainerParts)
+            val requestContainerName = emitterContext.runEmitter(
+                CombineIntoObjectStatementEmitter(
+                    "request".literal(), request.requestContainerClassName, requestContainerParts
+                )
+            ).resultStatement?.assignment("request".variableName())
             emitDelegateInvocation(request, requestContainerName)
         }
     }
@@ -70,7 +78,7 @@ class ServerRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitter {
         val parameterKind = parameter.kind
         val parameterName = parameter.parameterVariableName
 
-        kotlinParameter(parameterName, parameter.schema.getDeserializationSourceType(ContentType.TextPlain)) {
+        kotlinParameter(parameterName, parameter.typeDefinition.getDeserializationSourceType()) {
             addSourceAnnotation(parameterKind, parameter.name)
         }
 
@@ -80,8 +88,9 @@ class ServerRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitter {
             parameterName
         ).wrap()
 
-        return emitDeserializationStatement(statement, parameter.schema, ContentType.TextPlain)
-            .assignment(parameterName.extend(postfix = "maybe"))
+        return emitterContext.runEmitter(
+            DeserializationStatementEmitter(parameter.typeDefinition, statement, ContentType.TextPlain)
+        ).resultStatement.assignment(parameterName.extend(postfix = "maybe"))
     }
 
     // generates parameters and conversion for the request body depending on the media type
@@ -105,12 +114,22 @@ class ServerRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitter {
             invoke(Library.MaybeSuccessClass.constructorName, "request.body".literal(), parameterName).wrap()
                 .invoke("asJson".rawMethodName(), "objectMapper".rawVariableName()).wrap()
 
-        return emitDeserializationStatement(statement, body.content.schema, ContentType.ApplicationJson)
-            .assignment(parameterName.extend(postfix = "maybe"))
+        return emitterContext.runEmitter(
+            DeserializationStatementEmitter(body.content.typeDefinition, statement, ContentType.ApplicationJson)
+        ).resultStatement.assignment(parameterName.extend(postfix = "maybe"))
     }
 
     private fun KotlinMethod.emitPlainBody(body: TransformableBody): VariableName {
-        return "plain".variableName()
+        val parameterName = "body".variableName()
+
+        kotlinParameter(parameterName, body.content.typeDefinition.getDeserializationSourceType())
+
+        val statement =
+            invoke(Library.MaybeSuccessClass.constructorName, "request.body".literal(), parameterName).wrap()
+
+        return emitterContext.runEmitter(
+            DeserializationStatementEmitter(body.content.typeDefinition, statement, ContentType.TextPlain)
+        ).resultStatement.assignment(parameterName.extend(postfix = "maybe"))
     }
 
     private fun KotlinMethod.emitMultipartBody(body: TransformableBody): VariableName {
@@ -118,28 +137,12 @@ class ServerRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitter {
     }
 
     private fun KotlinMethod.emitFormBody(body: TransformableBody): VariableName {
+
         return "form".variableName()
     }
 
     private fun KotlinMethod.emitOctetBody(body: TransformableBody): VariableName {
         return "octed".variableName()
-    }
-
-    // generates the conversion of all the input parameter into the request container
-    private fun KotlinMethod.emitRequestContainerConversion(
-        request: TransformableRequest,
-        parts: List<VariableName>
-    ): VariableName? {
-        if (parts.isEmpty()) {
-            return null
-        }
-
-        val expressions = parts.map { it.cast(Library.MaybeSuccessClass.typeName()).property("value".variableName()) }
-
-        val maybeParameters = listOf("request".literal()) + parts
-        return invoke("maybeAllOf".rawMethodName(), maybeParameters) {
-            invoke(request.requestContainerClassName.constructorName, expressions).statement()
-        }.assignment("request".variableName())
     }
 
     // generates the call to the delegate

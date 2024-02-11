@@ -1,41 +1,79 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.InterfaceType
-import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.inspect
+import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.deserialization.DeserializationMethodEmitter
+import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.serialization.SerializationMethodEmitter
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeDefinitionHint.typeDefinition
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.kotlinClass
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.kotlinComment
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.kotlinFile
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.kotlinMember
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.ObjectTypeDefinition
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.*
 
-class DefaultObjectModelClassEmitter(private val interfaceType: InterfaceType) : CodeEmitter {
+class DefaultObjectModelClassEmitter(
+    private val typeDefinition: ObjectTypeDefinition,
+    private val needSerializeMethods: Boolean,
+    private val needDeserializeMethods: Boolean
+) : CodeEmitter {
+
+    private lateinit var emitterContext: EmitterContext
 
     override fun EmitterContext.emit() {
-        spec.inspect {
-            schemaDefinitions {
-                (schemaDefinition.typeDefinition as? ObjectTypeDefinition)?.apply { emitModelFile().writeFile() }
+        emitterContext = this
+
+        kotlinFile(typeDefinition.modelName) {
+            registerImports(Library.AllClasses)
+            registerImports(getAdditionalImports())
+
+            kotlinClass(fileName, asDataClass = true) {
+                typeDefinition.properties.forEach {
+                    val forceNullable = !typeDefinition.required.contains(it.sourceName)
+                    val defaultValue = generateDefaultValueExpression(it.schema.typeDefinition, forceNullable)
+                    kotlinMember(
+                        it.name,
+                        it.schema.typeDefinition.buildValidType(forceNullable),
+                        accessModifier = null,
+                        default = defaultValue
+                    )
+                }
+
+                if (needSerializeMethods) {
+                    generateSerializeMethods()
+                }
+
+                if (needDeserializeMethods) {
+                    kotlinCompanion {
+                        generateDeserializeMethods()
+                    }
+                }
+
+            }
+        }.writeFile()
+    }
+
+    private fun KotlinClass.generateSerializeMethods() {
+        typeDefinition.contentTypes.forEach {
+            typeDefinition.contentTypes.forEach {
+                addMethod(emitterContext.runEmitter(SerializationMethodEmitter(typeDefinition, it)).generatedMethod)
             }
         }
     }
 
-    private fun ObjectTypeDefinition.emitModelFile() = kotlinFile(modelName) {
-        kotlinClass(fileName, asDataClass = true) {
-            properties.forEach {
-                kotlinMember(
-                    it.name,
-                    it.schema.typeDefinition.buildValidType(!required.contains(it.sourceName)),
-                    accessModifier = null,
-                    // default = propertyTypeUsage.defaultValue // TODO: default value or null if nullable
-                )
-            }
-
-            kotlinComment {
-                addLine(directions.joinToString { it.name })
-                addLine(contentTypes.joinToString { it.name })
-            }
-
+    private fun KotlinCompanion.generateDeserializeMethods() {
+        typeDefinition.contentTypes.forEach {
+            addMethod(emitterContext.runEmitter(DeserializationMethodEmitter(typeDefinition, it)).generatedMethod)
         }
+    }
+
+    private fun generateDefaultValueExpression(
+        propertyType: TypeDefinition, forceNullable: Boolean
+    ): KotlinExpression? {
+        val declaredDefaultValue = when (propertyType) {
+            is PrimitiveTypeDefinition -> propertyType.defaultValue
+            is EnumTypeDefinition -> propertyType.defaultValue
+            is CollectionTypeDefinition,
+            is ObjectTypeDefinition -> null
+        }
+
+        val canBeNull = forceNullable || propertyType.nullable
+        // if there is a default expression defined, use it. Otherwise, use the null expression, if null is allowed
+        return declaredDefaultValue ?: if (canBeNull) nullLiteral() else null
     }
 
 }

@@ -17,6 +17,9 @@ class KotlinStatementContainer : KotlinRenderable {
     val isNotEmpty: Boolean
         get() = items.isNotEmpty()
 
+    val size: Int
+        get() = items.size
+
     override fun ImportCollector.registerImports() {
         registerFrom(items)
     }

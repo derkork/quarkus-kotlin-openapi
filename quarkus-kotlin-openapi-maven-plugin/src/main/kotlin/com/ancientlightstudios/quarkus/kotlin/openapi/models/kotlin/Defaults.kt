@@ -44,6 +44,7 @@ object Misc {
     val ObjectMapperClass = "ObjectMapper".rawClassName("com.fasterxml.jackson.databind")
     val RestResponseClass = "RestResponse".rawClassName("org.jboss.resteasy.reactive")
     val ResponseBuilderClass = "RestResponse.ResponseBuilder".rawClassName("org.jboss.resteasy.reactive")
+    val JsonNodeClass = "JsonNode".rawClassName("com.fasterxml.jackson.databind")
 
 }
 
@@ -52,5 +53,8 @@ object Library {
     val AllClasses = "*".rawClassName("com.ancientlightstudios.quarkus.kotlin.openapi")
     val MaybeClass = "Maybe".rawClassName("com.ancientlightstudios.quarkus.kotlin.openapi")
     val MaybeSuccessClass = "Maybe.Success".rawClassName("com.ancientlightstudios.quarkus.kotlin.openapi")
+    val MaybeFailureClass = "Maybe.Failure".rawClassName("com.ancientlightstudios.quarkus.kotlin.openapi")
+    val ValidationErrorClass = "ValidationError".rawClassName("com.ancientlightstudios.quarkus.kotlin.openapi")
+
 
 }

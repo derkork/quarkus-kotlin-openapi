@@ -23,6 +23,8 @@ class PropertyExpression(private val receiver: KotlinExpression, private val nam
 
         fun KotlinExpression.property(name: ClassName) = PropertyExpression(this, name.companionObject())
 
+        fun KotlinExpression.property(name: ConstantName) = PropertyExpression(this, name)
+
     }
 
 }
