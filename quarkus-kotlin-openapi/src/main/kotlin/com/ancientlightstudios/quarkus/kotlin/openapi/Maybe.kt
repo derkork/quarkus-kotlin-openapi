@@ -78,18 +78,6 @@ fun <T> maybeOneOf(context: String, vararg maybes: Maybe<*>, builder: () -> T): 
     }
 }
 
-@Suppress("unused")
-inline fun <T> JsonNode?.asMaybe(
-    context: String,
-    validationMessage: String,
-    block: String.(String) -> Maybe<T?>
-): Maybe<T?> = when (this) {
-    null, is NullNode -> Success(context, null)
-    is TextNode, is NumericNode -> asText().block(context)
-    else -> Failure(context, ValidationError(validationMessage, context))
-}
-
-
 /**
  * executes the given block and returns its result if this maybe is a [Success]. Returns a [Failure] if an
  * exception occurred or this maybe already is a [Failure]

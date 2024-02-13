@@ -30,7 +30,7 @@ class WhenExpression(private val expression: KotlinExpression?) : KotlinExpressi
 
     companion object {
 
-        fun `when`(expression: KotlinExpression? = null, block: WhenExpression.() -> Unit) =
+        fun whenExpression(expression: KotlinExpression? = null, block: WhenExpression.() -> Unit) =
             WhenExpression(expression).apply(block)
     }
 

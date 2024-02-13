@@ -35,7 +35,7 @@ interface WhenOptionAware {
 
 }
 
-fun WhenOptionAware.option(leftSide: KotlinExpression, block: WhenOption.() -> Unit) {
+fun WhenOptionAware.optionBlock(leftSide: KotlinExpression, block: WhenOption.() -> Unit) {
     val content = WhenOption(leftSide).apply(block)
     addOption(content)
 }

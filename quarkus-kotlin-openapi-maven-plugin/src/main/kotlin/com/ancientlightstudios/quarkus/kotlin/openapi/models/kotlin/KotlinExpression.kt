@@ -52,6 +52,18 @@ fun KotlinExpression.wrap() = object : KotlinExpression {
 
 }
 
+fun ClassName.javaClass() = object : KotlinExpression {
+
+    override fun ImportCollector.registerImports() {
+        register(this@javaClass)
+    }
+
+    override fun render(writer: CodeWriter) = with(writer) {
+        write("${this@javaClass.value}::class.java")
+    }
+
+}
+
 fun ClassName.companionObject() = object : KotlinExpression {
 
     override fun ImportCollector.registerImports() {

@@ -11,14 +11,19 @@ data class ClassName private constructor(val value: String, val packageName: Str
 
     val constructorName = value.rawMethodName(packageName, provided)
 
+    fun nested(value: String) = "${this.value}.${value.asClassName()}".rawClassName(packageName)
+
+    fun rawNested(value: String) = "${this.value}.$value".rawClassName(packageName)
+
     companion object {
 
         fun String.rawClassName(packageName: String, provided: Boolean = false) = ClassName(this, packageName, provided)
 
         fun String.className(packageName: String, prefix: String = "", postfix: String = "") =
-            "$prefix $this $postfix".toKotlinIdentifier()
-                .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.ENGLISH) else it.toString() }
-                .let { ClassName(it, packageName, false) }
+            ClassName("$prefix $this $postfix".asClassName(), packageName, false)
+
+        private fun String.asClassName() = toKotlinIdentifier()
+            .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.ENGLISH) else it.toString() }
 
     }
 

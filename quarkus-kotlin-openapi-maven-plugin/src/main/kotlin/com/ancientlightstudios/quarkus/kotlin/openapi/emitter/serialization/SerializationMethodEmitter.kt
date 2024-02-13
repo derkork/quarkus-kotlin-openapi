@@ -37,18 +37,30 @@ class SerializationMethodEmitter(
         }
     }
 
+    // if it's an enum type and text/plain, generates a method like this
+    //
+    // fun asString(): String = value.asString()
     private fun emitPlainForEnumType() = KotlinMethod(
         "asString".rawMethodName(), returnType = Kotlin.StringClass.typeName(), bodyAsAssignment = true
     ).apply {
         "value".variableName().invoke("asString".rawMethodName()).statement()
     }
 
+    // if it's an enum type and application/json, generates a method like this
+    //
+    // fun asJson(): JsonNode = value.asJson()
     private fun emitJsonForEnumType() = KotlinMethod(
         "asJson".rawMethodName(), returnType = Misc.JsonNodeClass.typeName(), bodyAsAssignment = true
     ).apply {
         "value".variableName().invoke("asJson".rawMethodName()).statement()
     }
 
+    // if it's an object type, generates a method like this
+    //
+    // fun asJson(): JsonNode = objectNode()
+    //     .setProperty("<propertyName>", <SerializationStatement for property>, (true|false))
+    //
+    // generates a call to setProperty for every property of the object
     private fun EmitterContext.emitForObjectType(typeDefinition: ObjectTypeDefinition) = KotlinMethod(
         "asJson".rawMethodName(), returnType = Misc.JsonNodeClass.typeName(), bodyAsAssignment = true
     ).apply {

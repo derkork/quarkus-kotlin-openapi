@@ -16,6 +16,13 @@ class CombineIntoObjectStatementEmitter(
 
     var resultStatement: KotlinExpression? = null
 
+    // if at least one parameter is specified, generates an expression like this
+    //
+    // maybeAllOf(<context>, <parameterNames ...>) {
+    //     <ContainerClassName>((<maybeParameter> as Maybe.Success).value)
+    // }
+    //
+    // there is a cast expression for every input parameter in the ctor invocation
     override fun EmitterContext.emit() {
         if (parameterNames.isEmpty()) {
             return

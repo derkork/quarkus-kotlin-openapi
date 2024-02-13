@@ -1,4 +1,4 @@
-package com.ancientlightstudios.example.utils
+package com.ancientlightstudios.example.features.server
 
 import com.ancientlightstudios.example.features.server.model.OperationError
 import com.ancientlightstudios.quarkus.kotlin.openapi.ValidationError

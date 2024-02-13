@@ -10,7 +10,12 @@ class KotlinBaseClass(private val name: ClassName, private vararg val parameter:
     }
 
     override fun render(writer: CodeWriter) = with(writer) {
-        write("${name.value}(")
+        write(name.value)
+
+        if (parameter.isNotEmpty()) {
+            write("(")
+        }
+
         // TODO: replace with container
         parameter.forEachWithStats { status, it ->
             it.render(this)
@@ -18,7 +23,10 @@ class KotlinBaseClass(private val name: ClassName, private vararg val parameter:
                 write(", ")
             }
         }
-        write(")")
+
+        if (parameter.isNotEmpty()) {
+            write(")")
+        }
     }
 
 }

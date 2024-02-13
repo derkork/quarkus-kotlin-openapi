@@ -26,49 +26,11 @@ class EmitterStage(private val config: Config) : GeneratorStage {
         ModelClassEmitter(config.interfaceType)
     )
 
-    private fun clientEmitters() = listOf<CodeEmitter>()
-
-    //    private fun Pair<RequestSuite, TypeDefinitionRegistry>.generateApi() {
-//        val context = EmitterContext(
-//            config.packageName,
-//            Path(config.outputDirectory),
-//            config.pathPrefix,
-//            config.additionalImports,
-//            config.omitNullsInSerialization,
-//            config.additionalProviders
-//        )
-//
-//        val codeEmitters = mutableListOf<CodeEmitter>()
-//
-//        // Server or Both
-//        if (config.interfaceType != InterfaceType.CLIENT) {
-//            codeEmitters.add(ServerRestInterfaceEmitter())
-//            codeEmitters.add(ServerDelegateEmitter())
-//            codeEmitters.add(ServerRequestContainerEmitter())
-//            codeEmitters.add(ServerResponseContainerEmitter())
-//            codeEmitters.add(UnsafeObjectModelEmitter(FlowDirection.Up))
-//            codeEmitters.add(UnsafeAnyOfModelEmitter(FlowDirection.Up))
-//            codeEmitters.add(UnsafeOneOfModelEmitter(FlowDirection.Up))
-//        }
-//
-//        // Client or Both
-//        if (config.interfaceType != InterfaceType.SERVER) {
-//            codeEmitters.add(ClientRestInterfaceEmitter())
-//            codeEmitters.add(ClientDelegateEmitter())
-//            codeEmitters.add(ClientResponseContainerEmitter())
-//            codeEmitters.add(UnsafeObjectModelEmitter(FlowDirection.Down))
-//            codeEmitters.add(UnsafeAnyOfModelEmitter(FlowDirection.Down))
-//            codeEmitters.add(UnsafeOneOfModelEmitter(FlowDirection.Down))
-//        }
-//
-//        codeEmitters.add(EnumModelEmitter())
-//        codeEmitters.add(SafeObjectModelEmitter())
-//        codeEmitters.add(SafeAnyOfModelEmitter())
-//        codeEmitters.add(SafeOneOfModelEmitter())
-//
-//        codeEmitters.forEach {
-//            it.apply { context.emit(first, second) }
-//        }
-//    }
+    private fun clientEmitters() = listOf(
+        ClientDelegateEmitter(config.interfaceName),
+        ClientRestInterfaceEmitter(),
+        ClientResponseContainerEmitter(),
+        ModelClassEmitter(config.interfaceType)
+    )
 
 }
