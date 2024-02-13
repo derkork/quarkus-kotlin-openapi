@@ -103,6 +103,24 @@
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-stdlib-jdk8</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlin-test</artifactId>
+            <version>${kotlin.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.rest-assured</groupId>
+            <artifactId>kotlin-extensions</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>3.25.3</version>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -119,6 +137,9 @@
                         <typeMapping>string:uuid=java.util:UUID</typeMapping>
                         <typeMapping>string:date-time=java.time:Instant</typeMapping>
                     </typeMappings>
+                    <sources>
+                        <source>${project.basedir}/src/main/resources/features-openapi.yaml</source>
+                    </sources>
                     <additionalImports>
                         <additionalImport>com.ancientlightstudios.example.custom:*</additionalImport>
                     </additionalImports>
@@ -131,9 +152,6 @@
                             <goal>generate</goal>
                         </goals>
                         <configuration>
-                            <sources>
-                                <source>${project.basedir}/src/main/resources/features-openapi.yaml</source>
-                            </sources>
                             <interfaceName>Features</interfaceName>
                             <interfaceType>SERVER</interfaceType>
                             <packageName>com.ancientlightstudios.example.features.server</packageName>
@@ -146,9 +164,6 @@
                             <goal>generate</goal>
                         </goals>
                         <configuration>
-                            <sources>
-                                <source>${project.basedir}/src/main/resources/features-openapi.yaml</source>
-                            </sources>
                             <interfaceName>Features</interfaceName>
                             <interfaceType>CLIENT</interfaceType>
                             <packageName>com.ancientlightstudios.example.features.client</packageName>

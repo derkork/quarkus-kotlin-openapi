@@ -60,28 +60,28 @@ class InvocationExpression(
 
     companion object {
 
-        fun invoke(method: MethodName, trailingLambda: StatementAware.() -> Unit = {}) =
+        fun invoke(method: MethodName, trailingLambda: StatementAware.() -> Unit = {}): KotlinExpression =
             InvocationExpression(null, method, trailingLambda = trailingLambda)
 
-        fun invoke(method: MethodName, parameters: List<KotlinExpression>, trailingLambda: StatementAware.() -> Unit = {}) =
+        fun invoke(method: MethodName, parameters: List<KotlinExpression>, trailingLambda: StatementAware.() -> Unit = {}): KotlinExpression =
             InvocationExpression(null, method, *parameters.map { null to it }.toTypedArray(), trailingLambda = trailingLambda)
 
-        fun invoke(method: MethodName, vararg parameters: KotlinExpression, trailingLambda: StatementAware.() -> Unit = {}) =
+        fun invoke(method: MethodName, vararg parameters: KotlinExpression, trailingLambda: StatementAware.() -> Unit = {}): KotlinExpression =
             InvocationExpression(null, method, *parameters.map { null to it }.toTypedArray(), trailingLambda = trailingLambda)
 
-        fun invoke(method: MethodName, vararg parameters: Pair<VariableName, KotlinExpression>, trailingLambda: StatementAware.() -> Unit = {}) =
+        fun invoke(method: MethodName, vararg parameters: Pair<VariableName, KotlinExpression>, trailingLambda: StatementAware.() -> Unit = {}): KotlinExpression =
             InvocationExpression(null, method, *parameters, trailingLambda = trailingLambda)
 
-        fun KotlinExpression.invoke(method: MethodName, trailingLambda: StatementAware.() -> Unit = {}) =
+        fun KotlinExpression.invoke(method: MethodName, trailingLambda: StatementAware.() -> Unit = {}): KotlinExpression =
             InvocationExpression(this, method, trailingLambda = trailingLambda)
 
-        fun KotlinExpression.invoke(methodName: MethodName, parameters: List<KotlinExpression>, trailingLambda: StatementAware.() -> Unit = {}) =
+        fun KotlinExpression.invoke(methodName: MethodName, parameters: List<KotlinExpression>, trailingLambda: StatementAware.() -> Unit = {}): KotlinExpression =
             InvocationExpression(this, methodName, *parameters.map { null to it }.toTypedArray(), trailingLambda = trailingLambda)
 
-        fun KotlinExpression.invoke(methodName: MethodName, vararg parameters: KotlinExpression, trailingLambda: StatementAware.() -> Unit = {}) =
+        fun KotlinExpression.invoke(methodName: MethodName, vararg parameters: KotlinExpression, trailingLambda: StatementAware.() -> Unit = {}): KotlinExpression =
             InvocationExpression(this, methodName, *parameters.map { null to it }.toTypedArray(), trailingLambda = trailingLambda)
 
-        fun KotlinExpression.invoke(methodName: MethodName, vararg parameters: Pair<VariableName, KotlinExpression>, trailingLambda: StatementAware.() -> Unit = {}) =
+        fun KotlinExpression.invoke(methodName: MethodName, vararg parameters: Pair<VariableName, KotlinExpression>, trailingLambda: StatementAware.() -> Unit = {}): KotlinExpression =
             InvocationExpression(this, methodName, *parameters, trailingLambda = trailingLambda)
 
     }

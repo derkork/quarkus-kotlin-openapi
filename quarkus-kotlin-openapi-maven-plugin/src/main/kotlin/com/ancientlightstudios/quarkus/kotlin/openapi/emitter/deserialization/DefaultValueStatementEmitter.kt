@@ -15,6 +15,10 @@ class DefaultValueStatementEmitter(
 
     var resultStatement = baseStatement
 
+    // if a default value is specified, generates an expression like this
+    //
+    // <baseStatement>
+    //     .default { <defaultValue> }
     override fun EmitterContext.emit() {
         if (defaultValue != null) {
             resultStatement = resultStatement.wrap().invoke("default".rawMethodName()) {

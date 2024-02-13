@@ -1,6 +1,8 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.refactoring
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.inspect
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ClientErrorResponseClassNameHint.clientErrorResponseClassName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ClientHttpResponseClassNameHint.clientHttpResponseClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ParameterVariableNameHint.parameterVariableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.RequestContainerClassNameHint.requestContainerClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.RequestMethodNameHint.requestMethodName
@@ -20,6 +22,9 @@ class PrepareRequestIdentifierRefactoring : SpecRefactoring {
                     request.requestMethodName = name.methodName()
                     request.requestContainerClassName = name.className(interfacePackage, postfix = "Request")
                     request.responseContainerClassName = name.className(interfacePackage, postfix = "Response")
+                    request.clientHttpResponseClassName = name.className(interfacePackage, postfix = "HttpResponse")
+                    request.clientErrorResponseClassName = name.className(interfacePackage, postfix = "Error")
+
 
                     parameters {
                         parameter.parameterVariableName = parameter.name.variableName()

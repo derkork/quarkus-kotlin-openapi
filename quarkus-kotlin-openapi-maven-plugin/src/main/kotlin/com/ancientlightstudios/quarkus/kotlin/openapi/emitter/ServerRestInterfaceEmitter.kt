@@ -1,8 +1,8 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.deserialization.CombineIntoObjectStatementEmitter
+import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.deserialization.Deserialization.getDeserializationSourceType
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.deserialization.DeserializationStatementEmitter
-import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.deserialization.DeserializationStatementEmitter.Companion.getDeserializationSourceType
 import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.RequestBundleInspection
 import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.RequestInspection
 import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.inspect
@@ -62,7 +62,7 @@ class ServerRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitter {
 
             val requestContainerParts = mutableListOf<VariableName>()
             parameters { requestContainerParts.add(emitParameter(parameter)) }
-            body { requestContainerParts.add(emitBody(body)) }
+            body { requestContainerParts.addAll(emitBody(body)) }
 
             val requestContainerName = emitterContext.runEmitter(
                 CombineIntoObjectStatementEmitter(
@@ -89,19 +89,21 @@ class ServerRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitter {
         ).wrap()
 
         return emitterContext.runEmitter(
-            DeserializationStatementEmitter(parameter.typeDefinition, statement, ContentType.TextPlain)
+            DeserializationStatementEmitter(
+                parameter.typeDefinition, !parameter.required, statement, ContentType.TextPlain, true
+            )
         ).resultStatement.assignment(parameterName.extend(postfix = "maybe"))
     }
 
     // generates parameters and conversion for the request body depending on the media type
-    private fun KotlinMethod.emitBody(body: TransformableBody): VariableName {
+    private fun KotlinMethod.emitBody(body: TransformableBody): List<VariableName> {
         addConsumesAnnotation(body.content.rawContentType)
         return when (body.content.mappedContentType) {
-            ContentType.ApplicationJson -> emitJsonBody(body)
-            ContentType.TextPlain -> emitPlainBody(body)
+            ContentType.ApplicationJson -> listOf(emitJsonBody(body))
+            ContentType.TextPlain -> listOf(emitPlainBody(body))
             ContentType.MultipartFormData -> emitMultipartBody(body)
             ContentType.ApplicationFormUrlencoded -> emitFormBody(body)
-            ContentType.ApplicationOctetStream -> emitOctetBody(body)
+            ContentType.ApplicationOctetStream -> listOf(emitOctetBody(body))
         }
     }
 
@@ -115,7 +117,9 @@ class ServerRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitter {
                 .invoke("asJson".rawMethodName(), "objectMapper".rawVariableName()).wrap()
 
         return emitterContext.runEmitter(
-            DeserializationStatementEmitter(body.content.typeDefinition, statement, ContentType.ApplicationJson)
+            DeserializationStatementEmitter(
+                body.content.typeDefinition, !body.required, statement, ContentType.ApplicationJson, true
+            )
         ).resultStatement.assignment(parameterName.extend(postfix = "maybe"))
     }
 
@@ -128,17 +132,18 @@ class ServerRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitter {
             invoke(Library.MaybeSuccessClass.constructorName, "request.body".literal(), parameterName).wrap()
 
         return emitterContext.runEmitter(
-            DeserializationStatementEmitter(body.content.typeDefinition, statement, ContentType.TextPlain)
+            DeserializationStatementEmitter(
+                body.content.typeDefinition, !body.required, statement, ContentType.TextPlain, true
+            )
         ).resultStatement.assignment(parameterName.extend(postfix = "maybe"))
     }
 
-    private fun KotlinMethod.emitMultipartBody(body: TransformableBody): VariableName {
-        return "multi".variableName()
+    private fun KotlinMethod.emitMultipartBody(body: TransformableBody): List<VariableName> {
+        return listOf("multi".variableName())
     }
 
-    private fun KotlinMethod.emitFormBody(body: TransformableBody): VariableName {
-
-        return "form".variableName()
+    private fun KotlinMethod.emitFormBody(body: TransformableBody): List<VariableName> {
+        return listOf("form".variableName())
     }
 
     private fun KotlinMethod.emitOctetBody(body: TransformableBody): VariableName {

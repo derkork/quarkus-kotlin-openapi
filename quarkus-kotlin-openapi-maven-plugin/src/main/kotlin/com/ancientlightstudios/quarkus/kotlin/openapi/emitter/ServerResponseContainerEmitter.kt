@@ -45,7 +45,7 @@ class ServerResponseContainerEmitter : CodeEmitter {
                 "response".variableName(),
                 Misc.RestResponseClass.typeName().of(Kotlin.Star),
                 accessModifier = null
-            ) {}
+            )
             kotlinCompanion {
                 emitGenericStatusMethod(fileName, defaultResponseExists)
 
@@ -84,7 +84,7 @@ class ServerResponseContainerEmitter : CodeEmitter {
     }
 
     private fun KotlinCompanion.emitStatusMethod(statusCode: ResponseCode.HttpStatusCode, body: TransformableBody?) {
-        kotlinMethod(statusCode.value.statusCodeReason().methodName(), bodyAsAssignment = true) {
+        kotlinMethod(statusCode.statusCodeReason().methodName(), bodyAsAssignment = true) {
             if (body != null) {
                 val bodyVariable = "body".variableName()
                 val typeDefinition = body.content.schema.typeDefinition
@@ -130,7 +130,5 @@ class ServerResponseContainerEmitter : CodeEmitter {
             }
         }
     }
-
-    private fun Int.statusCodeReason() = Response.Status.fromStatusCode(this)?.reasonPhrase ?: "status${this}"
 
 }

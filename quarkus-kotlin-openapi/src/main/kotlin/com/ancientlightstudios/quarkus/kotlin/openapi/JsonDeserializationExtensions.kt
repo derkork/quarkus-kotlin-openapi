@@ -24,6 +24,9 @@ fun Maybe<JsonNode?>.asObject(): Maybe<JsonNode?> = onNotNull {
 }
 
 @Suppress("unused")
+fun JsonNode?.findProperty(name: String, context: String): Maybe<JsonNode?> = Maybe.Success(context, this?.get(name))
+
+@Suppress("unused")
 fun Maybe<JsonNode?>.asList(): Maybe<List<JsonNode?>?> = onNotNull {
     when (this.value) {
         is NullNode -> success(null)

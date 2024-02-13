@@ -1,7 +1,6 @@
 package com.ancientlightstudios.example.features.server
 
 import com.ancientlightstudios.example.features.server.model.SimpleEnum
-import com.ancientlightstudios.example.utils.toOperationError
 import com.ancientlightstudios.quarkus.kotlin.openapi.Maybe
 import com.ancientlightstudios.quarkus.kotlin.openapi.validOrElse
 import jakarta.enterprise.context.ApplicationScoped

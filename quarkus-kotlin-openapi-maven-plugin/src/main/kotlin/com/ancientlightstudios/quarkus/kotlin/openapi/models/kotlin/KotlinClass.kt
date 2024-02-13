@@ -98,7 +98,7 @@ class KotlinClass(
             }
 
             if (interfaces.isNotEmpty()) {
-                write(interfaces.joinToString(prefix = " : ") { it.value })
+                write(interfaces.joinToString { it.value })
             }
         }
 

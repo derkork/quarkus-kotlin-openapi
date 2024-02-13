@@ -1,6 +1,7 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.SpecIssue
+import jakarta.ws.rs.core.Response
 
 sealed interface ResponseCode {
 
@@ -14,6 +15,10 @@ sealed interface ResponseCode {
     value class HttpStatusCode(val value: Int) : ResponseCode {
 
         override fun toString() = value.toString()
+
+        fun statusCodeReason() = Response.Status.fromStatusCode(value)?.reasonPhrase ?: "status${this}"
+
+        fun statusCodeName() = Response.Status.fromStatusCode(value).name
 
     }
 

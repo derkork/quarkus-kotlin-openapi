@@ -1,5 +1,6 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName.Companion.className
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName.Companion.rawClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.rawMethodName
 
@@ -17,6 +18,8 @@ object Kotlin {
     val UIntClass = "UInt".rawClassName("kotlin", true)
     val ULongClass = "ULong".rawClassName("kotlin", true)
     val ListClass = "List".rawClassName("kotlin.collections", true)
+    val ExceptionClass = "Exception".rawClassName("kotlin", true)
+    val JvmNameClass = "JvmName".rawClassName("kotlin.jvm", true)
 
 }
 
@@ -36,6 +39,9 @@ object Jakarta {
     val QueryParamAnnotationClass = "QueryParam".rawClassName("jakarta.ws.rs")
     val HeaderParamAnnotationClass = "HeaderParam".rawClassName("jakarta.ws.rs")
     val CookieParamAnnotationClass = "CookieParam".rawClassName("jakarta.ws.rs")
+    val WebApplicationExceptionClass = "WebApplicationException".rawClassName("jakarta.ws.rs")
+    val ResponseClass = "Response".className("jakarta.ws.rs.core")
+    val ApplicationScopedClass = "ApplicationScoped".rawClassName("jakarta.enterprise.context")
 
 }
 
@@ -43,8 +49,12 @@ object Misc {
 
     val ObjectMapperClass = "ObjectMapper".rawClassName("com.fasterxml.jackson.databind")
     val RestResponseClass = "RestResponse".rawClassName("org.jboss.resteasy.reactive")
-    val ResponseBuilderClass = "RestResponse.ResponseBuilder".rawClassName("org.jboss.resteasy.reactive")
+    val RestResponseStatusClass = RestResponseClass.rawNested("Status")
+    val ResponseBuilderClass = RestResponseClass.rawNested("ResponseBuilder")
     val JsonNodeClass = "JsonNode".rawClassName("com.fasterxml.jackson.databind")
+    val RegisterRestClientClass = "RegisterRestClient".rawClassName("org.eclipse.microprofile.rest.client.inject")
+    val RestClientClass = "RestClient".rawClassName("org.eclipse.microprofile.rest.client.inject")
+    val TimeoutExceptionClass = "TimeoutException".rawClassName("java.util.concurrent")
 
 }
 
@@ -52,9 +62,9 @@ object Library {
 
     val AllClasses = "*".rawClassName("com.ancientlightstudios.quarkus.kotlin.openapi")
     val MaybeClass = "Maybe".rawClassName("com.ancientlightstudios.quarkus.kotlin.openapi")
-    val MaybeSuccessClass = "Maybe.Success".rawClassName("com.ancientlightstudios.quarkus.kotlin.openapi")
-    val MaybeFailureClass = "Maybe.Failure".rawClassName("com.ancientlightstudios.quarkus.kotlin.openapi")
+    val MaybeSuccessClass = MaybeClass.rawNested("Success")
+    val MaybeFailureClass = MaybeClass.rawNested("Failure")
     val ValidationErrorClass = "ValidationError".rawClassName("com.ancientlightstudios.quarkus.kotlin.openapi")
-
+    val IsErrorClass = "IsError".rawClassName("com.ancientlightstudios.quarkus.kotlin.openapi")
 
 }
