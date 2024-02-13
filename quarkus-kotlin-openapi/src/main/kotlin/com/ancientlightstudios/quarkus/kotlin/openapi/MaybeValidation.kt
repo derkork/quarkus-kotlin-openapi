@@ -110,13 +110,12 @@ fun <T> Maybe<T?>.required(): Maybe<T> =
  * @return the given maybe or a new [Maybe.Success] if the value was null
  */
 @Suppress("unused")
-fun <T> Maybe<T?>.default(block: () -> T): Maybe<T> =
+fun <T> Maybe<T?>.default(block: () -> T): Maybe<T?> =
     onSuccess {
         if (value == null) {
             success(block())
         } else {
-            @Suppress("UNCHECKED_CAST")
-            this as Maybe<T>
+            this
         }
     }
 

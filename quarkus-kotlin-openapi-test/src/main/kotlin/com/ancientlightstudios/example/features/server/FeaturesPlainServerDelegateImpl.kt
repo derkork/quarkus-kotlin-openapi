@@ -6,7 +6,17 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.validOrElse
 import jakarta.enterprise.context.ApplicationScoped
 
 @ApplicationScoped
-class FeaturesPlainRequiredServerDelegateImpl : FeaturesPlainRequiredServerDelegate {
+class FeaturesPlainServerDelegateImpl : FeaturesPlainServerDelegate {
+
+    override suspend fun plainOptionalEnum(request: Maybe<PlainOptionalEnumRequest>): PlainOptionalEnumResponse {
+        val validRequest = request.validOrElse { return PlainOptionalEnumResponse.badRequest(it.toOperationError()) }
+
+        @Suppress("UNUSED_VARIABLE")
+        // explicit type notation to trigger the compiler if the body is suddenly no longer nullable
+        val body: SimpleEnum? = PlainOptionalEnumRequest(null).body
+
+        return PlainOptionalEnumResponse.ok(validRequest.body)
+    }
 
     override suspend fun plainRequiredEnum(request: Maybe<PlainRequiredEnumRequest>): PlainRequiredEnumResponse {
         val validRequest = request.validOrElse { return PlainRequiredEnumResponse.badRequest(it.toOperationError()) }
@@ -17,4 +27,5 @@ class FeaturesPlainRequiredServerDelegateImpl : FeaturesPlainRequiredServerDeleg
 
         return PlainRequiredEnumResponse.ok(validRequest.body)
     }
+
 }

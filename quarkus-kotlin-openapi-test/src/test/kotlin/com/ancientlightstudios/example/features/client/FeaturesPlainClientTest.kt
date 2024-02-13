@@ -9,10 +9,10 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 
 @QuarkusTest
-class FeaturesPlainOptionalClientTest {
+class FeaturesPlainClientTest {
 
     @Inject
-    lateinit var client: FeaturesPlainOptionalClient
+    lateinit var client: FeaturesPlainClient
 
     @Test
     fun `sending a value is accepted`() {

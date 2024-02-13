@@ -7,7 +7,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 @QuarkusTest
-class FeaturesPlainOptionalServerDelegateImplTest : ApiTestBase() {
+class FeaturesPlainServerDelegateImplTest : ApiTestBase() {
 
     @Test
     fun `sending the wrong content type is rejected`() {
