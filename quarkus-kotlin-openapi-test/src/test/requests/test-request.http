@@ -9,3 +9,14 @@ POST http://localhost:8080/features/plain/required/enum
 Content-Type: text/plain
 
 second
+
+###
+
+POST http://localhost:8080/features/json/optional/object
+Content-Type: application/json
+
+{
+  "nameOptional": "fooo",
+  "statusRequired": "second",
+  "itemsRequired": ["one", "two"]
+}

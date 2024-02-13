@@ -114,7 +114,6 @@ class ServerRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitter {
 
         val statement =
             invoke(Library.MaybeSuccessClass.constructorName, "request.body".literal(), parameterName).wrap()
-                .invoke("asJson".rawMethodName(), "objectMapper".rawVariableName()).wrap()
 
         return emitterContext.runEmitter(
             DeserializationStatementEmitter(

@@ -3,14 +3,14 @@ info:
   title: Filestore
   version: 1.0.0
 tags:
-  - name: plainOptional
-  - name: plainRequired
+  - name: plain
+  - name: json
 
 paths:
   /features/plain/optional/enum:
     post:
       tags:
-        - plainOptional
+        - plain
       operationId: plainOptionalEnum
       requestBody:
         content:
@@ -30,7 +30,7 @@ paths:
   /features/plain/required/enum:
     post:
       tags:
-        - plainRequired
+        - plain
       operationId: plainRequiredEnum
       requestBody:
         required: true
@@ -48,6 +48,47 @@ paths:
         '400':
           $ref: '#/components/responses/OperationError400'
 
+  /features/json/optional/object:
+    post:
+      tags:
+        - json
+      operationId: jsonOptionalObject
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SimpleObjectOptional'
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimpleObjectOptional'
+        '400':
+          $ref: '#/components/responses/OperationError400'
+
+  /features/json/required/object:
+    post:
+      tags:
+        - json
+      operationId: jsonRequiredObject
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SimpleObject'
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimpleObject'
+        '400':
+          $ref: '#/components/responses/OperationError400'
+
 components:
 
   schemas:
@@ -59,6 +100,37 @@ components:
 
     SimpleEnumOptional:
       $ref: '#/components/schemas/SimpleEnum'
+      type:
+        - 'null'
+
+    SimpleObject:
+      type: object
+      properties:
+        nameOptional:
+          type: string
+          default: 'i am optional'
+        nameRequired:
+          type: string
+          default: 'i am required'
+        statusOptional:
+          $ref: '#/components/schemas/SimpleEnum'
+        statusRequired:
+          $ref: '#/components/schemas/SimpleEnum'
+        itemsOptional:
+          type: array
+          items:
+            type: string
+        itemsRequired:
+          type: array
+          items:
+            type: string
+      required:
+        - nameRequired
+        - statusRequired
+        - itemsRequired
+
+    SimpleObjectOptional:
+      $ref: '#/components/schemas/SimpleObject'
       type:
         - 'null'
 
