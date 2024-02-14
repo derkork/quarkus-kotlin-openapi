@@ -7,15 +7,13 @@ sealed interface TypeDefinition {
 
     val nullable: Boolean
 
-    val contentTypes: Set<ContentType>
-
     val directions: Set<Direction>
 
     val customConstraints: List<CustomConstraintsValidationComponent>
 
-    fun addContentType(contentType: ContentType): Boolean
+    fun addContentType(direction: Direction, contentType: ContentType): Boolean
 
-    fun addDirection(direction: Direction): Boolean
+    fun getContentTypes(direction: Direction): Set<ContentType>
 
 }
 

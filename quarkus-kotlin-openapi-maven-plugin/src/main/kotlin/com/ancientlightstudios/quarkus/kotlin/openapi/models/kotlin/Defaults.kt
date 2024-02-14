@@ -39,6 +39,7 @@ object Jakarta {
     val QueryParamAnnotationClass = "QueryParam".rawClassName("jakarta.ws.rs")
     val HeaderParamAnnotationClass = "HeaderParam".rawClassName("jakarta.ws.rs")
     val CookieParamAnnotationClass = "CookieParam".rawClassName("jakarta.ws.rs")
+    val FormParamAnnotationClass = "FormParam".rawClassName("jakarta.ws.rs")
     val WebApplicationExceptionClass = "WebApplicationException".rawClassName("jakarta.ws.rs")
     val ResponseClass = "Response".className("jakarta.ws.rs.core")
     val ApplicationScopedClass = "ApplicationScoped".rawClassName("jakarta.enterprise.context")

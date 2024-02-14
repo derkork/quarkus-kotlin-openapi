@@ -23,15 +23,17 @@ class RealObjectTypeDefinition(
     override val customConstraints: List<CustomConstraintsValidationComponent>
 ) : ObjectTypeDefinition {
 
-    private val _contentTypes = mutableSetOf<ContentType>()
-    private val _directions = mutableSetOf<Direction>()
+    private val _contentTypes = mutableMapOf<Direction, MutableSet<ContentType>>()
 
-    override val contentTypes: Set<ContentType> = _contentTypes
-    override val directions: Set<Direction> = _directions
+    override val directions: Set<Direction> = _contentTypes.keys
 
-    override fun addContentType(contentType: ContentType) = _contentTypes.add(contentType)
+    override fun addContentType(direction: Direction, contentType: ContentType): Boolean {
+        return _contentTypes.getOrPut(direction) { mutableSetOf() }.add(contentType)
+    }
 
-    override fun addDirection(direction: Direction) = _directions.add(direction)
+    override fun getContentTypes(direction: Direction): Set<ContentType> {
+        return _contentTypes.getOrElse(direction) { mutableSetOf() }
+    }
 
 }
 

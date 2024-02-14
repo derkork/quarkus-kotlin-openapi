@@ -25,7 +25,7 @@ class SerializationMethodEmitter(
         generatedMethod = when (typeDefinition) {
             is EnumTypeDefinition -> emitForEnumType()
             is ObjectTypeDefinition -> emitForObjectType(typeDefinition)
-            else -> ProbableBug("Unsupported type ${typeDefinition.javaClass} for deserialization method")
+            else -> ProbableBug("Unsupported type ${typeDefinition.javaClass} for serialization method")
         }
     }
 

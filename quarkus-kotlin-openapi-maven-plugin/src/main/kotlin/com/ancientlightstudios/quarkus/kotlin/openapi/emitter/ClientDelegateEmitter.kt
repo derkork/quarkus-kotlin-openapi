@@ -12,8 +12,11 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.GenericTypeName.Companion.of
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.SimpleTypeName.Companion.typeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ContentType
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableBody
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableParameter
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.ObjectTypeDefinition
+import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
 
 class ClientDelegateEmitter(private val interfaceName: String) : CodeEmitter {
 
@@ -58,15 +61,41 @@ class ClientDelegateEmitter(private val interfaceName: String) : CodeEmitter {
         val parameterName = parameter.parameterVariableName
 
         kotlinParameter(parameterName, parameter.typeDefinition.getSerializationTargetType(!parameter.required)) {
-            addSourceAnnotation(parameterKind, parameter.name)
+            addAnnotation(getSourceAnnotation(parameterKind, parameter.name))
         }
     }
 
     private fun KotlinMethod.emitBody(body: TransformableBody) {
         val content = body.content
+        val typeDefinition = content.typeDefinition
         addConsumesAnnotation(content.rawContentType)
-        // TODO: split body into several pieces depending on mimetype
-        kotlinParameter("body".variableName(), content.typeDefinition.getSerializationTargetType(!body.required))
+
+        return when (body.content.mappedContentType) {
+            ContentType.ApplicationJson,
+            ContentType.TextPlain ->
+                kotlinParameter(body.parameterVariableName, typeDefinition.getSerializationTargetType(!body.required))
+
+            ContentType.ApplicationFormUrlencoded -> {
+
+                if (typeDefinition is ObjectTypeDefinition) {
+                    typeDefinition.properties.forEach {
+                        val parameter = body.parameterVariableName.extend(prefix = it.sourceName)
+                        kotlinParameter(
+                            parameter, typeDefinition.getSerializationTargetType(!body.required)
+                        ) {
+                            kotlinAnnotation(Jakarta.FormParamAnnotationClass, it.sourceName.literal())
+                        }
+                    }
+                } else {
+                    kotlinParameter(
+                        body.parameterVariableName, typeDefinition.getSerializationTargetType(!body.required)
+                    )
+                }
+            }
+
+            ContentType.MultipartFormData,
+            ContentType.ApplicationOctetStream -> ProbableBug("not yet implemented")
+        }
     }
 
 }

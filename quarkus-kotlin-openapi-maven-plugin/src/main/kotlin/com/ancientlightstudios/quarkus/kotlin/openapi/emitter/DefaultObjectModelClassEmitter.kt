@@ -4,12 +4,13 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.deserialization.De
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.serialization.SerializationMethodEmitter
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeDefinitionHint.typeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ContentType
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.*
 
 class DefaultObjectModelClassEmitter(
     private val typeDefinition: ObjectTypeDefinition,
-    private val needSerializeMethods: Boolean,
-    private val needDeserializeMethods: Boolean
+    private val serializeContentTypes: Set<ContentType>,
+    private val deserializeContentTypes: Set<ContentType>
 ) : CodeEmitter {
 
     private lateinit var emitterContext: EmitterContext
@@ -33,32 +34,27 @@ class DefaultObjectModelClassEmitter(
                     )
                 }
 
-                if (needSerializeMethods) {
-                    generateSerializeMethods()
+                // for objects there is only json in both directions. everything else will be managed by the rest interface
+                if (serializeContentTypes.contains(ContentType.ApplicationJson)) {
+                    addMethod(
+                        emitterContext.runEmitter(
+                            SerializationMethodEmitter(typeDefinition, ContentType.ApplicationJson)
+                        ).generatedMethod
+                    )
                 }
 
-                if (needDeserializeMethods) {
+                if (deserializeContentTypes.contains(ContentType.ApplicationJson)) {
                     kotlinCompanion {
-                        generateDeserializeMethods()
+                        addMethod(
+                            emitterContext.runEmitter(
+                                DeserializationMethodEmitter(typeDefinition, ContentType.ApplicationJson)
+                            ).generatedMethod
+                        )
                     }
                 }
 
             }
         }.writeFile()
-    }
-
-    private fun KotlinClass.generateSerializeMethods() {
-        typeDefinition.contentTypes.forEach {
-            typeDefinition.contentTypes.forEach {
-                addMethod(emitterContext.runEmitter(SerializationMethodEmitter(typeDefinition, it)).generatedMethod)
-            }
-        }
-    }
-
-    private fun KotlinCompanion.generateDeserializeMethods() {
-        typeDefinition.contentTypes.forEach {
-            addMethod(emitterContext.runEmitter(DeserializationMethodEmitter(typeDefinition, it)).generatedMethod)
-        }
     }
 
     private fun generateDefaultValueExpression(
