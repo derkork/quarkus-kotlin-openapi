@@ -37,7 +37,7 @@ class ServerRequestContainerEmitter : CodeEmitter {
             body {
                 val typeDefinition = body.content.schema.typeDefinition
                 kotlinMember(
-                    "body".variableName(), typeDefinition.buildValidType(!body.required), accessModifier = null
+                    body.parameterVariableName, typeDefinition.buildValidType(!body.required), accessModifier = null
                 )
             }
         }

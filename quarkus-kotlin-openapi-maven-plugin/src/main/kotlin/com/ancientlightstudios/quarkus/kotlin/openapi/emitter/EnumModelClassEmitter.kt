@@ -10,8 +10,8 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.EnumTypeDefin
 
 class EnumModelClassEmitter(
     private val typeDefinition: EnumTypeDefinition,
-    private val needSerializeMethods: Boolean,
-    private val needDeserializeMethods: Boolean
+    private val serializeContentTypes: Set<ContentType>,
+    private val deserializeContentTypes: Set<ContentType>
 ) : CodeEmitter {
 
     private lateinit var emitterContext: EmitterContext
@@ -33,11 +33,9 @@ class EnumModelClassEmitter(
                     kotlinEnumItem(it.name, it.value)
                 }
 
-                if (needSerializeMethods) {
-                    generateSerializeMethods()
-                }
+                generateSerializeMethods()
 
-                if (needDeserializeMethods) {
+                if (deserializeContentTypes.isNotEmpty()) {
                     kotlinCompanion {
                         generateDeserializeMethods()
                     }
@@ -47,7 +45,7 @@ class EnumModelClassEmitter(
     }
 
     private fun KotlinEnum.generateSerializeMethods() {
-        typeDefinition.contentTypes.forEach {
+        serializeContentTypes.forEach {
             addMethod(emitterContext.runEmitter(SerializationMethodEmitter(typeDefinition, it)).generatedMethod)
         }
     }
@@ -60,7 +58,7 @@ class EnumModelClassEmitter(
             ).generatedMethod
         )
 
-        typeDefinition.contentTypes.minus(ContentType.TextPlain).forEach {
+        deserializeContentTypes.minus(ContentType.TextPlain).forEach {
             addMethod(emitterContext.runEmitter(DeserializationMethodEmitter(typeDefinition, it)).generatedMethod)
         }
     }

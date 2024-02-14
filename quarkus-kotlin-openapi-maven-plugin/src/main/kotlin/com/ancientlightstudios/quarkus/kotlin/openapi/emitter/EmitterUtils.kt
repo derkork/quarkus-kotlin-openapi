@@ -7,7 +7,6 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.Sim
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ParameterKind
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.RequestMethod
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchemaUsage
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.*
 
 fun AnnotationAware.addPathAnnotation(path: String) {
@@ -33,14 +32,14 @@ fun AnnotationAware.addConsumesAnnotation(vararg contentTypes: String) {
         "value".variableName() to contentTypes.toList().arrayLiteral { it.literal() })
 }
 
-fun AnnotationAware.addSourceAnnotation(source: ParameterKind, name: String) {
+fun getSourceAnnotation(source: ParameterKind, name: String): KotlinAnnotation {
     val annotationClass = when (source) {
         ParameterKind.Path -> Jakarta.PathParamAnnotationClass
         ParameterKind.Query -> Jakarta.QueryParamAnnotationClass
         ParameterKind.Header -> Jakarta.HeaderParamAnnotationClass
         ParameterKind.Cookie -> Jakarta.CookieParamAnnotationClass
     }
-    kotlinAnnotation(annotationClass, name.literal())
+    return KotlinAnnotation(annotationClass, null to name.literal())
 }
 
 fun TypeDefinition.buildValidType(forceNullable: Boolean = false): TypeName {

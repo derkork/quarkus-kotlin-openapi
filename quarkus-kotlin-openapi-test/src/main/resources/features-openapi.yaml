@@ -89,6 +89,27 @@ paths:
         '400':
           $ref: '#/components/responses/OperationError400'
 
+  /features/form/required/object:
+    post:
+      tags:
+        - form
+      operationId: formRequiredObject
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SimpleForm'
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimpleForm'
+        '400':
+          $ref: '#/components/responses/OperationError400'
+
 components:
 
   schemas:
@@ -133,6 +154,17 @@ components:
       $ref: '#/components/schemas/SimpleObject'
       type:
         - 'null'
+
+    SimpleForm:
+      type: object
+      properties:
+        name:
+          type: string
+        status:
+          $ref: '#/components/schemas/SimpleEnum'
+      required:
+        - name
+        - status
 
     OperationError:
       type: object

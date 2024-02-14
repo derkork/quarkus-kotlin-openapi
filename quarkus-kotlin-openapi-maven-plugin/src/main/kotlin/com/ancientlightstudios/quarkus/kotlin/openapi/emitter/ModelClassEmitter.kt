@@ -15,11 +15,20 @@ class ModelClassEmitter(private val interfaceType: InterfaceType) : CodeEmitter 
             // TODO: apply filter to ignore types which were generated, but are not directly used anywhere
             schemaDefinitions {
                 val typeDefinition = schemaDefinition.typeDefinition
-                val hasUpDirection = typeDefinition.directions.contains(Direction.Up)
-                val hasDownDirection = typeDefinition.directions.contains(Direction.Down)
 
-                val needSerialize = (isClient && hasUpDirection) || (isServer && hasDownDirection)
-                val needDeserialize = (isClient && hasDownDirection) || (isServer && hasUpDirection)
+                val serializationContentTypes = when (isServer) {
+                    // server serialize the response
+                    true -> typeDefinition.getContentTypes(Direction.Down)
+                    // clients serialize the request
+                    else -> typeDefinition.getContentTypes(Direction.Up)
+                }
+
+                val deserializationContentTypes = when (isServer) {
+                    // server deserialize the request
+                    true -> typeDefinition.getContentTypes(Direction.Up)
+                    // clients deserialize the response
+                    else -> typeDefinition.getContentTypes(Direction.Down)
+                }
 
                 when (typeDefinition) {
                     is CollectionTypeDefinition,
@@ -28,11 +37,13 @@ class ModelClassEmitter(private val interfaceType: InterfaceType) : CodeEmitter 
                     }
 
                     is EnumTypeDefinition -> runEmitter(
-                        EnumModelClassEmitter(typeDefinition, needSerialize, needDeserialize)
+                        EnumModelClassEmitter(typeDefinition, serializationContentTypes, deserializationContentTypes)
                     )
 
                     is ObjectTypeDefinition -> runEmitter(
-                        DefaultObjectModelClassEmitter(typeDefinition, needSerialize, needDeserialize)
+                        DefaultObjectModelClassEmitter(
+                            typeDefinition, serializationContentTypes, deserializationContentTypes
+                        )
                     )
                 }
             }

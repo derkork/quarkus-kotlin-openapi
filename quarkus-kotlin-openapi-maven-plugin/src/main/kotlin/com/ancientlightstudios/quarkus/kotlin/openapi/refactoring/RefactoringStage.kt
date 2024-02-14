@@ -21,16 +21,13 @@ class RefactoringStage(private val config: Config) : GeneratorStage {
         // adds type information to schema usages and schema definitions
         context.performRefactoring(AssignTypesRefactoring(TypeMapper(config)))
 
-        // apply flow information (up/down usage)
-        context.performRefactoring(AssignFlowDirectionRefactoring())
+        // apply flow information (content-types, so we know which methods are required for each model)
+        // we need the generated types for this to know what to assign to nested types within a multipart
+        context.performRefactoring(AssignContentTypesRefactoring())
 
         // split schema definitions if necessary (we need the types for this,
         // because this is not important for primitive types)
         context.performRefactoring(SplitSchemaDefinitionsRefactoring())
-
-        // apply flow information (content-types, so we know which methods are required for each model)
-        // we need the generated types for this to know what to assign to nested types within a multipart
-        context.performRefactoring(AssignContentTypesRefactoring())
 
         // TODO: mark definitions/types which are reachable and thus need to be generated
 

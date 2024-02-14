@@ -17,6 +17,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ConstantName.Companion.rawConstantName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.InvocationExpression.Companion.invoke
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.rawMethodName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.NullCheckExpression.Companion.nullCheck
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.PropertyExpression.Companion.property
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TryCatchExpression.Companion.tryExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.SimpleTypeName.Companion.typeName
@@ -27,7 +28,9 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.Conte
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ResponseCode
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableBody
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableParameter
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.ObjectTypeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.TypeDefinition
+import com.ancientlightstudios.quarkus.kotlin.openapi.refactoring.AssignContentTypesRefactoring.Companion.getContentTypeForFormPart
 
 class ClientRestInterfaceEmitter : CodeEmitter {
 
@@ -198,7 +201,7 @@ class ClientRestInterfaceEmitter : CodeEmitter {
     }
 
     private fun KotlinMethod.emitJsonBody(body: TransformableBody): VariableName {
-        val parameterName = "body".variableName()
+        val parameterName = body.parameterVariableName
         val typeDefinition = body.content.typeDefinition
         val default = defaultParameterExpression(!body.required, typeDefinition)
 
@@ -216,7 +219,7 @@ class ClientRestInterfaceEmitter : CodeEmitter {
     }
 
     private fun KotlinMethod.emitPlainBody(body: TransformableBody): VariableName {
-        val parameterName = "body".variableName()
+        val parameterName = body.parameterVariableName
         val typeDefinition = body.content.typeDefinition
         val default = defaultParameterExpression(!body.required, typeDefinition)
 
@@ -229,23 +232,91 @@ class ClientRestInterfaceEmitter : CodeEmitter {
     }
 
     private fun KotlinMethod.emitMultipartBody(body: TransformableBody): List<VariableName> {
-        return listOf("multi".variableName())
         val typeDefinition = body.content.typeDefinition
         val default = defaultParameterExpression(!body.required, typeDefinition)
-
+        return listOf("multi".variableName())
     }
 
     private fun KotlinMethod.emitFormBody(body: TransformableBody): List<VariableName> {
-        return listOf("form".variableName())
+        val parameterName = body.parameterVariableName
         val typeDefinition = body.content.typeDefinition
         val default = defaultParameterExpression(!body.required, typeDefinition)
+
+        kotlinParameter(parameterName, typeDefinition.buildValidType(!body.required), default)
+
+        if (typeDefinition is ObjectTypeDefinition) {
+            val statement = if (!body.required || typeDefinition.nullable) {
+                parameterName.nullCheck()
+            } else {
+                parameterName
+            }
+
+           return typeDefinition.properties.map {
+               val propertyType = it.schema.typeDefinition
+               val contentType = getContentTypeForFormPart(propertyType)
+                val propertyStatement = parameterName.property(it.name)
+               emitterContext.runEmitter(
+                   SerializationStatementEmitter(
+                       propertyType, !body.required, propertyStatement, contentType
+                   )
+               ).resultStatement.assignment("body${it.sourceName}Payload".variableName())
+           }
+        } else {
+            return listOf(emitterContext.runEmitter(
+                SerializationStatementEmitter(
+                    typeDefinition, !body.required, parameterName, body.content.mappedContentType
+                )
+            ).resultStatement.assignment("bodyPayload".variableName()))
+        }
+
     }
 
+
+    /*
+            if (typeDefinition is ObjectTypeDefinition) {
+            // create a parameter for each object property
+            val parts = typeDefinition.properties.map {
+                val parameter = body.parameterVariableName.extend(prefix = it.sourceName)
+                val propertyType = it.schema.typeDefinition
+                val contentType = getContentTypeForFormPart(propertyType)
+                val sourceType = body.content.typeDefinition.getDeserializationSourceType()
+
+                emitMethodParameter(
+                    parameter,
+                    sourceType,
+                    KotlinAnnotation(Jakarta.FormParamAnnotationClass, null to it.sourceName.literal()),
+                    "request.body.${it.sourceName}".literal(),
+                    propertyType,
+                    !body.required, // TODO: is this correct? we have to think about all the combinations of container and its properties and to find a better solution
+                    contentType
+                )
+            }
+
+            return emitterContext.runEmitter(
+                CombineIntoObjectStatementEmitter(
+                    "request.body".literal(), typeDefinition.modelName, parts
+                )
+            ).resultStatement?.assignment(body.parameterVariableName) ?: ProbableBug("don't know how to deserialize form object")
+        } else {
+            // it's a simple type, just create a single parameter
+            return emitMethodParameter(
+                body.parameterVariableName,
+                body.content.typeDefinition.getDeserializationSourceType(),
+                KotlinAnnotation(Jakarta.FormParamAnnotationClass, null to body.parameterVariableName.value.literal()),
+                "request.body".literal(),
+                body.content.typeDefinition,
+                !body.required,
+                ContentType.TextPlain
+            )
+        }
+
+     */
+
+
     private fun KotlinMethod.emitOctetBody(body: TransformableBody): VariableName {
-        return "octed".variableName()
         val typeDefinition = body.content.typeDefinition
         val default = defaultParameterExpression(!body.required, typeDefinition)
-
+        return "octed".variableName()
     }
 
     private fun WhenOptionAware.generateKnownResponseOption(
