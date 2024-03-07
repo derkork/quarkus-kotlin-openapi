@@ -16,7 +16,6 @@ class KotlinBaseClass(private val name: ClassName, private vararg val parameter:
             write("(")
         }
 
-        // TODO: replace with container
         parameter.forEachWithStats { status, it ->
             it.render(this)
             if (!status.last) {

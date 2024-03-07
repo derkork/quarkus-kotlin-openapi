@@ -251,67 +251,27 @@ class ClientRestInterfaceEmitter : CodeEmitter {
                 parameterName
             }
 
-           return typeDefinition.properties.map {
-               val propertyType = it.schema.typeDefinition
-               val contentType = getContentTypeForFormPart(propertyType)
-                val propertyStatement = parameterName.property(it.name)
-               emitterContext.runEmitter(
-                   SerializationStatementEmitter(
-                       propertyType, !body.required, propertyStatement, contentType
-                   )
-               ).resultStatement.assignment("body${it.sourceName}Payload".variableName())
-           }
-        } else {
-            return listOf(emitterContext.runEmitter(
-                SerializationStatementEmitter(
-                    typeDefinition, !body.required, parameterName, body.content.mappedContentType
-                )
-            ).resultStatement.assignment("bodyPayload".variableName()))
-        }
-
-    }
-
-
-    /*
-            if (typeDefinition is ObjectTypeDefinition) {
-            // create a parameter for each object property
-            val parts = typeDefinition.properties.map {
-                val parameter = body.parameterVariableName.extend(prefix = it.sourceName)
+            return typeDefinition.properties.map {
                 val propertyType = it.schema.typeDefinition
                 val contentType = getContentTypeForFormPart(propertyType)
-                val sourceType = body.content.typeDefinition.getDeserializationSourceType()
-
-                emitMethodParameter(
-                    parameter,
-                    sourceType,
-                    KotlinAnnotation(Jakarta.FormParamAnnotationClass, null to it.sourceName.literal()),
-                    "request.body.${it.sourceName}".literal(),
-                    propertyType,
-                    !body.required, // TODO: is this correct? we have to think about all the combinations of container and its properties and to find a better solution
-                    contentType
-                )
+                val propertyStatement = statement.property(it.name)
+                emitterContext.runEmitter(
+                    SerializationStatementEmitter(
+                        propertyType, !body.required, propertyStatement, contentType
+                    )
+                ).resultStatement.assignment("body ${it.sourceName} Payload".variableName())
             }
-
-            return emitterContext.runEmitter(
-                CombineIntoObjectStatementEmitter(
-                    "request.body".literal(), typeDefinition.modelName, parts
-                )
-            ).resultStatement?.assignment(body.parameterVariableName) ?: ProbableBug("don't know how to deserialize form object")
         } else {
-            // it's a simple type, just create a single parameter
-            return emitMethodParameter(
-                body.parameterVariableName,
-                body.content.typeDefinition.getDeserializationSourceType(),
-                KotlinAnnotation(Jakarta.FormParamAnnotationClass, null to body.parameterVariableName.value.literal()),
-                "request.body".literal(),
-                body.content.typeDefinition,
-                !body.required,
-                ContentType.TextPlain
+            return listOf(
+                emitterContext.runEmitter(
+                    SerializationStatementEmitter(
+                        typeDefinition, !body.required, parameterName, body.content.mappedContentType
+                    )
+                ).resultStatement.assignment("bodyPayload".variableName())
             )
         }
 
-     */
-
+    }
 
     private fun KotlinMethod.emitOctetBody(body: TransformableBody): VariableName {
         val typeDefinition = body.content.typeDefinition
