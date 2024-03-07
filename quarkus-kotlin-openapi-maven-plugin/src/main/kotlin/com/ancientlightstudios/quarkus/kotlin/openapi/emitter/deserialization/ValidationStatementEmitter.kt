@@ -46,7 +46,6 @@ class ValidationStatementEmitter(
                     it.maxLength?.let {
                         "it".variableName().invoke("maxLength".rawMethodName(), it.literal()).statement()
                     }
-                    // TODO: recompiling the pattern every time when checking a value is probably not the best option
                     it.pattern?.let { "it".variableName().invoke("pattern".rawMethodName(), it.literal()).statement() }
                 }
             }
