@@ -2,7 +2,6 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName.Companion.className
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName.Companion.rawClassName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.rawMethodName
 
 object Kotlin {
 
@@ -67,5 +66,6 @@ object Library {
     val MaybeFailureClass = MaybeClass.rawNested("Failure")
     val ValidationErrorClass = "ValidationError".rawClassName("com.ancientlightstudios.quarkus.kotlin.openapi")
     val IsErrorClass = "IsError".rawClassName("com.ancientlightstudios.quarkus.kotlin.openapi")
+    val DefaultValidatorClass = "DefaultValidator".rawClassName("com.ancientlightstudios.quarkus.kotlin.openapi")
 
 }

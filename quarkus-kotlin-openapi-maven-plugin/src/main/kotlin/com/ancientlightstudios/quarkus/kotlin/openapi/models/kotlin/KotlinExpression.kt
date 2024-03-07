@@ -76,6 +76,19 @@ fun ClassName.companionObject() = object : KotlinExpression {
 
 }
 
+fun functionReference(className: ClassName, methodName: MethodName) = object : KotlinExpression {
+
+    override fun ImportCollector.registerImports() {
+        register(className)
+        register(methodName)
+    }
+
+    override fun render(writer: CodeWriter) = with(writer) {
+        write("${className.value}::${methodName.value}")
+    }
+
+}
+
 fun String.literal() = object : KotlinExpression {
 
     override fun ImportCollector.registerImports() {}

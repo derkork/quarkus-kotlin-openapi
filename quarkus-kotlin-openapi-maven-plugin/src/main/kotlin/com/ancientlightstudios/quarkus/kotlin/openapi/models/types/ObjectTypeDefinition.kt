@@ -2,7 +2,7 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.models.types
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ContentType
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.CustomConstraintsValidationComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.SchemaValidation
 
 // TODO: add support for maps
 interface ObjectTypeDefinition : TypeDefinition {
@@ -20,12 +20,13 @@ class RealObjectTypeDefinition(
     override val nullable: Boolean,
     override val properties: List<ObjectTypeProperty>,
     override val required: Set<String>,
-    override val customConstraints: List<CustomConstraintsValidationComponent>
+    override val validations: List<SchemaValidation>
 ) : ObjectTypeDefinition {
 
     private val _contentTypes = mutableMapOf<Direction, MutableSet<ContentType>>()
 
-    override val directions: Set<Direction> = _contentTypes.keys
+    override val directions: Set<Direction>
+        get() = _contentTypes.keys
 
     override fun addContentType(direction: Direction, contentType: ContentType): Boolean {
         return _contentTypes.getOrPut(direction) { mutableSetOf() }.add(contentType)
@@ -40,11 +41,11 @@ class RealObjectTypeDefinition(
 class ObjectTypeDefinitionOverlay(
     private val base: ObjectTypeDefinition,
     forceNullable: Boolean,
-    additionalCustomConstraints: List<CustomConstraintsValidationComponent> = listOf()
+    additionalValidations: List<SchemaValidation> = listOf()
 ) : ObjectTypeDefinition by base, TypeDefinitionOverlay {
 
     override val nullable = forceNullable || base.nullable
 
-    override val customConstraints = additionalCustomConstraints + base.customConstraints
+    override val validations = additionalValidations + base.validations
 
 }

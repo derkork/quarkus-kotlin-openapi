@@ -20,12 +20,11 @@ class CreateSimpleObjectTypeRefactoring(
     override fun RefactoringContext.perform() {
         val type = definition.getComponent<TypeComponent>()?.type
         val nullable = definition.getComponent<NullableComponent>()?.nullable
-        val customConstraints = definition.getComponent<CustomConstraintsValidationComponent>()
-            ?.let { listOf(it) } ?: listOf()
+        val validations = definition.getComponents<ValidationComponent>().map { it.validation }
 
         val typeDefinition = when (parentType) {
-            null -> createNewType(type, nullable, customConstraints)
-            else -> createOverlayType(parentType, type, nullable, customConstraints)
+            null -> createNewType(type, nullable, validations)
+            else -> createOverlayType(parentType, type, nullable, validations)
         }
         definition.typeDefinition = typeDefinition
     }
@@ -34,7 +33,7 @@ class CreateSimpleObjectTypeRefactoring(
     private fun RefactoringContext.createNewType(
         type: SchemaTypes?,
         nullable: Boolean?,
-        customConstraints: List<CustomConstraintsValidationComponent>
+        validations: List<SchemaValidation>
     ): TypeDefinition {
         // anything without a type is an object
         if (type != null && type != SchemaTypes.Object) {
@@ -51,7 +50,7 @@ class CreateSimpleObjectTypeRefactoring(
 
         return RealObjectTypeDefinition(
             definition.name.className(modelPackage),
-            nullable ?: false, objectProperties, required, customConstraints
+            nullable ?: false, objectProperties, required, validations
         )
     }
 
@@ -59,7 +58,7 @@ class CreateSimpleObjectTypeRefactoring(
         parentType: ObjectTypeDefinition,
         type: SchemaTypes?,
         nullable: Boolean?,
-        customConstraints: List<CustomConstraintsValidationComponent>
+        validations: List<SchemaValidation>
     ): TypeDefinition {
         // the type should still be the same or nothing at all
         if (type != null && type != SchemaTypes.Object) {
@@ -72,9 +71,9 @@ class CreateSimpleObjectTypeRefactoring(
         val requiredByBase = parentType.required
         val requiredChanged = required.subtract(requiredByBase).isNotEmpty()
 
-        // object structure is still the same, we can just create a overlay
+        // object structure is still the same, we can just create an overlay
         if (!requiredChanged && properties.isEmpty()) {
-            return ObjectTypeDefinitionOverlay(parentType, nullable == true, customConstraints)
+            return ObjectTypeDefinitionOverlay(parentType, nullable == true, validations)
         }
 
         // something changed, we have to build a new type
@@ -93,7 +92,7 @@ class CreateSimpleObjectTypeRefactoring(
             nullable == true || parentType.nullable,
             newProperties,
             newRequired,
-            parentType.customConstraints + customConstraints
+            parentType.validations + validations
         )
     }
 

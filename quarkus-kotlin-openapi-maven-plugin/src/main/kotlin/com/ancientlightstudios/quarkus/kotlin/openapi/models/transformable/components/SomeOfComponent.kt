@@ -2,7 +2,7 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.comp
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchemaUsage
 
-interface SomeOfComponent : SchemaDefinitionComponent {
+interface SomeOfComponent : SchemaDefinitionComponent, ReferencingComponent {
 
     val schemas: List<TransformableSchemaUsage>
 

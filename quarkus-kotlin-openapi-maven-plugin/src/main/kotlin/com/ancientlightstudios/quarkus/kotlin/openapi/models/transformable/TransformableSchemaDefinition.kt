@@ -9,7 +9,7 @@ class TransformableSchemaDefinition(
     var components: List<SchemaDefinitionComponent> = listOf()
 ) : TransformableObject() {
 
-    inline  fun <reified T: SchemaDefinitionComponent> getComponent() : T? {
+    inline fun <reified T : SchemaDefinitionComponent> getComponent(): T? {
         val result = components.filterIsInstance<T>()
         return when {
             result.isEmpty() -> null
@@ -17,6 +17,9 @@ class TransformableSchemaDefinition(
             else -> result.first()
         }
     }
+
+    @JvmName("getFilteredComponents")
+    inline fun <reified T : SchemaDefinitionComponent> getComponents() = components.filterIsInstance<T>()
 
 }
 

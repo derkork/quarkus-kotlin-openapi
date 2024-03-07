@@ -87,7 +87,6 @@ class DeserializationStatementEmitter(
             baseStatement
         }
 
-        result = runEmitter(ValidationStatementEmitter(typeDefinition, result)).resultStatement
         result = result.wrap().invoke("mapItems".methodName())
         {
             runEmitter(
@@ -97,6 +96,7 @@ class DeserializationStatementEmitter(
             )
                 .resultStatement.statement()
         }
+        result = runEmitter(ValidationStatementEmitter(typeDefinition, result)).resultStatement
         return result
     }
 

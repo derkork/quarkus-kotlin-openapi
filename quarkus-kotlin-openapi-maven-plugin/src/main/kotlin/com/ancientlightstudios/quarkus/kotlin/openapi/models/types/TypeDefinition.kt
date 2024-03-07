@@ -1,7 +1,7 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.types
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ContentType
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.CustomConstraintsValidationComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.SchemaValidation
 
 sealed interface TypeDefinition {
 
@@ -9,7 +9,7 @@ sealed interface TypeDefinition {
 
     val directions: Set<Direction>
 
-    val customConstraints: List<CustomConstraintsValidationComponent>
+    val validations: List<SchemaValidation>
 
     fun addContentType(direction: Direction, contentType: ContentType): Boolean
 

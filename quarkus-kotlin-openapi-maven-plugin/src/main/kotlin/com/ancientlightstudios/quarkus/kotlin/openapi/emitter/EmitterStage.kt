@@ -23,14 +23,14 @@ class EmitterStage(private val config: Config) : GeneratorStage {
         ServerRestInterfaceEmitter(config.pathPrefix),
         ServerRequestContainerEmitter(),
         ServerResponseContainerEmitter(),
-        ModelClassEmitter(config.interfaceType)
+        ModelClassEmitter()
     )
 
     private fun clientEmitters() = listOf(
         ClientDelegateEmitter(config.interfaceName),
         ClientRestInterfaceEmitter(),
         ClientResponseContainerEmitter(),
-        ModelClassEmitter(config.interfaceType)
+        ModelClassEmitter()
     )
 
 }
