@@ -107,7 +107,7 @@ class SchemaDefinitionBuilder(
 
     private fun addCustomConstraintsValidationComponent(components: MutableList<SchemaDefinitionComponent>) {
         node.getMultiValue("x-constraints")?.map { it.asText() }
-            ?.let { components.add(CustomConstraintsValidationComponent(it)) }
+            ?.let { components.add(ValidationComponent(CustomConstraintsValidation(it))) }
     }
 
     private fun ParseContext.addArrayComponent(components: MutableList<SchemaDefinitionComponent>) {
@@ -121,7 +121,7 @@ class SchemaDefinitionBuilder(
         val minItems = node.getTextOrNull("minItems")?.toInt()
         val maxItems = node.getTextOrNull("maxItems")?.toInt()
         if (minItems != null || maxItems != null) {
-            components.add(ArrayValidationComponent(minItems, maxItems))
+            components.add(ValidationComponent(ArrayValidation(minItems, maxItems)))
         }
     }
 
@@ -137,7 +137,7 @@ class SchemaDefinitionBuilder(
         val maxLength = node.getTextOrNull("maxLength")?.toInt()
         val pattern = node.getTextOrNull("pattern")
         if (minLength != null || maxLength != null || pattern != null) {
-            components.add(StringValidationComponent(minLength, maxLength, pattern))
+            components.add(ValidationComponent(StringValidation(minLength, maxLength, pattern)))
         }
     }
 
@@ -145,7 +145,7 @@ class SchemaDefinitionBuilder(
         val minimum = extractComparableNumber("minimum")
         val maximum = extractComparableNumber("maximum")
         if (minimum != null || maximum != null) {
-            components.add(NumberValidationComponent(minimum, maximum))
+            components.add(ValidationComponent(NumberValidation(minimum, maximum)))
         }
     }
 

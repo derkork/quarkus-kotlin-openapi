@@ -46,14 +46,7 @@ fun <T : Number> Maybe<T?>.validateNumber(block: NumberValidator<T>.(T) -> Unit)
     }
 
 @Suppress("unused")
-fun <I, O> Maybe<I?>.validateUnsafe(block: I.(String) -> Maybe<O>): Maybe<O?> =
-    onNotNull {
-        @Suppress("UNCHECKED_CAST")
-        value.block(this.context) as Maybe<O?>
-    }
-
-@Suppress("unused")
-fun <I> Maybe<List<I?>?>.validateList(block: ListValidator.(List<I?>) -> Unit): Maybe<List<I?>?> =
+fun <I> Maybe<List<I>?>.validateList(block: ListValidator.(List<I>) -> Unit): Maybe<List<I>?> =
     onNotNull {
         try {
             val errors = ListValidator(context).apply { this.block(value) }.validationErrors

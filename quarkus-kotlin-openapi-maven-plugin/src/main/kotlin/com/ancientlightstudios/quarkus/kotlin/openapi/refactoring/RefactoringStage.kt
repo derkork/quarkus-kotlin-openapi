@@ -9,6 +9,9 @@ class RefactoringStage(private val config: Config) : GeneratorStage {
     override fun process(spec: TransformableSpec) {
         val context = RefactoringContext(spec, config)
 
+        // specify which is the direction for serialization and which for deserialization
+        context.performRefactoring(PrepareSpecDirectionsRefactoring())
+
         context.performRefactoring(SplitByTagsRefactoring(config.splitByTags))
         context.performRefactoring(LinkSchemasAndSchemaDefinitionsRefactoring())
 

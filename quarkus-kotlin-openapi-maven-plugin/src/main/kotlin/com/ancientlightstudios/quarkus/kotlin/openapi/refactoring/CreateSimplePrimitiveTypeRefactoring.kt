@@ -22,19 +22,18 @@ class CreateSimplePrimitiveTypeRefactoring(
     override fun RefactoringContext.perform() {
         val type = definition.getComponent<TypeComponent>()?.type
         val nullable = definition.getComponent<NullableComponent>()?.nullable
-        val customConstraints = definition.getComponent<CustomConstraintsValidationComponent>()
-            ?.let { listOf(it) } ?: listOf()
+        val validations = definition.getComponents<ValidationComponent>().map { it.validation }
 
         val typeDefinition = when (parentType) {
-            null -> createNewType(type, nullable, customConstraints)
+            null -> createNewType(type, nullable, validations)
             is PrimitiveTypeDefinition -> createOverlayTypeForSimplePrimitive(
                 parentType,
                 type,
                 nullable,
-                customConstraints
+                validations
             )
 
-            is EnumTypeDefinition -> createOverlayTypeForEnum(parentType, type, nullable, customConstraints)
+            is EnumTypeDefinition -> createOverlayTypeForEnum(parentType, type, nullable, validations)
             else -> ProbableBug("incompatible base type for a primitive overlay")
         }
         definition.typeDefinition = typeDefinition
@@ -43,13 +42,13 @@ class CreateSimplePrimitiveTypeRefactoring(
     private fun RefactoringContext.createNewType(
         type: SchemaTypes?,
         nullable: Boolean?,
-        customConstraints: List<CustomConstraintsValidationComponent>
+        validations: List<SchemaValidation>
     ): TypeDefinition {
         return when (type) {
             SchemaTypes.String,
             SchemaTypes.Number,
             SchemaTypes.Integer,
-            SchemaTypes.Boolean -> generatePrimitiveType(type, nullable ?: false, customConstraints)
+            SchemaTypes.Boolean -> generatePrimitiveType(type, nullable ?: false, validations)
 
             else -> ProbableBug("Incompatible type $type for a primitive type")
         }
@@ -58,7 +57,7 @@ class CreateSimplePrimitiveTypeRefactoring(
     private fun RefactoringContext.generatePrimitiveType(
         type: SchemaTypes,
         nullable: Boolean,
-        customConstraints: List<CustomConstraintsValidationComponent>
+        validations: List<SchemaValidation>
     ): TypeDefinition {
         val format = definition.getComponent<FormatComponent>()?.format
 
@@ -66,8 +65,8 @@ class CreateSimplePrimitiveTypeRefactoring(
         val default = definition.getComponent<DefaultComponent>()?.let { baseType.literalFor(it.default) }
 
         return when (val enumComponent = definition.getComponent<EnumValidationComponent>()) {
-            null -> RealPrimitiveTypeDefinition(baseType, nullable, default, customConstraints)
-            else -> generateEnumType(baseType, nullable, default, enumComponent, customConstraints)
+            null -> RealPrimitiveTypeDefinition(baseType, nullable, default, validations)
+            else -> generateEnumType(baseType, nullable, default, enumComponent, validations)
         }
     }
 
@@ -76,12 +75,12 @@ class CreateSimplePrimitiveTypeRefactoring(
         nullable: Boolean,
         default: KotlinExpression?,
         enumComponent: EnumValidationComponent,
-        customConstraints: List<CustomConstraintsValidationComponent>
+        validations: List<SchemaValidation>
     ): TypeDefinition {
         val items = enumComponent.values.map { EnumTypeItem(it, it.constantName(), baseType.literalFor(it)) }
         return RealEnumTypeDefinition(
             definition.name.className(modelPackage),
-            baseType, nullable, items, default, customConstraints
+            baseType, nullable, items, default, validations
         )
     }
 
@@ -89,7 +88,7 @@ class CreateSimplePrimitiveTypeRefactoring(
         parentType: PrimitiveTypeDefinition,
         type: SchemaTypes?,
         nullable: Boolean?,
-        customConstraints: List<CustomConstraintsValidationComponent>
+        validations: List<SchemaValidation>
     ): TypeDefinition {
         // TODO: if type and/or format are redefined, the type mapper must return the same class name,
         //  otherwise it's not compatible and we should fail
@@ -100,7 +99,7 @@ class CreateSimplePrimitiveTypeRefactoring(
 
         if (enumItems.isEmpty()) {
             // just an overlay
-            return PrimitiveTypeDefinitionOverlay(parentType, nullable == true, default, customConstraints)
+            return PrimitiveTypeDefinitionOverlay(parentType, nullable == true, default, validations)
         }
 
         // we have to build an enum type out of it
@@ -114,7 +113,7 @@ class CreateSimplePrimitiveTypeRefactoring(
             nullable == true || parentType.nullable,
             items,
             default ?: parentType.defaultValue,
-            parentType.customConstraints + customConstraints
+            parentType.validations + validations
         )
     }
 
@@ -122,7 +121,7 @@ class CreateSimplePrimitiveTypeRefactoring(
         parentType: EnumTypeDefinition,
         type: SchemaTypes?,
         nullable: Boolean?,
-        customConstraints: List<CustomConstraintsValidationComponent>
+        validations: List<SchemaValidation>
     ): TypeDefinition {
         // TODO: if type and/or format are redefined, the type mapper must return the same class name,
         //  otherwise it's not compatible and we should fail
@@ -133,9 +132,9 @@ class CreateSimplePrimitiveTypeRefactoring(
         val enumItems = definition.getComponent<EnumValidationComponent>()?.values ?: listOf()
         val enumChanged = enumItems.toSet().subtract(parentType.items.toSet()).isNotEmpty()
 
-        // enum structure is still the same, we can just create a overlay
+        // enum structure is still the same, we can just create an overlay
         if (!enumChanged) {
-            return EnumTypeDefinitionOverlay(parentType, nullable == true, default, customConstraints)
+            return EnumTypeDefinitionOverlay(parentType, nullable == true, default, validations)
         }
 
         val newItems = enumItems.toSet().union(parentType.items.map { it.sourceName }).map {
@@ -149,7 +148,7 @@ class CreateSimplePrimitiveTypeRefactoring(
             nullable == true || parentType.nullable,
             newItems,
             default ?: parentType.defaultValue,
-            parentType.customConstraints + customConstraints
+            parentType.validations + validations
         )
     }
 

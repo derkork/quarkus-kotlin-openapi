@@ -3,7 +3,9 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.refactoring
 import com.ancientlightstudios.quarkus.kotlin.openapi.Config
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSpec
 
-class RefactoringContext(val spec: TransformableSpec, private val config: Config) {
+class RefactoringContext(val spec: TransformableSpec, config: Config) {
+
+    val interfaceType = config.interfaceType
 
     val interfacePackage = config.packageName
 

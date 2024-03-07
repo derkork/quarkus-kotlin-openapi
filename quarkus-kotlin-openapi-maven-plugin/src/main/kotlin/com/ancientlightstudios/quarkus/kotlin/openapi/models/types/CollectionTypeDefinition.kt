@@ -3,9 +3,8 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.models.types
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ContentType
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchemaUsage
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.CustomConstraintsValidationComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.SchemaValidation
 
-// TODO: support for array validation
 interface CollectionTypeDefinition : TypeDefinition {
 
     val modelName: ClassName
@@ -18,12 +17,13 @@ class RealCollectionTypeDefinition(
     override val modelName: ClassName,
     override val nullable: Boolean,
     override val items: TransformableSchemaUsage,
-    override val customConstraints: List<CustomConstraintsValidationComponent>
+    override val validations: List<SchemaValidation>
 ) : CollectionTypeDefinition {
 
     private val _contentTypes = mutableMapOf<Direction, MutableSet<ContentType>>()
 
-    override val directions: Set<Direction> = _contentTypes.keys
+    override val directions: Set<Direction>
+        get() = _contentTypes.keys
 
     override fun addContentType(direction: Direction, contentType: ContentType): Boolean {
         return _contentTypes.getOrPut(direction) { mutableSetOf() }.add(contentType)
@@ -38,11 +38,11 @@ class RealCollectionTypeDefinition(
 class CollectionTypeDefinitionOverlay(
     private val base: CollectionTypeDefinition,
     forceNullable: Boolean,
-    additionalCustomConstraints: List<CustomConstraintsValidationComponent> = listOf()
+    additionalValidations: List<SchemaValidation> = listOf()
 ) : CollectionTypeDefinition by base, TypeDefinitionOverlay {
 
     override val nullable = forceNullable || base.nullable
 
-    override val customConstraints = additionalCustomConstraints + base.customConstraints
+    override val validations = additionalValidations + base.validations
 
 }
