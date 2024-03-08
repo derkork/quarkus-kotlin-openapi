@@ -68,17 +68,7 @@ class SchemaDefinitionNameRefactoring : SpecRefactoring {
                             assignAndSchedule(it.schema, "$prefix ${it.name}")
                         }
                     }
-                    components<AllOfComponent> {
-                        component.schemas.forEachIndexed { index, schema ->
-                            assignAndSchedule(schema, "$prefix option ${index + 1}")
-                        }
-                    }
-                    components<AnyOfComponent> {
-                        component.schemas.forEachIndexed { index, schema ->
-                            assignAndSchedule(schema, "$prefix option ${index + 1}")
-                        }
-                    }
-                    components<OneOfComponent> {
+                    components<SomeOfComponent> {
                         component.schemas.forEachIndexed { index, schema ->
                             assignAndSchedule(schema, "$prefix option ${index + 1}")
                         }

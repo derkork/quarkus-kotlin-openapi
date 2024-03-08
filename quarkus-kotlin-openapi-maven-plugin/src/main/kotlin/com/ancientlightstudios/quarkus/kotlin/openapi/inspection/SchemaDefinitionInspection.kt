@@ -12,10 +12,8 @@ class SchemaDefinitionInspection(val schemaDefinition: TransformableSchemaDefini
     fun nestedSchemas(block: SchemaUsageInspection.() -> Unit) {
         components<BaseDefinitionComponent> { SchemaUsageInspection(component.innerSchema).block() }
         components<ArrayItemsComponent> { SchemaUsageInspection(component.itemsSchema).block() }
-        components<AllOfComponent> { component.schemas.forEach { SchemaUsageInspection(it).block() } }
-        components<AnyOfComponent> { component.schemas.forEach { SchemaUsageInspection(it).block() } }
-        components<OneOfComponent> { component.schemas.forEach { SchemaUsageInspection(it).block() } }
         components<ObjectComponent> { component.properties.forEach { SchemaUsageInspection(it.schema).block() } }
+        components<SomeOfComponent> { component.schemas.forEach { SchemaUsageInspection(it).block() } }
     }
 
 }
