@@ -15,11 +15,11 @@ class RefactoringStage(private val config: Config) : GeneratorStage {
         context.performRefactoring(SplitByTagsRefactoring(config.splitByTags))
         context.performRefactoring(LinkSchemasAndSchemaDefinitionsRefactoring())
 
-        // first apply a few modifications
-        context.performRefactoring(OptimizeSchemeDefinitionRefactoring())
-
         // apply names to schema definitions if they don't have one yet
         context.performRefactoring(SchemaDefinitionNameRefactoring())
+
+        // first apply a few modifications
+        context.performRefactoring(OptimizeSchemeDefinitionRefactoring())
 
         // adds type information to schema usages and schema definitions
         context.performRefactoring(AssignTypesRefactoring(TypeMapper(config)))
