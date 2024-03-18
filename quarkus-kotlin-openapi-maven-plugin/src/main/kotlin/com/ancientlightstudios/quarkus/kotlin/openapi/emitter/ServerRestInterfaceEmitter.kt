@@ -11,7 +11,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.RequestContai
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.RequestMethodNameHint.requestMethodName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ServerDelegateClassNameHint.serverDelegateClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ServerRestInterfaceClassNameHint.serverRestInterfaceClassName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeDefinitionHint.typeDefinition
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeUsageHint.typeUsage
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.InvocationExpression.Companion.invoke
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.PropertyExpression.Companion.property
@@ -23,7 +23,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.Trans
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableParameter
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableRequest
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.ObjectTypeDefinition
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.TypeDefinition
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.TypeUsage
 import com.ancientlightstudios.quarkus.kotlin.openapi.refactoring.AssignContentTypesRefactoring.Companion.getContentTypeForFormPart
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
 
@@ -78,15 +78,13 @@ class ServerRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitter {
     // generates parameters and conversion code for path, query, header and cookie parameters
     private fun KotlinMethod.emitParameter(parameter: TransformableParameter): VariableName {
         val parameterKind = parameter.kind
-        val typeDefinition = parameter.typeDefinition
 
         return emitMethodParameter(
             parameter.parameterVariableName,
-            typeDefinition.getDeserializationSourceType(),
+            parameter.typeUsage.getDeserializationSourceType(),
             getSourceAnnotation(parameterKind, parameter.name),
             "request.${parameterKind.value}.${parameter.name}".literal(),
-            typeDefinition,
-            !parameter.required,
+            parameter.typeUsage,
             ContentType.TextPlain
         )
     }
@@ -109,8 +107,7 @@ class ServerRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitter {
             Kotlin.StringClass.typeName(true),
             null,
             "request.body".literal(),
-            body.content.typeDefinition,
-            !body.required,
+            body.content.typeUsage,
             ContentType.ApplicationJson
         )
     }
@@ -118,11 +115,10 @@ class ServerRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitter {
     private fun KotlinMethod.emitPlainBody(body: TransformableBody): VariableName {
         return emitMethodParameter(
             body.parameterVariableName,
-            body.content.typeDefinition.getDeserializationSourceType(),
+            body.content.typeUsage.getDeserializationSourceType(),
             null,
             "request.body".literal(),
-            body.content.typeDefinition,
-            !body.required,
+            body.content.typeUsage,
             ContentType.TextPlain
         )
     }
@@ -132,15 +128,16 @@ class ServerRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitter {
     }
 
     private fun KotlinMethod.emitFormBody(body: TransformableBody): VariableName {
-        val typeDefinition = body.content.typeDefinition
+        val typeUsage = body.content.typeUsage
+        val safeType = typeUsage.type
 
-        if (typeDefinition is ObjectTypeDefinition) {
+        if (safeType is ObjectTypeDefinition) {
             // create a parameter for each object property
-            val parts = typeDefinition.properties.map {
+            val parts = safeType.properties.map {
                 val parameter = body.parameterVariableName.extend(prefix = it.sourceName)
-                val propertyType = it.schema.typeDefinition
-                val contentType = getContentTypeForFormPart(propertyType)
-                val sourceType = body.content.typeDefinition.getDeserializationSourceType()
+                val propertyType = it.typeUsage
+                val contentType = getContentTypeForFormPart(propertyType.type)
+                val sourceType = typeUsage.getDeserializationSourceType()
 
                 emitMethodParameter(
                     parameter,
@@ -148,25 +145,22 @@ class ServerRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitter {
                     KotlinAnnotation(Jakarta.FormParamAnnotationClass, null to it.sourceName.literal()),
                     "request.body.${it.sourceName}".literal(),
                     propertyType,
-                    !body.required, // TODO: is this correct? we have to think about all the combinations of container and its properties and to find a better solution
                     contentType
                 )
             }
 
             return emitterContext.runEmitter(
-                CombineIntoObjectStatementEmitter(
-                    "request.body".literal(), typeDefinition.modelName, parts
-                )
-            ).resultStatement?.assignment(body.parameterVariableName) ?: ProbableBug("don't know how to deserialize form object")
+                CombineIntoObjectStatementEmitter("request.body".literal(), safeType.modelName, parts)
+            ).resultStatement?.assignment(body.parameterVariableName)
+                ?: ProbableBug("don't know how to deserialize form object")
         } else {
             // it's a simple type, just create a single parameter
             return emitMethodParameter(
                 body.parameterVariableName,
-                body.content.typeDefinition.getDeserializationSourceType(),
+                body.content.typeUsage.getDeserializationSourceType(),
                 KotlinAnnotation(Jakarta.FormParamAnnotationClass, null to body.parameterVariableName.value.literal()),
                 "request.body".literal(),
-                body.content.typeDefinition,
-                !body.required,
+                body.content.typeUsage,
                 ContentType.TextPlain
             )
         }
@@ -194,7 +188,7 @@ class ServerRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitter {
     // adds a new parameter to the current method and generates some deserialization statements for it
     private fun KotlinMethod.emitMethodParameter(
         parameterName: VariableName, parameterType: TypeName, parameterAnnotation: KotlinAnnotation?,
-        context: KotlinExpression, typeDefinition: TypeDefinition, forceNullable: Boolean, contentType: ContentType
+        context: KotlinExpression, typeUsage: TypeUsage, contentType: ContentType
     ): VariableName {
         kotlinParameter(parameterName, parameterType) { parameterAnnotation?.let { addAnnotation(it) } }
 
@@ -208,7 +202,7 @@ class ServerRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitter {
         // val <parameterName>Maybe = <statement>
         //     .<deserializationStatement>
         return emitterContext.runEmitter(
-            DeserializationStatementEmitter(typeDefinition, forceNullable, statement, contentType, true)
+            DeserializationStatementEmitter(typeUsage, statement, contentType, true)
         ).resultStatement.assignment(parameterName.extend(postfix = "maybe"))
     }
 

@@ -12,7 +12,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ClientRestInt
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ParameterVariableNameHint.parameterVariableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.RequestMethodNameHint.requestMethodName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ResponseContainerClassNameHint.responseContainerClassName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeDefinitionHint.typeDefinition
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeUsageHint.typeUsage
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ConstantName.Companion.rawConstantName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.InvocationExpression.Companion.invoke
@@ -29,7 +29,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.Respo
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableBody
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableParameter
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.ObjectTypeDefinition
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.TypeDefinition
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.TypeUsage
 import com.ancientlightstudios.quarkus.kotlin.openapi.refactoring.AssignContentTypesRefactoring.Companion.getContentTypeForFormPart
 
 class ClientRestInterfaceEmitter : CodeEmitter {
@@ -178,14 +178,12 @@ class ClientRestInterfaceEmitter : CodeEmitter {
 
     private fun KotlinMethod.emitParameter(parameter: TransformableParameter): VariableName {
         val parameterName = parameter.parameterVariableName
-        val typeDefinition = parameter.typeDefinition
-        val default = defaultParameterExpression(!parameter.required, typeDefinition)
-        kotlinParameter(parameterName, typeDefinition.buildValidType(!parameter.required), default)
+        val typeUsage = parameter.typeUsage
+        val default = defaultParameterExpression(typeUsage)
+        kotlinParameter(parameterName, typeUsage.buildValidType(), default)
 
         return emitterContext.runEmitter(
-            SerializationStatementEmitter(
-                typeDefinition, !parameter.required, parameterName, ContentType.TextPlain
-            )
+            SerializationStatementEmitter(typeUsage, parameterName, ContentType.TextPlain)
         ).resultStatement.assignment(parameterName.extend(postfix = "Payload"))
     }
 
@@ -202,15 +200,13 @@ class ClientRestInterfaceEmitter : CodeEmitter {
 
     private fun KotlinMethod.emitJsonBody(body: TransformableBody): VariableName {
         val parameterName = body.parameterVariableName
-        val typeDefinition = body.content.typeDefinition
-        val default = defaultParameterExpression(!body.required, typeDefinition)
+        val typeUsage = body.content.typeUsage
+        val default = defaultParameterExpression(typeUsage)
 
-        kotlinParameter(parameterName, typeDefinition.buildValidType(!body.required), default)
+        kotlinParameter(parameterName, typeUsage.buildValidType(), default)
 
         val jsonNode = emitterContext.runEmitter(
-            SerializationStatementEmitter(
-                typeDefinition, !body.required, parameterName, body.content.mappedContentType
-            )
+            SerializationStatementEmitter(typeUsage, parameterName, body.content.mappedContentType)
         ).resultStatement
 
         return "objectMapper".variableName()
@@ -220,53 +216,49 @@ class ClientRestInterfaceEmitter : CodeEmitter {
 
     private fun KotlinMethod.emitPlainBody(body: TransformableBody): VariableName {
         val parameterName = body.parameterVariableName
-        val typeDefinition = body.content.typeDefinition
-        val default = defaultParameterExpression(!body.required, typeDefinition)
+        val typeUsage = body.content.typeUsage
+        val default = defaultParameterExpression(typeUsage)
 
-        kotlinParameter(parameterName, typeDefinition.buildValidType(!body.required), default)
+        kotlinParameter(parameterName, typeUsage.buildValidType(), default)
         return emitterContext.runEmitter(
-            SerializationStatementEmitter(
-                typeDefinition, !body.required, parameterName, body.content.mappedContentType
-            )
+            SerializationStatementEmitter(typeUsage, parameterName, body.content.mappedContentType)
         ).resultStatement.assignment("bodyPayload".variableName())
     }
 
     private fun KotlinMethod.emitMultipartBody(body: TransformableBody): List<VariableName> {
-        val typeDefinition = body.content.typeDefinition
-        val default = defaultParameterExpression(!body.required, typeDefinition)
+        val default = defaultParameterExpression(body.content.typeUsage)
         return listOf("multi".variableName())
     }
 
     private fun KotlinMethod.emitFormBody(body: TransformableBody): List<VariableName> {
         val parameterName = body.parameterVariableName
-        val typeDefinition = body.content.typeDefinition
-        val default = defaultParameterExpression(!body.required, typeDefinition)
+        val typeUsage = body.content.typeUsage
+        val safeType = typeUsage.type
+        val default = defaultParameterExpression(typeUsage)
 
-        kotlinParameter(parameterName, typeDefinition.buildValidType(!body.required), default)
+        kotlinParameter(parameterName, typeUsage.buildValidType(), default)
 
-        if (typeDefinition is ObjectTypeDefinition) {
-            val statement = if (!body.required || typeDefinition.nullable) {
+        if (safeType is ObjectTypeDefinition) {
+            val statement = if (typeUsage.nullable) {
                 parameterName.nullCheck()
             } else {
                 parameterName
             }
 
-            return typeDefinition.properties.map {
-                val propertyType = it.schema.typeDefinition
-                val contentType = getContentTypeForFormPart(propertyType)
+            return safeType.properties.map {
+                val propertyType = it.typeUsage
+                val contentType = getContentTypeForFormPart(propertyType.type)
                 val propertyStatement = statement.property(it.name)
                 emitterContext.runEmitter(
                     SerializationStatementEmitter(
-                        propertyType, !body.required, propertyStatement, contentType
+                        propertyType, propertyStatement, contentType
                     )
                 ).resultStatement.assignment("body ${it.sourceName} Payload".variableName())
             }
         } else {
             return listOf(
                 emitterContext.runEmitter(
-                    SerializationStatementEmitter(
-                        typeDefinition, !body.required, parameterName, body.content.mappedContentType
-                    )
+                    SerializationStatementEmitter(typeUsage, parameterName, body.content.mappedContentType)
                 ).resultStatement.assignment("bodyPayload".variableName())
             )
         }
@@ -274,8 +266,7 @@ class ClientRestInterfaceEmitter : CodeEmitter {
     }
 
     private fun KotlinMethod.emitOctetBody(body: TransformableBody): VariableName {
-        val typeDefinition = body.content.typeDefinition
-        val default = defaultParameterExpression(!body.required, typeDefinition)
+        val default = defaultParameterExpression(body.content.typeUsage)
         return "octed".variableName()
     }
 
@@ -332,7 +323,7 @@ class ClientRestInterfaceEmitter : CodeEmitter {
                 // adds content-type specific deserialization steps to the statement
                 statement = emitterContext.runEmitter(
                     DeserializationStatementEmitter(
-                        body.content.typeDefinition, !body.required, statement, body.content.mappedContentType, true
+                        body.content.typeUsage, statement, body.content.mappedContentType, true
                     )
                 ).resultStatement
 
@@ -369,9 +360,8 @@ class ClientRestInterfaceEmitter : CodeEmitter {
         }
     }
 
-    private fun defaultParameterExpression(forceNullable: Boolean, typeDefinition: TypeDefinition): KotlinExpression? {
-        val nullable = forceNullable || typeDefinition.nullable
-        return when (nullable) {
+    private fun defaultParameterExpression(typeUsage: TypeUsage): KotlinExpression? {
+        return when (typeUsage.nullable) {
             true -> nullLiteral()
             else -> null
         }

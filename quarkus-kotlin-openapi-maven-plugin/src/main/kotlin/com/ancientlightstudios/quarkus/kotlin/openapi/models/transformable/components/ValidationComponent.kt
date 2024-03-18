@@ -1,6 +1,6 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components
 
-class ValidationComponent(val validation: SchemaValidation) : SchemaDefinitionComponent, MetaComponent
+class ValidationComponent(val validation: SchemaValidation) : SchemaComponent, MetaComponent
 
 sealed interface SchemaValidation
 

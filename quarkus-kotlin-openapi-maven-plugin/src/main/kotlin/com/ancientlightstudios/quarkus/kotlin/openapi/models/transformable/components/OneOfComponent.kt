@@ -1,7 +1,7 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchemaUsage
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.SchemaUsage
 
-class OneOfComponent(override val schemas: List<TransformableSchemaUsage>) : SomeOfComponent
+class OneOfComponent(override val schemas: List<SchemaUsage>) : SomeOfComponent
 
 // TODO: discriminator, additionalMapping

@@ -2,4 +2,4 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.comp
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchemaProperty
 
-class ObjectComponent(val properties: List<TransformableSchemaProperty> = listOf()) : SchemaDefinitionComponent, StructuralComponent
+class ObjectComponent(val properties: List<TransformableSchemaProperty> = listOf()) : SchemaComponent, StructuralComponent

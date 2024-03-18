@@ -2,12 +2,14 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.refactoring
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.inspect
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.NameSuggestionHint.nameSuggestion
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchemaUsage
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.*
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchema
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.ArrayItemsComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.ObjectComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.SomeOfComponent
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.pop
 
-class SchemaDefinitionNameRefactoring : SpecRefactoring {
+class SchemaNameRefactoring : SpecRefactoring {
 
     override fun RefactoringContext.perform() {
         // first step: name every schema used directly by a request or response if no name is set yet
@@ -45,15 +47,15 @@ class SchemaDefinitionNameRefactoring : SpecRefactoring {
             }
         }
 
-        // second step: assign names to every schema used within other schema if no name is set yet
+        // second step: assign names to every schema used within other schema if no name is yet set
         // we start with already named schemas
-        val definitionsWithNames = spec.schemaDefinitions.filterNot { it.name.isBlank() }.toMutableSet()
+        val definitionsWithNames = spec.schemas.filterNot { it.name.isBlank() }.toMutableSet()
 
         // helper function to avoid code duplication
-        val assignAndSchedule: (TransformableSchemaUsage, fallback: String) -> Unit = { schema, name ->
+        val assignAndSchedule: (TransformableSchema, fallback: String) -> Unit = { schema, name ->
             if (assignName(schema, null, name)) {
                 // if a name was given to the schema, add it to the set to check its sub schemas too
-                definitionsWithNames.add(schema.schemaDefinition)
+                definitionsWithNames.add(schema)
             }
         }
 
@@ -61,8 +63,8 @@ class SchemaDefinitionNameRefactoring : SpecRefactoring {
         while (definitionsWithNames.isNotEmpty()) {
             definitionsWithNames.pop { current ->
                 current.inspect {
-                    val prefix = schemaDefinition.name
-                    components<ArrayItemsComponent> { assignAndSchedule(component.itemsSchema, "$prefix items") }
+                    val prefix = schema.name
+                    components<ArrayItemsComponent> { assignAndSchedule(component.schema, "$prefix items") }
                     components<ObjectComponent> {
                         component.properties.forEach {
                             assignAndSchedule(it.schema, "$prefix ${it.name}")
@@ -70,26 +72,25 @@ class SchemaDefinitionNameRefactoring : SpecRefactoring {
                     }
                     components<SomeOfComponent> {
                         component.schemas.forEachIndexed { index, schema ->
-                            assignAndSchedule(schema, "$prefix option ${index + 1}")
+                            assignAndSchedule(schema.schema, "$prefix option ${index + 1}")
                         }
                     }
                 }
             }
         }
 
-        if (spec.schemaDefinitions.any { it.name.isBlank() }) {
+        if (spec.schemas.any { it.name.isBlank() }) {
             ProbableBug("Could not assign names to some schemas")
         }
     }
 
-    private fun assignName(usage: TransformableSchemaUsage, suggestion: String?, fallback: String): Boolean {
-        val schemaDefinition = usage.schemaDefinition
-        if (schemaDefinition.name.isNotBlank()) {
+    private fun assignName(schema: TransformableSchema, suggestion: String?, fallback: String): Boolean {
+        if (schema.name.isNotBlank()) {
             // already a name assigned
             return false
         }
 
-        schemaDefinition.name = suggestion ?: fallback
+        schema.name = suggestion ?: fallback
         return true
     }
 }

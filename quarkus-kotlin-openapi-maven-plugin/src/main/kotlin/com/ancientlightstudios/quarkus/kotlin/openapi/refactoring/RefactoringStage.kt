@@ -13,30 +13,35 @@ class RefactoringStage(private val config: Config) : GeneratorStage {
         context.performRefactoring(PrepareSpecDirectionsRefactoring())
 
         context.performRefactoring(SplitByTagsRefactoring(config.splitByTags))
-        context.performRefactoring(LinkSchemasAndSchemaDefinitionsRefactoring())
 
-        // apply names to schema definitions if they don't have one yet
-        context.performRefactoring(SchemaDefinitionNameRefactoring())
+        // apply names to schemas if they don't have one yet
+        context.performRefactoring(SchemaNameRefactoring())
 
         // first apply a few modifications
-        context.performRefactoring(OptimizeSchemeDefinitionRefactoring())
+        context.performRefactoring(OptimizeSchemeRefactoring())
 
-        // adds type information to schema usages and schema definitions
-        context.performRefactoring(AssignTypesRefactoring(TypeMapper(config)))
+        // adds type information to schemas
+        context.performRefactoring(AssignTypesToSchemasRefactoring(TypeMapper(config)))
 
         // apply flow information (content-types, so we know which methods are required for each model)
         // we need the generated types for this to know what to assign to nested types within a multipart
         context.performRefactoring(AssignContentTypesRefactoring())
 
-        // split schema definitions if necessary (we need the types for this,
-        // because this is not important for primitive types)
-        context.performRefactoring(SplitSchemaDefinitionsRefactoring())
+        // split types if necessary, the direction for each type from the previous step is necessary for this
+        context.performRefactoring(SplitTypeDefinitionRefactoring())
 
-        // TODO: mark definitions/types which are reachable and thus need to be generated
+        // after types ready, we can assign them to the request and response objects
+        context.performRefactoring(AssignTypesToRequestsRefactoring())
+
+        // schemas have bidirectional or unidirectional type definitions. some of them are just overlays on top
+        // of real types which must be exported. This refactoring adds these models as a list to the spec.
+        context.performRefactoring(IdentifyRealTypeDefinitionsRefactoring())
 
         context.performRefactoring(PrepareBundleIdentifierRefactoring(config.interfaceName))
         context.performRefactoring(PrepareRequestIdentifierRefactoring())
 
+        // type definitions which needs to be exported are identified, make sure their names don't collide with other
+        // stuff
         context.performRefactoring(EnsureUniqueNamesRefactoring())
     }
 

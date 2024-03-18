@@ -1,6 +1,5 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeDefinitionHint.typeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.GenericTypeName.Companion.of
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.SimpleTypeName.Companion.typeName
@@ -42,14 +41,12 @@ fun getSourceAnnotation(source: ParameterKind, name: String): KotlinAnnotation {
     return KotlinAnnotation(annotationClass, null to name.literal())
 }
 
-fun TypeDefinition.buildValidType(forceNullable: Boolean = false): TypeName {
-    val isNullable = forceNullable || nullable
-
-    return when (this) {
-        is PrimitiveTypeDefinition -> baseType.typeName(isNullable)
-        is EnumTypeDefinition -> modelName.typeName(isNullable)
-        is ObjectTypeDefinition -> modelName.typeName(isNullable)
-        is CollectionTypeDefinition -> Kotlin.ListClass.typeName(isNullable)
-            .of(items.typeDefinition.buildValidType())
+fun TypeUsage.buildValidType(): TypeName {
+    return when (val safeType = this.type) {
+        is PrimitiveTypeDefinition -> safeType.baseType.typeName(nullable)
+        is EnumTypeDefinition -> safeType.modelName.typeName(nullable)
+        is ObjectTypeDefinition -> safeType.modelName.typeName(nullable)
+        is CollectionTypeDefinition -> Kotlin.ListClass.typeName(nullable)
+            .of(safeType.items.buildValidType())
     }
 }

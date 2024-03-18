@@ -7,7 +7,7 @@ data class ParseContext(
     val openApiVersion: ApiVersion,
     val contextNode: JsonNode,
     val contextPointer: JsonPointer,
-    val schemaDefinitionCollector: SchemaDefinitionCollector,
+    val schemaCollector: SchemaCollector,
     val contentTypeMapper: ContentTypeMapper
 ) {
 
@@ -22,7 +22,7 @@ data class ParseContext(
         openApiVersion,
         newContextNode,
         contextPointer.append(*segments),
-        schemaDefinitionCollector,
+        schemaCollector,
         contentTypeMapper
     )
         .also { it.rootContext = rootContext }
@@ -35,7 +35,7 @@ data class ParseContext(
 
     fun contextFor(pointer: JsonPointer): ParseContext {
         val newContextNode = contextNode.resolvePointer(pointer) ?: SpecIssue("Path ${pointer.path} not resolvable.")
-        return ParseContext(openApiVersion, newContextNode, pointer, schemaDefinitionCollector, contentTypeMapper)
+        return ParseContext(openApiVersion, newContextNode, pointer, schemaCollector, contentTypeMapper)
             .also { it.rootContext = rootContext }
     }
 

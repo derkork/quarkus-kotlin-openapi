@@ -2,4 +2,4 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.comp
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.SchemaModifier
 
-class SchemaModifierComponent(val modifier: SchemaModifier) : SchemaDefinitionComponent, MetaComponent
+class SchemaModifierComponent(val modifier: SchemaModifier) : SchemaComponent, MetaComponent

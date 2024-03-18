@@ -9,3 +9,4 @@
 - nullable aber required felder müssen im request enthalten sein
 - nullable felder mit default, trotzdem nullable?
 - validation
+- nullable/required for form-parameter!? wenn objekt optional aber property required?
