@@ -1,35 +1,22 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.hints
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.*
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.OriginPathHint.originPath
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchema
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.TypeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
 
-// specifies the type definition for a schema
+// specifies the bidirectional (or general) type definition of a schema. Some of these type definitions will be
+// replaced by unidirectional (up/down) type definitions in case of a split (e.g. if they contain read-only/write-only
+// properties or refer to such types)
 object TypeDefinitionHint : Hint<TypeDefinition> {
 
-    var TransformableSchemaDefinition.typeDefinition: TypeDefinition
-        get() = get(TypeDefinitionHint) ?: ProbableBug("No type assigned to schema")
+    var TransformableSchema.typeDefinition: TypeDefinition
+        get() = get(TypeDefinitionHint) ?: ProbableBug("No type assigned to schema ${this.originPath}")
         set(value) = set(TypeDefinitionHint, value)
 
-    val TransformableSchemaDefinition.hasTypeDefinition: Boolean
+    val TransformableSchema.hasTypeDefinition: Boolean
         get() = get(TypeDefinitionHint) != null
 
-    val TransformableParameter.typeDefinition : TypeDefinition
-        get() = schema.schemaDefinition.typeDefinition
-
-    val ContentMapping.typeDefinition : TypeDefinition
-        get() = schema.schemaDefinition.typeDefinition
-
-    val TransformableSchemaProperty.typeDefinition : TypeDefinition
-        get() = schema.schemaDefinition.typeDefinition
-
-
-    val TransformableSchemaUsage.typeDefinition: TypeDefinition
-        get() = schemaDefinition.typeDefinition
-
-    val TransformableSchemaUsage.hasTypeDefinition: Boolean
-        get() = schemaDefinition.hasTypeDefinition
-
-
+    fun TransformableSchema.clearTypeDefinition() = clear(TypeDefinitionHint)
 
 }

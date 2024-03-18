@@ -1,15 +1,18 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.refactoring
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.SchemaTypes
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchemaDefinition
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchema
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.ReferencingComponent
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.TypeComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.TypeDefinition
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.TypeUsage
 
 // converts the most basic form of a schema into a type. Is responsible for schemas without any base ref or *Of component.
 // Because these schemas don't have other dependencies they will always receive a real type and never an overlay
-class AssignTypesToSimpleDefinitionsRefactoring(
-    private val tasks: MutableSet<TransformableSchemaDefinition>,
-    private val typeMapper: TypeMapper
+class AssignTypesToSimpleSchemasRefactoring(
+    private val tasks: MutableSet<TransformableSchema>,
+    private val typeMapper: TypeMapper,
+    private val lazyTypeUsage: (TypeUsage, () -> TypeDefinition) -> Unit
 ) :
     SpecRefactoring {
 
@@ -31,8 +34,10 @@ class AssignTypesToSimpleDefinitionsRefactoring(
                 SchemaTypes.Integer,
                 SchemaTypes.Boolean -> performRefactoring(CreateSimplePrimitiveTypeRefactoring(typeMapper, definition))
 
-                SchemaTypes.Object -> performRefactoring(CreateSimpleObjectTypeRefactoring(definition))
-                SchemaTypes.Array -> performRefactoring(CreateSimpleCollectionTypeRefactoring(definition))
+                SchemaTypes.Object -> performRefactoring(CreateSimpleObjectTypeRefactoring(definition, lazyTypeUsage))
+                SchemaTypes.Array -> performRefactoring(
+                    CreateSimpleCollectionTypeRefactoring(definition, lazyTypeUsage)
+                )
             }
         }
     }

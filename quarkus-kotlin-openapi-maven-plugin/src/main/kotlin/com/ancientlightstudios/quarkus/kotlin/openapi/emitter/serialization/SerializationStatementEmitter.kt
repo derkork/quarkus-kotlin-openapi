@@ -2,7 +2,6 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.emitter.serialization
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeEmitter
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.EmitterContext
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeDefinitionHint.typeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.InvocationExpression.Companion.invoke
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.rawMethodName
@@ -13,8 +12,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
 
 class SerializationStatementEmitter(
-    private val typeDefinition: TypeDefinition,
-    private val forceNullable: Boolean,
+    private val typeUsage: TypeUsage,
     baseStatement: KotlinExpression,
     private val contentType: ContentType
 ) : CodeEmitter {
@@ -25,14 +23,14 @@ class SerializationStatementEmitter(
     //
     // e.g. if the base statement is just the variable name 'foo' it will produce 'foo?'
     override fun EmitterContext.emit() {
-        if (forceNullable || typeDefinition.nullable) {
+        if (typeUsage.nullable) {
             resultStatement = resultStatement.nullCheck()
         }
 
-        resultStatement = when (typeDefinition) {
+        resultStatement = when (val safeType = typeUsage.type) {
             is PrimitiveTypeDefinition -> emitForPrimitiveType(resultStatement)
             is EnumTypeDefinition -> emitForEnumType(resultStatement)
-            is CollectionTypeDefinition -> emitForCollectionType(typeDefinition, resultStatement)
+            is CollectionTypeDefinition -> emitForCollectionType(safeType, resultStatement)
             is ObjectTypeDefinition -> emitForObjectType(resultStatement)
         }
     }
@@ -81,11 +79,8 @@ class SerializationStatementEmitter(
     ): KotlinExpression {
         return when (contentType) {
             ContentType.ApplicationJson -> baseStatement.invoke("asJson".rawMethodName()) {
-                runEmitter(
-                    SerializationStatementEmitter(
-                        typeDefinition.items.typeDefinition, false, "it".variableName(), contentType
-                    )
-                ).resultStatement.statement()
+                runEmitter(SerializationStatementEmitter(typeDefinition.items, "it".variableName(), contentType))
+                    .resultStatement.statement()
             }
 
             else -> ProbableBug("Unsupported content type $contentType for collection serialization")

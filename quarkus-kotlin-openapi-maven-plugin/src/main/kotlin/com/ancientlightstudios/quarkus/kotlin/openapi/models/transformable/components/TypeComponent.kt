@@ -2,4 +2,4 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.comp
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.SchemaTypes
 
-class TypeComponent(val type: SchemaTypes) : SchemaDefinitionComponent, StructuralComponent
+class TypeComponent(val type: SchemaTypes) : SchemaComponent, StructuralComponent

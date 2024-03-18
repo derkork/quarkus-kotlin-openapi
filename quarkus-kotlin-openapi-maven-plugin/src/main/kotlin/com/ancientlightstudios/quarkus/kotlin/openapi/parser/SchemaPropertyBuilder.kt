@@ -7,7 +7,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 class SchemaPropertyBuilder(private val name: String, private val node: ObjectNode) {
 
     fun ParseContext.build(): TransformableSchemaProperty {
-        return TransformableSchemaProperty(name, parseAsSchemaUsage())
+        return TransformableSchemaProperty(name, parseAsSchema())
             .apply {
                 originPath = contextPath
             }

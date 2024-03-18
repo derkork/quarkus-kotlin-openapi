@@ -4,8 +4,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.RequestInspecti
 import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.inspect
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ParameterVariableNameHint.parameterVariableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.RequestContainerClassNameHint.requestContainerClassName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeDefinitionHint.typeDefinition
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeUsageHint.typeUsage
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.kotlinClass
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.kotlinFile
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.kotlinMember
@@ -27,17 +26,17 @@ class ServerRequestContainerEmitter : CodeEmitter {
     private fun RequestInspection.emitContainerFile() = kotlinFile(request.requestContainerClassName) {
         kotlinClass(fileName) {
             parameters {
-                val typeDefinition = parameter.schema.typeDefinition
+                val typeUsage = parameter.typeUsage
                 kotlinMember(
-                    parameter.parameterVariableName, typeDefinition.buildValidType(!parameter.required),
+                    parameter.parameterVariableName, typeUsage.buildValidType(),
                     accessModifier = null
                 )
             }
 
             body {
-                val typeDefinition = body.content.schema.typeDefinition
+                val typeUsage = body.content.typeUsage
                 kotlinMember(
-                    body.parameterVariableName, typeDefinition.buildValidType(!body.required), accessModifier = null
+                    body.parameterVariableName, typeUsage.buildValidType(), accessModifier = null
                 )
             }
         }

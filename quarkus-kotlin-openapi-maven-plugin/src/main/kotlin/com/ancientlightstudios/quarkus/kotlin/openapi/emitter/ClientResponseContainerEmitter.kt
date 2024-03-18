@@ -5,7 +5,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.inspect
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ClientErrorResponseClassNameHint.clientErrorResponseClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ClientHttpResponseClassNameHint.clientHttpResponseClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ResponseContainerClassNameHint.responseContainerClassName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeDefinitionHint.typeDefinition
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeUsageHint.typeUsage
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName.Companion.className
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ConstantName.Companion.rawConstantName
@@ -14,7 +14,6 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.Sim
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ResponseCode
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableBody
-import jakarta.ws.rs.core.Response
 
 class ClientResponseContainerEmitter : CodeEmitter {
 
@@ -78,7 +77,7 @@ class ClientResponseContainerEmitter : CodeEmitter {
                 "status".variableName(), Misc.RestResponseStatusClass.typeName(), accessModifier = null, override = true
             )
             body?.let {
-                val type = it.content.typeDefinition.buildValidType(!it.required)
+                val type = it.content.typeUsage.buildValidType()
                 kotlinMember("safeBody".variableName(), type, accessModifier = null)
             }
         }
@@ -101,7 +100,7 @@ class ClientResponseContainerEmitter : CodeEmitter {
             responseCode.statusCodeReason().className(""), asDataClass = isDataClass, baseClass = baseClass
         ) {
             body?.let {
-                val type = it.content.typeDefinition.buildValidType(!it.required)
+                val type = it.content.typeUsage.buildValidType()
                 kotlinMember("safeBody".variableName(), type, accessModifier = null)
             }
         }

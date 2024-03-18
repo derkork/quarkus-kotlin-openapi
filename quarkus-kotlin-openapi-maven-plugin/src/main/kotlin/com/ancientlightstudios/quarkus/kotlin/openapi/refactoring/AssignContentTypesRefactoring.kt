@@ -13,14 +13,14 @@ class AssignContentTypesRefactoring : SpecRefactoring {
         spec.inspect {
             bundles {
                 requests {
-                    parameters { propagate(parameter.typeDefinition, Direction.Up, ContentType.TextPlain) }
+                    parameters { propagate(parameter.schema.typeDefinition, Direction.Up, ContentType.TextPlain) }
 
-                    body { propagate(body.content.typeDefinition, Direction.Up, body.content.mappedContentType) }
+                    body { propagate(body.content.schema.typeDefinition, Direction.Up, body.content.mappedContentType) }
 
                     responses {
-                        headers { propagate(header.typeDefinition, Direction.Down, ContentType.TextPlain) }
+                        headers { propagate(header.schema.typeDefinition, Direction.Down, ContentType.TextPlain) }
 
-                        body { propagate(body.content.typeDefinition, Direction.Down, body.content.mappedContentType) }
+                        body { propagate(body.content.schema.typeDefinition, Direction.Down, body.content.mappedContentType) }
                     }
                 }
             }
@@ -45,7 +45,7 @@ class AssignContentTypesRefactoring : SpecRefactoring {
         typeDefinition: ObjectTypeDefinition, direction: Direction, contentType: ContentType
     ) {
         typeDefinition.properties.forEach {
-            val propertyType = it.schema.typeDefinition
+            val propertyType = it.typeUsage.type
             when (contentType) {
                 ContentType.ApplicationJson -> propagate(propertyType, direction, contentType)
 
@@ -63,7 +63,7 @@ class AssignContentTypesRefactoring : SpecRefactoring {
     private fun propagateToCollection(
         typeDefinition: CollectionTypeDefinition, direction: Direction, contentType: ContentType
     ) {
-        val itemType = typeDefinition.items.typeDefinition
+        val itemType = typeDefinition.items.type
         when (contentType) {
             ContentType.TextPlain,
             ContentType.ApplicationJson -> propagate(itemType, direction, contentType)

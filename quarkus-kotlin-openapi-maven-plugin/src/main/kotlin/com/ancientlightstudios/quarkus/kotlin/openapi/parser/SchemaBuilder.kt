@@ -1,24 +1,23 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.parser
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.OriginPathHint.originPath
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.DefaultSchemaUsage
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.SchemaModifier
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.SchemaTypes
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchemaDefinition
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchemaUsage
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchema
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.SpecIssue
 import com.fasterxml.jackson.databind.node.ObjectNode
 import java.util.*
 
-class SchemaDefinitionBuilder(
-    private val schemaDefinition: TransformableSchemaDefinition,
+class SchemaBuilder(
+    private val schema: TransformableSchema,
     private val node: ObjectNode
 ) {
 
     fun ParseContext.build() {
         // schema references can be paired with all other schema components since version 3.1. This is not allowed
         // for other references (e.g. parameter or request bodies), so this code works a little bit different.
-        val components = mutableListOf<SchemaDefinitionComponent>()
+        val components = mutableListOf<SchemaComponent>()
 
         val baseDefinitionAvailable = addBaseDefinitionComponent(components)
         if (!baseDefinitionAvailable || openApiVersion != ApiVersion.V3_0) {
@@ -41,22 +40,19 @@ class SchemaDefinitionBuilder(
             addNumberValidationComponent(components)
         }
 
-        schemaDefinition.components = components
-        schemaDefinition.name = contextPath.nameSuggestion() ?: ""
+        schema.components = components
+        schema.name = contextPath.nameSuggestion() ?: ""
     }
 
-    private fun ParseContext.addBaseDefinitionComponent(components: MutableList<SchemaDefinitionComponent>): Boolean {
+    private fun ParseContext.addBaseDefinitionComponent(components: MutableList<SchemaComponent>): Boolean {
         return node.getTextOrNull("\$ref")?.let {
-            val schema = TransformableSchemaUsage(schemaDefinitionCollector.registerSchemaDefinition(it))
-                .apply {
-                    originPath = "$contextPath.\$ref"
-                }
-            components.add(BaseDefinitionComponent(schema))
+            val schema = schemaCollector.registerSchema(it)
+            components.add(BaseSchemaComponent(schema))
             true
         } ?: false
     }
 
-    private fun ParseContext.addTypeComponent(components: MutableList<SchemaDefinitionComponent>) {
+    private fun ParseContext.addTypeComponent(components: MutableList<SchemaComponent>) {
         val types = when (openApiVersion) {
             ApiVersion.V3_0 -> node.getTextOrNull("type")?.let { listOf(it) }
             ApiVersion.V3_1 -> node.getMultiValue("type")?.map { it.asText() }?.filterNot { it == "null" }
@@ -73,14 +69,14 @@ class SchemaDefinitionBuilder(
         components.add(TypeComponent(types.first()))
     }
 
-    private fun ParseContext.addFormatComponent(components: MutableList<SchemaDefinitionComponent>) {
+    private fun ParseContext.addFormatComponent(components: MutableList<SchemaComponent>) {
         val format = node.getTextOrNull("format")
         if (format != null) {
             components.add(FormatComponent(format))
         }
     }
 
-    private fun ParseContext.addNullableComponent(components: MutableList<SchemaDefinitionComponent>) {
+    private fun ParseContext.addNullableComponent(components: MutableList<SchemaComponent>) {
         val nullable = when (openApiVersion) {
             ApiVersion.V3_0 -> node.getBooleanOrNull("nullable")
             ApiVersion.V3_1 -> node.getMultiValue("type")?.any { it.asText() == "null" }
@@ -91,7 +87,7 @@ class SchemaDefinitionBuilder(
         }
     }
 
-    private fun ParseContext.addDirectionComponent(components: MutableList<SchemaDefinitionComponent>) {
+    private fun ParseContext.addDirectionComponent(components: MutableList<SchemaComponent>) {
         val readOnly = node.getBooleanOrNull("readOnly") ?: false
         val writeOnly = node.getBooleanOrNull("writeOnly") ?: false
 
@@ -105,19 +101,19 @@ class SchemaDefinitionBuilder(
         direction?.let { components.add(SchemaModifierComponent(direction)) }
     }
 
-    private fun addCustomConstraintsValidationComponent(components: MutableList<SchemaDefinitionComponent>) {
+    private fun addCustomConstraintsValidationComponent(components: MutableList<SchemaComponent>) {
         node.getMultiValue("x-constraints")?.map { it.asText() }
             ?.let { components.add(ValidationComponent(CustomConstraintsValidation(it))) }
     }
 
-    private fun ParseContext.addArrayComponent(components: MutableList<SchemaDefinitionComponent>) {
+    private fun ParseContext.addArrayComponent(components: MutableList<SchemaComponent>) {
         node.get("items")?.let {
-            val schema = contextFor(it, "items").parseAsSchemaUsage()
+            val schema = contextFor(it, "items").parseAsSchema()
             components.add(ArrayItemsComponent(schema))
         }
     }
 
-    private fun addArrayValidationComponent(components: MutableList<SchemaDefinitionComponent>) {
+    private fun addArrayValidationComponent(components: MutableList<SchemaComponent>) {
         val minItems = node.getTextOrNull("minItems")?.toInt()
         val maxItems = node.getTextOrNull("maxItems")?.toInt()
         if (minItems != null || maxItems != null) {
@@ -125,14 +121,14 @@ class SchemaDefinitionBuilder(
         }
     }
 
-    private fun addEnumValidationComponent(components: MutableList<SchemaDefinitionComponent>) {
+    private fun addEnumValidationComponent(components: MutableList<SchemaComponent>) {
         val enumValues = node.withArray("enum").map { it.asText() }
         if (enumValues.isNotEmpty()) {
             components.add(EnumValidationComponent(enumValues))
         }
     }
 
-    private fun addStringValidationComponent(components: MutableList<SchemaDefinitionComponent>) {
+    private fun addStringValidationComponent(components: MutableList<SchemaComponent>) {
         val minLength = node.getTextOrNull("minLength")?.toInt()
         val maxLength = node.getTextOrNull("maxLength")?.toInt()
         val pattern = node.getTextOrNull("pattern")
@@ -141,7 +137,7 @@ class SchemaDefinitionBuilder(
         }
     }
 
-    private fun ParseContext.addNumberValidationComponent(components: MutableList<SchemaDefinitionComponent>) {
+    private fun ParseContext.addNumberValidationComponent(components: MutableList<SchemaComponent>) {
         val minimum = extractComparableNumber("minimum")
         val maximum = extractComparableNumber("maximum")
         if (minimum != null || maximum != null) {
@@ -167,44 +163,44 @@ class SchemaDefinitionBuilder(
         }
     }
 
-    private fun addDefaultComponent(components: MutableList<SchemaDefinitionComponent>) {
+    private fun addDefaultComponent(components: MutableList<SchemaComponent>) {
         node.getTextOrNull("default")?.let { components.add(DefaultComponent(it)) }
     }
 
-    private fun ParseContext.addAllOfComponent(components: MutableList<SchemaDefinitionComponent>) {
+    private fun ParseContext.addAllOfComponent(components: MutableList<SchemaComponent>) {
         val schemas = node.withArray("allOf")
             .mapIndexed { idx, it ->
-                contextFor(it, "allOf", "$idx").parseAsSchemaUsage()
-            }
+                contextFor(it, "allOf", "$idx").parseAsSchema()
+            }.map { DefaultSchemaUsage(it) }
 
         if (schemas.isNotEmpty()) {
             components.add(AllOfComponent(schemas))
         }
     }
 
-    private fun ParseContext.addAnyOfComponent(components: MutableList<SchemaDefinitionComponent>) {
+    private fun ParseContext.addAnyOfComponent(components: MutableList<SchemaComponent>) {
         val schemas = node.withArray("anyOf")
             .mapIndexed { idx, it ->
-                contextFor(it, "anyOf", "$idx").parseAsSchemaUsage()
-            }
+                contextFor(it, "anyOf", "$idx").parseAsSchema()
+            }.map { DefaultSchemaUsage(it) }
 
         if (schemas.isNotEmpty()) {
             components.add(AnyOfComponent(schemas))
         }
     }
 
-    private fun ParseContext.addOneOfComponent(components: MutableList<SchemaDefinitionComponent>) {
+    private fun ParseContext.addOneOfComponent(components: MutableList<SchemaComponent>) {
         val schemas = node.withArray("oneOf")
             .mapIndexed { idx, it ->
-                contextFor(it, "oneOf", "$idx").parseAsSchemaUsage()
-            }
+                contextFor(it, "oneOf", "$idx").parseAsSchema()
+            }.map { DefaultSchemaUsage(it) }
 
         if (schemas.isNotEmpty()) {
             components.add(OneOfComponent(schemas))
         }
     }
 
-    private fun ParseContext.addObjectComponent(components: MutableList<SchemaDefinitionComponent>) {
+    private fun ParseContext.addObjectComponent(components: MutableList<SchemaComponent>) {
         val properties = node.with("properties")
             .propertiesAsList()
             .map { (name, propertyNode) ->
@@ -216,7 +212,7 @@ class SchemaDefinitionBuilder(
         }
     }
 
-    private fun addObjectValidationComponent(components: MutableList<SchemaDefinitionComponent>) {
+    private fun addObjectValidationComponent(components: MutableList<SchemaComponent>) {
         val required = node.withArray("required").map { it.asText() }
         if (required.isNotEmpty()) {
             components.add(ObjectValidationComponent(required))
@@ -259,9 +255,13 @@ class SchemaDefinitionBuilder(
 //
 }
 
-fun ParseContext.parseAsSchemaDefinitionInto(schemaDefinition: TransformableSchemaDefinition) {
+fun ParseContext.parseAsSchema() =
+    contextNode.asObjectNode { "Json object expected for $contextPath" }
+        .let { schemaCollector.registerSchema(contextPath) }
+
+fun ParseContext.parseAsSchemaInto(schema: TransformableSchema) {
     contextNode.asObjectNode { "Json object expected for $contextPath" }
         .let {
-            SchemaDefinitionBuilder(schemaDefinition, it).run { this@parseAsSchemaDefinitionInto.build() }
+            SchemaBuilder(schema, it).run { this@parseAsSchemaInto.build() }
         }
 }

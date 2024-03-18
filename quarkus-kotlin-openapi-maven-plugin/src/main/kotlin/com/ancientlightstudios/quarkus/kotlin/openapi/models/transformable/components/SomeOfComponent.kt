@@ -1,9 +1,9 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchemaUsage
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.SchemaUsage
 
-interface SomeOfComponent : SchemaDefinitionComponent, ReferencingComponent {
+interface SomeOfComponent : SchemaComponent, ReferencingComponent {
 
-    val schemas: List<TransformableSchemaUsage>
+    val schemas: List<SchemaUsage>
 
 }

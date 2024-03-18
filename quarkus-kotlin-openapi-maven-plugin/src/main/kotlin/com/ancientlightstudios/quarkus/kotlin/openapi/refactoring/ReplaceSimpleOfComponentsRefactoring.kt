@@ -9,28 +9,28 @@ class ReplaceSimpleOfComponentsRefactoring : SpecRefactoring {
 
     override fun RefactoringContext.perform() {
         spec.inspect {
-            schemaDefinitions {
+            schemas {
                 // is there a single *Of component?
-                val someOfComponents = schemaDefinition.components.filterIsInstance<SomeOfComponent>()
+                val someOfComponents = schema.components.filterIsInstance<SomeOfComponent>()
                 val someOfComponent = when (someOfComponents.size) {
                     1 -> someOfComponents.first()
-                    else -> return@schemaDefinitions
+                    else -> return@schemas
                 }
 
                 // is it already a allOf component?
                 if (someOfComponent is AllOfComponent) {
-                    return@schemaDefinitions
+                    return@schemas
                 }
 
                 // can't replace it, without changing the meaning
                 if (someOfComponent.schemas.size > 1) {
-                    return@schemaDefinitions
+                    return@schemas
                 }
 
-                val newComponents = schemaDefinition.components.toMutableList()
+                val newComponents = schema.components.toMutableList()
                 newComponents.remove(someOfComponent)
                 newComponents.add(AllOfComponent(someOfComponent.schemas))
-                schemaDefinition.components = newComponents
+                schema.components = newComponents
             }
         }
     }

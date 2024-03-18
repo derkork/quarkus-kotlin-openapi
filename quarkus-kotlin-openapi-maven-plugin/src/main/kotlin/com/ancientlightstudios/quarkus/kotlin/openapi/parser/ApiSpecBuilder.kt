@@ -13,10 +13,10 @@ class ApiSpecBuilder(
     private val node: ObjectNode
 ) {
 
-    private val schemaDefinitionCollector = SchemaDefinitionCollector()
+    private val schemaCollector = SchemaCollector()
     private val parseContext = ParseContext(
         extractOpenApiVersion(), node,
-        JsonPointer.fromPath("#"), schemaDefinitionCollector, contentTypeMapper
+        JsonPointer.fromPath("#"), schemaCollector, contentTypeMapper
     )
 
     fun build() {
@@ -25,7 +25,7 @@ class ApiSpecBuilder(
 
         // just create a default bundle with all the available requests
         spec.bundles = listOf(TransformableRequestBundle(null, requests))
-        spec.schemaDefinitions = schemas
+        spec.schemas = schemas
         spec.version = node.with("info").getTextOrNull("version")
     }
 
@@ -61,14 +61,14 @@ class ApiSpecBuilder(
             }
     }
 
-    private fun extractSchemas(): List<TransformableSchemaDefinition> {
-        val result = mutableListOf<TransformableSchemaDefinition>()
-        var current = schemaDefinitionCollector.nextUnresolvedSchemaDefinition
+    private fun extractSchemas(): List<TransformableSchema> {
+        val result = mutableListOf<TransformableSchema>()
+        var current = schemaCollector.nextUnresolvedSchema
         while (current != null) {
             parseContext.contextFor(JsonPointer.fromPath(current.originPath))
-                .parseAsSchemaDefinitionInto(current)
+                .parseAsSchemaInto(current)
             result.add(current)
-            current = schemaDefinitionCollector.nextUnresolvedSchemaDefinition
+            current = schemaCollector.nextUnresolvedSchema
         }
 
         return result

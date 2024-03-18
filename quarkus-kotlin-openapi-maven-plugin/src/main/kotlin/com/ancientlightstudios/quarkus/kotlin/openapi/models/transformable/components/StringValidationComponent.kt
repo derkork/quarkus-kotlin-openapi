@@ -4,4 +4,4 @@ class StringValidationComponent(
     val minLength: Int? = null,
     val maxLength: Int? = null,
     val pattern: String? = null
-) : SchemaDefinitionComponent, MetaComponent
+) : SchemaComponent, MetaComponent

@@ -3,7 +3,9 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.models.types
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ContentType
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.SchemaModifier
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.SchemaValidation
+import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
 
 interface EnumTypeDefinition : TypeDefinition {
 
@@ -21,6 +23,7 @@ class RealEnumTypeDefinition(
     override val modelName: ClassName,
     override val baseType: ClassName,
     override val nullable: Boolean,
+    override val modifier: SchemaModifier?,
     override val items: List<EnumTypeItem>,
     override val defaultValue: KotlinExpression?,
     override val validations: List<SchemaValidation>
@@ -36,22 +39,63 @@ class RealEnumTypeDefinition(
     }
 
     override fun getContentTypes(direction: Direction): Set<ContentType> {
-        return _contentTypes.getOrElse(direction) { mutableSetOf() }
+        return _contentTypes[direction] ?: mutableSetOf()
     }
+
+    override fun dependsOn(type: TypeDefinition) = false
+
+    override fun split(): Pair<TypeDefinition, TypeDefinition> {
+        ProbableBug("split for enum types not defined")
+    }
+
+    override fun replaceType(old: TypeDefinition, new: TypeDefinition) {}
 
 }
 
+// TODO: as the base must be mutable we can't use Delegation (not yet supported by kotlin yet). So we have to implement
+//  the methods by hand.
 class EnumTypeDefinitionOverlay(
-    private val base: EnumTypeDefinition,
-    forceNullable: Boolean,
-    defaultValueOverlay: KotlinExpression?,
-    additionalValidations: List<SchemaValidation> = listOf()
-) : EnumTypeDefinition by base, TypeDefinitionOverlay {
+    override var base: EnumTypeDefinition,
+    private val forceNullable: Boolean,
+    private val modifierOverlay: SchemaModifier?,
+    private val defaultValueOverlay: KotlinExpression?,
+    private val additionalValidations: List<SchemaValidation> = listOf()
+) : EnumTypeDefinition, TypeDefinitionOverlay {
 
-    override val nullable = forceNullable || base.nullable
+    override val modelName: ClassName
+        get() = base.modelName
 
-    override val defaultValue = defaultValueOverlay ?: base.defaultValue
+    override val baseType: ClassName
+        get() = base.baseType
 
-    override val validations = additionalValidations + base.validations
+    override val nullable: Boolean
+        get() = forceNullable || base.nullable
 
+    override val modifier: SchemaModifier?
+        get() = modifierOverlay ?: base.modifier
+
+    override val items: List<EnumTypeItem>
+        get() = base.items
+
+    override val defaultValue: KotlinExpression?
+        get() = defaultValueOverlay ?: base.defaultValue
+
+    override val validations: List<SchemaValidation>
+        get() = additionalValidations + base.validations
+
+    override val directions: Set<Direction>
+        get() = base.directions
+
+    override fun addContentType(direction: Direction, contentType: ContentType) =
+        base.addContentType(direction, contentType)
+
+    override fun getContentTypes(direction: Direction) = base.getContentTypes(direction)
+
+    override fun dependsOn(type: TypeDefinition) = false
+
+    override fun split(): Pair<TypeDefinition, TypeDefinition> {
+        ProbableBug("split for enum types not defined")
+    }
+
+    override fun replaceType(old: TypeDefinition, new: TypeDefinition) {}
 }

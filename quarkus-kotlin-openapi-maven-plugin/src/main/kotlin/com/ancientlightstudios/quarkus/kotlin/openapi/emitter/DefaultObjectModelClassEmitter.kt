@@ -5,7 +5,6 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.deserialization.De
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.serialization.SerializationStatementEmitter
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.DeserializationDirectionHint.deserializationDirection
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.SerializationDirectionHint.serializationDirection
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeDefinitionHint.typeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.InvocationExpression.Companion.invoke
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.methodName
@@ -30,10 +29,10 @@ class DefaultObjectModelClassEmitter(private val typeDefinition: ObjectTypeDefin
             kotlinClass(fileName, asDataClass = true) {
                 typeDefinition.properties.forEach {
                     val forceNullable = !typeDefinition.required.contains(it.sourceName)
-                    val defaultValue = generateDefaultValueExpression(it.schema.typeDefinition, forceNullable)
+                    val defaultValue = generateDefaultValueExpression(it.typeUsage)
                     kotlinMember(
                         it.name,
-                        it.schema.typeDefinition.buildValidType(forceNullable),
+                        it.typeUsage.buildValidType(),
                         accessModifier = null,
                         default = defaultValue
                     )
@@ -74,23 +73,20 @@ class DefaultObjectModelClassEmitter(private val typeDefinition: ObjectTypeDefin
     // generates a call to setProperty for every property of the object
     private fun MethodAware.generateJsonSerializeMethod() {
         kotlinMethod("asJson".rawMethodName(), returnType = Misc.JsonNodeClass.typeName(), bodyAsAssignment = true) {
-            val required = typeDefinition.required
-
             var expression = invoke("objectNode".rawMethodName())
 
             typeDefinition.properties.forEach {
-                val isPropertyRequired = required.contains(it.sourceName)
                 val serialization = emitterContext.runEmitter(
-                    SerializationStatementEmitter(
-                        it.schema.typeDefinition, !isPropertyRequired, it.name, ContentType.ApplicationJson
-                    )
+                    SerializationStatementEmitter(it.typeUsage, it.name, ContentType.ApplicationJson)
                 ).resultStatement
 
                 expression = expression.wrap().invoke(
                     "setProperty".rawMethodName(),
                     it.sourceName.literal(),
                     serialization,
-                    isPropertyRequired.literal()
+                    // only check for required, not !nullable, because we want to include null in the response
+                    // if the type is nullable but required
+                    it.typeUsage.required.literal()
                 )
             }
 
@@ -114,10 +110,8 @@ class DefaultObjectModelClassEmitter(private val typeDefinition: ObjectTypeDefin
         ) {
             invoke("onNotNull".rawMethodName()) {
                 // iterate over all members and create a deserialize statement for each
-                val required = typeDefinition.required
                 val root = "value".variableName()
                 val objectParts = typeDefinition.properties.map {
-                    val isPropertyRequired = required.contains(it.sourceName)
 
                     val statement = root.invoke(
                         "findProperty".rawMethodName(),
@@ -126,9 +120,7 @@ class DefaultObjectModelClassEmitter(private val typeDefinition: ObjectTypeDefin
                     )
 
                     emitterContext.runEmitter(
-                        DeserializationStatementEmitter(
-                            it.schema.typeDefinition, !isPropertyRequired, statement, ContentType.ApplicationJson, false
-                        )
+                        DeserializationStatementEmitter(it.typeUsage, statement, ContentType.ApplicationJson, false)
                     ).resultStatement.assignment("${it.sourceName}Maybe".variableName())
                 }
 
@@ -146,19 +138,16 @@ class DefaultObjectModelClassEmitter(private val typeDefinition: ObjectTypeDefin
         }
     }
 
-    private fun generateDefaultValueExpression(
-        propertyType: TypeDefinition, forceNullable: Boolean
-    ): KotlinExpression? {
-        val declaredDefaultValue = when (propertyType) {
-            is PrimitiveTypeDefinition -> propertyType.defaultValue
-            is EnumTypeDefinition -> propertyType.defaultValue
+    private fun generateDefaultValueExpression(typeUsage: TypeUsage): KotlinExpression? {
+        val declaredDefaultValue = when (val safeType = typeUsage.type) {
+            is PrimitiveTypeDefinition -> safeType.defaultValue
+            is EnumTypeDefinition -> safeType.defaultValue
             is CollectionTypeDefinition,
             is ObjectTypeDefinition -> null
         }
 
-        val canBeNull = forceNullable || propertyType.nullable
         // if there is a default expression defined, use it. Otherwise, use the null expression, if null is allowed
-        return declaredDefaultValue ?: if (canBeNull) nullLiteral() else null
+        return declaredDefaultValue ?: if (typeUsage.nullable) nullLiteral() else null
     }
 
 }

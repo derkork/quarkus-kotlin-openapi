@@ -7,7 +7,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.inspect
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ClientDelegateClassNameHint.clientDelegateClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ParameterVariableNameHint.parameterVariableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.RequestMethodNameHint.requestMethodName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeDefinitionHint.typeDefinition
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeUsageHint.typeUsage
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.GenericTypeName.Companion.of
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.SimpleTypeName.Companion.typeName
@@ -60,35 +60,35 @@ class ClientDelegateEmitter(private val interfaceName: String) : CodeEmitter {
         val parameterKind = parameter.kind
         val parameterName = parameter.parameterVariableName
 
-        kotlinParameter(parameterName, parameter.typeDefinition.getSerializationTargetType(!parameter.required)) {
+        kotlinParameter(parameterName, parameter.typeUsage.getSerializationTargetType()) {
             addAnnotation(getSourceAnnotation(parameterKind, parameter.name))
         }
     }
 
     private fun KotlinMethod.emitBody(body: TransformableBody) {
         val content = body.content
-        val typeDefinition = content.typeDefinition
+        val typeUsage = content.typeUsage
         addConsumesAnnotation(content.rawContentType)
 
         return when (body.content.mappedContentType) {
             ContentType.ApplicationJson,
             ContentType.TextPlain ->
-                kotlinParameter(body.parameterVariableName, typeDefinition.getSerializationTargetType(!body.required))
+                kotlinParameter(body.parameterVariableName, typeUsage.getSerializationTargetType())
 
             ContentType.ApplicationFormUrlencoded -> {
-
-                if (typeDefinition is ObjectTypeDefinition) {
-                    typeDefinition.properties.forEach {
+                val type = typeUsage.type
+                if (type is ObjectTypeDefinition) {
+                    type.properties.forEach {
                         val parameter = body.parameterVariableName.extend(prefix = it.sourceName)
                         kotlinParameter(
-                            parameter, typeDefinition.getSerializationTargetType(!body.required)
+                            parameter, typeUsage.getSerializationTargetType()
                         ) {
                             kotlinAnnotation(Jakarta.FormParamAnnotationClass, it.sourceName.literal())
                         }
                     }
                 } else {
                     kotlinParameter(
-                        body.parameterVariableName, typeDefinition.getSerializationTargetType(!body.required)
+                        body.parameterVariableName, typeUsage.getSerializationTargetType()
                     )
                 }
             }

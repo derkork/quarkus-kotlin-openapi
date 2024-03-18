@@ -2,7 +2,6 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.emitter.deserialization
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeEmitter
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.EmitterContext
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeDefinitionHint.typeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.InvocationExpression.Companion.invoke
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.companionMethod
@@ -14,8 +13,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.Conte
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.*
 
 class DeserializationStatementEmitter(
-    private val typeDefinition: TypeDefinition,
-    private val forceNullable: Boolean,
+    private val typeUsage: TypeUsage,
     baseStatement: KotlinExpression,
     private val contentType: ContentType,
     private val fromRaw: Boolean
@@ -28,14 +26,14 @@ class DeserializationStatementEmitter(
     // <resultStatement>
     //    .required()
     override fun EmitterContext.emit() {
-        resultStatement = when (typeDefinition) {
-            is PrimitiveTypeDefinition -> emitForPrimitiveType(typeDefinition, resultStatement)
-            is EnumTypeDefinition -> emitForEnumType(typeDefinition, resultStatement)
-            is CollectionTypeDefinition -> emitForCollectionType(typeDefinition, resultStatement)
-            is ObjectTypeDefinition -> emitForObjectType(typeDefinition, resultStatement)
+        resultStatement = when (val safeType = typeUsage.type) {
+            is PrimitiveTypeDefinition -> emitForPrimitiveType(safeType, resultStatement)
+            is EnumTypeDefinition -> emitForEnumType(safeType, resultStatement)
+            is CollectionTypeDefinition -> emitForCollectionType(safeType, resultStatement)
+            is ObjectTypeDefinition -> emitForObjectType(safeType, resultStatement)
         }
 
-        if (!forceNullable && !typeDefinition.nullable) {
+        if (!typeUsage.nullable) {
             resultStatement = resultStatement.wrap().invoke("required".rawMethodName())
         }
     }
@@ -89,11 +87,7 @@ class DeserializationStatementEmitter(
 
         result = result.wrap().invoke("mapItems".methodName())
         {
-            runEmitter(
-                DeserializationStatementEmitter(
-                    typeDefinition.items.typeDefinition, false, "it".variableName(), contentType, false
-                )
-            )
+            runEmitter(DeserializationStatementEmitter(typeDefinition.items, "it".variableName(), contentType, false))
                 .resultStatement.statement()
         }
         result = runEmitter(ValidationStatementEmitter(typeDefinition, result)).resultStatement
