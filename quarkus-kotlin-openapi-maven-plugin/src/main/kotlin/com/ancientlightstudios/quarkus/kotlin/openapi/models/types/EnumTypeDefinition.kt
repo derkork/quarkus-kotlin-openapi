@@ -20,7 +20,7 @@ interface EnumTypeDefinition : TypeDefinition {
 }
 
 class RealEnumTypeDefinition(
-    override val modelName: ClassName,
+    override var modelName: ClassName,
     override val baseType: ClassName,
     override val nullable: Boolean,
     override val modifier: SchemaModifier?,

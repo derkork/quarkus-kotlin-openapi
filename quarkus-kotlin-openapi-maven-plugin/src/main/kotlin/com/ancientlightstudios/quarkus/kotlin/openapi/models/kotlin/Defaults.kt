@@ -19,7 +19,7 @@ object Kotlin {
     val ListClass = "List".rawClassName("kotlin.collections", true)
     val ExceptionClass = "Exception".rawClassName("kotlin", true)
     val JvmNameClass = "JvmName".rawClassName("kotlin.jvm", true)
-
+    val PairClass = "Pair".rawClassName("kotlin", true)
 }
 
 object Jakarta {

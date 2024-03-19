@@ -1,7 +1,5 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.SimpleTypeName.Companion.typeName
-
 sealed interface TypeName {
 
     val value: String
@@ -23,18 +21,18 @@ sealed interface TypeName {
     }
 
     @Suppress("DataClassPrivateConstructor")
-    data class GenericTypeName private constructor(val outerType: SimpleTypeName, val innerType: TypeName) : TypeName {
+    data class GenericTypeName private constructor(val outerType: SimpleTypeName, val innerType: List<TypeName>) :
+        TypeName {
 
         override val value = when (outerType.nullable) {
-            true -> "${outerType.name.value}<${innerType.value}>?"
-            false -> "${outerType.name.value}<${innerType.value}>"
+            true -> "${outerType.name.value}<${innerType.joinToString { it.value }}>?"
+            false -> "${outerType.name.value}<${innerType.joinToString { it.value }}>"
         }
 
         companion object {
 
-            fun SimpleTypeName.of(inner: TypeName) = GenericTypeName(this, inner)
-
-            fun SimpleTypeName.of(inner: ClassName, nullable: Boolean = false) = of(inner.typeName(nullable))
+            fun SimpleTypeName.of(inner: TypeName, vararg additional: TypeName) =
+                GenericTypeName(this, listOf(inner) + additional.toList())
 
         }
 

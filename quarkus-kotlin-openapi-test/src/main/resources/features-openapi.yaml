@@ -7,6 +7,56 @@ tags:
   - name: json
 
 paths:
+  /features/parameters/test:
+    get:
+      tags:
+        - parameters
+      operationId: parametersTest
+      parameters:
+        - name: first
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: second
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: X-THIRD-HEADER
+          in: header
+          required: false
+          schema:
+            type: integer
+            items:
+              type:
+                - string
+                - 'null'
+      responses:
+        '204':
+          description: Ok
+          headers:
+            X-FIRST-HEADER:
+              required: true
+              schema:
+                type: string
+            X-SECOND-HEADER:
+              schema:
+                type:
+                  - integer
+                  - 'null'
+            X-THIRD-HEADER:
+              in: query
+              required: false
+              schema:
+                type: integer
+                items:
+                  type:
+                    - string
+                    - 'null'
+        '400':
+          $ref: '#/components/responses/OperationError400'
+
   /features/plain/optional/enum:
     post:
       tags:

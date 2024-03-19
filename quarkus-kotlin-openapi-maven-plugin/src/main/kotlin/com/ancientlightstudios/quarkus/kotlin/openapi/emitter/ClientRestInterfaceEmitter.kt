@@ -1,5 +1,6 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
+import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.deserialization.CombineIntoObjectStatementEmitter
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.deserialization.DeserializationStatementEmitter
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.serialization.SerializationStatementEmitter
 import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.RequestBundleInspection
@@ -28,6 +29,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.Conte
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ResponseCode
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableBody
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableParameter
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.CollectionTypeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.ObjectTypeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.TypeUsage
 import com.ancientlightstudios.quarkus.kotlin.openapi.refactoring.AssignContentTypesRefactoring.Companion.getContentTypeForFormPart
@@ -71,8 +73,8 @@ class ClientRestInterfaceEmitter : CodeEmitter {
         kotlinMethod(request.requestMethodName, true, request.responseContainerClassName.typeName()) {
 
             val requestContainerParts = mutableListOf<VariableName>()
-            parameters { requestContainerParts.add(emitParameter(parameter)) }
             body { requestContainerParts.addAll(emitBody(body)) }
+            parameters { requestContainerParts.add(emitParameter(parameter)) }
 
             tryExpression {
                 tryExpression {
@@ -110,7 +112,8 @@ class ClientRestInterfaceEmitter : CodeEmitter {
                         generateKnownResponseOption(
                             successClass,
                             it.responseCode as ResponseCode.HttpStatusCode,
-                            it.body
+                            it.body,
+                            it.headers
                         )
                     }
 
@@ -118,7 +121,9 @@ class ClientRestInterfaceEmitter : CodeEmitter {
                     val defaultResponse = request.responses.firstOrNull { it.responseCode == ResponseCode.Default }
                     when (defaultResponse) {
                         null -> generateFallbackResponseOption(errorClass)
-                        else -> generateDefaultResponseOption(successClass, defaultResponse.body)
+                        else -> generateDefaultResponseOption(
+                            successClass, defaultResponse.body, defaultResponse.headers
+                        )
                     }
                 }.assignment(responseMaybe)
 
@@ -271,17 +276,22 @@ class ClientRestInterfaceEmitter : CodeEmitter {
     }
 
     private fun WhenOptionAware.generateKnownResponseOption(
-        responseClass: ClassName, statusCode: ResponseCode.HttpStatusCode, body: TransformableBody?
+        responseClass: ClassName, statusCode: ResponseCode.HttpStatusCode, body: TransformableBody?,
+        headers: List<TransformableParameter>
     ) {
         val optionValue = Misc.RestResponseStatusClass.companionObject()
             .property(statusCode.statusCodeName().rawConstantName())
-        generateResponseOption(responseClass.nested(statusCode.statusCodeReason()), optionValue, false, body)
+        generateResponseOption(
+            responseClass.nested(statusCode.statusCodeReason()), optionValue, false, body, headers
+        )
     }
 
     private fun WhenOptionAware.generateDefaultResponseOption(
-        responseClass: ClassName, body: TransformableBody?
+        responseClass: ClassName, body: TransformableBody?, headers: List<TransformableParameter>
     ) {
-        generateResponseOption(responseClass.rawNested("Default"), "else".variableName(), true, body)
+        generateResponseOption(
+            responseClass.rawNested("Default"), "else".variableName(), true, body, headers
+        )
     }
 
     // build something like
@@ -296,7 +306,8 @@ class ClientRestInterfaceEmitter : CodeEmitter {
     //
     // RestResponse.Status.<ResponseName> -> Maybe.Success("response.body", <ResponseObject>)
     private fun WhenOptionAware.generateResponseOption(
-        responseClass: ClassName, optionValue: KotlinExpression, withStatusCode: Boolean, body: TransformableBody?
+        responseClass: ClassName, optionValue: KotlinExpression, withStatusCode: Boolean, body: TransformableBody?,
+        headers: List<TransformableParameter>
     ) {
         val additionalParameter = when (withStatusCode) {
             true -> listOf("statusCode".variableName())
@@ -304,13 +315,13 @@ class ClientRestInterfaceEmitter : CodeEmitter {
         }
 
         optionBlock(optionValue) {
-            if (body == null) {
-                invoke(
-                    Library.MaybeSuccessClass.constructorName,
-                    "response.body".literal(),
-                    invoke(responseClass.constructorName, *additionalParameter.toTypedArray())
-                ).statement()
-            } else {
+            val responseContainerParts = mutableListOf<VariableName>()
+
+            headers.forEach {
+                responseContainerParts.add(emitHeaderParameter(it))
+            }
+
+            if (body != null) {
                 // TODO: we probably need different target types here (e.g. for binary)
                 // produces
                 // response.readEntity(String::class.java)
@@ -318,30 +329,60 @@ class ClientRestInterfaceEmitter : CodeEmitter {
                     .invoke("readEntity".rawMethodName(), Kotlin.StringClass.javaClass())
                     .assignment("entity".variableName())
 
-                var statement = invoke(Library.MaybeSuccessClass.constructorName, "response.body".literal(), entity)
+                val statement = invoke(Library.MaybeSuccessClass.constructorName, "response.body".literal(), entity)
 
                 // adds content-type specific deserialization steps to the statement
-                statement = emitterContext.runEmitter(
-                    DeserializationStatementEmitter(
-                        body.content.typeUsage, statement, body.content.mappedContentType, true
-                    )
-                ).resultStatement
+                responseContainerParts.add(
+                    emitterContext.runEmitter(
+                        DeserializationStatementEmitter(
+                            body.content.typeUsage, statement, body.content.mappedContentType, true
+                        )
+                    ).resultStatement.assignment(body.parameterVariableName.extend(postfix = "maybe"))
+                )
+            }
 
-                // produces
-                // <statement>
-                //     .onSuccess { success(<ResponseObject>(value)) }
-                statement.wrap().invoke("onSuccess".rawMethodName()) {
-                    val newInstance = invoke(
-                        responseClass.constructorName,
-                        "value".rawVariableName(),
-                        *additionalParameter.toTypedArray()
+            if (responseContainerParts.isNotEmpty()) {
+                emitterContext.runEmitter(
+                    CombineIntoObjectStatementEmitter(
+                        "response".literal(), responseClass, responseContainerParts + additionalParameter
                     )
-                    invoke("success".rawMethodName(), newInstance).statement()
-                }.statement()
+                ).resultStatement?.statement()
+            } else {
+                invoke(
+                    Library.MaybeSuccessClass.constructorName,
+                    "response.body".literal(),
+                    invoke(responseClass.constructorName, *additionalParameter.toTypedArray())
+                ).statement()
             }
         }
     }
 
+    private fun WhenOption.emitHeaderParameter(header: TransformableParameter) : VariableName {
+        // produces
+        //
+        // response.stringHeaders.get[First)("<headerName>")
+        val methodName = when(header.typeUsage.type) {
+            is CollectionTypeDefinition -> "get".rawMethodName()
+            else -> "getFirst".rawMethodName()
+        }
+        val headerValueExpression = "response".variableName()
+            .property("stringHeaders".rawVariableName())
+            .invoke(methodName, header.name.literal())
+
+        // produces
+        //
+        // Maybe.Success(<context>, <headerValueExpression>)
+        val context = "response.${header.kind.value}.${header.name}".literal()
+        val statement = invoke(Library.MaybeSuccessClass.constructorName, context, headerValueExpression).wrap()
+
+        // produces
+        //
+        // val <parameterName>Maybe = <statement>
+        //     .<deserializationStatement>
+        return emitterContext.runEmitter(
+            DeserializationStatementEmitter(header.typeUsage, statement, ContentType.TextPlain, true)
+        ).resultStatement.assignment(header.parameterVariableName.extend(postfix = "maybe"))
+    }
 
     // generates
     // else -> Maybe.Success("response.body", <ResponseObject>("unknown status code ${statusCode.name}", response))

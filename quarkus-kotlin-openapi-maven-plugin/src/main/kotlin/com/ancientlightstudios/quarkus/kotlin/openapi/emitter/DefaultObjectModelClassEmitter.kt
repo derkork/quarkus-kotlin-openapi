@@ -104,8 +104,8 @@ class DefaultObjectModelClassEmitter(private val typeDefinition: ObjectTypeDefin
     private fun MethodAware.generateJsonDeserializeMethod() {
         kotlinMethod(
             typeDefinition.modelName.value.methodName(prefix = "as"),
-            returnType = Library.MaybeClass.typeName().of(typeDefinition.modelName, true),
-            receiverType = Library.MaybeClass.typeName().of(Misc.JsonNodeClass, true),
+            returnType = Library.MaybeClass.typeName().of(typeDefinition.modelName.typeName(true)),
+            receiverType = Library.MaybeClass.typeName().of(Misc.JsonNodeClass.typeName(true)),
             bodyAsAssignment = true
         ) {
             invoke("onNotNull".rawMethodName()) {

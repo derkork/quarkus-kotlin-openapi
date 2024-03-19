@@ -12,6 +12,7 @@ class ImportCollector(private val basePackage: String) {
         imports.add(ImportData(methodName.packageName, methodName.value, methodName.provided))
     }
 
+    @JvmName("registerClasses")
     fun register(className: List<ClassName>) {
         className.forEach { register(it) }
     }
@@ -24,6 +25,11 @@ class ImportCollector(private val basePackage: String) {
                 register(typeName.innerType)
             }
         }
+    }
+
+    @JvmName("registerTypes")
+    fun register(typeName: List<TypeName>) {
+        typeName.forEach { register(it) }
     }
 
     fun registerFrom(renderable: KotlinRenderable) {
