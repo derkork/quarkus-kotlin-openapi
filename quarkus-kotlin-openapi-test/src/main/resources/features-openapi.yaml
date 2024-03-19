@@ -7,11 +7,11 @@ tags:
   - name: json
 
 paths:
-  /features/parameters/test:
+  /features/parameters/test1:
     get:
       tags:
         - parameters
-      operationId: parametersTest
+      operationId: parametersTest1
       parameters:
         - name: first
           in: query
@@ -28,10 +28,6 @@ paths:
           required: false
           schema:
             type: integer
-            items:
-              type:
-                - string
-                - 'null'
       responses:
         '204':
           description: Ok
@@ -50,9 +46,49 @@ paths:
               required: false
               schema:
                 type: integer
+        '400':
+          $ref: '#/components/responses/OperationError400'
+
+  /features/parameters/test2:
+    get:
+      tags:
+        - parameters
+      operationId: parametersTest2
+      parameters:
+        - name: first
+          in: query
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+        - name: X-SECOND-HEADER
+          in: header
+          required: false
+          schema:
+            type: array
+            items:
+              type:
+                - integer
+                - 'null'
+      responses:
+        '204':
+          description: Ok
+          headers:
+            X-FIRST-HEADER:
+              required: true
+              schema:
+                type: array
+                items:
+                  type: string
+            X-SECOND-HEADER:
+              in: query
+              required: false
+              schema:
+                type: array
                 items:
                   type:
-                    - string
+                    - integer
                     - 'null'
         '400':
           $ref: '#/components/responses/OperationError400'

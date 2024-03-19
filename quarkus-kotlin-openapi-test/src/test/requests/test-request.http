@@ -30,6 +30,12 @@ name=fooo&status=second
 
 ###
 
-GET http://localhost:8080/features/parameters/test?first=fooo&second=45
+GET http://localhost:8080/features/parameters/test1?first=fooo&second=45
 X-THIRD-HEADER: 90
+
+###
+
+GET http://localhost:8080/features/parameters/test2?first=fooo&first=bar
+X-SECOND-HEADER: 90
+X-SECOND-HEADER: 91
 

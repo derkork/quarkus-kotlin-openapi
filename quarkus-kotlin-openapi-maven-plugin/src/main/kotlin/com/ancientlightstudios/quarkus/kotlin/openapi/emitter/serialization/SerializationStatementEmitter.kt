@@ -69,21 +69,23 @@ class SerializationStatementEmitter(
         }
     }
 
-    // if it's a collection type, generates an expression like this
-    //
-    // <baseStatement>.asJson {
-    //     <SerializationStatement for nested type>
-    // }
     private fun EmitterContext.emitForCollectionType(
         typeDefinition: CollectionTypeDefinition, baseStatement: KotlinExpression
     ): KotlinExpression {
-        return when (contentType) {
-            ContentType.ApplicationJson -> baseStatement.invoke("asJson".rawMethodName()) {
-                runEmitter(SerializationStatementEmitter(typeDefinition.items, "it".variableName(), contentType))
-                    .resultStatement.statement()
-            }
-
+        val methodName = when (contentType) {
+            ContentType.ApplicationJson -> "asJson".rawMethodName()
+            ContentType.TextPlain -> "map".rawMethodName()
             else -> ProbableBug("Unsupported content type $contentType for collection serialization")
+        }
+
+        // produces:
+        //
+        // <baseStatement>.<methodName> {
+        //     <SerializationStatement for nested type>
+        // }
+        return baseStatement.invoke(methodName) {
+            runEmitter(SerializationStatementEmitter(typeDefinition.items, "it".variableName(), contentType))
+                .resultStatement.statement()
         }
     }
 
