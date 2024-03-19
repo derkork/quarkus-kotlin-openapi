@@ -17,7 +17,7 @@ interface ObjectTypeDefinition : TypeDefinition {
 }
 
 class RealObjectTypeDefinition(
-    override val modelName: ClassName,
+    override var modelName: ClassName,
     override val nullable: Boolean,
     override val modifier: SchemaModifier?,
     override var properties: List<ObjectTypeProperty>,

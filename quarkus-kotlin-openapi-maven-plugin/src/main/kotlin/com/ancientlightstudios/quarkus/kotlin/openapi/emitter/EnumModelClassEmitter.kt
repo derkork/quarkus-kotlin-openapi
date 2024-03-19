@@ -102,8 +102,8 @@ class EnumModelClassEmitter(private val typeDefinition: EnumTypeDefinition) : Co
     private fun MethodAware.generatePlainDeserializeMethod(methodName: MethodName) {
         kotlinMethod(
             methodName,
-            returnType = Library.MaybeClass.typeName().of(typeDefinition.modelName, true),
-            receiverType = Library.MaybeClass.typeName().of(Kotlin.StringClass, true),
+            returnType = Library.MaybeClass.typeName().of(typeDefinition.modelName.typeName(true)),
+            receiverType = Library.MaybeClass.typeName().of(Kotlin.StringClass.typeName(true)),
             bodyAsAssignment = true
         ) {
             invoke("onNotNull".rawMethodName()) {
@@ -141,8 +141,8 @@ class EnumModelClassEmitter(private val typeDefinition: EnumTypeDefinition) : Co
     private fun MethodAware.generateJsonDeserializeMethod(methodName: MethodName) {
         kotlinMethod(
             methodName,
-            returnType = Library.MaybeClass.typeName().of(typeDefinition.modelName, true),
-            receiverType = Library.MaybeClass.typeName().of(Misc.JsonNodeClass, true),
+            returnType = Library.MaybeClass.typeName().of(typeDefinition.modelName.typeName(true)),
+            receiverType = Library.MaybeClass.typeName().of(Misc.JsonNodeClass.typeName(true)),
             bodyAsAssignment = true
         ) {
             kotlinAnnotation(Kotlin.JvmNameClass, "name".variableName() to "${methodName.value}FromJson".literal())

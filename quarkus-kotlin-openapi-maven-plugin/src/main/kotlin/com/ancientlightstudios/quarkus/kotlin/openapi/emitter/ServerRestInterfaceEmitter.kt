@@ -58,7 +58,7 @@ class ServerRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitter {
     }
 
     private fun RequestInspection.emitRequest(containerClass: KotlinClass) = with(containerClass) {
-        kotlinMethod(request.requestMethodName, true, Misc.RestResponseClass.typeName().of(Kotlin.Star)) {
+        kotlinMethod(request.requestMethodName, true, Misc.RestResponseClass.typeName().of(Kotlin.Star.typeName())) {
             addRequestMethodAnnotation(request.method)
             addPathAnnotation(request.path)
 
@@ -194,7 +194,7 @@ class ServerRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitter {
 
         // produces
         //
-        // Maybe.Success(<context>, <parameterName>
+        // Maybe.Success(<context>, <parameterName>)
         val statement = invoke(Library.MaybeSuccessClass.constructorName, context, parameterName).wrap()
 
         // produces

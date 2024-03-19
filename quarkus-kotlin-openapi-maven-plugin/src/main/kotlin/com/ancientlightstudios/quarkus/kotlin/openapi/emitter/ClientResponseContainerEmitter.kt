@@ -4,6 +4,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.RequestInspecti
 import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.inspect
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ClientErrorResponseClassNameHint.clientErrorResponseClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ClientHttpResponseClassNameHint.clientHttpResponseClassName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ParameterVariableNameHint.parameterVariableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ResponseContainerClassNameHint.responseContainerClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeUsageHint.typeUsage
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
@@ -14,6 +15,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.Sim
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ResponseCode
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableBody
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableParameter
 
 class ClientResponseContainerEmitter : CodeEmitter {
 
@@ -57,14 +59,23 @@ class ClientResponseContainerEmitter : CodeEmitter {
 
                 request.responses.forEach { response ->
                     when (val responseCode = response.responseCode) {
-                        is ResponseCode.Default -> emitDefaultResponseClass(me, response.body)
-                        is ResponseCode.HttpStatusCode -> emitResponseClass(me, responseCode, response.body)
+                        is ResponseCode.Default -> emitDefaultResponseClass(me, response.body, response.headers)
+                        is ResponseCode.HttpStatusCode -> emitResponseClass(
+                            me,
+                            responseCode,
+                            response.body,
+                            response.headers
+                        )
                     }
                 }
             }
         }
 
-    private fun ClassAware.emitDefaultResponseClass(parentClass: ClassName, body: TransformableBody?) {
+    private fun ClassAware.emitDefaultResponseClass(
+        parentClass: ClassName,
+        body: TransformableBody?,
+        headers: List<TransformableParameter>
+    ) {
         val bodyExpression: KotlinExpression = when (body) {
             null -> nullLiteral()
             else -> "safeBody".variableName()
@@ -72,19 +83,29 @@ class ClientResponseContainerEmitter : CodeEmitter {
 
         val baseClass = KotlinBaseClass(parentClass, "status".variableName(), bodyExpression)
 
-        kotlinClass("Default".className(""), asDataClass = true, baseClass = baseClass) {
+        kotlinClass("Default".className(""), baseClass = baseClass) {
             kotlinMember(
                 "status".variableName(), Misc.RestResponseStatusClass.typeName(), accessModifier = null, override = true
             )
+
             body?.let {
                 val type = it.content.typeUsage.buildValidType()
                 kotlinMember("safeBody".variableName(), type, accessModifier = null)
+            }
+
+            headers.forEach {
+                kotlinMember(
+                    it.parameterVariableName, it.typeUsage.buildValidType(), accessModifier = null
+                )
             }
         }
     }
 
     private fun ClassAware.emitResponseClass(
-        parentClass: ClassName, responseCode: ResponseCode.HttpStatusCode, body: TransformableBody?
+        parentClass: ClassName,
+        responseCode: ResponseCode.HttpStatusCode,
+        body: TransformableBody?,
+        headers: List<TransformableParameter>
     ) {
         val bodyExpression: KotlinExpression = when (body) {
             null -> nullLiteral()
@@ -95,16 +116,23 @@ class ClientResponseContainerEmitter : CodeEmitter {
         val status = Misc.RestResponseStatusClass.companionObject().property(statusName.rawConstantName())
         val baseClass = KotlinBaseClass(parentClass, status, bodyExpression)
 
-        val isDataClass = body != null
         kotlinClass(
-            responseCode.statusCodeReason().className(""), asDataClass = isDataClass, baseClass = baseClass
+            responseCode.statusCodeReason().className(""), baseClass = baseClass
         ) {
+
+            headers.forEach {
+                kotlinMember(
+                    it.parameterVariableName, it.typeUsage.buildValidType(), accessModifier = null
+                )
+            }
+
             body?.let {
                 val type = it.content.typeUsage.buildValidType()
                 kotlinMember("safeBody".variableName(), type, accessModifier = null)
             }
         }
     }
+
 
     private fun RequestInspection.generateErrorResponseInterface(container: KotlinFile) =
         with(container) {

@@ -47,7 +47,7 @@ class ClientDelegateEmitter(private val interfaceName: String) : CodeEmitter {
     }
 
     private fun RequestInspection.emitRequest(containerInterface: KotlinInterface) = with(containerInterface) {
-        kotlinMethod(request.requestMethodName, true, Misc.RestResponseClass.typeName().of(Kotlin.StringClass, true)) {
+        kotlinMethod(request.requestMethodName, true, Misc.RestResponseClass.typeName().of(Kotlin.StringClass.typeName(true))) {
             addRequestMethodAnnotation(request.method)
             addPathAnnotation(request.path)
 
