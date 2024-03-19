@@ -13,7 +13,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.utils.pop
 class SplitTypeDefinitionRefactoring : SpecRefactoring {
 
     override fun RefactoringContext.perform() {
-        // used to have a quick way of finding our where a type definition is comming from
+        // used to have a quick way of finding our where a type definition is coming from
         val schemaLookup = mutableMapOf<TypeDefinition, TransformableSchema>()
 
         // all types which are candidates for a split

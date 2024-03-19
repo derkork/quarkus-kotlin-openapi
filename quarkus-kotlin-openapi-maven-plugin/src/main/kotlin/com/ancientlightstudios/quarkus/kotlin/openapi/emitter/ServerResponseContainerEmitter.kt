@@ -89,7 +89,7 @@ class ServerResponseContainerEmitter : CodeEmitter {
                 .invoke("apply".rawMethodName()) {
                     headersVariable.invoke("forEach".rawMethodName()) {
                         invoke(
-                            "header".rawMethodName(),
+                            "headers".rawMethodName(),
                             "it".variableName().property("first".variableName()),
                             "it".variableName().property("second".variableName())
                         ).statement()

@@ -10,7 +10,7 @@ class FeaturesParameterServerDelegateImplTest : ApiTestBase() {
     @Test
     fun `not sending the required parameter is rejected`() {
         prepareRequest()
-            .get("/features/parameters/test".toTestUrl())
+            .get("/features/parameters/test1".toTestUrl())
             .execute()
             .statusCode(400)
     }
@@ -19,7 +19,7 @@ class FeaturesParameterServerDelegateImplTest : ApiTestBase() {
     fun `not sending the optional parameter is accepted`() {
         prepareRequest()
             .queryParam("first", "foo")
-            .get("/features/parameters/test".toTestUrl())
+            .get("/features/parameters/test1".toTestUrl())
             .execute()
             .statusCode(204)
             .header("X-FIRST-HEADER", "foo")
@@ -30,7 +30,7 @@ class FeaturesParameterServerDelegateImplTest : ApiTestBase() {
         prepareRequest()
             .queryParam("first", "foo")
             .queryParam("second", 10)
-            .get("/features/parameters/test".toTestUrl())
+            .get("/features/parameters/test1".toTestUrl())
             .execute()
             .statusCode(204)
             .header("X-FIRST-HEADER", "foo")
@@ -42,7 +42,7 @@ class FeaturesParameterServerDelegateImplTest : ApiTestBase() {
         prepareRequest()
             .queryParam("first", "foo")
             .queryParam("second", "foobar")
-            .get("/features/parameters/test".toTestUrl())
+            .get("/features/parameters/test1".toTestUrl())
             .execute()
             .statusCode(400)
     }
