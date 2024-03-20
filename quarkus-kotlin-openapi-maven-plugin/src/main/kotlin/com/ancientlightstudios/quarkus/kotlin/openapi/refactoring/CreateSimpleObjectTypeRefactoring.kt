@@ -106,7 +106,7 @@ class CreateSimpleObjectTypeRefactoring(
         return RealObjectTypeDefinition(
             schema.name.className(modelPackage),
             nullable == true || parentType.nullable,
-            modifier,
+            modifier ?: parentType.modifier,
             newProperties,
             newRequired,
             parentType.validations + validations
