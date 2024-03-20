@@ -95,9 +95,6 @@ class CreateSimplePrimitiveTypeRefactoring(
         modifier: SchemaModifier?,
         validations: List<SchemaValidation>
     ): TypeDefinition {
-        // TODO: if type and/or format are redefined, the type mapper must return the same class name,
-        //  otherwise it's not compatible and we should fail
-
         if (modifier != null && parentType.modifier != null && modifier != parentType.modifier) {
             ProbableBug("schema ${schema.originPath} has different readonly/write-only modifier than it's base schema")
         }
@@ -108,7 +105,13 @@ class CreateSimplePrimitiveTypeRefactoring(
 
         if (enumItems.isEmpty()) {
             // just an overlay
-            return PrimitiveTypeDefinitionOverlay(parentType, nullable == true,modifier,  default, validations)
+            return PrimitiveTypeDefinitionOverlay(
+                parentType,
+                nullable == true,
+                modifier ?: parentType.modifier,
+                default,
+                validations
+            )
         }
 
         // we have to build an enum type out of it
@@ -120,7 +123,7 @@ class CreateSimplePrimitiveTypeRefactoring(
             schema.name.className(modelPackage),
             parentType.baseType,
             nullable == true || parentType.nullable,
-            modifier,
+            modifier ?: parentType.modifier,
             items,
             default ?: parentType.defaultValue,
             parentType.validations + validations
@@ -161,7 +164,7 @@ class CreateSimplePrimitiveTypeRefactoring(
             schema.name.className(modelPackage),
             parentType.baseType,
             nullable == true || parentType.nullable,
-            modifier,
+            modifier ?: parentType.modifier,
             newItems,
             default ?: parentType.defaultValue,
             parentType.validations + validations
