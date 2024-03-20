@@ -10,6 +10,8 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.compo
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.CustomConstraintsValidation
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.NumberValidation
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.StringValidation
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.EnumTypeDefinition
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.PrimitiveTypeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.TypeDefinition
 
 class ValidationStatementEmitter(
@@ -21,9 +23,18 @@ class ValidationStatementEmitter(
 
     override fun EmitterContext.emit() {
         val validations = typeDefinition.validations
-        resultStatement = emitStringValidation(resultStatement, validations.filterIsInstance<StringValidation>())
-        resultStatement = emitNumberValidation(resultStatement, validations.filterIsInstance<NumberValidation>())
-        resultStatement = emitArrayValidation(resultStatement, validations.filterIsInstance<ArrayValidation>())
+
+        if (typeDefinition is PrimitiveTypeDefinition) {
+            resultStatement = emitStringValidation(resultStatement, validations.filterIsInstance<StringValidation>())
+            resultStatement = emitNumberValidation(
+                resultStatement, validations.filterIsInstance<NumberValidation>(), typeDefinition.baseType
+            )
+        }
+
+        if (typeDefinition is EnumTypeDefinition) {
+            resultStatement = emitArrayValidation(resultStatement, validations.filterIsInstance<ArrayValidation>())
+        }
+
         resultStatement = emitCustomConstraintsValidation(
             resultStatement, validations.filterIsInstance<CustomConstraintsValidation>()
         )
@@ -53,7 +64,8 @@ class ValidationStatementEmitter(
 
     private fun emitNumberValidation(
         statement: KotlinExpression,
-        validations: List<NumberValidation>
+        validations: List<NumberValidation>,
+        baseType: ClassName
     ): KotlinExpression {
         if (validations.isEmpty()) {
             return statement
@@ -64,11 +76,12 @@ class ValidationStatementEmitter(
                 validations.forEach {
                     it.minimum?.let {
                         "it".variableName()
-                            .invoke("minimum".rawMethodName(), it.value.literal(), it.exclusive.literal()).statement()
+                            // TODO: this should be handled by the refactoring the same way as for default values
+                            .invoke("minimum".rawMethodName(), baseType.literalFor(it.value), it.exclusive.literal()).statement()
                     }
                     it.maximum?.let {
                         "it".variableName()
-                            .invoke("maximum".rawMethodName(), it.value.literal(), it.exclusive.literal()).statement()
+                            .invoke("maximum".rawMethodName(), baseType.literalFor(it.value), it.exclusive.literal()).statement()
                     }
                 }
             }

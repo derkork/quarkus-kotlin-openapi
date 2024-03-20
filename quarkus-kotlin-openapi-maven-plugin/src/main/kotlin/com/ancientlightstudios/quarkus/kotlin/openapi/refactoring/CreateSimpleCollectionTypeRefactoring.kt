@@ -76,7 +76,12 @@ class CreateSimpleCollectionTypeRefactoring(
             ProbableBug("schema ${schema.originPath} has different readonly/write-only modifier than it's base schema")
         }
 
-        return CollectionTypeDefinitionOverlay(parentType, nullable == true, modifier, validations)
+        return CollectionTypeDefinitionOverlay(
+            parentType,
+            nullable == true,
+            modifier ?: parentType.modifier,
+            validations
+        )
     }
 
 }

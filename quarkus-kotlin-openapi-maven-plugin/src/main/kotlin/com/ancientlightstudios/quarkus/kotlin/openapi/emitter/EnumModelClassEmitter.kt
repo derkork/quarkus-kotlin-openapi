@@ -111,7 +111,7 @@ class EnumModelClassEmitter(private val typeDefinition: EnumTypeDefinition) : Co
                     typeDefinition.items.forEach {
                         // build something like
                         // "first" -> success(SimpleEnum.First)
-                        optionBlock(it.value) {
+                        optionBlock(it.sourceName.literal()) {
                             InvocationExpression.invoke(
                                 "success".rawMethodName(), typeDefinition.modelName.companionObject().property(it.name)
                             ).statement()
