@@ -1,6 +1,7 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi
 
 import org.jboss.resteasy.reactive.RestResponse
+import java.util.*
 
 @Suppress("unused")
 fun String.asString() = this
@@ -26,8 +27,11 @@ fun Double.asString() = this.toString()
 @Suppress("unused")
 fun Boolean.asString() = this.toString()
 
-fun <T> RestResponse.ResponseBuilder<T>.headers(name: String, value: Any?) : RestResponse.ResponseBuilder<T> {
-    when(value) {
+@Suppress("unused")
+fun ByteArray.asString(): String = Base64.getEncoder().encodeToString(this)
+
+fun <T> RestResponse.ResponseBuilder<T>.headers(name: String, value: Any?): RestResponse.ResponseBuilder<T> {
+    when (value) {
         is Collection<*> -> value.forEach { header(name, it) }
         else -> header(name, value)
     }

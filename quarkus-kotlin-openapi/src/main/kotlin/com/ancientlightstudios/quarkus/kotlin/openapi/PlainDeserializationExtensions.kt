@@ -1,7 +1,6 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.node.*
+import java.util.*
 
 @Suppress("unused")
 fun Maybe<String?>.asString(): Maybe<String?> = this
@@ -26,3 +25,9 @@ fun Maybe<String?>.asDouble(): Maybe<Double?> = this.mapNotNull("is not a double
 
 @Suppress("unused")
 fun Maybe<String?>.asBoolean(): Maybe<Boolean?> = this.mapNotNull("is not a boolean") { it.toBoolean() }
+
+@Suppress("unused")
+fun Maybe<String?>.asByteArray(): Maybe<ByteArray?> = this.mapNotNull("is not a valid base64 encoded byte array") {
+    Base64.getDecoder().decode(it)
+}
+

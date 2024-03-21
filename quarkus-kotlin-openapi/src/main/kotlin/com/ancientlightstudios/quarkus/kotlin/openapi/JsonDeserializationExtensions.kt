@@ -69,7 +69,11 @@ fun Maybe<JsonNode?>.asFloat() = asString().asFloat()
 @JvmName("asDoubleFromJson")
 fun Maybe<JsonNode?>.asDouble() = asString().asDouble()
 
-
 @Suppress("unused")
 @JvmName("asBooleanFromJson")
 fun Maybe<JsonNode?>.asBoolean() = asString().asBoolean()
+
+@Suppress("unused")
+@JvmName("asByteArrayFromJson")
+fun Maybe<JsonNode?>.asByteArray() = asString().asByteArray()
+

@@ -16,4 +16,4 @@ fun Maybe<String?>.asInstant(): Maybe<Instant?> = onNotNull {
 @JvmName("asInstantFromJson")
 fun Maybe<JsonNode?>.asInstant(): Maybe<Instant?> = asString().asInstant()
 
-fun Instant.toJson(): JsonNode = toString().asJson()
+fun Instant.asJson(): JsonNode = toString().asJson()
