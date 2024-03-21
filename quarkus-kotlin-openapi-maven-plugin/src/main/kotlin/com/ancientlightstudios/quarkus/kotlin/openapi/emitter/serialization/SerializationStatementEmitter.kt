@@ -48,6 +48,7 @@ class SerializationStatementEmitter(
         return when (contentType) {
             ContentType.TextPlain -> baseStatement.invoke("asString".rawMethodName())
             ContentType.ApplicationJson -> baseStatement.invoke("asJson".rawMethodName())
+            ContentType.ApplicationOctetStream -> baseStatement
             else -> ProbableBug("Unsupported content type $contentType for primitive serialization")
         }
     }

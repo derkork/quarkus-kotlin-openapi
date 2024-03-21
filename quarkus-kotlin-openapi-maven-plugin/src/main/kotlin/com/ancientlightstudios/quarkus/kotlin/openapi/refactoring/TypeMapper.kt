@@ -25,6 +25,7 @@ class TypeMapper(private val config: Config) {
     }
 
     private fun mapStringType(format: String?) = when (format) {
+        "byte",
         "binary" -> Kotlin.ByteArrayClass
         else -> mapCustomType(SchemaTypes.String, format, Kotlin.StringClass)
     }

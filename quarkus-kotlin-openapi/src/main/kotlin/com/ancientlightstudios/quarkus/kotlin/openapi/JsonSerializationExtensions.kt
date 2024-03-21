@@ -24,6 +24,7 @@ fun Double.asJson(): JsonNode = factory.numberNode(this)
 
 fun Boolean.asJson(): JsonNode = factory.booleanNode(this)
 
+fun ByteArray.asJson() : JsonNode = this.asString().asJson()
 
 fun <T> List<T>.asJson(block: (T) -> JsonNode): JsonNode =
     factory.arrayNode().apply {

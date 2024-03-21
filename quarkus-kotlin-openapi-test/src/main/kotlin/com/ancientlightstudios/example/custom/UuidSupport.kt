@@ -15,4 +15,4 @@ fun Maybe<String?>.asUuid(): Maybe<UUID?> = onNotNull {
 @JvmName("asUuidFromJson")
 fun Maybe<JsonNode?>.asUuid(): Maybe<UUID?> = asString().asUuid()
 
-fun UUID.toJson(): JsonNode = toString().asJson()
+fun UUID.asJson(): JsonNode = toString().asJson()
