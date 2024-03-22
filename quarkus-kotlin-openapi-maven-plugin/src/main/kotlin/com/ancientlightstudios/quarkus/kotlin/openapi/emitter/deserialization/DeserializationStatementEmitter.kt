@@ -46,7 +46,13 @@ class DeserializationStatementEmitter(
     private fun EmitterContext.emitForPrimitiveType(
         typeDefinition: PrimitiveTypeDefinition, baseStatement: KotlinExpression
     ): KotlinExpression {
-        var result = baseStatement.invoke("as${typeDefinition.baseType.value}".methodName())
+        // TODO: we probably need something like this for other contenttype and type definition combinations too
+        var result = if (contentType == ContentType.ApplicationOctetStream) {
+            baseStatement
+        } else {
+            baseStatement.invoke("as${typeDefinition.baseType.value}".methodName())
+        }
+
         result = runEmitter(ValidationStatementEmitter(typeDefinition, result)).resultStatement
         result = runEmitter(DefaultValueStatementEmitter(typeDefinition.defaultValue, result)).resultStatement
         return result

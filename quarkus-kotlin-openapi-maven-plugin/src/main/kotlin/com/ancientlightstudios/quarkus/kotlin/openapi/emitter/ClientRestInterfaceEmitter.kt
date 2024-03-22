@@ -73,10 +73,10 @@ class ClientRestInterfaceEmitter : CodeEmitter {
         kotlinMethod(request.requestMethodName, true, request.responseContainerClassName.typeName()) {
 
             val requestContainerParts = mutableListOf<VariableName>()
-            body { requestContainerParts.addAll(emitBody(body)) }
-            parameters { requestContainerParts.add(emitParameter(parameter)) }
-
             tryExpression {
+                body { requestContainerParts.addAll(emitBody(this@kotlinMethod, body)) }
+                parameters { requestContainerParts.add(emitParameter(this@kotlinMethod, parameter)) }
+
                 tryExpression {
                     // produces
                     // delegate.<methodName>(<serializedParameters ...>).toResponse()
@@ -181,11 +181,11 @@ class ClientRestInterfaceEmitter : CodeEmitter {
         }
     }
 
-    private fun KotlinMethod.emitParameter(parameter: TransformableParameter): VariableName {
+    private fun TryCatchExpression.emitParameter(method: KotlinMethod, parameter: TransformableParameter): VariableName {
         val parameterName = parameter.parameterVariableName
         val typeUsage = parameter.typeUsage
         val default = defaultParameterExpression(typeUsage)
-        kotlinParameter(parameterName, typeUsage.buildValidType(), default)
+        method.kotlinParameter(parameterName, typeUsage.buildValidType(), default)
 
         return emitterContext.runEmitter(
             SerializationStatementEmitter(typeUsage, parameterName, ContentType.TextPlain)
@@ -193,22 +193,22 @@ class ClientRestInterfaceEmitter : CodeEmitter {
     }
 
     // generates parameters and conversion for the request body depending on the media type
-    private fun KotlinMethod.emitBody(body: TransformableBody): List<VariableName> {
+    private fun TryCatchExpression.emitBody(method: KotlinMethod, body: TransformableBody): List<VariableName> {
         return when (body.content.mappedContentType) {
-            ContentType.ApplicationJson -> listOf(emitJsonBody(body))
-            ContentType.TextPlain -> listOf(emitPlainBody(body))
-            ContentType.MultipartFormData -> emitMultipartBody(body)
-            ContentType.ApplicationFormUrlencoded -> emitFormBody(body)
-            ContentType.ApplicationOctetStream -> listOf(emitOctetBody(body))
+            ContentType.ApplicationJson -> listOf(emitJsonBody(method, body))
+            ContentType.TextPlain -> listOf(emitPlainBody(method, body))
+            ContentType.MultipartFormData -> emitMultipartBody(method, body)
+            ContentType.ApplicationFormUrlencoded -> emitFormBody(method, body)
+            ContentType.ApplicationOctetStream -> listOf(emitOctetBody(method, body))
         }
     }
 
-    private fun KotlinMethod.emitJsonBody(body: TransformableBody): VariableName {
+    private fun TryCatchExpression.emitJsonBody(method: KotlinMethod, body: TransformableBody): VariableName {
         val parameterName = body.parameterVariableName
         val typeUsage = body.content.typeUsage
         val default = defaultParameterExpression(typeUsage)
 
-        kotlinParameter(parameterName, typeUsage.buildValidType(), default)
+        method.kotlinParameter(parameterName, typeUsage.buildValidType(), default)
 
         val jsonNode = emitterContext.runEmitter(
             SerializationStatementEmitter(typeUsage, parameterName, body.content.mappedContentType)
@@ -219,29 +219,29 @@ class ClientRestInterfaceEmitter : CodeEmitter {
             .assignment("bodyPayload".variableName())
     }
 
-    private fun KotlinMethod.emitPlainBody(body: TransformableBody): VariableName {
+    private fun TryCatchExpression.emitPlainBody(method: KotlinMethod, body: TransformableBody): VariableName {
         val parameterName = body.parameterVariableName
         val typeUsage = body.content.typeUsage
         val default = defaultParameterExpression(typeUsage)
 
-        kotlinParameter(parameterName, typeUsage.buildValidType(), default)
+        method.kotlinParameter(parameterName, typeUsage.buildValidType(), default)
         return emitterContext.runEmitter(
             SerializationStatementEmitter(typeUsage, parameterName, body.content.mappedContentType)
         ).resultStatement.assignment("bodyPayload".variableName())
     }
 
-    private fun KotlinMethod.emitMultipartBody(body: TransformableBody): List<VariableName> {
+    private fun TryCatchExpression.emitMultipartBody(method: KotlinMethod, body: TransformableBody): List<VariableName> {
         val default = defaultParameterExpression(body.content.typeUsage)
         return listOf("multi".variableName())
     }
 
-    private fun KotlinMethod.emitFormBody(body: TransformableBody): List<VariableName> {
+    private fun TryCatchExpression.emitFormBody(method: KotlinMethod, body: TransformableBody): List<VariableName> {
         val parameterName = body.parameterVariableName
         val typeUsage = body.content.typeUsage
         val safeType = typeUsage.type
         val default = defaultParameterExpression(typeUsage)
 
-        kotlinParameter(parameterName, typeUsage.buildValidType(), default)
+        method.kotlinParameter(parameterName, typeUsage.buildValidType(), default)
 
         if (safeType is ObjectTypeDefinition) {
             val statement = if (typeUsage.nullable) {
@@ -270,7 +270,7 @@ class ClientRestInterfaceEmitter : CodeEmitter {
 
     }
 
-    private fun KotlinMethod.emitOctetBody(body: TransformableBody): VariableName {
+    private fun TryCatchExpression.emitOctetBody(method: KotlinMethod, body: TransformableBody): VariableName {
         val default = defaultParameterExpression(body.content.typeUsage)
         return "octed".variableName()
     }

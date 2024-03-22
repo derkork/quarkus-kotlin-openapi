@@ -27,7 +27,7 @@ class EmitterStage(private val config: Config) : GeneratorStage {
     )
 
     private fun clientEmitters() = listOf(
-        ClientDelegateEmitter(config.interfaceName),
+        ClientDelegateEmitter(config.interfaceName, config.additionalProviders()),
         ClientRestInterfaceEmitter(),
         ClientResponseContainerEmitter(),
         ModelClassEmitter()

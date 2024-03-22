@@ -4,6 +4,7 @@
 - split schemas for readonly/writeonly
 - unique names
 
+- x-alias              
 
 
 - nullable aber required felder müssen im request enthalten sein

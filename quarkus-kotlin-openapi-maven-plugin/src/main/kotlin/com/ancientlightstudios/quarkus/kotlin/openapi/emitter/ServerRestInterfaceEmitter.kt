@@ -167,7 +167,14 @@ class ServerRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitter {
     }
 
     private fun KotlinMethod.emitOctetBody(body: TransformableBody): VariableName {
-        return "octed".variableName()
+        return emitMethodParameter(
+            body.parameterVariableName,
+            Kotlin.ByteArrayClass.typeName(true),
+            null,
+            "request.body".literal(),
+            body.content.typeUsage,
+            ContentType.ApplicationOctetStream
+        )
     }
 
     // generates the call to the delegate
