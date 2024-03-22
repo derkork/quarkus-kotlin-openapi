@@ -18,7 +18,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.Trans
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.ObjectTypeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
 
-class ClientDelegateEmitter(private val interfaceName: String) : CodeEmitter {
+class ClientDelegateEmitter(private val interfaceName: String, private val additionalProviders: List<ClassName>) : CodeEmitter {
 
     private lateinit var emitterContext: EmitterContext
 
@@ -39,6 +39,10 @@ class ClientDelegateEmitter(private val interfaceName: String) : CodeEmitter {
         kotlinInterface(fileName) {
             val configKeyName = "$interfaceName client".toKebabCase().literal()
             kotlinAnnotation(Misc.RegisterRestClientClass, "configKey".variableName() to configKeyName)
+
+            additionalProviders.forEach {
+                kotlinAnnotation(Misc.RegisterProviderClass, it.classExpression())
+            }
 
             requests {
                 emitRequest(this@kotlinInterface)

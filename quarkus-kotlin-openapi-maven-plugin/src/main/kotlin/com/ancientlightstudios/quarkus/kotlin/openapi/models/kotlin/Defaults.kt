@@ -54,6 +54,7 @@ object Misc {
     val JsonNodeClass = "JsonNode".rawClassName("com.fasterxml.jackson.databind")
     val RegisterRestClientClass = "RegisterRestClient".rawClassName("org.eclipse.microprofile.rest.client.inject")
     val RestClientClass = "RestClient".rawClassName("org.eclipse.microprofile.rest.client.inject")
+    val RegisterProviderClass = "RegisterProvider".rawClassName("org.eclipse.microprofile.rest.client.annotation")
     val TimeoutExceptionClass = "TimeoutException".rawClassName("java.util.concurrent")
 
 }
