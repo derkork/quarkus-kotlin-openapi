@@ -85,10 +85,13 @@ class DeserializationStatementEmitter(
     private fun EmitterContext.emitForCollectionType(
         typeDefinition: CollectionTypeDefinition, baseStatement: KotlinExpression
     ): KotlinExpression {
-        var result = if (contentType == ContentType.ApplicationJson) {
-            baseStatement.invoke("asList".rawMethodName())
-        } else {
-            baseStatement
+        var result = baseStatement
+
+        if (contentType == ContentType.ApplicationJson) {
+            if (fromRaw) {
+                result = result.invoke("asJson".rawMethodName(), "objectMapper".variableName()).wrap()
+            }
+            result = result.invoke("asList".rawMethodName())
         }
 
         result = result.wrap().invoke("mapItems".methodName())
