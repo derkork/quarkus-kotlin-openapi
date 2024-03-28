@@ -85,7 +85,7 @@ class ServerRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitter {
             getSourceAnnotation(parameterKind, parameter.name),
             "request.${parameterKind.value}.${parameter.name}".literal(),
             parameter.typeUsage,
-            ContentType.TextPlain
+            parameter.content.mappedContentType
         )
     }
 

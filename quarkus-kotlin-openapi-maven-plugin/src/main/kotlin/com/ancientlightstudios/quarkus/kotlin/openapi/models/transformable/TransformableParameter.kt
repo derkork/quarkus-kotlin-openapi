@@ -4,5 +4,5 @@ class TransformableParameter(
     var name: String,
     var kind: ParameterKind,
     var required: Boolean,
-    override var schema: TransformableSchema
-) : TransformableObject(), SchemaUsage
+    var content: TransformableContentMapping
+) : TransformableObject()

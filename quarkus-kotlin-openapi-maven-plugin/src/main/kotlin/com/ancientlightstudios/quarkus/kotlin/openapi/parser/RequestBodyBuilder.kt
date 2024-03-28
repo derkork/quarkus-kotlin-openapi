@@ -13,8 +13,9 @@ class RequestBodyBuilder(private val node: ObjectNode) {
         }
     }
 
-    private fun ParseContext.extractBodyDefinition() = contextFor("content")
-        .parseAsBody(node.getBooleanOrNull("required") ?: false)
+    private fun ParseContext.extractBodyDefinition() = TransformableBody(
+        node.getBooleanOrNull("required") ?: false, contextFor("content").parseAsContent()
+    )
 
     private fun ParseContext.extractBodyReference(ref: String) = rootContext.contextFor(JsonPointer.fromPath(ref))
         .parseAsRequestBody()

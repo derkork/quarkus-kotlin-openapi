@@ -181,15 +181,24 @@ class ClientRestInterfaceEmitter : CodeEmitter {
         }
     }
 
-    private fun TryCatchExpression.emitParameter(method: KotlinMethod, parameter: TransformableParameter): VariableName {
+    private fun TryCatchExpression.emitParameter(
+        method: KotlinMethod,
+        parameter: TransformableParameter
+    ): VariableName {
         val parameterName = parameter.parameterVariableName
         val typeUsage = parameter.typeUsage
         val default = defaultParameterExpression(typeUsage)
         method.kotlinParameter(parameterName, typeUsage.buildValidType(), default)
 
-        return emitterContext.runEmitter(
-            SerializationStatementEmitter(typeUsage, parameterName, ContentType.TextPlain)
-        ).resultStatement.assignment(parameterName.extend(postfix = "Payload"))
+        val statement = emitterContext.runEmitter(
+            SerializationStatementEmitter(typeUsage, parameterName, parameter.content.mappedContentType)
+        ).resultStatement
+
+        // TODO: it's now almost the same as for the body. re-use stuff
+        return when (parameter.content.mappedContentType) {
+            ContentType.ApplicationJson -> "objectMapper".variableName().invoke("writeValueAsString".rawMethodName(), statement)
+            else -> statement
+        }.assignment(parameterName.extend(postfix = "Payload"))
     }
 
     // generates parameters and conversion for the request body depending on the media type
@@ -216,7 +225,7 @@ class ClientRestInterfaceEmitter : CodeEmitter {
 
         return "objectMapper".variableName()
             .invoke("writeValueAsString".rawMethodName(), jsonNode)
-            .assignment("bodyPayload".variableName())
+            .assignment(parameterName.extend(postfix = "Payload"))
     }
 
     private fun TryCatchExpression.emitPlainBody(method: KotlinMethod, body: TransformableBody): VariableName {
@@ -227,10 +236,13 @@ class ClientRestInterfaceEmitter : CodeEmitter {
         method.kotlinParameter(parameterName, typeUsage.buildValidType(), default)
         return emitterContext.runEmitter(
             SerializationStatementEmitter(typeUsage, parameterName, body.content.mappedContentType)
-        ).resultStatement.assignment("bodyPayload".variableName())
+        ).resultStatement.assignment(parameterName.extend(postfix = "Payload"))
     }
 
-    private fun TryCatchExpression.emitMultipartBody(method: KotlinMethod, body: TransformableBody): List<VariableName> {
+    private fun TryCatchExpression.emitMultipartBody(
+        method: KotlinMethod,
+        body: TransformableBody
+    ): List<VariableName> {
         val default = defaultParameterExpression(body.content.typeUsage)
         return listOf("multi".variableName())
     }
@@ -258,13 +270,13 @@ class ClientRestInterfaceEmitter : CodeEmitter {
                     SerializationStatementEmitter(
                         propertyType, propertyStatement, contentType
                     )
-                ).resultStatement.assignment("body ${it.sourceName} Payload".variableName())
+                ).resultStatement.assignment(parameterName.extend(postfix = "${it.sourceName} Payload"))
             }
         } else {
             return listOf(
                 emitterContext.runEmitter(
                     SerializationStatementEmitter(typeUsage, parameterName, body.content.mappedContentType)
-                ).resultStatement.assignment("bodyPayload".variableName())
+                ).resultStatement.assignment(parameterName.extend(postfix = "Payload"))
             )
         }
 
@@ -272,7 +284,7 @@ class ClientRestInterfaceEmitter : CodeEmitter {
 
     private fun TryCatchExpression.emitOctetBody(method: KotlinMethod, body: TransformableBody): VariableName {
         val default = defaultParameterExpression(body.content.typeUsage)
-        return "octed".variableName()
+        return "octet".variableName()
     }
 
     private fun WhenOptionAware.generateKnownResponseOption(
@@ -357,11 +369,11 @@ class ClientRestInterfaceEmitter : CodeEmitter {
         }
     }
 
-    private fun WhenOption.emitHeaderParameter(header: TransformableParameter) : VariableName {
+    private fun WhenOption.emitHeaderParameter(header: TransformableParameter): VariableName {
         // produces
         //
         // response.stringHeaders.get[First)("<headerName>")
-        val methodName = when(header.typeUsage.type) {
+        val methodName = when (header.typeUsage.type) {
             is CollectionTypeDefinition -> "get".rawMethodName()
             else -> "getFirst".rawMethodName()
         }
@@ -380,7 +392,7 @@ class ClientRestInterfaceEmitter : CodeEmitter {
         // val <parameterName>Maybe = <statement>
         //     .<deserializationStatement>
         return emitterContext.runEmitter(
-            DeserializationStatementEmitter(header.typeUsage, statement, ContentType.TextPlain, true)
+            DeserializationStatementEmitter(header.typeUsage, statement, header.content.mappedContentType, true)
         ).resultStatement.assignment(header.parameterVariableName.extend(postfix = "maybe"))
     }
 

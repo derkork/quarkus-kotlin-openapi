@@ -13,14 +13,26 @@ class AssignContentTypesRefactoring : SpecRefactoring {
         spec.inspect {
             bundles {
                 requests {
-                    parameters { propagate(parameter.schema.typeDefinition, Direction.Up, ContentType.TextPlain) }
+                    parameters {
+                        propagate(
+                            parameter.content.schema.typeDefinition, Direction.Up, parameter.content.mappedContentType
+                        )
+                    }
 
                     body { propagate(body.content.schema.typeDefinition, Direction.Up, body.content.mappedContentType) }
 
                     responses {
-                        headers { propagate(header.schema.typeDefinition, Direction.Down, ContentType.TextPlain) }
+                        headers {
+                            propagate(
+                                header.content.schema.typeDefinition, Direction.Down, header.content.mappedContentType
+                            )
+                        }
 
-                        body { propagate(body.content.schema.typeDefinition, Direction.Down, body.content.mappedContentType) }
+                        body {
+                            propagate(
+                                body.content.schema.typeDefinition, Direction.Down, body.content.mappedContentType
+                            )
+                        }
                     }
                 }
             }

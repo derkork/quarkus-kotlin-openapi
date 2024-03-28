@@ -20,7 +20,7 @@ class ResponseHeaderBuilder(private val name: String, private val node: ObjectNo
             name,
             ParameterKind.Header,
             node.getBooleanOrNull("required") ?: false,
-            contextFor("schema").parseAsSchema()
+            contextFor("content").parseAsContent()
         ).apply {
             originPath = contextPath
         }

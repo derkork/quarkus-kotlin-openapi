@@ -19,7 +19,7 @@ class SchemaNameRefactoring : SpecRefactoring {
                     val requestPrefix = request.operationId
                     parameters {
                         assignName(
-                            parameter.schema,
+                            parameter.content.schema,
                             parameter.nameSuggestion,
                             "$requestPrefix ${parameter.name} parameter"
                         )
@@ -33,7 +33,7 @@ class SchemaNameRefactoring : SpecRefactoring {
                         val responsePrefix = "$requestPrefix ${response.responseCode}"
                         headers {
                             assignName(
-                                header.schema,
+                                header.content.schema,
                                 header.nameSuggestion,
                                 "$responsePrefix ${header.name} header"
                             )
