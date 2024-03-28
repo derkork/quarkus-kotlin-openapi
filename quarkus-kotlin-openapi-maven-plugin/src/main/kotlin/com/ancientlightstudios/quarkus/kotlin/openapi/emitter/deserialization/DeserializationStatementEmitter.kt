@@ -16,7 +16,7 @@ class DeserializationStatementEmitter(
     private val typeUsage: TypeUsage,
     baseStatement: KotlinExpression,
     private val contentType: ContentType,
-    private val fromRaw: Boolean
+    private val fromRaw: Boolean  // true if it is teh value of a parameter or body, false if it is from within an object
 ) : CodeEmitter {
 
     var resultStatement = baseStatement

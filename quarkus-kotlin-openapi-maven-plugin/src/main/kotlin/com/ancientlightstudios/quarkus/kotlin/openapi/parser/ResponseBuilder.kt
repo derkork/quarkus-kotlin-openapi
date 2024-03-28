@@ -3,6 +3,7 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.parser
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.NameSuggestionHint.nameSuggestion
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.OriginPathHint.originPath
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ResponseCode
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableBody
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableResponse
 import com.fasterxml.jackson.databind.node.ObjectNode
 
@@ -18,7 +19,7 @@ class ResponseBuilder(private val code: ResponseCode, private val node: ObjectNo
     private fun ParseContext.extractResponseDefinition(): TransformableResponse {
         val body = node.get("content")?.let {
             // if a response specifies a body, it is always required
-            contextFor(it, "content").parseAsBody(true)
+            TransformableBody(true, contextFor(it, "content").parseAsContent())
         }
 
         val headers = node.with("headers")

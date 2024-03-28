@@ -24,12 +24,12 @@ class SwapSchemaRefactoring(
         spec.inspect {
             bundles {
                 requests {
-                    parameters { checkAndReplace(parameter) }
+                    parameters { checkAndReplace(parameter.content) }
 
                     body { checkAndReplace(body.content) }
 
                     responses {
-                        headers { checkAndReplace(header) }
+                        headers { checkAndReplace(header.content) }
 
                         body { checkAndReplace(body.content) }
                     }

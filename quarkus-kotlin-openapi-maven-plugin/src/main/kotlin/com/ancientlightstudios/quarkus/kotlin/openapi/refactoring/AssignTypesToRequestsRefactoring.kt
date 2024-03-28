@@ -13,7 +13,7 @@ class AssignTypesToRequestsRefactoring : SpecRefactoring {
             bundles {
                 requests {
                     parameters {
-                        parameter.typeUsage = TypeUsage(parameter.required, parameter.schema.upTypeDefinition)
+                        parameter.typeUsage = TypeUsage(parameter.required, parameter.content.schema.upTypeDefinition)
                     }
 
                     body {
@@ -22,7 +22,7 @@ class AssignTypesToRequestsRefactoring : SpecRefactoring {
 
                     responses {
                         headers {
-                            header.typeUsage = TypeUsage(header.required, header.schema.downTypeDefinition)
+                            header.typeUsage = TypeUsage(header.required, header.content.schema.downTypeDefinition)
                         }
 
                         body {

@@ -143,7 +143,7 @@ class ServerResponseContainerEmitter : CodeEmitter {
         val headerExpressions = headers.map {
             kotlinParameter(it.parameterVariableName, it.typeUsage.buildValidType())
             val serializationExpression = emitterContext.runEmitter(
-                SerializationStatementEmitter(it.typeUsage, it.parameterVariableName, ContentType.TextPlain)
+                SerializationStatementEmitter(it.typeUsage, it.parameterVariableName, it.content.mappedContentType)
             ).resultStatement
             invoke(Kotlin.PairClass.constructorName, it.name.literal(), serializationExpression)
         }

@@ -27,8 +27,8 @@ class RequestParameterBuilder(private val node: ObjectNode) {
             else -> node.getBooleanOrNull("required") ?: false
         }
 
-        val schema = contextFor("schema").parseAsSchema()
-        return TransformableParameter(name, kind, required, schema)
+        val content = contextFor("content").parseAsContent()
+        return TransformableParameter(name, kind, required, content)
             .apply {
                 originPath = contextPath
             }
