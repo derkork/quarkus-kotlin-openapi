@@ -46,6 +46,13 @@ class EnsureUniqueNamesRefactoring : SpecRefactoring {
 
                     is ObjectTypeDefinition ->
                         (it as RealObjectTypeDefinition).modelName = registry.uniqueNameFor(it.modelName)
+
+                    is OneOfTypeDefinition -> {
+                        (it as RealOneOfTypeDefinition).modelName = registry.uniqueNameFor(it.modelName)
+                        it.options.forEach { 
+                            it.modelName = registry.uniqueNameFor(it.modelName)
+                        }
+                    }
                 }
             }
     }

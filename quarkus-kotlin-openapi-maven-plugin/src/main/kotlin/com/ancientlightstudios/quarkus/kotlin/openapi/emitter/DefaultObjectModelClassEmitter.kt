@@ -28,7 +28,6 @@ class DefaultObjectModelClassEmitter(private val typeDefinition: ObjectTypeDefin
 
             kotlinClass(fileName, asDataClass = true) {
                 typeDefinition.properties.forEach {
-                    val forceNullable = !typeDefinition.required.contains(it.sourceName)
                     val defaultValue = generateDefaultValueExpression(it.typeUsage)
                     kotlinMember(
                         it.name,
@@ -143,7 +142,8 @@ class DefaultObjectModelClassEmitter(private val typeDefinition: ObjectTypeDefin
             is PrimitiveTypeDefinition -> safeType.defaultValue
             is EnumTypeDefinition -> safeType.defaultValue
             is CollectionTypeDefinition,
-            is ObjectTypeDefinition -> null
+            is ObjectTypeDefinition,
+            is OneOfTypeDefinition-> null
         }
 
         // if there is a default expression defined, use it. Otherwise, use the null expression, if null is allowed

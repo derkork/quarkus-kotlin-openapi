@@ -237,6 +237,27 @@ paths:
           $ref: '#/components/responses/OperationError400'
 
 
+  /features/oneOf/test1:
+    post:
+      tags:
+        - oneOf
+      operationId: oneOfTest1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OneOfWithoutDiscriminator'
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OneOfWithoutDiscriminator'
+        '400':
+          $ref: '#/components/responses/OperationError400'
+
 components:
 
   schemas:
@@ -335,6 +356,11 @@ components:
       required:
         - writeOnlyProperty
         - normalProperty
+
+    OneOfWithoutDiscriminator:
+      oneOf:
+        - $ref: '#/components/schemas/SimpleForm'
+        - $ref: '#/components/schemas/SimpleObjectOptional'
 
     OperationError:
       type: object

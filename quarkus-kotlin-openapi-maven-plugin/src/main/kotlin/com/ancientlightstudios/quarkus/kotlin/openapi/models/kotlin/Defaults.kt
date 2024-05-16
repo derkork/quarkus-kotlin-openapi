@@ -20,6 +20,7 @@ object Kotlin {
     val ExceptionClass = "Exception".rawClassName("kotlin", true)
     val JvmNameClass = "JvmName".rawClassName("kotlin.jvm", true)
     val PairClass = "Pair".rawClassName("kotlin", true)
+    val IllegalStateExceptionClass = "IllegalStateException".rawClassName("kotlin", true)
 }
 
 object Jakarta {
@@ -48,6 +49,7 @@ object Jakarta {
 object Misc {
 
     val ObjectMapperClass = "ObjectMapper".rawClassName("com.fasterxml.jackson.databind")
+    val NullNodeClass = "NullNode".rawClassName("com.fasterxml.jackson.databind.node")
     val RestResponseClass = "RestResponse".rawClassName("org.jboss.resteasy.reactive")
     val RestResponseStatusClass = RestResponseClass.rawNested("Status")
     val ResponseBuilderClass = RestResponseClass.rawNested("ResponseBuilder")

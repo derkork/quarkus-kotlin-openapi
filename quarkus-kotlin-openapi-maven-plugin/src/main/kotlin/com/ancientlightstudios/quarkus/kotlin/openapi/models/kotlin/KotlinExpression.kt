@@ -18,6 +18,23 @@ fun ClassName.literalFor(value: String) = when (this) {
     else -> ProbableBug("Unknown type ${this.value} for literal")
 }
 
+fun KotlinExpression.nullFallback(fallback: KotlinExpression) = object : KotlinExpression {
+
+    override fun ImportCollector.registerImports() {
+        registerFrom(this@nullFallback)
+        registerFrom(fallback)
+    }
+
+    override fun render(writer: CodeWriter) = with(writer) {
+        write("(")
+        this@nullFallback.render(this)
+        write(" ?: ")
+        fallback.render(this)
+        write(")")
+    }
+
+}
+
 fun KotlinExpression.cast(target: TypeName, safe: Boolean = true) = object : KotlinExpression {
 
     override fun ImportCollector.registerImports() {

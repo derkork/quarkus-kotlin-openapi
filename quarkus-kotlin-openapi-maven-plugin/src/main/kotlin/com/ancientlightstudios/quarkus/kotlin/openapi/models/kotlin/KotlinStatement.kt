@@ -41,15 +41,32 @@ interface StatementAware {
         return variableName
     }
 
-    fun KotlinExpression.returnStatement() {
+    fun KotlinExpression.returnStatement(alias: String? = null) {
         addStatement(object : KotlinStatement {
             override fun ImportCollector.registerImports() {
                 registerFrom(this@returnStatement)
             }
 
             override fun render(writer: CodeWriter) = with(writer) {
-                write("return ")
+                if (alias != null) {
+                    write("return@$alias ")
+                } else {
+                    write("return ")
+                }
                 this@returnStatement.render(this)
+            }
+        })
+    }
+
+    fun KotlinExpression.throwStatement() {
+        addStatement(object : KotlinStatement {
+            override fun ImportCollector.registerImports() {
+                registerFrom(this@throwStatement)
+            }
+
+            override fun render(writer: CodeWriter) = with(writer) {
+                write("throw ")
+                this@throwStatement.render(this)
             }
         })
     }

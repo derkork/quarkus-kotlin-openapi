@@ -32,6 +32,7 @@ class SerializationStatementEmitter(
             is EnumTypeDefinition -> emitForEnumType(resultStatement)
             is CollectionTypeDefinition -> emitForCollectionType(safeType, resultStatement)
             is ObjectTypeDefinition -> emitForObjectType(resultStatement)
+            is OneOfTypeDefinition -> emitForOneOfType(resultStatement)
         }
     }
 
@@ -94,6 +95,16 @@ class SerializationStatementEmitter(
     //
     // <baseStatement>.asJson()
     private fun emitForObjectType(baseStatement: KotlinExpression): KotlinExpression {
+        return when (contentType) {
+            ContentType.ApplicationJson -> baseStatement.invoke("asJson".rawMethodName())
+            else -> ProbableBug("Unsupported content type $contentType for object serialization")
+        }
+    }
+
+    // if it's an oneOf type, generates an expression like this
+    //
+    // <baseStatement>.asJson()
+    private fun emitForOneOfType(baseStatement: KotlinExpression): KotlinExpression {
         return when (contentType) {
             ContentType.ApplicationJson -> baseStatement.invoke("asJson".rawMethodName())
             else -> ProbableBug("Unsupported content type $contentType for object serialization")
