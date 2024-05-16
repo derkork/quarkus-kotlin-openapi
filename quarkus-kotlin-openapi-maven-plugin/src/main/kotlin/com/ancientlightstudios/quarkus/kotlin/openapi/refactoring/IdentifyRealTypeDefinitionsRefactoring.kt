@@ -41,6 +41,7 @@ class IdentifyRealTypeDefinitionsRefactoring : SpecRefactoring {
 
                     is ObjectTypeDefinition -> it.properties.mapTo(tasks) { unwrapOverlay(it.typeUsage) }
                     is CollectionTypeDefinition -> tasks.add(unwrapOverlay(it.items))
+                    is OneOfTypeDefinition -> it.options.mapTo(tasks) { unwrapOverlay(it.typeUsage) }
                 }
             }
         }

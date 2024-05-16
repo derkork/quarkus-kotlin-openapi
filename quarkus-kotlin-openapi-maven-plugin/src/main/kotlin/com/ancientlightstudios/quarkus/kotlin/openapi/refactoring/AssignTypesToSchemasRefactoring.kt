@@ -17,15 +17,17 @@ class AssignTypesToSchemasRefactoring(private val typeMapper: TypeMapper) : Spec
         // while we have work left
         while (tasks.isNotEmpty()) {
             val sizeBefore = tasks.size
-            // handle all definitions without a base definition or *Of component
-            performRefactoring(AssignTypesToSimpleSchemasRefactoring(tasks, typeMapper) { usage, definitionResolver ->
+
+            val lazyVogel: (TypeUsage, () -> TypeDefinition) -> Unit = { usage, definitionResolver ->
                 lazyTypeResolver.add(usage to definitionResolver)
-            })
+            }
+
+            // handle all definitions without a base definition or *Of component
+            performRefactoring(AssignTypesToSimpleSchemasRefactoring(tasks, typeMapper, lazyVogel))
             // handle all definitions with just a base definition
-            performRefactoring(
-                AssignTypesToSimpleExtendedSchemasRefactoring(tasks, typeMapper) { usage, definitionResolver ->
-                    lazyTypeResolver.add(usage to definitionResolver)
-                })
+            performRefactoring(AssignTypesToSimpleExtendedSchemasRefactoring(tasks, typeMapper, lazyVogel))
+
+            performRefactoring(AssignTypesToSomeOfSchemasRefactoring(tasks, lazyVogel))
 
             // everything which was not yet mapped, for the next loop
             tasks = spec.schemas.filterNot { it.hasTypeDefinition }.toMutableSet()

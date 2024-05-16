@@ -49,7 +49,14 @@ class AssignContentTypesRefactoring : SpecRefactoring {
 
                 is CollectionTypeDefinition -> propagateToCollection(typeDefinition, direction, contentType)
                 is ObjectTypeDefinition -> propagateToObject(typeDefinition, direction, contentType)
+                is OneOfTypeDefinition -> propagateToOneOf(typeDefinition, direction, contentType)
             }
+        }
+    }
+
+    private fun propagateToOneOf(typeDefinition: OneOfTypeDefinition, direction: Direction, contentType: ContentType) {
+        typeDefinition.options.forEach {
+            propagate(it.typeUsage.type, direction, contentType)
         }
     }
 
@@ -99,7 +106,8 @@ class AssignContentTypesRefactoring : SpecRefactoring {
                 is EnumTypeDefinition -> ContentType.TextPlain
 
                 is CollectionTypeDefinition,
-                is ObjectTypeDefinition -> ContentType.ApplicationJson
+                is ObjectTypeDefinition,
+                is OneOfTypeDefinition -> ContentType.ApplicationJson
             }
         }
 

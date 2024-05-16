@@ -46,6 +46,7 @@ fun TypeUsage.buildValidType(): TypeName {
         is PrimitiveTypeDefinition -> safeType.baseType.typeName(nullable)
         is EnumTypeDefinition -> safeType.modelName.typeName(nullable)
         is ObjectTypeDefinition -> safeType.modelName.typeName(nullable)
+        is OneOfTypeDefinition -> safeType.modelName.typeName(nullable)
         is CollectionTypeDefinition -> Kotlin.ListClass.typeName(nullable)
             .of(safeType.items.buildValidType())
     }

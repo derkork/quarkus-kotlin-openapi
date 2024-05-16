@@ -31,6 +31,7 @@ class DeserializationStatementEmitter(
             is EnumTypeDefinition -> emitForEnumType(safeType, resultStatement)
             is CollectionTypeDefinition -> emitForCollectionType(safeType, resultStatement)
             is ObjectTypeDefinition -> emitForObjectType(safeType, resultStatement)
+            is OneOfTypeDefinition -> emitForOneOfType(safeType, resultStatement)
         }
 
         if (!typeUsage.nullable) {
@@ -119,6 +120,36 @@ class DeserializationStatementEmitter(
     //     [ValidationStatements]
     private fun EmitterContext.emitForObjectType(
         typeDefinition: ObjectTypeDefinition, baseStatement: KotlinExpression
+    ): KotlinExpression {
+        val methodName = typeDefinition.modelName.companionMethod("as ${typeDefinition.modelName.value}")
+
+        var result = if (fromRaw) {
+            baseStatement.invoke("asJson".rawMethodName(), "objectMapper".variableName()).wrap()
+        } else {
+            baseStatement
+        }
+        result = result.invoke("asObject".rawMethodName())
+            .wrap().invoke(methodName)
+        result = runEmitter(ValidationStatementEmitter(typeDefinition, result)).resultStatement
+        return result
+    }
+
+    // if it's an oneOf type, generates an expression like this
+    //
+    // if fromRaw is set to true
+    //
+    // <baseStatement>.asJson(objectMapper)
+    //     .asObject()
+    //     .as<ModelName>()
+    //     [ValidationStatements]
+    //
+    // if fromRaw is set to false
+    //
+    // <baseStatement>.asObject()
+    //     .as<ModelName>()
+    //     [ValidationStatements]
+    private fun EmitterContext.emitForOneOfType(
+        typeDefinition: OneOfTypeDefinition, baseStatement: KotlinExpression
     ): KotlinExpression {
         val methodName = typeDefinition.modelName.companionMethod("as ${typeDefinition.modelName.value}")
 

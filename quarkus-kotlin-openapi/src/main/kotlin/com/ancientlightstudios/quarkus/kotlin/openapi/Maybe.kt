@@ -2,10 +2,6 @@ package com.ancientlightstudios.quarkus.kotlin.openapi
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.Maybe.Failure
 import com.ancientlightstudios.quarkus.kotlin.openapi.Maybe.Success
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.node.NullNode
-import com.fasterxml.jackson.databind.node.NumericNode
-import com.fasterxml.jackson.databind.node.TextNode
 
 sealed class Maybe<T>(val context: String) {
     class Success<T>(context: String, val value: T) : Maybe<T>(context) {
@@ -121,4 +117,10 @@ inline fun <T> Maybe<T>.validOrElse(block: (List<ValidationError>) -> Nothing): 
         block(errors)
     }
     return (this as Success).value
+}
+
+inline fun <T> Maybe<T>.doOnSuccess(block: (T) -> Unit) {
+    if (this is Success) {
+        block(value)
+    }
 }

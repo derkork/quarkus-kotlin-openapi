@@ -6,12 +6,13 @@ class KotlinInterface(
     private val name: ClassName,
     private val sealed: Boolean = false,
     private val interfaces: List<ClassName> = emptyList()
-) : KotlinRenderable, AnnotationAware, MethodAware, CommentAware, ClassAware {
+) : KotlinRenderable, AnnotationAware, MethodAware, CommentAware, ClassAware, CompanionAware {
 
     private val annotations = KotlinAnnotationContainer()
     private val methods = KotlinRenderableBlockContainer<KotlinMethod>()
     private var comment: KotlinComment? = null
     private val items = KotlinRenderableBlockContainer<KotlinRenderable>()
+    private var companion: KotlinCompanion? = null
 
     override fun addAnnotation(annotation: KotlinAnnotation) {
         annotations.addAnnotation(annotation)
@@ -25,6 +26,9 @@ class KotlinInterface(
         this.comment = comment
     }
 
+    override fun setCompanion(companion: KotlinCompanion) {
+        this.companion = companion
+    }
 
     override fun addClass(clazz: KotlinClass) {
         items.addItem(clazz)
@@ -35,6 +39,7 @@ class KotlinInterface(
         registerFrom(annotations)
         registerFrom(methods)
         registerFrom(items)
+        companion?.let { registerFrom(it) }
     }
 
     override fun render(writer: CodeWriter) = with(writer) {
@@ -53,7 +58,7 @@ class KotlinInterface(
             write(interfaces.joinToString(prefix = " : ") { it.value })
         }
 
-        if (methods.isNotEmpty || items.isNotEmpty) {
+        if (methods.isNotEmpty || items.isNotEmpty || companion != null) {
             write(" ")
             block {
                 if (items.isNotEmpty) {
@@ -66,6 +71,12 @@ class KotlinInterface(
                     writeln()
                     methods.render(this)
                     writeln(forceNewLine = false)
+                }
+
+                companion?.let {
+                    writeln()
+                    it.render(this)
+                    writeln(forceNewLine = false) // in case the item already rendered a line break
                 }
             }
         }

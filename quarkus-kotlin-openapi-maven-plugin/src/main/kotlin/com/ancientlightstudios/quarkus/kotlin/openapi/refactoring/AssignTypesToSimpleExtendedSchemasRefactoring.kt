@@ -6,6 +6,8 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.Trans
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.BaseSchemaComponent
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.SomeOfComponent
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.*
+import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
+import com.fasterxml.jackson.databind.annotation.JsonAppend.Prop
 
 // converts schema with a base ref but no *Of component into a type. This can lead to new real types or just
 // overlays.
@@ -44,6 +46,9 @@ class AssignTypesToSimpleExtendedSchemasRefactoring(
                 is CollectionTypeDefinition -> performRefactoring(
                     CreateSimpleCollectionTypeRefactoring(schema, lazyTypeUsage, baseType)
                 )
+
+                // TODO: fix this
+                is OneOfTypeDefinition -> ProbableBug("\$ref not yet supported for OneOf schemas")
             }
         }
     }
