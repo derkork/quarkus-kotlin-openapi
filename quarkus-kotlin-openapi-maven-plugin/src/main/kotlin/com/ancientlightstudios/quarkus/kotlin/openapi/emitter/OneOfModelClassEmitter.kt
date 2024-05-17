@@ -120,7 +120,7 @@ class OneOfModelClassEmitter(private val typeDefinition: OneOfTypeDefinition) :
         val statements = typeDefinition.options.mapIndexed { index, option ->
             val statement = emitterContext.runEmitter(
                 DeserializationStatementEmitter(option.typeUsage, baseStatement, ContentType.ApplicationJson, false)
-            ).resultStatement.assignment("option${index}Maybe".variableName())
+            ).resultStatement.declaration("option${index}Maybe".variableName())
             statement to option.modelName
         }
 

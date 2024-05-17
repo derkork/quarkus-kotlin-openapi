@@ -70,7 +70,7 @@ class ServerRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitter {
                 CombineIntoObjectStatementEmitter(
                     "request".literal(), request.requestContainerClassName, requestContainerParts
                 )
-            ).resultStatement?.assignment("request".variableName())
+            ).resultStatement?.declaration("request".variableName())
             emitDelegateInvocation(request, requestContainerName)
         }
     }
@@ -151,7 +151,7 @@ class ServerRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitter {
 
             return emitterContext.runEmitter(
                 CombineIntoObjectStatementEmitter("request.body".literal(), safeType.modelName, parts)
-            ).resultStatement?.assignment(body.parameterVariableName)
+            ).resultStatement?.declaration(body.parameterVariableName)
                 ?: ProbableBug("don't know how to deserialize form object")
         } else {
             // it's a simple type, just create a single parameter
@@ -210,7 +210,7 @@ class ServerRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitter {
         //     .<deserializationStatement>
         return emitterContext.runEmitter(
             DeserializationStatementEmitter(typeUsage, statement, contentType, true)
-        ).resultStatement.assignment(parameterName.extend(postfix = "maybe"))
+        ).resultStatement.declaration(parameterName.extend(postfix = "maybe"))
     }
 
 }

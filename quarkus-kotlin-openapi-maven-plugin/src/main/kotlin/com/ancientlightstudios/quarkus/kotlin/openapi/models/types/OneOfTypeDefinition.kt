@@ -1,6 +1,7 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.types
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ContentType
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.SchemaModifier
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.SchemaValidation
@@ -9,12 +10,15 @@ interface OneOfTypeDefinition : TypeDefinition {
 
     val modelName: ClassName
 
+    val discriminatorProperty: VariableName?
+
     val options: List<OneOfOption>
 
 }
 
 class RealOneOfTypeDefinition(
     override var modelName: ClassName,
+    override val discriminatorProperty: VariableName?,
     override val nullable: Boolean,
     override val modifier: SchemaModifier?,
     override val options: List<OneOfOption>,
@@ -39,6 +43,7 @@ class RealOneOfTypeDefinition(
     override fun split(): Pair<TypeDefinition, TypeDefinition> {
         val upType = RealOneOfTypeDefinition(
             modelName.extend(postfix = "Up"),
+            discriminatorProperty,
             nullable,
             modifier,
             options.map {
@@ -50,6 +55,7 @@ class RealOneOfTypeDefinition(
         }
         val downType = RealOneOfTypeDefinition(
             modelName.extend(postfix = "Down"),
+            discriminatorProperty,
             nullable,
             modifier,
             options.map {

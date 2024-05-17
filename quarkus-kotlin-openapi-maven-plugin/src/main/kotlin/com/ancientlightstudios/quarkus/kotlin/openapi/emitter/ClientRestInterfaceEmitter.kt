@@ -21,6 +21,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.C
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.NullCheckExpression.Companion.nullCheck
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.PropertyExpression.Companion.property
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TryCatchExpression.Companion.tryExpression
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.GenericTypeName.Companion.of
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.SimpleTypeName.Companion.typeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.rawVariableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
@@ -90,19 +91,16 @@ class ClientRestInterfaceEmitter : CodeEmitter {
                     catchBlock(Jakarta.WebApplicationExceptionClass) {
                         "e".variableName().property("response".variableName()).statement()
                     }
-                }.assignment("response".rawVariableName())
+                }.declaration("response".rawVariableName())
 
                 // produces
-                // val statusCode = RestResponse.Status.fromStatusCode(response.status)
-                val statusCode = "statusCode".rawVariableName()
-                Misc.RestResponseStatusClass.companionObject()
-                    .invoke(
-                        "fromStatusCode".rawMethodName(),
-                        "response".variableName().property("status".variableName())
-                    ).assignment(statusCode)
+                // val statusCode = response.status
+                val statusCode = "response".variableName()
+                    .property("status".variableName())
+                    .declaration("statusCode".variableName())
 
                 // produces
-                // val responseMaybe = when (statusCode) {
+                // val responseMaybe: Maybe<[ResponseContainerClass]> = when (statusCode) {
                 //     ...
                 // }
                 val responseMaybe = "responseMaybe".rawVariableName()
@@ -125,7 +123,7 @@ class ClientRestInterfaceEmitter : CodeEmitter {
                             successClass, defaultResponse.body, defaultResponse.headers
                         )
                     }
-                }.assignment(responseMaybe)
+                }.declaration(responseMaybe, typeName = Library.MaybeClass.typeName().of(request.responseContainerClassName.typeName()))
 
 
                 // produces
@@ -148,7 +146,7 @@ class ClientRestInterfaceEmitter : CodeEmitter {
                         responseMaybe.property("errors".variableName())
                             .invoke("joinToString".rawMethodName()) {
                                 "\${it.path}: \${it.message}".literal().statement()
-                            }.assignment("errors".variableName())
+                            }.declaration("errors".variableName())
 
                         InvocationExpression.invoke(
                             errorClass.rawNested("ResponseError").constructorName,
@@ -198,7 +196,7 @@ class ClientRestInterfaceEmitter : CodeEmitter {
         return when (parameter.content.mappedContentType) {
             ContentType.ApplicationJson -> "objectMapper".variableName().invoke("writeValueAsString".rawMethodName(), statement)
             else -> statement
-        }.assignment(parameterName.extend(postfix = "Payload"))
+        }.declaration(parameterName.extend(postfix = "Payload"))
     }
 
     // generates parameters and conversion for the request body depending on the media type
@@ -225,7 +223,7 @@ class ClientRestInterfaceEmitter : CodeEmitter {
 
         return "objectMapper".variableName()
             .invoke("writeValueAsString".rawMethodName(), jsonNode)
-            .assignment(parameterName.extend(postfix = "Payload"))
+            .declaration(parameterName.extend(postfix = "Payload"))
     }
 
     private fun TryCatchExpression.emitPlainBody(method: KotlinMethod, body: TransformableBody): VariableName {
@@ -236,7 +234,7 @@ class ClientRestInterfaceEmitter : CodeEmitter {
         method.kotlinParameter(parameterName, typeUsage.buildValidType(), default)
         return emitterContext.runEmitter(
             SerializationStatementEmitter(typeUsage, parameterName, body.content.mappedContentType)
-        ).resultStatement.assignment(parameterName.extend(postfix = "Payload"))
+        ).resultStatement.declaration(parameterName.extend(postfix = "Payload"))
     }
 
     private fun TryCatchExpression.emitMultipartBody(
@@ -270,13 +268,13 @@ class ClientRestInterfaceEmitter : CodeEmitter {
                     SerializationStatementEmitter(
                         propertyType, propertyStatement, contentType
                     )
-                ).resultStatement.assignment(parameterName.extend(postfix = "${it.sourceName} Payload"))
+                ).resultStatement.declaration(parameterName.extend(postfix = "${it.sourceName} Payload"))
             }
         } else {
             return listOf(
                 emitterContext.runEmitter(
                     SerializationStatementEmitter(typeUsage, parameterName, body.content.mappedContentType)
-                ).resultStatement.assignment(parameterName.extend(postfix = "Payload"))
+                ).resultStatement.declaration(parameterName.extend(postfix = "Payload"))
             )
         }
 
@@ -291,8 +289,7 @@ class ClientRestInterfaceEmitter : CodeEmitter {
         responseClass: ClassName, statusCode: ResponseCode.HttpStatusCode, body: TransformableBody?,
         headers: List<TransformableParameter>
     ) {
-        val optionValue = Misc.RestResponseStatusClass.companionObject()
-            .property(statusCode.statusCodeName().rawConstantName())
+        val optionValue = statusCode.value.literal()
         generateResponseOption(
             responseClass.nested(statusCode.statusCodeReason()), optionValue, false, body, headers
         )
@@ -339,7 +336,7 @@ class ClientRestInterfaceEmitter : CodeEmitter {
                 // response.readEntity(String::class.java)
                 val entity = "response".variableName()
                     .invoke("readEntity".rawMethodName(), Kotlin.StringClass.javaClass())
-                    .assignment("entity".variableName())
+                    .declaration("entity".variableName())
 
                 val statement = invoke(Library.MaybeSuccessClass.constructorName, "response.body".literal(), entity)
 
@@ -349,7 +346,7 @@ class ClientRestInterfaceEmitter : CodeEmitter {
                         DeserializationStatementEmitter(
                             body.content.typeUsage, statement, body.content.mappedContentType, true
                         )
-                    ).resultStatement.assignment(body.parameterVariableName.extend(postfix = "maybe"))
+                    ).resultStatement.declaration(body.parameterVariableName.extend(postfix = "maybe"))
                 )
             }
 
@@ -393,7 +390,7 @@ class ClientRestInterfaceEmitter : CodeEmitter {
         //     .<deserializationStatement>
         return emitterContext.runEmitter(
             DeserializationStatementEmitter(header.typeUsage, statement, header.content.mappedContentType, true)
-        ).resultStatement.assignment(header.parameterVariableName.extend(postfix = "maybe"))
+        ).resultStatement.declaration(header.parameterVariableName.extend(postfix = "maybe"))
     }
 
     // generates
@@ -404,7 +401,7 @@ class ClientRestInterfaceEmitter : CodeEmitter {
             // <ResponseObject>("unknown status code ${statusCode.name}", response)
             val newInstance = invoke(
                 responseClass.rawNested("ResponseError").constructorName,
-                "unknown status code \${statusCode.name}".literal(),
+                "unknown status code \${statusCode}".literal(),
                 "response".rawVariableName()
             )
             // produces

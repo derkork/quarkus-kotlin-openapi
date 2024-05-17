@@ -12,14 +12,15 @@ interface StatementAware {
         addStatement(this)
     }
 
-    fun KotlinExpression.assignment(
-        variableName: VariableName, modifiable: Boolean = false, reassignment: Boolean = false
+    fun KotlinExpression.declaration(
+        variableName: VariableName, typeName: TypeName? = null, modifiable: Boolean = false
     ): VariableName {
 
         addStatement(object : KotlinStatement {
 
             override fun ImportCollector.registerImports() {
-                registerFrom(this@assignment)
+                registerFrom(this@declaration)
+                typeName?.let { register(typeName) }
             }
 
             override fun render(writer: CodeWriter) = with(writer) {
@@ -29,10 +30,26 @@ interface StatementAware {
                     "val "
                 }
 
-                if (!reassignment) {
-                    write(modifier)
-                }
+                write(modifier)
+                write(variableName.value)
+                typeName?.let { write(": ${it.value}") }
+                write(" = ")
+                this@declaration.render(this)
+            }
+        })
 
+        return variableName
+    }
+
+    fun KotlinExpression.assignment(variableName: VariableName): VariableName {
+
+        addStatement(object : KotlinStatement {
+
+            override fun ImportCollector.registerImports() {
+                registerFrom(this@assignment)
+            }
+
+            override fun render(writer: CodeWriter) = with(writer) {
                 write("${variableName.value} = ")
                 this@assignment.render(this)
             }
