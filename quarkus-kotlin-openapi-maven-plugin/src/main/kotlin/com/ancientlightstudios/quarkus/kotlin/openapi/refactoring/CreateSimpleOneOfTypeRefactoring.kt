@@ -1,16 +1,16 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.refactoring
 
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.OriginPathHint.originPath
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeDefinitionHint.typeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName.Companion.className
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchema
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.NullableComponent
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.OneOfComponent
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.SchemaModifierComponent
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.ValidationComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.OneOfOption
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.RealOneOfTypeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.TypeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.TypeUsage
+import com.fasterxml.jackson.databind.ser.Serializers.Base
 
 class CreateSimpleOneOfTypeRefactoring(
     private val schema: TransformableSchema,
@@ -23,22 +23,43 @@ class CreateSimpleOneOfTypeRefactoring(
         val modifier = schema.getComponent<SchemaModifierComponent>()?.modifier
         val validations = schema.getComponents<ValidationComponent>().map { it.validation }
 
+        val discriminator = oneOf.discriminator
+
         val typeName = schema.name.className(modelPackage)
         val optionTypes = oneOf.schemas.map { schemaUsage ->
+            val optionSchema = schemaUsage.schema
             // by default options are always required. But it's still possible to define the schema as nullable
             val usage = TypeUsage(true)
             // lazy lookup in case the item schema is not yet converted
-            lazyTypeUsage(usage) { schemaUsage.schema.typeDefinition }
-            OneOfOption(typeName.extend(postfix = schemaUsage.schema.name), usage, emptyList())
+            lazyTypeUsage(usage) { optionSchema.typeDefinition }
+
+            val aliases = getAliases(optionSchema, discriminator)
+            OneOfOption(typeName.extend(postfix = schemaUsage.schema.name), usage, aliases)
         }
 
         schema.typeDefinition = RealOneOfTypeDefinition(
             typeName,
+            discriminator?.property?.variableName(),
             nullable ?: false,
             modifier,
             optionTypes,
             validations
         )
+    }
+
+    private fun getAliases(optionSchema: TransformableSchema, discriminator: OneOfDiscriminator?) : List<String> {
+        // TODO: little hack for now
+        return if (discriminator != null) {
+            val originPath = when(val baseSchema = optionSchema.getComponent<BaseSchemaComponent>()) {
+                null -> optionSchema.originPath
+                else -> baseSchema.schema.originPath
+            }
+            val defaultAlias = originPath.substringAfterLast("/")
+            val additionalAliases = discriminator.additionalMappings.filter { it.value == originPath }.keys
+            listOf(defaultAlias, *additionalAliases.toTypedArray())
+        } else {
+            emptyList()
+        }
     }
 
 }

@@ -34,8 +34,6 @@ class ClientResponseContainerEmitter : CodeEmitter {
     }
 
     private fun RequestInspection.emitContainerFile() = kotlinFile(request.responseContainerClassName) {
-        val defaultResponseExists = request.responses.any { it.responseCode == ResponseCode.Default }
-
         registerImports(Library.AllClasses)
         registerImports(emitterContext.getAdditionalImports())
 
@@ -51,7 +49,7 @@ class ClientResponseContainerEmitter : CodeEmitter {
             val me = request.clientHttpResponseClassName
             kotlinClass(me, sealed = true, interfaces = listOf(fileName)) {
                 kotlinMember(
-                    "status".variableName(), Misc.RestResponseStatusClass.typeName(), accessModifier = null, open = true
+                    "status".variableName(), Kotlin.IntClass.typeName(), accessModifier = null, open = true
                 )
                 kotlinMember(
                     "unsafeBody".variableName(), Kotlin.AnyClass.typeName(true), accessModifier = null, open = true
@@ -85,7 +83,7 @@ class ClientResponseContainerEmitter : CodeEmitter {
 
         kotlinClass("Default".className(""), baseClass = baseClass) {
             kotlinMember(
-                "status".variableName(), Misc.RestResponseStatusClass.typeName(), accessModifier = null, override = true
+                "status".variableName(), Kotlin.IntClass.typeName(), accessModifier = null, override = true
             )
 
             body?.let {
@@ -112,8 +110,7 @@ class ClientResponseContainerEmitter : CodeEmitter {
             else -> "safeBody".variableName()
         }
 
-        val statusName = responseCode.statusCodeName()
-        val status = Misc.RestResponseStatusClass.companionObject().property(statusName.rawConstantName())
+        val status = responseCode.value.literal()
         val baseClass = KotlinBaseClass(parentClass, status, bodyExpression)
 
         kotlinClass(

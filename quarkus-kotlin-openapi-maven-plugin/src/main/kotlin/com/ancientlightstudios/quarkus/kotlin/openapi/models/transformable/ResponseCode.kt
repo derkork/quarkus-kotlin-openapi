@@ -18,7 +18,7 @@ sealed interface ResponseCode {
 
         fun statusCodeReason() = Response.Status.fromStatusCode(value)?.reasonPhrase ?: "status${this}"
 
-        fun statusCodeName() = Response.Status.fromStatusCode(value).name
+        fun statusCodeName() = Response.Status.fromStatusCode(value)?.name ?: "status${this}"
 
     }
 

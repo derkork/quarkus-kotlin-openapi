@@ -120,7 +120,7 @@ class DefaultObjectModelClassEmitter(private val typeDefinition: ObjectTypeDefin
 
                     emitterContext.runEmitter(
                         DeserializationStatementEmitter(it.typeUsage, statement, ContentType.ApplicationJson, false)
-                    ).resultStatement.assignment("${it.sourceName}Maybe".variableName())
+                    ).resultStatement.declaration("${it.sourceName}Maybe".variableName())
                 }
 
                 if (objectParts.isEmpty()) {

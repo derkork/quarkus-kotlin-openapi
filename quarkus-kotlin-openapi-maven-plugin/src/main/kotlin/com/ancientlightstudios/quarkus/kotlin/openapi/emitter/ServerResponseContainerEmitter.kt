@@ -80,11 +80,10 @@ class ServerResponseContainerEmitter : CodeEmitter {
                 ), asParameterList = true
             )
 
-            val statusCodeStatement = Misc.RestResponseClass.companionObject()
-                .property("Status".rawClassName("", true))
-                .invoke("fromStatusCode".rawMethodName(), statusVariable)
             val statement = Misc.ResponseBuilderClass.companionObject()
-                .invoke("create".rawMethodName(), statusCodeStatement, bodyVariable)
+                .invoke("create".rawMethodName(), statusVariable, genericTypes = listOf(Kotlin.AnyClass.typeName(true)))
+                .invoke("entity".rawMethodName(), bodyVariable)
+                .wrap()
                 .invoke("type".rawMethodName(), typeVariable)
                 .invoke("apply".rawMethodName()) {
                     headersVariable.invoke("forEach".rawMethodName()) {

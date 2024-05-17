@@ -6,6 +6,8 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.Trans
 class ValidationStage : GeneratorStage {
 
     override fun process(spec: TransformableSpec) {
+        OneOfDiscriminatorCheck().verify(spec)
+        OneOfDiscriminatorMappingCheck().verify(spec)
     }
 
 }

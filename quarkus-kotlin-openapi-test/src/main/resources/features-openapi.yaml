@@ -7,6 +7,26 @@ tags:
   - name: json
 
 paths:
+  /features/misc/unknownStatusCode:
+    get:
+      tags:
+        - misc
+      operationId: unknownStatusCode
+      responses:
+        '422':
+          description: Unprocessable entity
+
+  /features/misc/unknownStatusCode2:
+    get:
+      tags:
+        - misc
+      operationId: unknownStatusCode2
+      responses:
+        '422':
+          description: Unprocessable entity
+        'default':
+          description: Unprocessable entity
+
   /features/parameters/test1:
     get:
       tags:
@@ -258,6 +278,48 @@ paths:
         '400':
           $ref: '#/components/responses/OperationError400'
 
+  /features/oneOf/test2:
+    post:
+      tags:
+        - oneOf
+      operationId: oneOfTest2
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OneOfWithDiscriminator'
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OneOfWithDiscriminator'
+        '400':
+          $ref: '#/components/responses/OperationError400'
+
+  /features/oneOf/test3:
+    post:
+      tags:
+        - oneOf
+      operationId: oneOfTest3
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OneOfWithDiscriminatorAndMapping'
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OneOfWithDiscriminatorAndMapping'
+        '400':
+          $ref: '#/components/responses/OperationError400'
+
 components:
 
   schemas:
@@ -361,6 +423,52 @@ components:
       oneOf:
         - $ref: '#/components/schemas/SimpleForm'
         - $ref: '#/components/schemas/SimpleObjectOptional'
+
+    OneOfWithDiscriminator:
+      oneOf:
+        - $ref: '#/components/schemas/Book'
+        - $ref: '#/components/schemas/Song'
+      discriminator:
+        propertyName: kind
+
+    OneOfWithDiscriminatorAndMapping:
+      oneOf:
+        - $ref: '#/components/schemas/Book'
+        - $ref: '#/components/schemas/Song'
+      discriminator:
+        propertyName: kind
+        mapping:
+          booooook: '#/components/schemas/Book'
+
+    Book:
+      type: object
+      properties:
+        title:
+          type: string
+        pages:
+          type: number
+          format: int32
+        kind:
+          type: string
+      required:
+        - title
+        - pages
+        - kind
+
+    Song:
+      type: object
+      properties:
+        title:
+          type: string
+        duration:
+          type: number
+          format: int32
+        kind:
+          type: string
+      required:
+        - title
+        - duration
+        - kind
 
     OperationError:
       type: object

@@ -196,7 +196,22 @@ class SchemaBuilder(
             }.map { DefaultSchemaUsage(it) }
 
         if (schemas.isNotEmpty()) {
-            components.add(OneOfComponent(schemas))
+            val discriminatorNode = node.get("discriminator")
+                ?.asObjectNode { "Json object expected for discriminator at $contextPath" }
+            var discriminator: OneOfDiscriminator? = null
+            if (discriminatorNode != null) {
+                val propertyName = discriminatorNode.get("propertyName")?.asText()
+                    ?: SpecIssue("Discriminator without propertyName found")
+
+                val mappings = discriminatorNode.with("mapping")
+                    .propertiesAsList()
+                    .toMap()
+                    .mapValues { it.value.asText() }
+
+                discriminator = OneOfDiscriminator(propertyName, mappings)
+            }
+
+            components.add(OneOfComponent(schemas, discriminator))
         }
     }
 
