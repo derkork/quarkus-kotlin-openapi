@@ -1,8 +1,9 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
+import com.ancientlightstudios.quarkus.kotlin.openapi.utils.forEachWithStats
 
-class WhenOption(private val leftSide: KotlinExpression) : KotlinRenderable, StatementAware {
+class WhenOption(private val leftSide: List<KotlinExpression>) : KotlinRenderable, StatementAware {
 
     private val statements = KotlinStatementContainer()
 
@@ -16,7 +17,13 @@ class WhenOption(private val leftSide: KotlinExpression) : KotlinRenderable, Sta
     }
 
     override fun render(writer: CodeWriter) = with(writer) {
-        leftSide.render(this)
+        leftSide.forEachWithStats { status, item ->
+            item.render(this)
+            if (!status.last) {
+                write(", ")
+            }
+        }
+
         write(" -> ")
         if (statements.size > 1) {
             block {
@@ -35,7 +42,7 @@ interface WhenOptionAware {
 
 }
 
-fun WhenOptionAware.optionBlock(leftSide: KotlinExpression, block: WhenOption.() -> Unit) {
-    val content = WhenOption(leftSide).apply(block)
+fun WhenOptionAware.optionBlock(vararg leftSide: KotlinExpression, block: WhenOption.() -> Unit) {
+    val content = WhenOption(leftSide.toList()).apply(block)
     addOption(content)
 }

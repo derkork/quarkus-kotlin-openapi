@@ -15,7 +15,7 @@ class FeaturesOneOfClientTest {
     lateinit var client: FeaturesOneOfClient
 
     @Test
-    fun `sending option1 value is accepted`() {
+    fun `sending option1 is accepted by endpoint without discriminator`() {
         runBlocking {
             when (val response = client.oneOfTest1(
                 OneOfWithoutDiscriminatorBook(
@@ -37,7 +37,7 @@ class FeaturesOneOfClientTest {
     }
 
     @Test
-    fun `sending option2 value is accepted`() {
+    fun `sending option2 is accepted by endpoint without discriminator`() {
         runBlocking {
             when (val response = client.oneOfTest1(
                 OneOfWithoutDiscriminatorSong(
@@ -61,7 +61,7 @@ class FeaturesOneOfClientTest {
     }
 
     @Test
-    fun `sending null as option2 value is accepted`() {
+    fun `sending null as option2 is accepted by endpoint without discriminator`() {
         runBlocking {
             when (val response = client.oneOfTest1(
                 OneOfWithoutDiscriminatorSong(null)
@@ -79,4 +79,95 @@ class FeaturesOneOfClientTest {
         }
     }
 
+    @Test
+    fun `sending option1 is accepted by endpoint with discriminator`() {
+        runBlocking {
+            when (val response = client.oneOfTest2(
+                OneOfWithDiscriminatorBook(
+                    Book("foo", 10, "some strange kind")
+                )
+            )) {
+                is OneOfTest2HttpResponse.Ok -> {
+                    val safeBody =
+                        response.safeBody as? OneOfWithDiscriminatorBook ?: fail("wrong response body")
+                    assertThat(safeBody.value.title).isEqualTo("foo")
+                    assertThat(safeBody.value.pages).isEqualTo(10)
+                    assertThat(safeBody.value.kind).isEqualTo("Book")
+                }
+
+                is OneOfTest1HttpResponse -> fail("received status code ${response.status}")
+                else -> fail("request failed")
+            }
+        }
+    }
+
+    @Test
+    fun `sending option2 is accepted by endpoint with discriminator`() {
+        runBlocking {
+            when (val response = client.oneOfTest2(
+                OneOfWithDiscriminatorSong(
+                    Song("puit", 200, "some strange kind")
+                )
+            )) {
+                is OneOfTest2HttpResponse.Ok -> {
+                    val safeBody =
+                        response.safeBody as? OneOfWithDiscriminatorSong
+                            ?: fail("wrong response body")
+                    assertThat(safeBody.value).isNotNull
+                    assertThat(safeBody.value.title).isEqualTo("puit")
+                    assertThat(safeBody.value.duration).isEqualTo(200)
+                    assertThat(safeBody.value.kind).isEqualTo("Song")
+                }
+
+                is OneOfTest1HttpResponse -> fail("received status code ${response.status}")
+                else -> fail("request failed")
+            }
+        }
+    }
+
+    @Test
+    fun `sending option1 is accepted by endpoint with discriminator and mapping`() {
+        runBlocking {
+            when (val response = client.oneOfTest3(
+                OneOfWithDiscriminatorAndMappingBook(
+                    Book("foo", 10, "some strange kind")
+                )
+            )) {
+                is OneOfTest3HttpResponse.Ok -> {
+                    val safeBody =
+                        response.safeBody as? OneOfWithDiscriminatorAndMappingBook ?: fail("wrong response body")
+                    assertThat(safeBody.value.title).isEqualTo("foo")
+                    assertThat(safeBody.value.pages).isEqualTo(10)
+                    assertThat(safeBody.value.kind).isEqualTo("Book")
+                }
+
+                is OneOfTest1HttpResponse -> fail("received status code ${response.status}")
+                else -> fail("request failed")
+            }
+        }
+    }
+
+    @Test
+    fun `sending option2 is accepted by endpoint with discriminator and mapping`() {
+        runBlocking {
+            when (val response = client.oneOfTest3(
+                OneOfWithDiscriminatorAndMappingSong(
+                    Song("puit", 200, "some strange kind")
+                )
+            )) {
+                is OneOfTest3HttpResponse.Ok -> {
+                    val safeBody =
+                        response.safeBody as? OneOfWithDiscriminatorAndMappingSong
+                            ?: fail("wrong response body")
+                    assertThat(safeBody.value).isNotNull
+                    assertThat(safeBody.value.title).isEqualTo("puit")
+                    assertThat(safeBody.value.duration).isEqualTo(200)
+                    assertThat(safeBody.value.kind).isEqualTo("Song")
+                }
+
+                is OneOfTest1HttpResponse -> fail("received status code ${response.status}")
+                else -> fail("request failed")
+            }
+        }
+    }
 }

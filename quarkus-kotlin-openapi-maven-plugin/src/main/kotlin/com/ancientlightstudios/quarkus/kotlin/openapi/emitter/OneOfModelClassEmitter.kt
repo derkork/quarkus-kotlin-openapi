@@ -8,11 +8,13 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.InvocationExpression.Companion.invoke
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.methodName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.rawMethodName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.NullCheckExpression.Companion.nullCheck
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.PropertyExpression.Companion.property
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.GenericTypeName.Companion.of
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.SimpleTypeName.Companion.typeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.rawVariableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.WhenExpression.Companion.whenExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ContentType
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.Direction
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.OneOfOption
@@ -117,46 +119,105 @@ class OneOfModelClassEmitter(private val typeDefinition: OneOfTypeDefinition) :
             receiverType = Library.MaybeClass.typeName().of(Misc.JsonNodeClass.typeName(true)),
             bodyAsAssignment = true
         ) {
-            val discriminatorProperty = typeDefinition.discriminatorProperty
-            val wrapperMethod = when (discriminatorProperty) {
-                null -> "onSuccess"
-                else -> "onNotNull"
+            when (val discriminatorProperty = typeDefinition.discriminatorProperty) {
+                null -> generateJsonDeserializationWithoutDescriptor()
+                else -> generateJsonDeserializationWithDescriptor(discriminatorProperty)
             }
-
-            invoke(wrapperMethod.methodName()) {
-                when (discriminatorProperty) {
-                    null -> generateJsonDeserializationWithoutDescriptor()
-                    else -> generateJsonDeserializationWithDescriptor(discriminatorProperty)
-                }
-            }.statement()
         }
     }
 
     private fun StatementAware.generateJsonDeserializationWithoutDescriptor() {
-        val baseStatement = "this".rawVariableName()
-        val statements = typeDefinition.options.mapIndexed { index, option ->
-            val statement = emitterContext.runEmitter(
-                DeserializationStatementEmitter(option.typeUsage, baseStatement, ContentType.ApplicationJson, false)
-            ).resultStatement.declaration("option${index}Maybe".variableName())
-            statement to option.modelName
-        }
-
-        val maybeParameters = listOf("context".variableName(), *statements.map { it.first }.toTypedArray())
-        invoke("maybeOneOf".rawMethodName(), maybeParameters) {
-            statements.forEach { (variableName, className) ->
-                variableName.invoke("doOnSuccess".methodName()) {
-                    invoke(className.constructorName, "it".variableName()).returnStatement("maybeOneOf")
-                }.statement()
+        // onSuccess instead of onNotNull in case one of the options is nullable. maybe we can find a better way to handle this
+        invoke("onSuccess".methodName()) {
+            val baseStatement = "this".rawVariableName()
+            val statements = typeDefinition.options.mapIndexed { index, option ->
+                val statement = emitterContext.runEmitter(
+                    DeserializationStatementEmitter(option.typeUsage, baseStatement, ContentType.ApplicationJson, false)
+                ).resultStatement.declaration("option${index}Maybe".variableName())
+                statement to option.modelName
             }
 
-            invoke(
-                Kotlin.IllegalStateExceptionClass.constructorName,
-                "this should never happen".literal()
-            ).throwStatement()
+            val maybeParameters = listOf("context".variableName(), *statements.map { it.first }.toTypedArray())
+            invoke("maybeOneOf".rawMethodName(), maybeParameters) {
+                statements.forEach { (variableName, className) ->
+                    variableName.invoke("doOnSuccess".methodName()) {
+                        invoke(className.constructorName, "it".variableName()).returnStatement("maybeOneOf")
+                    }.statement()
+                }
+
+                invoke(
+                    Kotlin.IllegalStateExceptionClass.constructorName,
+                    "this should never happen".literal()
+                ).throwStatement()
+            }.statement()
         }.statement()
     }
 
     private fun StatementAware.generateJsonDeserializationWithDescriptor(discriminatorProperty: VariableName) {
-        discriminatorProperty.statement()
+        // onSuccess instead of onNotNull in case one of the options is nullable. maybe we can find a better way to handle this
+        invoke("onNotNull".methodName()) {
+            // renders
+            //
+            // val discriminator = value.get("<discriminatorName>")?.asText()
+            val discriminatorVariable = "value".variableName()
+                .invoke("get".methodName(), discriminatorProperty.value.literal())
+                .nullCheck()
+                .invoke("asText".methodName())
+                .declaration("discriminator".variableName())
+
+            whenExpression(discriminatorVariable) {
+                optionBlock(nullLiteral()) {
+                    // renders
+                    //
+                    // failure(ValidationError("discriminator field '<discriminatorName>' is missing", context))
+                    InvocationExpression.invoke(
+                        "failure".methodName(),
+                        InvocationExpression.invoke(
+                            Library.ValidationErrorClass.constructorName,
+                            "discriminator field '${discriminatorProperty.value}' is missing".literal(),
+                            "context".variableName()
+                        )
+                    ).statement()
+                }
+
+                typeDefinition.options.forEach {
+                    val aliases = it.aliases.map { it.literal() }
+                    optionBlock(*aliases.toTypedArray()) {
+                        // renders
+                        //
+                        // this.<DeserializationStatements>
+                        //     .onSuccess { success(<ContainerClass>(value)) }
+                        emitterContext.runEmitter(
+                            DeserializationStatementEmitter(
+                                it.typeUsage, "this".variableName(), ContentType.ApplicationJson, false
+                            )
+                        ).resultStatement
+                            .wrap()
+                            .invoke("onSuccess".methodName()) {
+                                InvocationExpression.invoke(
+                                    "success".methodName(),
+                                    InvocationExpression.invoke(it.modelName.constructorName, "value".variableName())
+                                ).statement()
+                            }
+                            .statement()
+                    }
+                }
+
+                optionBlock("else".variableName()) {
+                    // renders
+                    //
+                    // failure(ValidationError("discriminator field '<discriminatorName>' has invalid value '$discriminator'", context))
+                    InvocationExpression.invoke(
+                        "failure".methodName(),
+                        InvocationExpression.invoke(
+                            Library.ValidationErrorClass.constructorName,
+                            "discriminator field '${discriminatorProperty.value}' has invalid value '\$discriminator'".literal(),
+                            "context".variableName()
+                        )
+                    ).statement()
+                }
+            }.statement()
+
+        }.statement()
     }
 }

@@ -15,10 +15,10 @@ fun Maybe<String?>.asJson(objectMapper: ObjectMapper): Maybe<JsonNode?> = onNotN
 }
 
 @Suppress("unused")
-fun Maybe<JsonNode?>.asObject(): Maybe<JsonNode?> = onNotNull {
+fun Maybe<out JsonNode?>.asObject(): Maybe<JsonNode?> = onNotNull {
     when (this.value) {
         is NullNode -> success(null)
-        is ObjectNode -> this@asObject
+        is ObjectNode -> this@asObject as Maybe<JsonNode?>
         else -> Maybe.Failure(context, ValidationError("is not a valid json object", context))
     }
 }
@@ -27,7 +27,7 @@ fun Maybe<JsonNode?>.asObject(): Maybe<JsonNode?> = onNotNull {
 fun JsonNode?.findProperty(name: String, context: String): Maybe<JsonNode?> = Maybe.Success(context, this?.get(name))
 
 @Suppress("unused")
-fun Maybe<JsonNode?>.asList(): Maybe<List<JsonNode?>?> = onNotNull {
+fun Maybe<out JsonNode?>.asList(): Maybe<List<JsonNode?>?> = onNotNull {
     when (this.value) {
         is NullNode -> success(null)
         is ArrayNode -> success(this.value.toList())
