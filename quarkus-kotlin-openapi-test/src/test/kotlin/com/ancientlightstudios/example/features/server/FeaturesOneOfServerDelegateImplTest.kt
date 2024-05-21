@@ -28,16 +28,18 @@ class FeaturesOneOfServerDelegateImplTest : ApiTestBase() {
             .contentType("application/json")
             .body(
                 """{
-                    "name": "foo",
-                    "status": "first",
-                    "nameRequired": "puit",
-                    "statusRequired": "first",
-                    "itemsRequired": []
+                    "title": "foo",
+                    "pages": 10,
+                    "duration": 200,
+                    "kind": "all"
                 }""".trimMargin()
             )
             .post("/features/oneOf/test1".toTestUrl())
             .execute()
             .statusCode(400)
+            .withStringBody {
+                assertThat(it).contains("ambiguous")
+            }
     }
 
     @Test
@@ -59,16 +61,18 @@ class FeaturesOneOfServerDelegateImplTest : ApiTestBase() {
             .contentType("application/json")
             .body(
                 """{
-                    "name": "foo",
-                    "status": "first"
+                    "title": "foo",
+                    "pages": 10,
+                    "kind": "book"
             }""".trimIndent()
             )
             .post("/features/oneOf/test1".toTestUrl())
             .execute()
             .statusCode(200)
             .withJsonBody {
-                assertThat(it.getString("name")).isEqualTo("foo")
-                assertThat(it.getString("status")).isEqualTo("first")
+                assertThat(it.getString("title")).isEqualTo("foo")
+                assertThat(it.getInt("pages")).isEqualTo(10)
+                assertThat(it.getString("kind")).isEqualTo("book")
             }
 
     }
@@ -79,18 +83,18 @@ class FeaturesOneOfServerDelegateImplTest : ApiTestBase() {
             .contentType("application/json")
             .body(
                 """{
-                    "nameRequired": "puit",
-                    "statusRequired": "first",
-                    "itemsRequired": []
+                    "title": "puit",
+                    "duration": 200,
+                    "kind": "song"
             }""".trimIndent()
             )
             .post("/features/oneOf/test1".toTestUrl())
             .execute()
             .statusCode(200)
             .withJsonBody {
-                assertThat(it.getString("nameRequired")).isEqualTo("puit")
-                assertThat(it.getString("statusRequired")).isEqualTo("first")
-                assertThat(it.getList<String>("itemsRequired")).isEmpty()
+                assertThat(it.getString("title")).isEqualTo("puit")
+                assertThat(it.getInt("duration")).isEqualTo(200)
+                assertThat(it.getString("kind")).isEqualTo("song")
             }
 
     }

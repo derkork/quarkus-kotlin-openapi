@@ -42,6 +42,7 @@ class KotlinEnum(private val name: ClassName) : KotlinRenderable,
         registerFrom(methods)
         registerFrom(members)
         registerFrom(items)
+        companion?.let { registerFrom(it) }
     }
 
     override fun render(writer: CodeWriter) = with(writer) {

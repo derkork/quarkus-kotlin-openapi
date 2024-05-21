@@ -10,7 +10,6 @@ sealed class Maybe<T>(val context: String) {
         fun <O> success(value: O) = Success(context, value)
         fun <O> failure(error: ValidationError) = Failure<O>(context, error)
         fun <O> failure(errors: List<ValidationError>) = Failure<O>(context, errors)
-        override fun validValueOrNull() = value
     }
 
     class Failure<T>(context: String, val errors: List<ValidationError>) : Maybe<T>(context) {
@@ -18,14 +17,12 @@ sealed class Maybe<T>(val context: String) {
 
         @Suppress("UNCHECKED_CAST")
         override fun <O> onSuccess(block: Success<T>.() -> Maybe<O>): Maybe<O> = this as Maybe<O>
-        override fun validValueOrNull() = null
     }
 
     /**
      * executes the given block and returns its result if this maybe is a [Success] or just returns the [Failure]
      */
     abstract fun <O> onSuccess(block: Success<T>.() -> Maybe<O>): Maybe<O>
-    abstract fun validValueOrNull(): T?
 
 }
 

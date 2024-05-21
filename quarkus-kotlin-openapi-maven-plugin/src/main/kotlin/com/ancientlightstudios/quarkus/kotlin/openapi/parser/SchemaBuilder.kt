@@ -32,6 +32,8 @@ class SchemaBuilder(
             addAllOfComponent(components)
             addAnyOfComponent(components)
             addOneOfComponent(components)
+            addContainerModelNameComponent(components)
+            addEnumItemNamesComponent(components)
             addCustomConstraintsValidationComponent(components)
             addArrayValidationComponent(components)
             addObjectValidationComponent(components)
@@ -41,7 +43,7 @@ class SchemaBuilder(
         }
 
         schema.components = components
-        schema.name = contextPath.nameSuggestion() ?: ""
+        schema.name = node.getTextOrNull("x-model-name") ?: contextPath.nameSuggestion() ?: ""
     }
 
     private fun ParseContext.addBaseDefinitionComponent(components: MutableList<SchemaComponent>): Boolean {
@@ -231,6 +233,20 @@ class SchemaBuilder(
         val required = node.withArray("required").map { it.asText() }
         if (required.isNotEmpty()) {
             components.add(ObjectValidationComponent(required))
+        }
+    }
+
+    private fun addContainerModelNameComponent(components: MutableList<SchemaComponent>) {
+        node.getTextOrNull("x-container-model-name")?.let { components.add(ContainerModelNameComponent(it)) }
+    }
+
+    private fun addEnumItemNamesComponent(components: MutableList<SchemaComponent>) {
+        val names = node.with("x-enum-item-names")
+            .propertiesAsList()
+            .associate { (enumName, modelNameNode) -> enumName to modelNameNode.asText() }
+
+        if (names.isNotEmpty()) {
+            components.add(EnumItemNamesComponent(names))
         }
     }
 

@@ -51,7 +51,6 @@ object Misc {
     val ObjectMapperClass = "ObjectMapper".rawClassName("com.fasterxml.jackson.databind")
     val NullNodeClass = "NullNode".rawClassName("com.fasterxml.jackson.databind.node")
     val RestResponseClass = "RestResponse".rawClassName("org.jboss.resteasy.reactive")
-    val RestResponseStatusClass = RestResponseClass.rawNested("Status")
     val ResponseBuilderClass = RestResponseClass.rawNested("ResponseBuilder")
     val JsonNodeClass = "JsonNode".rawClassName("com.fasterxml.jackson.databind")
     val RegisterRestClientClass = "RegisterRestClient".rawClassName("org.eclipse.microprofile.rest.client.inject")

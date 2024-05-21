@@ -2,6 +2,8 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.models.types
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinExpression
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.PropertyExpression.Companion.property
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.companionObject
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ContentType
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.SchemaModifier
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.SchemaValidation
@@ -15,7 +17,11 @@ interface EnumTypeDefinition : TypeDefinition {
 
     val items: List<EnumTypeItem>
 
-    val defaultValue: KotlinExpression?
+    val defaultValue: String?
+
+    fun defaultExpression(): KotlinExpression? = defaultValue?.let { value ->
+        modelName.companionObject().property(items.first { it.sourceName == value }.name)
+    }
 
 }
 
@@ -25,7 +31,7 @@ class RealEnumTypeDefinition(
     override val nullable: Boolean,
     override val modifier: SchemaModifier?,
     override val items: List<EnumTypeItem>,
-    override val defaultValue: KotlinExpression?,
+    override val defaultValue: String?,
     override val validations: List<SchemaValidation>
 ) : EnumTypeDefinition {
 
@@ -58,7 +64,7 @@ class EnumTypeDefinitionOverlay(
     override var base: EnumTypeDefinition,
     private val forceNullable: Boolean,
     private val modifierOverlay: SchemaModifier?,
-    private val defaultValueOverlay: KotlinExpression?,
+    private val defaultValueOverlay: String?,
     private val additionalValidations: List<SchemaValidation> = listOf()
 ) : EnumTypeDefinition, TypeDefinitionOverlay {
 
@@ -77,7 +83,7 @@ class EnumTypeDefinitionOverlay(
     override val items: List<EnumTypeItem>
         get() = base.items
 
-    override val defaultValue: KotlinExpression?
+    override val defaultValue: String?
         get() = defaultValueOverlay ?: base.defaultValue
 
     override val validations: List<SchemaValidation>

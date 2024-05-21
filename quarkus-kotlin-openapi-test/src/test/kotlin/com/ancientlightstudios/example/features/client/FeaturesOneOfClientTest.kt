@@ -18,15 +18,16 @@ class FeaturesOneOfClientTest {
     fun `sending option1 value is accepted`() {
         runBlocking {
             when (val response = client.oneOfTest1(
-                OneOfWithoutDiscriminatorSimpleForm(
-                    SimpleForm("foo", SimpleEnum.First)
+                OneOfWithoutDiscriminatorBook(
+                    Book("foo", 10, "book")
                 )
             )) {
                 is OneOfTest1HttpResponse.Ok -> {
                     val safeBody =
-                        response.safeBody as? OneOfWithoutDiscriminatorSimpleForm ?: fail("wrong response body")
-                    assertThat(safeBody.value.name).isEqualTo("foo")
-                    assertThat(safeBody.value.status).isEqualTo(SimpleEnum.First)
+                        response.safeBody as? OneOfWithoutDiscriminatorBook ?: fail("wrong response body")
+                    assertThat(safeBody.value.title).isEqualTo("foo")
+                    assertThat(safeBody.value.pages).isEqualTo(10)
+                    assertThat(safeBody.value.kind).isEqualTo("book")
                 }
 
                 is OneOfTest1HttpResponse -> fail("received status code ${response.status}")
@@ -39,18 +40,18 @@ class FeaturesOneOfClientTest {
     fun `sending option2 value is accepted`() {
         runBlocking {
             when (val response = client.oneOfTest1(
-                OneOfWithoutDiscriminatorSimpleObjectOptional(
-                    SimpleObject(nameRequired = "puit", statusRequired = SimpleEnum.First, itemsRequired = emptyList())
+                OneOfWithoutDiscriminatorSong(
+                    Song("puit", 200, "song")
                 )
             )) {
                 is OneOfTest1HttpResponse.Ok -> {
                     val safeBody =
-                        response.safeBody as? OneOfWithoutDiscriminatorSimpleObjectOptional
+                        response.safeBody as? OneOfWithoutDiscriminatorSong
                             ?: fail("wrong response body")
                     assertThat(safeBody.value).isNotNull
-                    assertThat(safeBody.value!!.nameRequired).isEqualTo("puit")
-                    assertThat(safeBody.value!!.statusRequired).isEqualTo(SimpleEnum.First)
-                    assertThat(safeBody.value!!.itemsRequired).isEmpty()
+                    assertThat(safeBody.value!!.title).isEqualTo("puit")
+                    assertThat(safeBody.value!!.duration).isEqualTo(200)
+                    assertThat(safeBody.value!!.kind).isEqualTo("song")
                 }
 
                 is OneOfTest1HttpResponse -> fail("received status code ${response.status}")
@@ -63,11 +64,11 @@ class FeaturesOneOfClientTest {
     fun `sending null as option2 value is accepted`() {
         runBlocking {
             when (val response = client.oneOfTest1(
-                OneOfWithoutDiscriminatorSimpleObjectOptional(null)
+                OneOfWithoutDiscriminatorSong(null)
             )) {
                 is OneOfTest1HttpResponse.Ok -> {
                     val safeBody =
-                        response.safeBody as? OneOfWithoutDiscriminatorSimpleObjectOptional
+                        response.safeBody as? OneOfWithoutDiscriminatorSong
                             ?: fail("wrong response body")
                     assertThat(safeBody.value).isNull()
                 }

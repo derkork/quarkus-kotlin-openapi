@@ -5,7 +5,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeDefinitio
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName.Companion.className
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ConstantName.Companion.constantName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinExpression
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ConstantName.Companion.rawConstantName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.literalFor
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.SchemaModifier
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.SchemaTypes
@@ -65,7 +65,7 @@ class CreateSimplePrimitiveTypeRefactoring(
         val format = schema.getComponent<FormatComponent>()?.format
 
         val baseType = typeMapper.mapToPrimitiveType(type, format)
-        val default = schema.getComponent<DefaultComponent>()?.let { baseType.literalFor(it.default) }
+        val default = schema.getComponent<DefaultComponent>()?.default
 
         return when (val enumComponent = schema.getComponent<EnumValidationComponent>()) {
             null -> RealPrimitiveTypeDefinition(baseType, nullable, modifier, default, validations)
@@ -77,11 +77,18 @@ class CreateSimplePrimitiveTypeRefactoring(
         baseType: ClassName,
         nullable: Boolean,
         modifier: SchemaModifier?,
-        default: KotlinExpression?,
+        default: String?,
         enumComponent: EnumValidationComponent,
         validations: List<SchemaValidation>
     ): TypeDefinition {
-        val items = enumComponent.values.map { EnumTypeItem(it, it.constantName(), baseType.literalFor(it)) }
+        val enumNames = schema.getComponent<EnumItemNamesComponent>()?.values ?: emptyMap()
+
+        val items = enumComponent.values.map {
+            // use the given name as it is otherwise try to create a name out of the item value
+            val constantName = enumNames[it]?.rawConstantName() ?: it.constantName()
+            EnumTypeItem(it, constantName, baseType.literalFor(it))
+        }
+
         return RealEnumTypeDefinition(
             schema.name.className(modelPackage),
             baseType, nullable, modifier, items, default, validations
@@ -100,23 +107,23 @@ class CreateSimplePrimitiveTypeRefactoring(
         }
 
         // check if we have to override the default value
-        val default = schema.getComponent<DefaultComponent>()?.let { parentType.baseType.literalFor(it.default) }
+        val default = schema.getComponent<DefaultComponent>()?.default
         val enumItems = schema.getComponent<EnumValidationComponent>()?.values ?: listOf()
 
         if (enumItems.isEmpty()) {
             // just an overlay
             return PrimitiveTypeDefinitionOverlay(
-                parentType,
-                nullable == true,
-                modifier ?: parentType.modifier,
-                default,
-                validations
+                parentType, nullable == true, modifier ?: parentType.modifier, default, validations
             )
         }
 
         // we have to build an enum type out of it
+        val enumNames = schema.getComponent<EnumItemNamesComponent>()?.values ?: emptyMap()
+
         val items = enumItems.map {
-            EnumTypeItem(it, it.constantName(), parentType.baseType.literalFor(it))
+            // use the given name as it is otherwise try to create a name out of the item value
+            val constantName = enumNames[it]?.rawConstantName() ?: it.constantName()
+            EnumTypeItem(it, constantName, parentType.baseType.literalFor(it))
         }
 
         return RealEnumTypeDefinition(
@@ -145,19 +152,32 @@ class CreateSimplePrimitiveTypeRefactoring(
         }
 
         // check if we have to override the default value
-        val default = schema.getComponent<DefaultComponent>()?.let { parentType.baseType.literalFor(it.default) }
+        val default = schema.getComponent<DefaultComponent>()?.default
 
+        val parentItems = parentType.items
         val enumItems = schema.getComponent<EnumValidationComponent>()?.values ?: listOf()
-        val enumChanged = enumItems.toSet().subtract(parentType.items.toSet()).isNotEmpty()
+        val (newEnumItems, redefinedEnumItems) = enumItems.partition { current -> parentItems.none { it.sourceName == current } }
 
         // enum structure is still the same, we can just create an overlay
-        if (!enumChanged) {
+        if (newEnumItems.isEmpty()) {
             return EnumTypeDefinitionOverlay(parentType, nullable == true, modifier, default, validations)
         }
 
-        val newItems = enumItems.toSet().union(parentType.items.map { it.sourceName }).map {
-            EnumTypeItem(it, it.constantName(), parentType.baseType.literalFor(it))
+        // create a new list of items. The order is: everything defined/redefined here and then the stuff only defined at the parent
+        val enumNames = schema.getComponent<EnumItemNamesComponent>()?.values ?: emptyMap()
+        val newItems = enumItems.map { item ->
+            if (newEnumItems.contains(item)) {
+                // it's new. we support custom names for this
+                // use the given name as it is otherwise try to create a name out of the item value
+                val constantName = enumNames[item]?.rawConstantName() ?: item.constantName()
+                EnumTypeItem(item, constantName, parentType.baseType.literalFor(item))
+            } else {
+                // redefined. use it as declared by the parent. maybe position changed
+                parentItems.first { it.sourceName == item }
+            }
         }
+            // add everything from the parent, that was not redefined
+            .plus(parentType.items.filterNot { redefinedEnumItems.contains(it.sourceName) })
 
         // new items available, we have to create a new enum
         return RealEnumTypeDefinition(
