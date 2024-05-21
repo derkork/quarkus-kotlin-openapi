@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test
 class FeaturesOneOfServerDelegateImplTest : ApiTestBase() {
 
     @Test
-    fun `sending the wrong value is rejected`() {
+    fun `sending the wrong value is rejected by endpoint without discriminator`() {
         prepareRequest()
             .contentType("application/json")
             .body(
@@ -23,7 +23,7 @@ class FeaturesOneOfServerDelegateImplTest : ApiTestBase() {
     }
 
     @Test
-    fun `sending an object matching all options is rejected`() {
+    fun `sending an object matching all options is rejected by endpoint without discriminator`() {
         prepareRequest()
             .contentType("application/json")
             .body(
@@ -43,7 +43,7 @@ class FeaturesOneOfServerDelegateImplTest : ApiTestBase() {
     }
 
     @Test
-    fun `sending null is accepted because one options is nullable`() {
+    fun `sending null is accepted because one options is nullable by endpoint without discriminator`() {
         prepareRequest()
             .contentType("application/json")
             .body("null")
@@ -56,7 +56,7 @@ class FeaturesOneOfServerDelegateImplTest : ApiTestBase() {
     }
 
     @Test
-    fun `sending valid option1 value is accepted`() {
+    fun `sending valid option1 is accepted by endpoint without discriminator`() {
         prepareRequest()
             .contentType("application/json")
             .body(
@@ -74,11 +74,10 @@ class FeaturesOneOfServerDelegateImplTest : ApiTestBase() {
                 assertThat(it.getInt("pages")).isEqualTo(10)
                 assertThat(it.getString("kind")).isEqualTo("book")
             }
-
     }
 
     @Test
-    fun `sending valid option2 value is accepted`() {
+    fun `sending valid option2 is accepted by endpoint without discriminator`() {
         prepareRequest()
             .contentType("application/json")
             .body(
@@ -96,6 +95,179 @@ class FeaturesOneOfServerDelegateImplTest : ApiTestBase() {
                 assertThat(it.getInt("duration")).isEqualTo(200)
                 assertThat(it.getString("kind")).isEqualTo("song")
             }
-
     }
+
+    @Test
+    fun `sending no discriminator is rejected by endpoint with discriminator`() {
+        prepareRequest()
+            .contentType("application/json")
+            .body(
+                """{
+                "foo": "bar"
+                }""".trimMargin()
+            )
+            .post("/features/oneOf/test2".toTestUrl())
+            .execute()
+            .statusCode(400)
+            .withStringBody {
+                assertThat(it).contains("discriminator field").contains("is missing")
+            }
+    }
+
+    @Test
+    fun `sending the wrong discriminator is rejected by endpoint with discriminator`() {
+        prepareRequest()
+            .contentType("application/json")
+            .body(
+                """{
+                    "kind": "all"
+                }""".trimMargin()
+            )
+            .post("/features/oneOf/test2".toTestUrl())
+            .execute()
+            .statusCode(400)
+            .withStringBody {
+                assertThat(it).contains("discriminator field").contains("has invalid value")
+            }
+    }
+
+    @Test
+    fun `sending valid option1 is accepted by endpoint with discriminator`() {
+        prepareRequest()
+            .contentType("application/json")
+            .body(
+                """{
+                    "title": "foo",
+                    "pages": 10,
+                    "kind": "Book"
+            }""".trimIndent()
+            )
+            .post("/features/oneOf/test2".toTestUrl())
+            .execute()
+            .statusCode(200)
+            .withJsonBody {
+                assertThat(it.getString("title")).isEqualTo("foo")
+                assertThat(it.getInt("pages")).isEqualTo(10)
+                assertThat(it.getString("kind")).isEqualTo("Book")
+            }
+    }
+
+    @Test
+    fun `sending valid option2 is accepted by endpoint with discriminator`() {
+        prepareRequest()
+            .contentType("application/json")
+            .body(
+                """{
+                    "title": "puit",
+                    "duration": 200,
+                    "kind": "Song"
+            }""".trimIndent()
+            )
+            .post("/features/oneOf/test2".toTestUrl())
+            .execute()
+            .statusCode(200)
+            .withJsonBody {
+                assertThat(it.getString("title")).isEqualTo("puit")
+                assertThat(it.getInt("duration")).isEqualTo(200)
+                assertThat(it.getString("kind")).isEqualTo("Song")
+            }
+    }
+
+    @Test
+    fun `sending no discriminator is rejected by endpoint with discriminator and mapping`() {
+        prepareRequest()
+            .contentType("application/json")
+            .body(
+                """{
+                "foo": "bar"
+                }""".trimMargin()
+            )
+            .post("/features/oneOf/test3".toTestUrl())
+            .execute()
+            .statusCode(400)
+            .withStringBody {
+                assertThat(it).contains("discriminator field").contains("is missing")
+            }
+    }
+
+    @Test
+    fun `sending the wrong discriminator is rejected by endpoint with discriminator and mapping`() {
+        prepareRequest()
+            .contentType("application/json")
+            .body(
+                """{
+                    "kind": "all"
+                }""".trimMargin()
+            )
+            .post("/features/oneOf/test3".toTestUrl())
+            .execute()
+            .statusCode(400)
+            .withStringBody {
+                assertThat(it).contains("discriminator field").contains("has invalid value")
+            }
+    }
+
+    @Test
+    fun `sending valid option1 is accepted by endpoint with discriminator and mapping`() {
+        prepareRequest()
+            .contentType("application/json")
+            .body(
+                """{
+                    "title": "foo",
+                    "pages": 10,
+                    "kind": "Book"
+            }""".trimIndent()
+            )
+            .post("/features/oneOf/test3".toTestUrl())
+            .execute()
+            .statusCode(200)
+            .withJsonBody {
+                assertThat(it.getString("title")).isEqualTo("foo")
+                assertThat(it.getInt("pages")).isEqualTo(10)
+                assertThat(it.getString("kind")).isEqualTo("Book")
+            }
+    }
+
+    @Test
+    fun `sending valid option1 with alias is accepted by endpoint with discriminator and mapping`() {
+        prepareRequest()
+            .contentType("application/json")
+            .body(
+                """{
+                    "title": "foo",
+                    "pages": 10,
+                    "kind": "booooook"
+            }""".trimIndent()
+            )
+            .post("/features/oneOf/test3".toTestUrl())
+            .execute()
+            .statusCode(200)
+            .withJsonBody {
+                assertThat(it.getString("title")).isEqualTo("foo")
+                assertThat(it.getInt("pages")).isEqualTo(10)
+                assertThat(it.getString("kind")).isEqualTo("Book")
+            }
+    }
+
+    @Test
+    fun `sending valid option2 is accepted by endpoint with discriminator and mapping`() {
+        prepareRequest()
+            .contentType("application/json")
+            .body(
+                """{
+                    "title": "puit",
+                    "duration": 200,
+                    "kind": "Song"
+            }""".trimIndent()
+            )
+            .post("/features/oneOf/test3".toTestUrl())
+            .execute()
+            .statusCode(200)
+            .withJsonBody {
+                assertThat(it.getString("title")).isEqualTo("puit")
+                assertThat(it.getInt("duration")).isEqualTo(200)
+                assertThat(it.getString("kind")).isEqualTo("Song")
+            }
+    }
+
 }

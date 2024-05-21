@@ -116,7 +116,7 @@ fun <T> Maybe<T?>.default(block: () -> T): Maybe<T?> =
  * executes the given block if this maybe has a value which is not null.
  */
 @Suppress("unused")
-inline fun <I, O> Maybe<I?>.onNotNull(crossinline block: Maybe.Success<I & Any>.() -> Maybe<O?>): Maybe<O?> =
+inline fun <I, O> Maybe<out I?>.onNotNull(crossinline block: Maybe.Success<I & Any>.() -> Maybe<O?>): Maybe<O?> =
     onSuccess {
         if (value != null) {
             @Suppress("UNCHECKED_CAST")
