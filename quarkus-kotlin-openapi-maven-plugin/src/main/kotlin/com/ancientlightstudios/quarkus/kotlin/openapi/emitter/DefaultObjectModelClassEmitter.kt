@@ -139,8 +139,8 @@ class DefaultObjectModelClassEmitter(private val typeDefinition: ObjectTypeDefin
 
     private fun generateDefaultValueExpression(typeUsage: TypeUsage): KotlinExpression? {
         val declaredDefaultValue = when (val safeType = typeUsage.type) {
-            is PrimitiveTypeDefinition -> safeType.defaultValue
-            is EnumTypeDefinition -> safeType.defaultValue
+            is PrimitiveTypeDefinition -> safeType.defaultExpression()
+            is EnumTypeDefinition -> safeType.defaultExpression()
             is CollectionTypeDefinition,
             is ObjectTypeDefinition,
             is OneOfTypeDefinition-> null

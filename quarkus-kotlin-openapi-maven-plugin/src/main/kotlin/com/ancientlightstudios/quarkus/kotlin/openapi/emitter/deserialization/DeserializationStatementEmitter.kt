@@ -55,7 +55,7 @@ class DeserializationStatementEmitter(
         }
 
         result = runEmitter(ValidationStatementEmitter(typeDefinition, result)).resultStatement
-        result = runEmitter(DefaultValueStatementEmitter(typeDefinition.defaultValue, result)).resultStatement
+        result = runEmitter(DefaultValueStatementEmitter(typeDefinition.defaultExpression(), result)).resultStatement
         return result
     }
 
@@ -70,7 +70,7 @@ class DeserializationStatementEmitter(
         val methodName = typeDefinition.modelName.companionMethod("as ${typeDefinition.modelName.value}")
         var result = baseStatement.invoke(methodName)
         result = runEmitter(ValidationStatementEmitter(typeDefinition, result)).resultStatement
-        result = runEmitter(DefaultValueStatementEmitter(typeDefinition.defaultValue, result)).resultStatement
+        result = runEmitter(DefaultValueStatementEmitter(typeDefinition.defaultExpression(), result)).resultStatement
         return result
     }
 

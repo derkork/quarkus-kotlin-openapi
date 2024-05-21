@@ -4,8 +4,7 @@
 - split schemas for readonly/writeonly
 - unique names
 
-- x-alias              
-
+- x-model-name und x-container-model-name sollten als rawClassName verwendet werden (wie bereits bei x-enum-item-names) und sollten bei der UniqueName berechnung zuerst betrachtet werden
 
 - nullable aber required felder müssen im request enthalten sein
 - nullable felder mit default, trotzdem nullable?

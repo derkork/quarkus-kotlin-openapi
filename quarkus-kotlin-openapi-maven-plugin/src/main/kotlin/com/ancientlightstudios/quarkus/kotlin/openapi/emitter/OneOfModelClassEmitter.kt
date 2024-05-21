@@ -8,7 +8,6 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.InvocationExpression.Companion.invoke
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.methodName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.rawMethodName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.NullCheckExpression.Companion.nullCheck
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.PropertyExpression.Companion.property
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.GenericTypeName.Companion.of
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.SimpleTypeName.Companion.typeName
@@ -71,7 +70,7 @@ class OneOfModelClassEmitter(private val typeDefinition: OneOfTypeDefinition) :
     private fun KotlinClass.generateSerializeMethods(option: OneOfOption, serializationDirection: Direction) {
         val types = typeDefinition.getContentTypes(serializationDirection)
         if (types.contains(ContentType.ApplicationJson)) {
-            generateJsonSerializeMethod(option)
+            generateJsonSerializeMethod(option, typeDefinition.discriminatorProperty)
         }
     }
 
@@ -82,13 +81,19 @@ class OneOfModelClassEmitter(private val typeDefinition: OneOfTypeDefinition) :
     // or
     //
     // fun asJson(): JsonNode = value.asJson()
-    private fun MethodAware.generateJsonSerializeMethod(option: OneOfOption) {
+    private fun MethodAware.generateJsonSerializeMethod(option: OneOfOption, discriminatorProperty: VariableName?) {
         kotlinMethod(
             "asJson".rawMethodName(), returnType = Misc.JsonNodeClass.typeName(),
             bodyAsAssignment = true, override = true
         ) {
-            var serialization = emitterContext.runEmitter(
-                SerializationStatementEmitter(option.typeUsage, "value".variableName(), ContentType.ApplicationJson)
+            var serialization: KotlinExpression = when (discriminatorProperty) {
+                null -> "value".variableName()
+                else -> "value".variableName()
+                    .invoke("copy".methodName(), discriminatorProperty to option.aliases.first().literal())
+            }
+
+            serialization = emitterContext.runEmitter(
+                SerializationStatementEmitter(option.typeUsage, serialization, ContentType.ApplicationJson)
             ).resultStatement
 
             if (option.typeUsage.nullable) {
@@ -109,9 +114,21 @@ class OneOfModelClassEmitter(private val typeDefinition: OneOfTypeDefinition) :
         kotlinMethod(
             typeDefinition.modelName.value.methodName(prefix = "as"),
             returnType = Library.MaybeClass.typeName().of(typeDefinition.modelName.typeName(true)),
-            receiverType = Library.MaybeClass.typeName().of(Misc.JsonNodeClass.typeName(true))
+            receiverType = Library.MaybeClass.typeName().of(Misc.JsonNodeClass.typeName(true)),
+            bodyAsAssignment = true
         ) {
-            generateJsonDeserializationWithoutDescriptor()
+            val discriminatorProperty = typeDefinition.discriminatorProperty
+            val wrapperMethod = when (discriminatorProperty) {
+                null -> "onSuccess"
+                else -> "onNotNull"
+            }
+
+            invoke(wrapperMethod.methodName()) {
+                when (discriminatorProperty) {
+                    null -> generateJsonDeserializationWithoutDescriptor()
+                    else -> generateJsonDeserializationWithDescriptor(discriminatorProperty)
+                }
+            }.statement()
         }
     }
 
@@ -128,15 +145,18 @@ class OneOfModelClassEmitter(private val typeDefinition: OneOfTypeDefinition) :
         invoke("maybeOneOf".rawMethodName(), maybeParameters) {
             statements.forEach { (variableName, className) ->
                 variableName.invoke("doOnSuccess".methodName()) {
-                        invoke(className.constructorName, "it".variableName()).returnStatement("maybeOneOf")
-                    }.statement()
+                    invoke(className.constructorName, "it".variableName()).returnStatement("maybeOneOf")
+                }.statement()
             }
 
             invoke(
                 Kotlin.IllegalStateExceptionClass.constructorName,
                 "this should never happen".literal()
             ).throwStatement()
-        }.returnStatement()
+        }.statement()
     }
 
+    private fun StatementAware.generateJsonDeserializationWithDescriptor(discriminatorProperty: VariableName) {
+        discriminatorProperty.statement()
+    }
 }

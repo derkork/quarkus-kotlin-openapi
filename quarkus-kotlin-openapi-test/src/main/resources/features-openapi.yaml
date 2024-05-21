@@ -421,8 +421,11 @@ components:
 
     OneOfWithoutDiscriminator:
       oneOf:
-        - $ref: '#/components/schemas/SimpleForm'
-        - $ref: '#/components/schemas/SimpleObjectOptional'
+        - $ref: '#/components/schemas/Book'
+        - $ref: '#/components/schemas/Song'
+          type:
+            - 'null'
+          x-container-model-name: OneOfWithoutDiscriminatorSong
 
     OneOfWithDiscriminator:
       oneOf:

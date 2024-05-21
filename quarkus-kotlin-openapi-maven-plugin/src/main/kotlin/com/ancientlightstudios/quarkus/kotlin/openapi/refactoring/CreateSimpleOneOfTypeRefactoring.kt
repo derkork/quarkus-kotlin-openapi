@@ -3,6 +3,7 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.refactoring
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.OriginPathHint.originPath
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeDefinitionHint.typeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName.Companion.className
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.SimpleTypeName.Companion.typeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchema
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.*
@@ -33,8 +34,14 @@ class CreateSimpleOneOfTypeRefactoring(
             // lazy lookup in case the item schema is not yet converted
             lazyTypeUsage(usage) { optionSchema.typeDefinition }
 
+            // generate a generic container name unless one was specified
+            val containerName = when(val name = schemaUsage.schema.getComponent<ContainerModelNameComponent>()) {
+                null ->typeName.extend(postfix = schemaUsage.schema.name)
+                else -> name.value.className(modelPackage)
+            }
+
             val aliases = getAliases(optionSchema, discriminator)
-            OneOfOption(typeName.extend(postfix = schemaUsage.schema.name), usage, aliases)
+            OneOfOption(containerName, usage, aliases)
         }
 
         schema.typeDefinition = RealOneOfTypeDefinition(
