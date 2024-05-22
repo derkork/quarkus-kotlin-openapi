@@ -51,7 +51,7 @@ class DeserializationStatementEmitter(
         var result = if (contentType == ContentType.ApplicationOctetStream) {
             baseStatement
         } else {
-            baseStatement.invoke("as${typeDefinition.baseType.value}".methodName())
+            baseStatement.invoke("as${typeDefinition.baseType.value}".rawMethodName())
         }
 
         result = runEmitter(ValidationStatementEmitter(typeDefinition, result)).resultStatement
