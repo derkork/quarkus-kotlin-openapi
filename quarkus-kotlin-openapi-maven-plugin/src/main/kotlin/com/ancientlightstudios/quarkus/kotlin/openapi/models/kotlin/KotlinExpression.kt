@@ -118,6 +118,19 @@ fun functionReference(className: ClassName, methodName: MethodName) = object : K
 
 }
 
+fun KotlinExpression.spread() = object : KotlinExpression {
+
+    override fun ImportCollector.registerImports() {
+        registerFrom(this@spread)
+    }
+
+    override fun render(writer: CodeWriter) = with(writer) {
+        write("*")
+        this@spread.render(this)
+    }
+
+}
+
 fun String.literal() = object : KotlinExpression {
 
     override fun ImportCollector.registerImports() {}
