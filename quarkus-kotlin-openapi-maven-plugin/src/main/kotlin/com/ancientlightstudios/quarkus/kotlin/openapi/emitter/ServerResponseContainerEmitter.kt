@@ -7,7 +7,6 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ParameterVari
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ResponseContainerClassNameHint.responseContainerClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeUsageHint.typeUsage
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName.Companion.rawClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.InvocationExpression.Companion.invoke
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.methodName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.rawMethodName
@@ -15,7 +14,6 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.PropertyExpr
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.GenericTypeName.Companion.of
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.SimpleTypeName.Companion.typeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ContentType
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ResponseCode
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableBody
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableParameter
@@ -66,11 +64,12 @@ class ServerResponseContainerEmitter : CodeEmitter {
             true -> KotlinAccessModifier.Private
             false -> null
         }
+        val statusVariable = "status".variableName()
+        val typeVariable = "mediaType".variableName()
+        val bodyVariable = "body".variableName()
+        val headersVariable = "headers".variableName()
+
         kotlinMethod("status".methodName(), bodyAsAssignment = true, accessModifier = accessModifier) {
-            val statusVariable = "status".variableName()
-            val typeVariable = "mediaType".variableName()
-            val bodyVariable = "body".variableName()
-            val headersVariable = "headers".variableName()
             kotlinParameter(statusVariable, Kotlin.IntClass.typeName())
             kotlinParameter(typeVariable, Kotlin.StringClass.typeName(true), nullLiteral())
             kotlinParameter(bodyVariable, Kotlin.AnyClass.typeName(true), nullLiteral())
@@ -97,6 +96,28 @@ class ServerResponseContainerEmitter : CodeEmitter {
                 .invoke("build".rawMethodName())
             invoke(className.constructorName, statement).statement()
         }
+
+        if (!defaultResponseExists) {
+            kotlinMethod("status".methodName(), bodyAsAssignment = true) {
+                kotlinParameter(statusVariable, Kotlin.IntClass.typeName())
+                kotlinParameter(typeVariable, Kotlin.StringClass.typeName(true), nullLiteral())
+                kotlinParameter(bodyVariable, Kotlin.AnyClass.typeName(true), nullLiteral())
+                kotlinParameter(
+                    headersVariable, Kotlin.ListClass.typeName().of(
+                        Kotlin.PairClass.typeName().of(
+                            Kotlin.StringClass.typeName(), Kotlin.AnyClass.typeName(true)
+                        )
+                    ), invoke("emptyList".methodName())
+                )
+
+                invoke(
+                    "status".methodName(), statusVariable, typeVariable,
+                    bodyVariable, headersVariable.spread().invoke("toTypedArray".methodName())
+                ).statement()
+            }
+
+        }
+
     }
 
     private fun KotlinCompanion.emitStatusMethod(
