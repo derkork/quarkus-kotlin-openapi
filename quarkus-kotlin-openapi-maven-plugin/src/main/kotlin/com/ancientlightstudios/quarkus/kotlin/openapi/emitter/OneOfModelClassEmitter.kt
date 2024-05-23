@@ -34,7 +34,19 @@ class OneOfModelClassEmitter(private val typeDefinition: OneOfTypeDefinition) :
 
             kotlinInterface(fileName, sealed = true) {
                 generateSerializeMethods(spec.serializationDirection)
-                generateDeserializeMethods(spec.deserializationDirection)
+
+                kotlinCompanion {
+                    // TODO: detect collisions if multiple options have the same type (e.g. two ints)
+                    typeDefinition.options.forEach {
+                        kotlinMethod("of".methodName(), bodyAsAssignment = true) {
+                            kotlinParameter("value".variableName(), it.typeUsage.buildValidType())
+                            invoke(it.modelName.constructorName, "value".variableName()).statement()
+                        }
+                    }
+
+                    generateDeserializeMethods(spec.deserializationDirection)
+                }
+
             }
 
             typeDefinition.options.forEach {
@@ -56,15 +68,13 @@ class OneOfModelClassEmitter(private val typeDefinition: OneOfTypeDefinition) :
         }
     }
 
-    private fun KotlinInterface.generateDeserializeMethods(deserializationDirection: Direction) {
+    private fun KotlinCompanion.generateDeserializeMethods(deserializationDirection: Direction) {
         val types = typeDefinition.getContentTypes(deserializationDirection)
             .intersect(listOf(ContentType.ApplicationJson))
 
         if (types.isNotEmpty()) {
-            kotlinCompanion {
-                if (types.contains(ContentType.ApplicationJson)) {
-                    generateJsonDeserializeMethod()
-                }
+            if (types.contains(ContentType.ApplicationJson)) {
+                generateJsonDeserializeMethod()
             }
         }
     }
