@@ -14,7 +14,7 @@ import com.fasterxml.jackson.databind.annotation.JsonAppend.Prop
 class AssignTypesToSimpleExtendedSchemasRefactoring(
     private val tasks: MutableSet<TransformableSchema>,
     private val typeMapper: TypeMapper,
-    private val lazyTypeUsage: (TypeUsage, () -> TypeDefinition) -> Unit
+    private val typeResolver: TypeResolver
 ) : SpecRefactoring {
 
     override fun RefactoringContext.perform() {
@@ -40,11 +40,11 @@ class AssignTypesToSimpleExtendedSchemasRefactoring(
                 )
 
                 is ObjectTypeDefinition -> performRefactoring(
-                    CreateSimpleObjectTypeRefactoring(schema, lazyTypeUsage, baseType)
+                    CreateSimpleObjectTypeRefactoring(schema, typeResolver, baseType)
                 )
 
                 is CollectionTypeDefinition -> performRefactoring(
-                    CreateSimpleCollectionTypeRefactoring(schema, lazyTypeUsage, baseType)
+                    CreateSimpleCollectionTypeRefactoring(schema, typeResolver, baseType)
                 )
 
                 // TODO: fix this

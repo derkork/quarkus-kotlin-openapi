@@ -13,7 +13,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
 // knows how to create or extend a simple collection type (without any *Of stuff)
 class CreateSimpleCollectionTypeRefactoring(
     private val schema: TransformableSchema,
-    private val lazyTypeUsage: (TypeUsage, () -> TypeDefinition) -> Unit,
+    private val typeResolver: TypeResolver,
     private val parentType: CollectionTypeDefinition? = null
 ) : SpecRefactoring {
 
@@ -48,7 +48,7 @@ class CreateSimpleCollectionTypeRefactoring(
         // by default array items are always required. But it's still possible to define the schema as nullable
         val itemTypeUsage = TypeUsage(true)
         // lazy lookup in case the item schema is not yet converted
-        lazyTypeUsage(itemTypeUsage) { items.typeDefinition }
+        typeResolver.schedule(itemTypeUsage) { items.typeDefinition }
 
         return RealCollectionTypeDefinition(
             schema.name.className(modelPackage),

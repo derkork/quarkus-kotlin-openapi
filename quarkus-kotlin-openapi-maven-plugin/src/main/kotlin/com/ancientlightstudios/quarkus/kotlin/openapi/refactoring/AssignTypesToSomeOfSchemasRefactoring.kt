@@ -9,7 +9,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.TypeUsage
 // converts schema without any referencing components but a *of component
 class AssignTypesToSomeOfSchemasRefactoring(
     private val tasks: MutableSet<TransformableSchema>,
-    private val lazyTypeUsage: (TypeUsage, () -> TypeDefinition) -> Unit
+    private val typeResolver: TypeResolver
 ) : SpecRefactoring {
 
     override fun RefactoringContext.perform() {
@@ -24,7 +24,7 @@ class AssignTypesToSomeOfSchemasRefactoring(
 
         candidates.forEach { definition ->
             val oneOf = definition.getComponent<OneOfComponent>()
-            performRefactoring(CreateSimpleOneOfTypeRefactoring(definition, oneOf!!, lazyTypeUsage))
+            performRefactoring(CreateSimpleOneOfTypeRefactoring(definition, oneOf!!, typeResolver))
         }
     }
 

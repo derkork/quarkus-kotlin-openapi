@@ -12,7 +12,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.TypeUsage
 class AssignTypesToSimpleSchemasRefactoring(
     private val tasks: MutableSet<TransformableSchema>,
     private val typeMapper: TypeMapper,
-    private val lazyTypeUsage: (TypeUsage, () -> TypeDefinition) -> Unit
+    private val typeResolver: TypeResolver
 ) :
     SpecRefactoring {
 
@@ -34,9 +34,9 @@ class AssignTypesToSimpleSchemasRefactoring(
                 SchemaTypes.Integer,
                 SchemaTypes.Boolean -> performRefactoring(CreateSimplePrimitiveTypeRefactoring(typeMapper, definition))
 
-                SchemaTypes.Object -> performRefactoring(CreateSimpleObjectTypeRefactoring(definition, lazyTypeUsage))
+                SchemaTypes.Object -> performRefactoring(CreateSimpleObjectTypeRefactoring(definition, typeResolver))
                 SchemaTypes.Array -> performRefactoring(
-                    CreateSimpleCollectionTypeRefactoring(definition, lazyTypeUsage)
+                    CreateSimpleCollectionTypeRefactoring(definition, typeResolver)
                 )
             }
         }
