@@ -16,7 +16,7 @@ import com.fasterxml.jackson.databind.ser.Serializers.Base
 class CreateSimpleOneOfTypeRefactoring(
     private val schema: TransformableSchema,
     private val oneOf: OneOfComponent,
-    private val lazyTypeUsage: (TypeUsage, () -> TypeDefinition) -> Unit
+    private val typeResolver: TypeResolver
 ) : SpecRefactoring {
 
     override fun RefactoringContext.perform() {
@@ -32,7 +32,7 @@ class CreateSimpleOneOfTypeRefactoring(
             // by default options are always required. But it's still possible to define the schema as nullable
             val usage = TypeUsage(true)
             // lazy lookup in case the item schema is not yet converted
-            lazyTypeUsage(usage) { optionSchema.typeDefinition }
+            typeResolver.schedule(usage) { optionSchema.typeDefinition }
 
             // generate a generic container name unless one was specified
             val containerName = when(val name = schemaUsage.schema.getComponent<ContainerModelNameComponent>()) {

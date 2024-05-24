@@ -27,6 +27,25 @@ paths:
         'default':
           description: Unprocessable entity
 
+  /features/misc/objectExtensionTest:
+    get:
+      tags:
+        - misc
+      operationId: objectExtensionTest
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseObjectExtension'
+        '500':
+          description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseObject'
+
   /features/parameters/test1:
     get:
       tags:
@@ -472,6 +491,20 @@ components:
         - title
         - duration
         - kind
+
+    BaseObject:
+      properties:
+        prop1:
+          type: string
+        prop2:
+          type: string
+      required:
+        - prop1
+
+    BaseObjectExtension:
+      $ref: '#/components/schemas/BaseObject'
+      required:
+        - prop2
 
     OperationError:
       type: object

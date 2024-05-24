@@ -14,7 +14,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
 // knows how to create or extend a simple object type (without any *Of stuff)
 class CreateSimpleObjectTypeRefactoring(
     private val schema: TransformableSchema,
-    private val lazyTypeUsage: (TypeUsage, () -> TypeDefinition) -> Unit,
+    private val typeResolver: TypeResolver,
     private val parentType: ObjectTypeDefinition? = null
 ) : SpecRefactoring {
 
@@ -52,7 +52,7 @@ class CreateSimpleObjectTypeRefactoring(
         val objectProperties = properties.map {
             val propertyTypeUsage = TypeUsage(required.contains(it.name))
             // lazy lookup in case the property schema is not yet converted
-            lazyTypeUsage(propertyTypeUsage) { it.schema.typeDefinition }
+            typeResolver.schedule(propertyTypeUsage) { it.schema.typeDefinition }
             ObjectTypeProperty(it.name, it.name.variableName(), propertyTypeUsage)
         }
 
@@ -93,13 +93,23 @@ class CreateSimpleObjectTypeRefactoring(
         val newRequired = required + parentType.required
 
         // keep all properties from the base type which are not redefined here
-        val filteredOldProperties =
-            parentType.properties.filterNot { old -> properties.any { it.name == old.sourceName } }
+        val filteredOldProperties = parentType.properties
+            .filterNot { old -> properties.any { it.name == old.sourceName } }
+            .map {
+                if (required.contains(it.sourceName) && !it.typeUsage.required) {
+                    // the required information for this inherited property has changed
+                    val newType = TypeUsage(true)
+                    typeResolver.schedule(newType, it.typeUsage)
+                    ObjectTypeProperty(it.sourceName, it.name, newType)
+                } else {
+                    it
+                }
+            }
 
         val newProperties = properties.map {
             val propertyTypeUsage = TypeUsage(newRequired.contains(it.name))
             // lazy lookup in case the property schema is not yet converted
-            lazyTypeUsage(propertyTypeUsage) { it.schema.typeDefinition }
+            typeResolver.schedule(propertyTypeUsage) { it.schema.typeDefinition }
             ObjectTypeProperty(it.name, it.name.variableName(), propertyTypeUsage)
         } + filteredOldProperties
 
