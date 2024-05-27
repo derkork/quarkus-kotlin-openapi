@@ -9,12 +9,11 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.inspect
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ParameterVariableNameHint.parameterVariableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.RequestContainerClassNameHint.requestContainerClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.RequestMethodNameHint.requestMethodName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ResponseContainerClassNameHint.responseContainerClassName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.RequestContextClassNameHint.requestContextClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ServerDelegateClassNameHint.serverDelegateClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ServerRestInterfaceClassNameHint.serverRestInterfaceClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeUsageHint.typeUsage
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName.Companion.rawClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.InvocationExpression.Companion.invoke
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.methodName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.PropertyExpression.Companion.property
@@ -76,7 +75,7 @@ class ServerRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitter {
                     "request".literal(), request.requestContainerClassName, requestContainerParts
                 )
             ).resultStatement?.declaration("request".variableName())
-            emitDelegateInvocation(request, requestContainerName, request.responseContainerClassName)
+            emitDelegateInvocation(request, requestContainerName, request.requestContextClassName)
         }
     }
 
@@ -186,19 +185,19 @@ class ServerRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitter {
     private fun KotlinMethod.emitDelegateInvocation(
         request: TransformableRequest,
         requestContainerName: VariableName?,
-        responseContainerClassName: ClassName
+        requestContextClassName: ClassName
     ) {
         val arguments = when (requestContainerName) {
             null -> emptyList()
             else -> listOf(requestContainerName)
         }
 
-        val responseContainerName = invoke(responseContainerClassName.constructorName)
+        val requestContextName = invoke(requestContextClassName.constructorName, arguments)
             .declaration("response".variableName())
 
         tryExpression {
             "delegate".variableName().invoke("apply".methodName()) {
-                responseContainerName.invoke(request.requestMethodName, arguments).statement()
+                requestContextName.invoke(request.requestMethodName).statement()
             }.statement()
 
             val signalName = "requestHandledSignal".rawVariableName()

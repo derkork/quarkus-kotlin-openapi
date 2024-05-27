@@ -4,7 +4,8 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.serialization.Seri
 import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.RequestInspection
 import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.inspect
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ParameterVariableNameHint.parameterVariableName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ResponseContainerClassNameHint.responseContainerClassName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.RequestContainerClassNameHint.requestContainerClassName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.RequestContextClassNameHint.requestContextClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeUsageHint.typeUsage
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.InvocationExpression.Companion.invoke
@@ -18,7 +19,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.Respo
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableBody
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableParameter
 
-class ServerResponseContainerEmitter : CodeEmitter {
+class ServerRequestContextEmitter : CodeEmitter {
 
     private lateinit var emitterContext: EmitterContext
 
@@ -34,7 +35,7 @@ class ServerResponseContainerEmitter : CodeEmitter {
         }
     }
 
-    private fun RequestInspection.emitContainerFile() = kotlinFile(request.responseContainerClassName) {
+    private fun RequestInspection.emitContainerFile() = kotlinFile(request.requestContextClassName) {
         val defaultResponseExists = request.responses.any { it.responseCode == ResponseCode.Default }
 
         registerImports(Library.AllClasses)
@@ -46,6 +47,12 @@ class ServerResponseContainerEmitter : CodeEmitter {
         }
 
         kotlinClass(fileName, interfaces = interfaces) {
+            if (request.hasInputParameter()) {
+                val requestType =
+                    Library.MaybeClass.typeName().of(request.requestContainerClassName.typeName())
+                kotlinMember("request".variableName(), requestType, accessModifier = null)
+            }
+
             emitGenericStatusMethod(defaultResponseExists)
 
             request.responses.forEach {

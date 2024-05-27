@@ -7,19 +7,19 @@ import jakarta.enterprise.context.ApplicationScoped
 @ApplicationScoped
 class FeaturesOneOfServerDelegateImpl : FeaturesOneOfServerDelegate {
 
-    override suspend fun OneOfTest1Response.oneOfTest1(request: Maybe<OneOfTest1Request>): Nothing {
+    override suspend fun OneOfTest1Context.oneOfTest1(): Nothing {
         val validRequest = request.validOrElse { badRequest(it.toOperationError()) }
 
         ok(validRequest.body)
     }
 
-    override suspend fun OneOfTest2Response.oneOfTest2(request: Maybe<OneOfTest2Request>): Nothing {
+    override suspend fun OneOfTest2Context.oneOfTest2(): Nothing {
         val validRequest = request.validOrElse { badRequest(it.toOperationError()) }
 
         ok(validRequest.body)
     }
 
-    override suspend fun OneOfTest3Response.oneOfTest3(request: Maybe<OneOfTest3Request>): Nothing {
+    override suspend fun OneOfTest3Context.oneOfTest3(): Nothing {
         val validRequest = request.validOrElse { badRequest(it.toOperationError()) }
 
         ok(validRequest.body)

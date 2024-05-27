@@ -7,13 +7,13 @@ import jakarta.enterprise.context.ApplicationScoped
 @ApplicationScoped
 class FeaturesParameterServerDelegateImpl : FeaturesParametersServerDelegate {
 
-    override suspend fun ParametersTest1Response.parametersTest1(request: Maybe<ParametersTest1Request>): Nothing {
+    override suspend fun ParametersTest1Context.parametersTest1(): Nothing {
         val validRequest = request.validOrElse { badRequest(it.toOperationError()) }
 
         noContent(validRequest.first, validRequest.second, validRequest.xThirdHeader)
     }
 
-    override suspend fun ParametersTest2Response.parametersTest2(request: Maybe<ParametersTest2Request>): Nothing {
+    override suspend fun ParametersTest2Context.parametersTest2(): Nothing {
         val validRequest = request.validOrElse { badRequest(it.toOperationError()) }
 
         noContent(validRequest.first, validRequest.xSecondHeader)

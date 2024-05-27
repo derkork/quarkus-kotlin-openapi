@@ -7,13 +7,13 @@ import jakarta.enterprise.context.ApplicationScoped
 @ApplicationScoped
 class FeaturesJsonServerDelegateImpl : FeaturesJsonServerDelegate {
 
-    override suspend fun JsonOptionalObjectResponse.jsonOptionalObject(request: Maybe<JsonOptionalObjectRequest>): Nothing {
+    override suspend fun JsonOptionalObjectContext.jsonOptionalObject(): Nothing {
         val validRequest = request.validOrElse { badRequest(it.toOperationError()) }
 
         ok(validRequest.body)
     }
 
-    override suspend fun JsonRequiredObjectResponse.jsonRequiredObject(request: Maybe<JsonRequiredObjectRequest>): Nothing {
+    override suspend fun JsonRequiredObjectContext.jsonRequiredObject(): Nothing {
         val validRequest = request.validOrElse { badRequest(it.toOperationError()) }
 
         ok(validRequest.body)
