@@ -9,14 +9,19 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.inspect
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ParameterVariableNameHint.parameterVariableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.RequestContainerClassNameHint.requestContainerClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.RequestMethodNameHint.requestMethodName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ResponseContainerClassNameHint.responseContainerClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ServerDelegateClassNameHint.serverDelegateClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ServerRestInterfaceClassNameHint.serverRestInterfaceClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeUsageHint.typeUsage
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName.Companion.rawClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.InvocationExpression.Companion.invoke
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.methodName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.PropertyExpression.Companion.property
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TryCatchExpression.Companion.tryExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.GenericTypeName.Companion.of
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.SimpleTypeName.Companion.typeName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.rawVariableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ContentType
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableBody
@@ -71,7 +76,7 @@ class ServerRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitter {
                     "request".literal(), request.requestContainerClassName, requestContainerParts
                 )
             ).resultStatement?.declaration("request".variableName())
-            emitDelegateInvocation(request, requestContainerName)
+            emitDelegateInvocation(request, requestContainerName, request.responseContainerClassName)
         }
     }
 
@@ -180,16 +185,27 @@ class ServerRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitter {
     // generates the call to the delegate
     private fun KotlinMethod.emitDelegateInvocation(
         request: TransformableRequest,
-        requestContainerName: VariableName?
+        requestContainerName: VariableName?,
+        responseContainerClassName: ClassName
     ) {
         val arguments = when (requestContainerName) {
             null -> emptyList()
             else -> listOf(requestContainerName)
         }
 
-        "delegate".variableName().invoke(request.requestMethodName, arguments)
-            .property("response".variableName())
-            .returnStatement()
+        val responseContainerName = invoke(responseContainerClassName.constructorName)
+            .declaration("response".variableName())
+
+        tryExpression {
+            "delegate".variableName().invoke("apply".methodName()) {
+                responseContainerName.invoke(request.requestMethodName, arguments).statement()
+            }.statement()
+
+            val signalName = "requestHandledSignal".rawVariableName()
+            catchBlock(Library.RequestHandledSignalClass, signalName) {
+                signalName.property("response".variableName()).returnStatement()
+            }
+        }.statement()
     }
 
     // adds a new parameter to the current method and generates some deserialization statements for it

@@ -6,15 +6,15 @@ import jakarta.enterprise.context.ApplicationScoped
 @ApplicationScoped
 class FeaturesMiscServerDelegateImpl : FeaturesMiscServerDelegate {
 
-    override suspend fun unknownStatusCode(): UnknownStatusCodeResponse {
-        return UnknownStatusCodeResponse.status422()
+    override suspend fun UnknownStatusCodeResponse.unknownStatusCode(): Nothing {
+        status422()
     }
 
-    override suspend fun unknownStatusCode2(): UnknownStatusCode2Response {
-        return UnknownStatusCode2Response.status422()
+    override suspend fun UnknownStatusCode2Response.unknownStatusCode2(): Nothing {
+        status422()
     }
 
-    override suspend fun objectExtensionTest(): ObjectExtensionTestResponse {
-        return ObjectExtensionTestResponse.ok(BaseObjectExtension("foo", "bar"))
+    override suspend fun ObjectExtensionTestResponse.objectExtensionTest(): Nothing {
+        ok(BaseObjectExtension("foo", "bar"))
     }
 }

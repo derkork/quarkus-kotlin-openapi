@@ -9,15 +9,10 @@ import jakarta.enterprise.context.ApplicationScoped
 @ApplicationScoped
 class FeaturesFormServerDelegateImpl : FeaturesFormServerDelegate {
 
-    override suspend fun formRequiredObject(request: Maybe<FormRequiredObjectRequest>): FormRequiredObjectResponse {
-        val validRequest = request.validOrElse { return FormRequiredObjectResponse.badRequest(it.toOperationError()) }
+    override suspend fun FormRequiredObjectResponse.formRequiredObject(request: Maybe<FormRequiredObjectRequest>): Nothing {
+        val validRequest = request.validOrElse { badRequest(it.toOperationError()) }
 
-        @Suppress("UNUSED_VARIABLE")
-        // explicit type notation to trigger the compiler if the body is suddenly nullable
-        val body: SimpleForm = FormRequiredObjectRequest(
-            SimpleForm("name", SimpleEnum.First)
-        ).body
-
-        return FormRequiredObjectResponse.ok(validRequest.body)
+        ok(validRequest.body)
     }
+
 }
