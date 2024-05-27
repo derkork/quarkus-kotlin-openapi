@@ -7,7 +7,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ClientHttpRes
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ClientRestInterfaceClassNameHint.clientRestInterfaceClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ModelTypesHint.modelTypes
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.RequestContainerClassNameHint.requestContainerClassName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ResponseContainerClassNameHint.responseContainerClassName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.RequestContextClassNameHint.requestContextClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ServerDelegateClassNameHint.serverDelegateClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ServerRestInterfaceClassNameHint.serverRestInterfaceClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName
@@ -28,7 +28,7 @@ class EnsureUniqueNamesRefactoring : SpecRefactoring {
                     request.clientErrorResponseClassName = registry.uniqueNameFor(request.clientErrorResponseClassName)
                     request.clientHttpResponseClassName = registry.uniqueNameFor(request.clientHttpResponseClassName)
                     request.requestContainerClassName = registry.uniqueNameFor(request.requestContainerClassName)
-                    request.responseContainerClassName = registry.uniqueNameFor(request.responseContainerClassName)
+                    request.requestContextClassName = registry.uniqueNameFor(request.requestContextClassName)
                 }
             }
         }

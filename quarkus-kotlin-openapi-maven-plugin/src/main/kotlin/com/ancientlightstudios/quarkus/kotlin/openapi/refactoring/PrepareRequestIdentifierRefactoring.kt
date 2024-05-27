@@ -6,7 +6,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ClientHttpRes
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ParameterVariableNameHint.parameterVariableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.RequestContainerClassNameHint.requestContainerClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.RequestMethodNameHint.requestMethodName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ResponseContainerClassNameHint.responseContainerClassName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.RequestContextClassNameHint.requestContextClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName.Companion.className
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.methodName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
@@ -21,7 +21,7 @@ class PrepareRequestIdentifierRefactoring : SpecRefactoring {
                     val name = generateName(request)
                     request.requestMethodName = name.methodName()
                     request.requestContainerClassName = name.className(interfacePackage, postfix = "Request")
-                    request.responseContainerClassName = name.className(interfacePackage, postfix = "Response")
+                    request.requestContextClassName = name.className(interfacePackage, postfix = "Context")
                     request.clientHttpResponseClassName = name.className(interfacePackage, postfix = "HttpResponse")
                     request.clientErrorResponseClassName = name.className(interfacePackage, postfix = "Error")
 

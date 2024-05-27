@@ -9,13 +9,13 @@ import jakarta.enterprise.context.ApplicationScoped
 @ApplicationScoped
 class FeaturesSplitServerDelegateImpl : FeaturesSplitServerDelegate {
 
-    override suspend fun SplitTest1Response.splitTest1(request: Maybe<SplitTest1Request>): Nothing {
+    override suspend fun SplitTest1Context.splitTest1(): Nothing {
         val validRequest = request.validOrElse { badRequest(it.toOperationError()) }
 
         ok(ObjectWithReadOnlyPropertyDown("foo", validRequest.body?.normalProperty ?: "bar"))
     }
 
-    override suspend fun SplitTest2Response.splitTest2(request: Maybe<SplitTest2Request>): Nothing {
+    override suspend fun SplitTest2Context.splitTest2(): Nothing {
         val validRequest = request.validOrElse { badRequest(it.toOperationError()) }
 
         val body = validRequest.body

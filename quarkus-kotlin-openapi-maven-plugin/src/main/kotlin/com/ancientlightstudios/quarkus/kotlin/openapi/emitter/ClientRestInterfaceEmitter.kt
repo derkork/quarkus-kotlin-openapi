@@ -12,10 +12,9 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ClientHttpRes
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ClientRestInterfaceClassNameHint.clientRestInterfaceClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ParameterVariableNameHint.parameterVariableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.RequestMethodNameHint.requestMethodName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ResponseContainerClassNameHint.responseContainerClassName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.RequestContextClassNameHint.requestContextClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeUsageHint.typeUsage
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ConstantName.Companion.rawConstantName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.InvocationExpression.Companion.invoke
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.rawMethodName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.NullCheckExpression.Companion.nullCheck
@@ -71,7 +70,7 @@ class ClientRestInterfaceEmitter : CodeEmitter {
         val successClass = request.clientHttpResponseClassName
         val errorClass = request.clientErrorResponseClassName
 
-        kotlinMethod(request.requestMethodName, true, request.responseContainerClassName.typeName()) {
+        kotlinMethod(request.requestMethodName, true, request.requestContextClassName.typeName()) {
 
             val requestContainerParts = mutableListOf<VariableName>()
             tryExpression {
@@ -123,7 +122,7 @@ class ClientRestInterfaceEmitter : CodeEmitter {
                             successClass, defaultResponse.body, defaultResponse.headers
                         )
                     }
-                }.declaration(responseMaybe, typeName = Library.MaybeClass.typeName().of(request.responseContainerClassName.typeName()))
+                }.declaration(responseMaybe, typeName = Library.MaybeClass.typeName().of(request.requestContextClassName.typeName()))
 
 
                 // produces
