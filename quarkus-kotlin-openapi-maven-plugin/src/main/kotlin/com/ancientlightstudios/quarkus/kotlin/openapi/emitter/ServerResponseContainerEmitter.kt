@@ -40,39 +40,45 @@ class ServerResponseContainerEmitter : CodeEmitter {
         registerImports(Library.AllClasses)
         registerImports(emitterContext.getAdditionalImports())
 
-        kotlinClass(fileName, constructorAccessModifier = KotlinAccessModifier.Private) {
-            kotlinMember(
-                "response".variableName(),
-                Misc.RestResponseClass.typeName().of(Kotlin.Star.typeName()),
-                accessModifier = null
-            )
-            kotlinCompanion {
-                emitGenericStatusMethod(fileName, defaultResponseExists)
+        val interfaces = when(defaultResponseExists) {
+            true -> emptyList()
+            else -> listOf(Library.ResponseWithGenericStatusInterface)
+        }
 
-                request.responses.forEach {
-                    when (val code = it.responseCode) {
-                        is ResponseCode.HttpStatusCode -> emitStatusMethod(code, it.body, it.headers)
-                        is ResponseCode.Default -> emitDefaultStatusMethod(it.body, it.headers)
-                    }
+        kotlinClass(fileName, interfaces = interfaces) {
+            emitGenericStatusMethod(defaultResponseExists)
+
+            request.responses.forEach {
+                when (val code = it.responseCode) {
+                    is ResponseCode.HttpStatusCode -> emitStatusMethod(code, it.body, it.headers)
+                    is ResponseCode.Default -> emitDefaultStatusMethod(it.body, it.headers)
                 }
             }
         }
     }
 
-    private fun KotlinCompanion.emitGenericStatusMethod(className: ClassName, defaultResponseExists: Boolean) {
+    private fun KotlinClass.emitGenericStatusMethod(defaultResponseExists: Boolean) {
         val accessModifier = when (defaultResponseExists) {
             true -> KotlinAccessModifier.Private
             false -> null
         }
+
+        val parameterDefaultValue = when(defaultResponseExists) {
+            true -> nullLiteral()
+            false -> null
+        }
+
         val statusVariable = "status".variableName()
         val typeVariable = "mediaType".variableName()
         val bodyVariable = "body".variableName()
         val headersVariable = "headers".variableName()
 
-        kotlinMethod("status".methodName(), bodyAsAssignment = true, accessModifier = accessModifier) {
+        kotlinMethod(
+            "status".methodName(), bodyAsAssignment = true, accessModifier = accessModifier,
+            returnType = Kotlin.NothingType, override = !defaultResponseExists) {
             kotlinParameter(statusVariable, Kotlin.IntClass.typeName())
-            kotlinParameter(typeVariable, Kotlin.StringClass.typeName(true), nullLiteral())
-            kotlinParameter(bodyVariable, Kotlin.AnyClass.typeName(true), nullLiteral())
+            kotlinParameter(typeVariable, Kotlin.StringClass.typeName(true), parameterDefaultValue)
+            kotlinParameter(bodyVariable, Kotlin.AnyClass.typeName(true), parameterDefaultValue)
             kotlinParameter(
                 headersVariable, Kotlin.PairClass.typeName().of(
                     Kotlin.StringClass.typeName(), Kotlin.AnyClass.typeName(true)
@@ -94,47 +100,25 @@ class ServerResponseContainerEmitter : CodeEmitter {
                     }.statement()
                 }
                 .invoke("build".rawMethodName())
-            invoke(className.constructorName, statement).statement()
+            invoke(Library.RequestHandledSignalClass.constructorName, statement).throwStatement()
         }
-
-        if (!defaultResponseExists) {
-            kotlinMethod("status".methodName(), bodyAsAssignment = true) {
-                kotlinParameter(statusVariable, Kotlin.IntClass.typeName())
-                kotlinParameter(typeVariable, Kotlin.StringClass.typeName(true), nullLiteral())
-                kotlinParameter(bodyVariable, Kotlin.AnyClass.typeName(true), nullLiteral())
-                kotlinParameter(
-                    headersVariable, Kotlin.ListClass.typeName().of(
-                        Kotlin.PairClass.typeName().of(
-                            Kotlin.StringClass.typeName(), Kotlin.AnyClass.typeName(true)
-                        )
-                    ), invoke("emptyList".methodName())
-                )
-
-                invoke(
-                    "status".methodName(), statusVariable, typeVariable,
-                    bodyVariable, headersVariable.spread().invoke("toTypedArray".methodName())
-                ).statement()
-            }
-
-        }
-
     }
 
-    private fun KotlinCompanion.emitStatusMethod(
+    private fun KotlinClass.emitStatusMethod(
         statusCode: ResponseCode.HttpStatusCode,
         body: TransformableBody?,
         headers: List<TransformableParameter>
     ) {
-        kotlinMethod(statusCode.statusCodeReason().methodName(), bodyAsAssignment = true) {
+        kotlinMethod(statusCode.statusCodeReason().methodName(), bodyAsAssignment = true, returnType = Kotlin.NothingType) {
             emitMethodBody(statusCode.value.literal(), body, headers)
         }
     }
 
-    private fun KotlinCompanion.emitDefaultStatusMethod(
+    private fun KotlinClass.emitDefaultStatusMethod(
         body: TransformableBody?,
         headers: List<TransformableParameter>
     ) {
-        kotlinMethod("defaultStatus".methodName(), bodyAsAssignment = true) {
+        kotlinMethod("defaultStatus".methodName(), bodyAsAssignment = true, returnType = Kotlin.NothingType) {
             val statusVariable = "status".variableName()
             kotlinParameter(statusVariable, Kotlin.IntClass.typeName())
             emitMethodBody(statusVariable, body, headers)

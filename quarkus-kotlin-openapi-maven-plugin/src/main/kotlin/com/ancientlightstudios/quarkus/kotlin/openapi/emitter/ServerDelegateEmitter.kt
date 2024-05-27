@@ -26,7 +26,10 @@ class ServerDelegateEmitter : CodeEmitter {
 
         kotlinInterface(fileName) {
             requests {
-                kotlinMethod(request.requestMethodName, true, request.responseContainerClassName.typeName()) {
+                kotlinMethod(
+                    request.requestMethodName, true, Kotlin.NothingType,
+                    request.responseContainerClassName.typeName()
+                ) {
                     if (request.hasInputParameter()) {
                         val requestType =
                             Library.MaybeClass.typeName().of(request.requestContainerClassName.typeName())

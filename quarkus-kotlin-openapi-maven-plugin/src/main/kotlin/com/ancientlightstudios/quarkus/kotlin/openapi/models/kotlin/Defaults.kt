@@ -2,10 +2,12 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName.Companion.className
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName.Companion.rawClassName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.SimpleTypeName.Companion.typeName
 
 object Kotlin {
 
     val Star = "*".rawClassName("", true)
+    val NothingType = "Nothing".rawClassName("kotlin", true).typeName()
     val AnyClass = "Any".rawClassName("kotlin", true)
     val ByteArrayClass = "ByteArray".rawClassName("kotlin", true)
     val StringClass = "String".rawClassName("kotlin", true)
@@ -69,5 +71,7 @@ object Library {
     val ValidationErrorClass = "ValidationError".rawClassName("com.ancientlightstudios.quarkus.kotlin.openapi")
     val IsErrorClass = "IsError".rawClassName("com.ancientlightstudios.quarkus.kotlin.openapi")
     val DefaultValidatorClass = "DefaultValidator".rawClassName("com.ancientlightstudios.quarkus.kotlin.openapi")
+    val RequestHandledSignalClass = "RequestHandledSignal".rawClassName("com.ancientlightstudios.quarkus.kotlin.openapi")
+    val ResponseWithGenericStatusInterface = "ResponseWithGenericStatus".rawClassName("com.ancientlightstudios.quarkus.kotlin.openapi")
 
 }
