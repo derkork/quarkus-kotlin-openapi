@@ -7,6 +7,27 @@ tags:
   - name: json
 
 paths:
+  /features/validation/numberValidation:
+    post:
+      tags:
+        - validation
+      operationId: numberValidation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ValidationTest'
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationTest'
+        '400':
+          $ref: '#/components/responses/OperationError400'
+
   /features/misc/unknownStatusCode:
     get:
       tags:
@@ -342,6 +363,23 @@ paths:
 components:
 
   schemas:
+    ValidationTest:
+      type: object
+      properties:
+        longProperty:
+          type: number
+          format: int64
+          minimum: 5
+          maximum: 10
+        uintProperty:
+          type: number
+          format: uint32
+          exclusiveMinimum: 5
+          exclusiveMaximum: 10
+      required:
+        - longProperty
+        - uintProperty
+
     SimpleEnum:
       type: string
       enum:

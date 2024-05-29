@@ -31,10 +31,75 @@ fun Maybe<String?>.validateString(block: StringValidator.(String) -> Unit): Mayb
     }
 
 @Suppress("unused")
+@JvmName("validateNumber")
 fun <T : Number> Maybe<T?>.validateNumber(block: NumberValidator<T>.(T) -> Unit): Maybe<T?> =
     onNotNull {
         try {
             val errors = NumberValidator<T>(context).apply { this.block(value) }.validationErrors
+            if (errors.isEmpty()) {
+                this@validateNumber
+            } else {
+                failure(errors)
+            }
+        } catch (_: Exception) {
+            failure(ValidationError("is not a valid value", context))
+        }
+    }
+
+@Suppress("unused")
+@JvmName("validateULongNumber")
+fun Maybe<ULong?>.validateNumber(block: NumberValidator<ULong>.(ULong) -> Unit): Maybe<ULong?> =
+    onNotNull {
+        try {
+            val errors = NumberValidator<ULong>(context).apply { this.block(value) }.validationErrors
+            if (errors.isEmpty()) {
+                this@validateNumber
+            } else {
+                failure(errors)
+            }
+        } catch (_: Exception) {
+            failure(ValidationError("is not a valid value", context))
+        }
+    }
+
+@Suppress("unused")
+@JvmName("validateUIntNumber")
+fun Maybe<UInt?>.validateNumber(block: NumberValidator<UInt>.(UInt) -> Unit): Maybe<UInt?> =
+    onNotNull {
+        try {
+            val errors = NumberValidator<UInt>(context).apply { this.block(value) }.validationErrors
+            if (errors.isEmpty()) {
+                this@validateNumber
+            } else {
+                failure(errors)
+            }
+        } catch (_: Exception) {
+            failure(ValidationError("is not a valid value", context))
+        }
+    }
+
+@Suppress("unused")
+@JvmName("validateUShortNumber")
+fun Maybe<UShort?>.validateNumber(block: NumberValidator<UShort>.(UShort) -> Unit): Maybe<UShort?> =
+    onNotNull {
+        try {
+            val errors = NumberValidator<UShort>(context).apply { this.block(value) }.validationErrors
+            if (errors.isEmpty()) {
+                this@validateNumber
+            } else {
+                failure(errors)
+            }
+        } catch (_: Exception) {
+            failure(ValidationError("is not a valid value", context))
+        }
+    }
+
+@Suppress("unused")
+@JvmName("validateUByteNumber")
+fun Maybe<UByte?>.validateNumber(block: NumberValidator<UByte>.(UByte) -> Unit): Maybe<UByte?> =
+    onNotNull {
+        try {
+            val errors = NumberValidator<UByte>(context).apply { this.block(value) }.validationErrors
             if (errors.isEmpty()) {
                 this@validateNumber
             } else {

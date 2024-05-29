@@ -51,35 +51,30 @@ class StringValidator(context: String) : Validator(context) {
 }
 
 @Suppress("unused")
-class NumberValidator<T : Number>(context: String) : Validator(context) {
+class NumberValidator<T>(context: String) : Validator(context) {
 
-    fun T.minimum(min: T, exclusive: Boolean) {
+    fun T.minimum(min: Comparable<T>, exclusive: Boolean) {
         if (exclusive) {
-            if (this.compare(min) <= 0) {
+            if (min >= this) {
                 reportError("exclusive minimum of $min expected, but is $this")
             }
         } else {
-            if (this.compare(min) < 0) {
+            if (min > this) {
                 reportError(" minimum of $min expected, but is $this")
             }
         }
     }
 
-    fun T.maximum(max: T, exclusive: Boolean) {
+    fun T.maximum(max: Comparable<T>, exclusive: Boolean) {
         if (exclusive) {
-            if (this.compare(max) >= 0) {
+            if (max <= this) {
                 reportError("exclusive maximum of $max expected, but is $this")
             }
         } else {
-            if (this.compare(max) > 0) {
+            if (max < this) {
                 reportError(" maximum of $max expected, but is $this")
             }
         }
-    }
-
-    private fun T.compare(other: T) = when (this) {
-        is Double, is Float -> this.toDouble().compareTo(other.toDouble())
-        else -> this.toLong().compareTo(other.toLong())
     }
 
 }
