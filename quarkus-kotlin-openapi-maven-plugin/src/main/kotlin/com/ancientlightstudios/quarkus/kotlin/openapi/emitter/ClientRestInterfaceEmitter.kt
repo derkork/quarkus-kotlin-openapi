@@ -74,8 +74,8 @@ class ClientRestInterfaceEmitter : CodeEmitter {
 
             val requestContainerParts = mutableListOf<VariableName>()
             tryExpression {
-                body { requestContainerParts.addAll(emitBody(this@kotlinMethod, body)) }
                 parameters { requestContainerParts.add(emitParameter(this@kotlinMethod, parameter)) }
+                body { requestContainerParts.addAll(emitBody(this@kotlinMethod, body)) }
 
                 tryExpression {
                     // produces
