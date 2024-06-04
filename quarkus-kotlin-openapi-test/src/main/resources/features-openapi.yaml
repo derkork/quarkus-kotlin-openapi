@@ -83,11 +83,13 @@ paths:
           required: false
           schema:
             type: integer
+            format: int32
         - name: X-THIRD-HEADER
           in: header
           required: false
           schema:
             type: integer
+            format: int32
       responses:
         '204':
           description: Ok
@@ -101,10 +103,12 @@ paths:
                 type:
                   - integer
                   - 'null'
+                format: int32
             X-THIRD-HEADER:
               required: false
               schema:
                 type: integer
+                format: int32
         '400':
           $ref: '#/components/responses/OperationError400'
 
@@ -130,6 +134,7 @@ paths:
               type:
                 - integer
                 - 'null'
+              format: int32
       responses:
         '204':
           description: Ok
@@ -148,6 +153,7 @@ paths:
                   type:
                     - integer
                     - 'null'
+                  format: int32
         '400':
           $ref: '#/components/responses/OperationError400'
 

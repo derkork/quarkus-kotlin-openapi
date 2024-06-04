@@ -1,5 +1,7 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi
 
+import java.math.BigDecimal
+import java.math.BigInteger
 import java.util.*
 
 @Suppress("unused")
@@ -18,10 +20,15 @@ fun Maybe<String?>.asLong(): Maybe<Long?> = this.mapNotNull("is not a long") { i
 fun Maybe<String?>.asULong(): Maybe<ULong?> = this.mapNotNull("is not an ulong") { it.toULong() }
 
 @Suppress("unused")
+fun Maybe<String?>.asBigInteger(): Maybe<BigInteger?> = this.mapNotNull("is not a valid integer") { it.toBigInteger() }
+
+@Suppress("unused")
 fun Maybe<String?>.asFloat(): Maybe<Float?> = this.mapNotNull("is not a float") { it.toFloat() }
 
 @Suppress("unused")
 fun Maybe<String?>.asDouble(): Maybe<Double?> = this.mapNotNull("is not a double") { it.toDouble() }
+
+fun Maybe<String?>.asBigDecimal(): Maybe<BigDecimal?> = this.mapNotNull("is not a valid decimal") { it.toBigDecimal() }
 
 @Suppress("unused")
 fun Maybe<String?>.asBoolean(): Maybe<Boolean?> = this.mapNotNull("is not a boolean") { it.toBoolean() }

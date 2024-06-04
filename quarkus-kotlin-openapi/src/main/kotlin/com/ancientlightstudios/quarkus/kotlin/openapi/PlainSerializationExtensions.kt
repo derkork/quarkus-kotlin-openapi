@@ -1,6 +1,8 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi
 
 import org.jboss.resteasy.reactive.RestResponse
+import java.math.BigDecimal
+import java.math.BigInteger
 import java.util.*
 
 @Suppress("unused")
@@ -19,10 +21,16 @@ fun Long.asString() = this.toString()
 fun ULong.asString() = this.toString()
 
 @Suppress("unused")
+fun BigInteger.asString() = this.toString()
+
+@Suppress("unused")
 fun Float.asString() = this.toString()
 
 @Suppress("unused")
 fun Double.asString() = this.toString()
+
+@Suppress("unused")
+fun BigDecimal.asString() = this.toString()
 
 @Suppress("unused")
 fun Boolean.asString() = this.toString()

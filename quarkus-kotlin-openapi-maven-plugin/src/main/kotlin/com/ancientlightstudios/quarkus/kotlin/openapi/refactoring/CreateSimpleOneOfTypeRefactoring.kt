@@ -3,15 +3,10 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.refactoring
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.OriginPathHint.originPath
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeDefinitionHint.typeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName.Companion.className
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.SimpleTypeName.Companion.typeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchema
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.*
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.OneOfOption
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.RealOneOfTypeDefinition
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.TypeDefinition
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.TypeUsage
-import com.fasterxml.jackson.databind.ser.Serializers.Base
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.*
 
 class CreateSimpleOneOfTypeRefactoring(
     private val schema: TransformableSchema,
@@ -46,7 +41,7 @@ class CreateSimpleOneOfTypeRefactoring(
 
         schema.typeDefinition = RealOneOfTypeDefinition(
             typeName,
-            discriminator?.property?.variableName(),
+            discriminator?.let { OneOfDiscriminatorProperty(it.property, it.property.variableName()) },
             nullable ?: false,
             modifier,
             optionTypes,

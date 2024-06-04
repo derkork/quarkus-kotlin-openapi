@@ -10,7 +10,7 @@ interface OneOfTypeDefinition : TypeDefinition {
 
     val modelName: ClassName
 
-    val discriminatorProperty: VariableName?
+    val discriminatorProperty: OneOfDiscriminatorProperty?
 
     val options: List<OneOfOption>
 
@@ -18,7 +18,7 @@ interface OneOfTypeDefinition : TypeDefinition {
 
 class RealOneOfTypeDefinition(
     override var modelName: ClassName,
-    override val discriminatorProperty: VariableName?,
+    override val discriminatorProperty: OneOfDiscriminatorProperty?,
     override val nullable: Boolean,
     override val modifier: SchemaModifier?,
     override val options: List<OneOfOption>,
