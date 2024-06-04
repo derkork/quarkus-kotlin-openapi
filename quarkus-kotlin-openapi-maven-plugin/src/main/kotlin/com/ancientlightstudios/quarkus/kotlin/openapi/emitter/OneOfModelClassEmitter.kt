@@ -82,7 +82,7 @@ class OneOfModelClassEmitter(private val typeDefinition: OneOfTypeDefinition) :
     private fun KotlinClass.generateSerializeMethods(option: OneOfOption, serializationDirection: Direction) {
         val types = typeDefinition.getContentTypes(serializationDirection)
         if (types.contains(ContentType.ApplicationJson)) {
-            generateJsonSerializeMethod(option, typeDefinition.discriminatorProperty)
+            generateJsonSerializeMethod(option, typeDefinition.discriminatorProperty?.name)
         }
     }
 
@@ -131,7 +131,7 @@ class OneOfModelClassEmitter(private val typeDefinition: OneOfTypeDefinition) :
         ) {
             when (val discriminatorProperty = typeDefinition.discriminatorProperty) {
                 null -> generateJsonDeserializationWithoutDescriptor()
-                else -> generateJsonDeserializationWithDescriptor(discriminatorProperty)
+                else -> generateJsonDeserializationWithDescriptor(discriminatorProperty.sourceName)
             }
         }
     }
@@ -163,14 +163,14 @@ class OneOfModelClassEmitter(private val typeDefinition: OneOfTypeDefinition) :
         }.statement()
     }
 
-    private fun StatementAware.generateJsonDeserializationWithDescriptor(discriminatorProperty: VariableName) {
+    private fun StatementAware.generateJsonDeserializationWithDescriptor(discriminatorProperty: String) {
         // onSuccess instead of onNotNull in case one of the options is nullable. maybe we can find a better way to handle this
         invoke("onNotNull".methodName()) {
             // renders
             //
             // val discriminator = value.get("<discriminatorName>")?.asText()
             val discriminatorVariable = "value".variableName()
-                .invoke("get".methodName(), discriminatorProperty.value.literal())
+                .invoke("get".methodName(), discriminatorProperty.literal())
                 .nullCheck()
                 .invoke("asText".methodName())
                 .declaration("discriminator".variableName())
@@ -184,7 +184,7 @@ class OneOfModelClassEmitter(private val typeDefinition: OneOfTypeDefinition) :
                         "failure".methodName(),
                         InvocationExpression.invoke(
                             Library.ValidationErrorClass.constructorName,
-                            "discriminator field '${discriminatorProperty.value}' is missing".literal(),
+                            "discriminator field '$discriminatorProperty' is missing".literal(),
                             "context".variableName()
                         )
                     ).statement()
@@ -221,7 +221,7 @@ class OneOfModelClassEmitter(private val typeDefinition: OneOfTypeDefinition) :
                         "failure".methodName(),
                         InvocationExpression.invoke(
                             Library.ValidationErrorClass.constructorName,
-                            "discriminator field '${discriminatorProperty.value}' has invalid value '\$discriminator'".literal(),
+                            "discriminator field '$discriminatorProperty' has invalid value '\$discriminator'".literal(),
                             "context".variableName()
                         )
                     ).statement()

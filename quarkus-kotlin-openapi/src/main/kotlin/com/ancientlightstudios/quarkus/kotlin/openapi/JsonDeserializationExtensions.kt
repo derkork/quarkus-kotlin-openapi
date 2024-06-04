@@ -62,12 +62,20 @@ fun Maybe<JsonNode?>.asLong() = asString().asLong()
 fun Maybe<JsonNode?>.asULong() = asString().asULong()
 
 @Suppress("unused")
+@JvmName("asBigIntegerFromJson")
+fun Maybe<JsonNode?>.asBigInteger() = asString().asBigInteger()
+
+@Suppress("unused")
 @JvmName("asFloatFromJson")
 fun Maybe<JsonNode?>.asFloat() = asString().asFloat()
 
 @Suppress("unused")
 @JvmName("asDoubleFromJson")
 fun Maybe<JsonNode?>.asDouble() = asString().asDouble()
+
+@Suppress("unused")
+@JvmName("asBigDecimalFromJson")
+fun Maybe<JsonNode?>.asBigDecimal() = asString().asBigDecimal()
 
 @Suppress("unused")
 @JvmName("asBooleanFromJson")

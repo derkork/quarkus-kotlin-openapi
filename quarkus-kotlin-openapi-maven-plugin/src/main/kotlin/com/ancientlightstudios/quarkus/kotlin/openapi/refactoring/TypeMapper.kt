@@ -37,7 +37,7 @@ class TypeMapper(private val config: Config) {
         "int64" -> Kotlin.LongClass
         "uint16", "uint32" -> Kotlin.UIntClass
         "uint64" -> Kotlin.ULongClass
-        else -> mapCustomType(SchemaTypes.Number, format, Kotlin.DoubleClass)
+        else -> mapCustomType(SchemaTypes.Number, format, Kotlin.BigDecimalClass)
     }
 
     private fun mapIntegerType(format: String?) = when (format) {
@@ -45,7 +45,7 @@ class TypeMapper(private val config: Config) {
         "int64" -> Kotlin.LongClass
         "uint16", "uint32" -> Kotlin.UIntClass
         "uint64" -> Kotlin.ULongClass
-        else -> mapCustomType(SchemaTypes.Integer, format, Kotlin.IntClass)
+        else -> mapCustomType(SchemaTypes.Integer, format, Kotlin.BigIntegerClass)
     }
 
     private fun mapBooleanType(format: String?) = mapCustomType(SchemaTypes.Boolean, format, Kotlin.BooleanClass)

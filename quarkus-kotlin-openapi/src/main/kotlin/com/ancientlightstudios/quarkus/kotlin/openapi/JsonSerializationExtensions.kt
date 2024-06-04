@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.JsonNodeFactory
 import com.fasterxml.jackson.databind.node.ObjectNode
 import java.math.BigDecimal
+import java.math.BigInteger
 
 
 private val factory = JsonNodeFactory.instance
@@ -18,9 +19,32 @@ fun Long.asJson(): JsonNode = factory.numberNode(this)
 
 fun ULong.asJson(): JsonNode = factory.numberNode(BigDecimal(this.toString()))
 
-fun Float.asJson(): JsonNode = factory.numberNode(this)
+fun BigInteger.asJson(): JsonNode = factory.numberNode(this)
 
-fun Double.asJson(): JsonNode = factory.numberNode(this)
+// Serialize floats + doubles as BigDecimal so we can use Jackson's setting to have non-scientific notation
+// for floats and doubles without having to do any additional annotations of our model or registering custom
+// serializers.
+fun Float.asJson(): JsonNode  {
+    if (this.isNaN()) {
+        return factory.numberNode(this)
+    }
+    return when(this) {
+        Float.POSITIVE_INFINITY , Float.NEGATIVE_INFINITY -> factory.numberNode(this)
+        else -> factory.numberNode(this.toBigDecimal())
+    }
+}
+
+fun Double.asJson(): JsonNode {
+    if (this.isNaN()) {
+        return factory.numberNode(this)
+    }
+    return when(this) {
+        Double.POSITIVE_INFINITY , Double.NEGATIVE_INFINITY -> factory.numberNode(this)
+        else -> factory.numberNode(this.toBigDecimal())
+    }
+}
+
+fun BigDecimal.asJson(): JsonNode = factory.numberNode(this)
 
 fun Boolean.asJson(): JsonNode = factory.booleanNode(this)
 
