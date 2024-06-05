@@ -1,6 +1,7 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
 
 interface KotlinStatement : KotlinRenderable
 
@@ -11,6 +12,10 @@ interface StatementAware {
     fun KotlinExpression.statement() {
         addStatement(this)
     }
+
+    fun KotlinExpression.declaration(
+        variableName: String, typeName: TypeName? = null, modifiable: Boolean = false
+    ): VariableName = declaration(variableName.variableName(), typeName, modifiable)
 
     fun KotlinExpression.declaration(
         variableName: VariableName, typeName: TypeName? = null, modifiable: Boolean = false

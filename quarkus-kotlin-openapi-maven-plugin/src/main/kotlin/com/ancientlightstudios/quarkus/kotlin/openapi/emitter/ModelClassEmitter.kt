@@ -3,7 +3,7 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ModelTypesHint.modelTypes
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.*
 
-class ModelClassEmitter : CodeEmitter {
+class ModelClassEmitter(private val withTestSupport: Boolean) : CodeEmitter {
 
     override fun EmitterContext.emit() {
         spec.modelTypes.forEach { typeDefinition ->
@@ -14,7 +14,7 @@ class ModelClassEmitter : CodeEmitter {
                 }
 
                 is EnumTypeDefinition -> runEmitter(EnumModelClassEmitter(typeDefinition))
-                is ObjectTypeDefinition -> runEmitter(DefaultObjectModelClassEmitter(typeDefinition))
+                is ObjectTypeDefinition -> runEmitter(ObjectModelClassEmitter(typeDefinition))
                 is OneOfTypeDefinition -> runEmitter(OneOfModelClassEmitter(typeDefinition))
             }
         }

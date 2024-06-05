@@ -6,6 +6,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ClientErrorRe
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ClientHttpResponseClassNameHint.clientHttpResponseClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ParameterVariableNameHint.parameterVariableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.RequestContextClassNameHint.requestContextClassName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ResponseContainerClassNameHint.responseContainerClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeUsageHint.typeUsage
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName.Companion.className
@@ -15,7 +16,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.Respo
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableBody
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableParameter
 
-class ClientResponseContainerEmitter : CodeEmitter {
+class ClientResponseContainerEmitter(private val withTestSupport: Boolean) : CodeEmitter {
 
     private lateinit var emitterContext: EmitterContext
 
@@ -31,7 +32,7 @@ class ClientResponseContainerEmitter : CodeEmitter {
         }
     }
 
-    private fun RequestInspection.emitContainerFile() = kotlinFile(request.requestContextClassName) {
+    private fun RequestInspection.emitContainerFile() = kotlinFile(request.responseContainerClassName) {
         registerImports(Library.AllClasses)
         registerImports(emitterContext.getAdditionalImports())
 
@@ -151,13 +152,19 @@ class ClientResponseContainerEmitter : CodeEmitter {
                 ) {
                     kotlinMember("cause".variableName(), Kotlin.ExceptionClass.typeName(), accessModifier = null)
                 }
+
+                val responseClass = when(withTestSupport) {
+                    true -> RestAssured.ResponseClass
+                    false -> Jakarta.ResponseClass
+                }
+
                 generateErrorClass(
                     "ResponseError",
                     me,
                     "reason".variableName()
                 ) {
                     kotlinMember("reason".variableName(), Kotlin.StringClass.typeName(), accessModifier = null)
-                    kotlinMember("response".variableName(), Jakarta.ResponseClass.typeName(), accessModifier = null)
+                    kotlinMember("response".variableName(), responseClass.typeName(), accessModifier = null)
                 }
             }
 

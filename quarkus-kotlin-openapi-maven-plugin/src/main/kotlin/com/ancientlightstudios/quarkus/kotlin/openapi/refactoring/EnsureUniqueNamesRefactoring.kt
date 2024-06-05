@@ -6,8 +6,11 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ClientErrorRe
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ClientHttpResponseClassNameHint.clientHttpResponseClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ClientRestInterfaceClassNameHint.clientRestInterfaceClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ModelTypesHint.modelTypes
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.RequestBuilderClassNameHint.requestBuilderClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.RequestContainerClassNameHint.requestContainerClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.RequestContextClassNameHint.requestContextClassName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ResponseContainerClassNameHint.responseContainerClassName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ResponseValidatorClassNameHint.responseValidatorClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ServerDelegateClassNameHint.serverDelegateClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ServerRestInterfaceClassNameHint.serverRestInterfaceClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName
@@ -29,6 +32,9 @@ class EnsureUniqueNamesRefactoring : SpecRefactoring {
                     request.clientHttpResponseClassName = registry.uniqueNameFor(request.clientHttpResponseClassName)
                     request.requestContainerClassName = registry.uniqueNameFor(request.requestContainerClassName)
                     request.requestContextClassName = registry.uniqueNameFor(request.requestContextClassName)
+                    request.requestBuilderClassName = registry.uniqueNameFor(request.requestBuilderClassName)
+                    request.responseContainerClassName = registry.uniqueNameFor(request.responseContainerClassName)
+                    request.responseValidatorClassName = registry.uniqueNameFor(request.responseValidatorClassName)
                 }
             }
         }

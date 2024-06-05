@@ -12,7 +12,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ClientHttpRes
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ClientRestInterfaceClassNameHint.clientRestInterfaceClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ParameterVariableNameHint.parameterVariableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.RequestMethodNameHint.requestMethodName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.RequestContextClassNameHint.requestContextClassName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ResponseContainerClassNameHint.responseContainerClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeUsageHint.typeUsage
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.InvocationExpression.Companion.invoke
@@ -70,7 +70,7 @@ class ClientRestInterfaceEmitter : CodeEmitter {
         val successClass = request.clientHttpResponseClassName
         val errorClass = request.clientErrorResponseClassName
 
-        kotlinMethod(request.requestMethodName, true, request.requestContextClassName.typeName()) {
+        kotlinMethod(request.requestMethodName, true, request.responseContainerClassName.typeName()) {
 
             val requestContainerParts = mutableListOf<VariableName>()
             tryExpression {
@@ -122,7 +122,10 @@ class ClientRestInterfaceEmitter : CodeEmitter {
                             successClass, defaultResponse.body, defaultResponse.headers
                         )
                     }
-                }.declaration(responseMaybe, typeName = Library.MaybeClass.typeName().of(request.requestContextClassName.typeName()))
+                }.declaration(
+                    responseMaybe,
+                    typeName = Library.MaybeClass.typeName().of(request.responseContainerClassName.typeName())
+                )
 
 
                 // produces
@@ -193,7 +196,9 @@ class ClientRestInterfaceEmitter : CodeEmitter {
 
         // TODO: it's now almost the same as for the body. re-use stuff
         return when (parameter.content.mappedContentType) {
-            ContentType.ApplicationJson -> "objectMapper".variableName().invoke("writeValueAsString".rawMethodName(), statement)
+            ContentType.ApplicationJson -> "objectMapper".variableName()
+                .invoke("writeValueAsString".rawMethodName(), statement)
+
             else -> statement
         }.declaration(parameterName.extend(postfix = "Payload"))
     }
@@ -276,7 +281,6 @@ class ClientRestInterfaceEmitter : CodeEmitter {
                 ).resultStatement.declaration(parameterName.extend(postfix = "Payload"))
             )
         }
-
     }
 
     private fun TryCatchExpression.emitOctetBody(method: KotlinMethod, body: TransformableBody): VariableName {

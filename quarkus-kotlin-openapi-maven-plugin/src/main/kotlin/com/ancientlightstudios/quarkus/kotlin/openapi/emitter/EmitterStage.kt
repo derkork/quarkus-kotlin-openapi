@@ -13,6 +13,7 @@ class EmitterStage(private val config: Config) : GeneratorStage {
         when (config.interfaceType) {
             InterfaceType.CLIENT -> clientEmitters()
             InterfaceType.SERVER -> serverEmitters()
+            InterfaceType.TEST_CLIENT -> testClientEmitters()
         }.forEach {
             context.runEmitter(it)
         }
@@ -23,14 +24,21 @@ class EmitterStage(private val config: Config) : GeneratorStage {
         ServerRestInterfaceEmitter(config.pathPrefix),
         ServerRequestContainerEmitter(),
         ServerRequestContextEmitter(),
-        ModelClassEmitter()
+        ModelClassEmitter(false)
     )
 
     private fun clientEmitters() = listOf(
-        ClientDelegateEmitter(config.interfaceName, config.additionalProviders()),
+        ClientDelegateEmitter(config.pathPrefix, config.interfaceName, config.additionalProviders()),
         ClientRestInterfaceEmitter(),
-        ClientResponseContainerEmitter(),
-        ModelClassEmitter()
+        ClientResponseContainerEmitter(false),
+        ModelClassEmitter(false)
     )
 
+    private fun testClientEmitters() = listOf(
+        TestClientRestInterfaceEmitter(config.pathPrefix),
+        TestClientResponseValidatorEmitter(),
+        TestClientRequestBuilderEmitter(),
+        ClientResponseContainerEmitter(true),
+        ModelClassEmitter(true)
+    )
 }

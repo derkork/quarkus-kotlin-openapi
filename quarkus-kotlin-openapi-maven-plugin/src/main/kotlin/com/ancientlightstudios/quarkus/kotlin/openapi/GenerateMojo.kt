@@ -7,8 +7,7 @@ import org.apache.maven.plugins.annotations.Parameter
 import org.apache.maven.project.MavenProject
 import java.io.File
 
-@Mojo(name = "generate", defaultPhase = LifecyclePhase.GENERATE_SOURCES, requiresProject = true)
-class GenerateMojo : AbstractMojo() {
+abstract class GenerateMojo : AbstractMojo() {
     /**
      * The current Maven project.
      */
@@ -60,8 +59,7 @@ class GenerateMojo : AbstractMojo() {
     /**
      * The directory where the generated sources should be put
      */
-    @Parameter(defaultValue = "\${project.build.directory}/generated-sources/quarkus-kotlin-openapi")
-    lateinit var outputDirectory: File
+    abstract var outputDirectory: File
 
     @Parameter
     var endpoints: List<String> = listOf()
@@ -104,7 +102,9 @@ class GenerateMojo : AbstractMojo() {
 
         Generator(config).generate()
 
-        project.addCompileSourceRoot(outputDirectory.path)
+        registerSourceRoot()
     }
+
+    abstract fun registerSourceRoot()
 
 }

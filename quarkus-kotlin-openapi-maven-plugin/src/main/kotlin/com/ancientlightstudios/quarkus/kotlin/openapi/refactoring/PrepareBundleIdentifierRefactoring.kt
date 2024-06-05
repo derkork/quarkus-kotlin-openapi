@@ -17,7 +17,11 @@ class PrepareBundleIdentifierRefactoring(private val interfaceName: String) : Sp
                 bundle.serverDelegateClassName = name.className(interfacePackage, postfix = "ServerDelegate")
                 bundle.serverRestInterfaceClassName = name.className(interfacePackage, postfix = "Server")
                 bundle.clientDelegateClassName = name.className(interfacePackage, postfix = "ClientDelegate")
-                bundle.clientRestInterfaceClassName = name.className(interfacePackage, postfix = "Client")
+                if (withTestSupport) {
+                    bundle.clientRestInterfaceClassName = name.className(interfacePackage, postfix = "TestClient")
+                } else {
+                    bundle.clientRestInterfaceClassName = name.className(interfacePackage, postfix = "Client")
+                }
             }
         }
     }

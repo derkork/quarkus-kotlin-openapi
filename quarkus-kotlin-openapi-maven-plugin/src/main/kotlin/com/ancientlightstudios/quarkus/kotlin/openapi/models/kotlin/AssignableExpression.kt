@@ -17,7 +17,7 @@ class AssignableExpression(
             write(" ")
         }
 
-        write(" is ${className.value}")
+        write("is ${className.value}")
     }
 
     companion object {

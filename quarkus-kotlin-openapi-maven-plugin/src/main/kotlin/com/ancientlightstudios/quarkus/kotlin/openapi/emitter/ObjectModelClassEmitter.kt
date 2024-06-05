@@ -15,7 +15,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ContentType
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.*
 
-class DefaultObjectModelClassEmitter(private val typeDefinition: ObjectTypeDefinition) : CodeEmitter {
+class ObjectModelClassEmitter(private val typeDefinition: ObjectTypeDefinition) : CodeEmitter {
 
     private lateinit var emitterContext: EmitterContext
 
@@ -149,5 +149,10 @@ class DefaultObjectModelClassEmitter(private val typeDefinition: ObjectTypeDefin
         // if there is a default expression defined, use it. Otherwise, use the null expression, if null is allowed
         return declaredDefaultValue ?: if (typeUsage.nullable) nullLiteral() else null
     }
+
+    // TODO
+    /*
+        fun unsafe(title: String? = null, pages:Int? = null, kind: String? = null) : JsonBody<Book> {}
+    */
 
 }

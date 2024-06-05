@@ -1,0 +1,398 @@
+openapi: 3.1.0
+info:
+  title: Filestore
+  version: 1.0.0
+
+paths:
+  /features/parameters/{name}/kind/{id}:
+    get:
+      operationId: parametersPath
+      tags:
+        - parameters
+      parameters:
+        - name: name
+          in: path
+          schema:
+            type: string
+        - name: id
+          in: path
+          schema:
+            type: number
+            format: int32
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  id:
+                    type: number
+                    format: int32
+                required:
+                  - name
+                  - id
+        '400':
+          $ref: '#/components/responses/OperationError400'
+
+  /features/parameters/requiredNotNull:
+    get:
+      operationId: parametersRequiredNotNull
+      tags:
+        - parameters
+      parameters:
+        - name: querySingleValue
+          in: query
+          schema:
+            type: string
+          required: true
+        - name: queryCollectionValue
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          required: true
+        - name: headerSingleValue
+          in: header
+          schema:
+            type: string
+          required: true
+        - name: headerCollectionValue
+          in: header
+          schema:
+            type: array
+            items:
+              type: string
+          required: true
+        - name: cookieSingleValue
+          in: cookie
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: ok
+          headers:
+            headerSingleValue:
+              required: true
+              schema:
+                type: string
+            headerCollectionValue:
+              required: true
+              schema:
+                type: array
+                items:
+                  type: string
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  querySingleValue:
+                    type: string
+                  queryCollectionValue:
+                    type: array
+                    items:
+                      type:
+                        string
+                  headerSingleValue:
+                    type: string
+                  headerCollectionValue:
+                    type: array
+                    items:
+                      type:
+                        string
+                  cookieSingleValue:
+                    type: string
+                required:
+                  - querySingleValue
+                  - queryCollectionValue
+                  - headerSingleValue
+                  - headerCollectionValue
+                  - cookieSingleValue
+        '400':
+          $ref: '#/components/responses/OperationError400'
+
+  /features/parameters/requiredNullable:
+    get:
+      operationId: parametersRequiredNullable
+      tags:
+        - parameters
+      parameters:
+        - name: querySingleValue
+          in: query
+          schema:
+            type:
+              - string
+              - 'null'
+          required: true
+        - name: queryCollectionValue
+          in: query
+          schema:
+            type:
+              - array
+              - 'null'
+            items:
+              type: string
+          required: true
+        - name: headerSingleValue
+          in: header
+          schema:
+            type:
+              - string
+              - 'null'
+          required: true
+        - name: headerCollectionValue
+          in: header
+          schema:
+            type:
+              - array
+              - 'null'
+            items:
+              type: string
+          required: true
+        - name: cookieSingleValue
+          in: cookie
+          schema:
+            type:
+              - string
+              - 'null'
+          required: true
+      responses:
+        '200':
+          description: ok
+          headers:
+            headerSingleValue:
+              required: true
+              schema:
+                type:
+                  - string
+                  - 'null'
+            headerCollectionValue:
+              required: true
+              schema:
+                type:
+                  - array
+                  - 'null'
+                items:
+                  type: string
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  querySingleValue:
+                    type:
+                      - string
+                      - 'null'
+                  queryCollectionValue:
+                    type:
+                      - array
+                      - 'null'
+                    items:
+                      type:
+                        string
+                  headerSingleValue:
+                    type:
+                      - string
+                      - 'null'
+                  headerCollectionValue:
+                    type:
+                      - array
+                      - 'null'
+                    items:
+                      type:
+                        string
+                  cookieSingleValue:
+                    type:
+                      - string
+                      - 'null'
+                required:
+                  - querySingleValue
+                  - queryCollectionValue
+                  - headerSingleValue
+                  - headerCollectionValue
+                  - cookieSingleValue
+        '400':
+          $ref: '#/components/responses/OperationError400'
+
+  /features/parameters/optionalNotNull:
+    get:
+      operationId: parametersOptionalNotNull
+      tags:
+        - parameters
+      parameters:
+        - name: querySingleValue
+          in: query
+          schema:
+            type: string
+        - name: queryCollectionValue
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+        - name: headerSingleValue
+          in: header
+          schema:
+            type: string
+        - name: headerCollectionValue
+          in: header
+          schema:
+            type: array
+            items:
+              type: string
+        - name: cookieSingleValue
+          in: cookie
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ok
+          headers:
+            headerSingleValue:
+              schema:
+                type: string
+            headerCollectionValue:
+              schema:
+                type: array
+                items:
+                  type: string
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  querySingleValue:
+                    type: string
+                  queryCollectionValue:
+                    type: array
+                    items:
+                      type:
+                        string
+                  headerSingleValue:
+                    type: string
+                  headerCollectionValue:
+                    type: array
+                    items:
+                      type:
+                        string
+                  cookieSingleValue:
+                    type: string
+        '400':
+          $ref: '#/components/responses/OperationError400'
+
+  /features/parameters/optionalNullable:
+    get:
+      operationId: parametersOptionalNullable
+      tags:
+        - parameters
+      parameters:
+        - name: querySingleValue
+          in: query
+          schema:
+            type:
+              - string
+              - 'null'
+        - name: queryCollectionValue
+          in: query
+          schema:
+            type:
+              - array
+              - 'null'
+            items:
+              type: string
+        - name: headerSingleValue
+          in: header
+          schema:
+            type:
+              - string
+              - 'null'
+        - name: headerCollectionValue
+          in: header
+          schema:
+            type:
+              - array
+              - 'null'
+            items:
+              type: string
+        - name: cookieSingleValue
+          in: cookie
+          schema:
+            type:
+              - string
+              - 'null'
+      responses:
+        '200':
+          description: ok
+          headers:
+            headerSingleValue:
+              schema:
+                type:
+                  - string
+                  - 'null'
+            headerCollectionValue:
+              schema:
+                type:
+                  - array
+                  - 'null'
+                items:
+                  type: string
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  querySingleValue:
+                    type:
+                      - string
+                      - 'null'
+                  queryCollectionValue:
+                    type:
+                      - array
+                      - 'null'
+                    items:
+                      type:
+                        string
+                  headerSingleValue:
+                    type:
+                      - string
+                      - 'null'
+                  headerCollectionValue:
+                    type:
+                      - array
+                      - 'null'
+                    items:
+                      type:
+                        string
+                  cookieSingleValue:
+                    type:
+                      - string
+                      - 'null'
+        '400':
+          $ref: '#/components/responses/OperationError400'
+
+components:
+
+  schemas:
+    OperationError:
+      type: object
+      properties:
+        messages:
+          type: array
+          items:
+            type: string
+      required:
+        - messages
+
+  responses:
+    OperationError400:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/OperationError'
