@@ -35,6 +35,28 @@ sealed interface TypeName {
                 GenericTypeName(this, listOf(inner) + additional.toList())
 
         }
-
     }
+
+    data class DelegateTypeName(
+        val receiverType: TypeName? = null, val parameterTypes: List<TypeName> = emptyList(),
+        val returnType: TypeName, val nullable: Boolean = false
+    ): TypeName {
+
+        override val value: String
+            get() {
+                val parameters = parameterTypes.joinToString(prefix = "(", postfix = ")") { it.value }
+                val receiverPart = when(receiverType) {
+                    null -> ""
+                    else -> "${receiverType.value}."
+                }
+
+                val delegate = "$receiverPart$parameters -> ${returnType.value}"
+                return when(nullable) {
+                    false -> delegate
+                    else -> "($delegate)?"
+                }
+            }
+    }
+
+
 }

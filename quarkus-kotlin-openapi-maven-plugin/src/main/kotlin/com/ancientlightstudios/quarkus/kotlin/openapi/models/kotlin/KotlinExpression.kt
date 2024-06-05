@@ -105,15 +105,16 @@ fun ClassName.companionObject() = object : KotlinExpression {
 
 }
 
-fun functionReference(className: ClassName, methodName: MethodName) = object : KotlinExpression {
+fun functionReference(className: ClassName?, methodName: MethodName) = object : KotlinExpression {
 
     override fun ImportCollector.registerImports() {
-        register(className)
+        className?.let { register(it) }
         register(methodName)
     }
 
     override fun render(writer: CodeWriter) = with(writer) {
-        write("${className.value}::${methodName.value}")
+        className?.let { write(it.value) }
+        write("::${methodName.value}")
     }
 
 }
@@ -289,6 +290,15 @@ fun nullLiteral() = object : KotlinExpression {
         write("null")
     }
 
+}
+
+fun emptyLambda() = object : KotlinExpression {
+
+    override fun ImportCollector.registerImports() {}
+
+    override fun render(writer: CodeWriter) = with(writer) {
+        write("{}")
+    }
 }
 
 fun <T> Collection<T>.arrayLiteral(block: (T) -> KotlinExpression) = object : KotlinExpression {

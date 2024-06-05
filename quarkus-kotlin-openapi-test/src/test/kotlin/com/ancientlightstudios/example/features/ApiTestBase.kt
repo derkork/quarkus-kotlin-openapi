@@ -30,8 +30,19 @@ abstract class ApiTestBase {
         return "$testUrl$stripped"
     }
 
-    protected fun prepareRequest(contentType: String = "application/json"): RequestSpecification {
+    protected fun prepareRequestNew(): RequestSpecification {
         return RestAssured.given()
+            .baseUri(testUrl.toString())
+            .config(
+                RestAssuredConfig.config()
+                    .httpClient(
+                        HttpClientConfig.httpClientConfig().setParam("http.connection.timeout", 10)
+                    )
+            )
+    }
+
+    protected fun prepareRequest(contentType: String = "application/json"): RequestSpecification {
+        return RestAssured.given().baseUri("")
             .log().ifValidationFails()
             .config(
                 RestAssuredConfig

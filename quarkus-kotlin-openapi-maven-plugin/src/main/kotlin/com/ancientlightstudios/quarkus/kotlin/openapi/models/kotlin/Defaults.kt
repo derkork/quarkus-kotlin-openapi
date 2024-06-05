@@ -7,6 +7,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.Sim
 object Kotlin {
 
     val Star = "*".rawClassName("", true)
+    val UnitType = "Unit".rawClassName("kotlin", true).typeName()
     val NothingType = "Nothing".rawClassName("kotlin", true).typeName()
     val AnyClass = "Any".rawClassName("kotlin", true)
     val ByteArrayClass = "ByteArray".rawClassName("kotlin", true)
@@ -14,17 +15,22 @@ object Kotlin {
     val BooleanClass = "Boolean".rawClassName("kotlin", true)
     val FloatClass = "Float".rawClassName("kotlin", true)
     val DoubleClass = "Double".rawClassName("kotlin", true)
-    val BigDecimalClass = "BigDecimal".rawClassName("java.math", false)
+    val BigDecimalClass = "BigDecimal".rawClassName("java.math")
     val IntClass = "Int".rawClassName("kotlin", true)
     val LongClass = "Long".rawClassName("kotlin", true)
     val UIntClass = "UInt".rawClassName("kotlin", true)
     val ULongClass = "ULong".rawClassName("kotlin", true)
-    val BigIntegerClass = "BigInteger".rawClassName("java.math", false)
+    val BigIntegerClass = "BigInteger".rawClassName("java.math")
     val ListClass = "List".rawClassName("kotlin.collections", true)
     val ExceptionClass = "Exception".rawClassName("kotlin", true)
+    val ThrowableClass = "Throwable".rawClassName("kotlin", true)
     val JvmNameClass = "JvmName".rawClassName("kotlin.jvm", true)
     val PairClass = "Pair".rawClassName("kotlin", true)
     val IllegalStateExceptionClass = "IllegalStateException".rawClassName("kotlin", true)
+    val ByteArrayOutputStreamClass = "ByteArrayOutputStream".rawClassName("java.io")
+    val PrintStreamClass = "PrintStream".rawClassName("java.io")
+    val AssertionErrorClass = "AssertionError".rawClassName("kotlin", true)
+
 }
 
 object Jakarta {
@@ -50,6 +56,17 @@ object Jakarta {
 
 }
 
+object RestAssured {
+
+    val ResponseClass = "Response".className("io.restassured.response")
+    val ValidatableResponseClass = "ValidatableResponse".rawClassName("io.restassured.response")
+    val RequestSpecificationClass = "RequestSpecification".rawClassName("io.restassured.specification")
+    val RequestLoggingFilterClass = "RequestLoggingFilter".rawClassName("io.restassured.filter.log")
+    val ResponseLoggingFilterClass = "ResponseLoggingFilter".rawClassName("io.restassured.filter.log")
+    val LogDetailClass = "LogDetail".rawClassName("io.restassured.filter.log")
+
+}
+
 object Misc {
 
     val ObjectMapperClass = "ObjectMapper".rawClassName("com.fasterxml.jackson.databind")
@@ -61,6 +78,7 @@ object Misc {
     val RestClientClass = "RestClient".rawClassName("org.eclipse.microprofile.rest.client.inject")
     val RegisterProviderClass = "RegisterProvider".rawClassName("org.eclipse.microprofile.rest.client.annotation")
     val TimeoutExceptionClass = "TimeoutException".rawClassName("java.util.concurrent")
+    val AssertionFailedErrorClass = "AssertionFailedError".rawClassName("org.opentest4j")
 
 }
 

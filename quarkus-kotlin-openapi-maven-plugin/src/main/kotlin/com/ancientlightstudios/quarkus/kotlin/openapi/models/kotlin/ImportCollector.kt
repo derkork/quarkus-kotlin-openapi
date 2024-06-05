@@ -24,6 +24,12 @@ class ImportCollector(private val basePackage: String) {
                 register(typeName.outerType)
                 register(typeName.innerType)
             }
+
+            is TypeName.DelegateTypeName -> {
+                typeName.receiverType?.let { register(it) }
+                register(typeName.parameterTypes)
+                register(typeName.returnType)
+            }
         }
     }
 

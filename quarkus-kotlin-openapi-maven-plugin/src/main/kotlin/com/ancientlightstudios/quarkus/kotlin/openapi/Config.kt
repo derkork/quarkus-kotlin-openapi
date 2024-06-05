@@ -5,7 +5,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName.Co
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ConfigIssue
 
 enum class InterfaceType {
-    SERVER, CLIENT
+    SERVER, CLIENT, TEST_CLIENT
 }
 
 class Config(

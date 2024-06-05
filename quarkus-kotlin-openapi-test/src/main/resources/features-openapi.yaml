@@ -46,7 +46,7 @@ paths:
         '422':
           description: Unprocessable entity
         'default':
-          description: Unprocessable entity
+          description: Default
 
   /features/misc/objectExtensionTest:
     get:
@@ -66,96 +66,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseObject'
-
-  /features/parameters/test1:
-    get:
-      tags:
-        - parameters
-      operationId: parametersTest1
-      parameters:
-        - name: first
-          in: query
-          required: true
-          schema:
-            type: string
-        - name: second
-          in: query
-          required: false
-          schema:
-            type: integer
-            format: int32
-        - name: X-THIRD-HEADER
-          in: header
-          required: false
-          schema:
-            type: integer
-            format: int32
-      responses:
-        '204':
-          description: Ok
-          headers:
-            X-FIRST-HEADER:
-              required: true
-              schema:
-                type: string
-            X-SECOND-HEADER:
-              schema:
-                type:
-                  - integer
-                  - 'null'
-                format: int32
-            X-THIRD-HEADER:
-              required: false
-              schema:
-                type: integer
-                format: int32
-        '400':
-          $ref: '#/components/responses/OperationError400'
-
-  /features/parameters/test2:
-    get:
-      tags:
-        - parameters
-      operationId: parametersTest2
-      parameters:
-        - name: first
-          in: query
-          required: true
-          schema:
-            type: array
-            items:
-              type: string
-        - name: X-SECOND-HEADER
-          in: header
-          required: false
-          schema:
-            type: array
-            items:
-              type:
-                - integer
-                - 'null'
-              format: int32
-      responses:
-        '204':
-          description: Ok
-          headers:
-            X-FIRST-HEADER:
-              required: true
-              schema:
-                type: array
-                items:
-                  type: string
-            X-SECOND-HEADER:
-              required: false
-              schema:
-                type: array
-                items:
-                  type:
-                    - integer
-                    - 'null'
-                  format: int32
-        '400':
-          $ref: '#/components/responses/OperationError400'
 
   /features/plain/optional/enum:
     post:

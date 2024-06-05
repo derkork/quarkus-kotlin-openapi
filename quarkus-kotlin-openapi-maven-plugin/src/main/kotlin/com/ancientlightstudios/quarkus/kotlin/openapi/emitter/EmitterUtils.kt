@@ -41,13 +41,13 @@ fun getSourceAnnotation(source: ParameterKind, name: String): KotlinAnnotation {
     return KotlinAnnotation(annotationClass, null to name.literal())
 }
 
-fun TypeUsage.buildValidType(): TypeName {
+fun TypeUsage.buildValidType(forceNullable: Boolean = false): TypeName {
     return when (val safeType = this.type) {
-        is PrimitiveTypeDefinition -> safeType.baseType.typeName(nullable)
-        is EnumTypeDefinition -> safeType.modelName.typeName(nullable)
-        is ObjectTypeDefinition -> safeType.modelName.typeName(nullable)
-        is OneOfTypeDefinition -> safeType.modelName.typeName(nullable)
-        is CollectionTypeDefinition -> Kotlin.ListClass.typeName(nullable)
-            .of(safeType.items.buildValidType())
+        is PrimitiveTypeDefinition -> safeType.baseType.typeName(forceNullable || nullable)
+        is EnumTypeDefinition -> safeType.modelName.typeName(forceNullable || nullable)
+        is ObjectTypeDefinition -> safeType.modelName.typeName(forceNullable || nullable)
+        is OneOfTypeDefinition -> safeType.modelName.typeName(forceNullable || nullable)
+        is CollectionTypeDefinition -> Kotlin.ListClass.typeName(forceNullable || nullable)
+            .of(safeType.items.buildValidType(forceNullable))
     }
 }

@@ -18,7 +18,11 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.Trans
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.ObjectTypeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
 
-class ClientDelegateEmitter(private val interfaceName: String, private val additionalProviders: List<ClassName>) : CodeEmitter {
+class ClientDelegateEmitter(
+    private val pathPrefix: String,
+    private val interfaceName: String,
+    private val additionalProviders: List<ClassName>
+) : CodeEmitter {
 
     private lateinit var emitterContext: EmitterContext
 
@@ -39,6 +43,7 @@ class ClientDelegateEmitter(private val interfaceName: String, private val addit
         kotlinInterface(fileName) {
             val configKeyName = "$interfaceName client".toKebabCase().literal()
             kotlinAnnotation(Misc.RegisterRestClientClass, "configKey".variableName() to configKeyName)
+            addPathAnnotation(pathPrefix)
 
             additionalProviders.forEach {
                 kotlinAnnotation(Misc.RegisterProviderClass, it.classExpression())
@@ -51,7 +56,11 @@ class ClientDelegateEmitter(private val interfaceName: String, private val addit
     }
 
     private fun RequestInspection.emitRequest(containerInterface: KotlinInterface) = with(containerInterface) {
-        kotlinMethod(request.requestMethodName, true, Misc.RestResponseClass.typeName().of(Kotlin.StringClass.typeName(true))) {
+        kotlinMethod(
+            request.requestMethodName,
+            true,
+            Misc.RestResponseClass.typeName().of(Kotlin.StringClass.typeName(true))
+        ) {
             addRequestMethodAnnotation(request.method)
             addPathAnnotation(request.path)
 
