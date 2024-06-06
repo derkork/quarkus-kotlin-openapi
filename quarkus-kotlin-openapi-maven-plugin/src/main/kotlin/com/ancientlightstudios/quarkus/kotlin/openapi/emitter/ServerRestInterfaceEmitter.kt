@@ -188,8 +188,8 @@ class ServerRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitter {
         requestContextClassName: ClassName
     ) {
         val arguments = when (requestContainerName) {
-            null -> emptyList()
-            else -> listOf(requestContainerName)
+            null -> listOf("objectMapper".variableName())
+            else -> listOf(requestContainerName, "objectMapper".variableName())
         }
 
         val requestContextName = invoke(requestContextClassName.constructorName, arguments)

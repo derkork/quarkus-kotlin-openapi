@@ -15,6 +15,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.PropertyExpr
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.GenericTypeName.Companion.of
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.SimpleTypeName.Companion.typeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ContentType
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ResponseCode
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableBody
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableParameter
@@ -52,6 +53,7 @@ class ServerRequestContextEmitter : CodeEmitter {
                     Library.MaybeClass.typeName().of(request.requestContainerClassName.typeName())
                 kotlinMember("request".variableName(), requestType, accessModifier = null)
             }
+            kotlinMember("objectMapper".variableName(), Misc.ObjectMapperClass.typeName())
 
             emitGenericStatusMethod(defaultResponseExists)
 
@@ -148,6 +150,11 @@ class ServerRequestContextEmitter : CodeEmitter {
             bodyExpression = emitterContext.runEmitter(
                 SerializationStatementEmitter(typeUsage, bodyVariable, body.content.mappedContentType)
             ).resultStatement
+
+            if (body.content.mappedContentType == ContentType.ApplicationJson) {
+                bodyExpression = "objectMapper".variableName().invoke("writeValueAsString".methodName(), bodyExpression)
+            }
+
             mediaTypeExpression = body.content.rawContentType.literal()
         }
 

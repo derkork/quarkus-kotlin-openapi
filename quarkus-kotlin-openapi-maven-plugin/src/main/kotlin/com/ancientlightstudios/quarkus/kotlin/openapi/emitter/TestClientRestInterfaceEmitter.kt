@@ -119,7 +119,7 @@ class TestClientRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitt
             )
 
             invoke(request.requestMethodName.extend(postfix = "Raw"), *pathParams.toTypedArray()) {
-                invoke(request.requestBuilderClassName.constructorName, "this".variableName())
+                invoke(request.requestBuilderClassName.constructorName, "this".variableName(), "objectMapper".variableName())
                     .invoke("apply".methodName(), "block".variableName())
                     .property("requestSpecification".variableName())
                     .statement()
