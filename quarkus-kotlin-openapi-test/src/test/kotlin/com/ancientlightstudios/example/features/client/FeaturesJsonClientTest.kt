@@ -16,6 +16,17 @@ class FeaturesJsonClientTest {
     lateinit var client: FeaturesJsonClient
 
     @Test
+    fun `sending null as an optional body works`() {
+        runBlocking {
+            when (val response = client.jsonOptionalObject(null)) {
+                is JsonOptionalObjectHttpResponse.Ok -> assertThat(response.safeBody).isNull()
+                is JsonOptionalObjectHttpResponse -> fail("received status code ${response.status}")
+                else -> fail("request failed")
+            }
+        }
+    }
+
+    @Test
     fun `sending a value is accepted`() {
         runBlocking {
             when (val response = client.jsonRequiredObject(

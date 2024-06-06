@@ -11,11 +11,8 @@ import org.junit.jupiter.api.Test
 @QuarkusTest
 class FeaturesParameterServerDelegateImplTest : ApiTestBase() {
 
-    @Inject
-    lateinit var objectMapper: ObjectMapper
-
     val client: FeaturesParametersTestClient
-        get() = FeaturesParametersTestClient(objectMapper) { prepareRequestNew() }
+        get() = FeaturesParametersTestClient(objectMapper) { prepareRequest() }
 
     @Test
     fun `path parameters work`() {

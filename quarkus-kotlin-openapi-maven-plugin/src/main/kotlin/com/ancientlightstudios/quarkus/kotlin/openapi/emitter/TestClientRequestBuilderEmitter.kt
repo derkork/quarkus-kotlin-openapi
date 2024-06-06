@@ -9,6 +9,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeUsageHint
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.InvocationExpression.Companion.invoke
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.methodName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.rawMethodName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.NullCheckExpression.Companion.nullCheck
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.PropertyExpression.Companion.property
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.SimpleTypeName.Companion.typeName
@@ -46,6 +47,10 @@ class TestClientRequestBuilderEmitter : CodeEmitter {
                 type = RestAssured.RequestSpecificationClass.typeName(),
                 mutable = true,
                 accessModifier = null
+            )
+            kotlinMember(
+                "objectMapper".variableName(),
+                type = Misc.ObjectMapperClass.typeName()
             )
 
             parameters {
@@ -93,7 +98,7 @@ class TestClientRequestBuilderEmitter : CodeEmitter {
 
     private fun TransformableBody.emitBodyMethods(clazz: KotlinClass, requestSpecificationVariable: VariableName) {
         // TODO: support more than just json
-        when(content.mappedContentType) {
+        when (content.mappedContentType) {
             ContentType.ApplicationJson -> emitJsonBodyMethod(clazz, requestSpecificationVariable)
             ContentType.TextPlain -> emitPlainBodyMethod(clazz, requestSpecificationVariable)
             ContentType.ApplicationFormUrlencoded -> emitFormBodyMethod(clazz, requestSpecificationVariable)
@@ -112,7 +117,10 @@ class TestClientRequestBuilderEmitter : CodeEmitter {
 
             requestSpecificationVariable
                 .invoke("contentType".methodName(), content.rawContentType.literal())
-                .invoke("body".methodName(), bodyStatement)
+                .invoke(
+                    "body".methodName(),
+                    "objectMapper".variableName().invoke("writeValueAsString".rawMethodName(), bodyStatement)
+                )
                 .assignment(requestSpecificationVariable)
         }
     }
@@ -149,15 +157,18 @@ class TestClientRequestBuilderEmitter : CodeEmitter {
                     "value".variableName()
                 }
 
+                // TODO: in case of json we probably want the writeValueAsString method to convert the payload
+                //   see jsonBody. same for restClient
                 safeType.properties.forEach {
                     val propertyType = it.typeUsage
                     val contentType = getContentTypeForFormPart(propertyType.type)
                     val propertyStatement =
-                    emitterContext.runEmitter(
-                        SerializationStatementEmitter(propertyType, baseStatement.property(it.name), contentType)
-                    ).resultStatement
+                        emitterContext.runEmitter(
+                            SerializationStatementEmitter(propertyType, baseStatement.property(it.name), contentType)
+                        ).resultStatement
 
-                    statement = statement.wrap().invoke("formParam".methodName(), it.sourceName.literal(), propertyStatement)
+                    statement =
+                        statement.wrap().invoke("formParam".methodName(), it.sourceName.literal(), propertyStatement)
                 }
             } else {
                 val serializeStatement = emitterContext.runEmitter(
