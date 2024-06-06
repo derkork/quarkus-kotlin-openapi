@@ -2,6 +2,7 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.deserialization.CombineIntoObjectStatementEmitter
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.deserialization.DeserializationStatementEmitter
+import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.serialization.SerializationStatementEmitter
 import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.RequestBundleInspection
 import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.RequestInspection
 import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.inspect
@@ -140,9 +141,18 @@ class TestClientRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitt
                         parameter.typeUsage.buildValidType(),
                         parameter.typeUsage.type.defaultExpression()
                     )
+
+                    val parameterStatement = emitterContext.runEmitter(
+                        SerializationStatementEmitter(
+                            parameter.typeUsage,
+                            parameter.parameterVariableName,
+                            parameter.content.mappedContentType
+                        )
+                    ).resultStatement
+
                     pathParams.add(
                         invoke(
-                            Kotlin.PairClass.constructorName, parameter.name.literal(), parameter.parameterVariableName
+                            Kotlin.PairClass.constructorName, parameter.name.literal(), parameterStatement
                         )
                     )
                 }
