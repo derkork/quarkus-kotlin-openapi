@@ -2,6 +2,7 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.deserialization.DeserializationStatementEmitter
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.serialization.SerializationStatementEmitter
+import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.serialization.UnsafeSerializationStatementEmitter
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.DeserializationDirectionHint.deserializationDirection
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.SerializationDirectionHint.serializationDirection
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
@@ -20,7 +21,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.Direction
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.OneOfOption
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.OneOfTypeDefinition
 
-class OneOfModelClassEmitter(private val typeDefinition: OneOfTypeDefinition) :
+class OneOfModelClassEmitter(private val typeDefinition: OneOfTypeDefinition, withTestSupport: Boolean) :
     CodeEmitter {
 
     private lateinit var emitterContext: EmitterContext
@@ -54,6 +55,10 @@ class OneOfModelClassEmitter(private val typeDefinition: OneOfTypeDefinition) :
                     kotlinMember("value".variableName(), it.typeUsage.buildValidType(), accessModifier = null)
 
                     generateSerializeMethods(it, spec.serializationDirection)
+
+                    kotlinCompanion {
+                        generateUnsafeMethods(it)
+                    }
                 }
             }
 
@@ -230,4 +235,31 @@ class OneOfModelClassEmitter(private val typeDefinition: OneOfTypeDefinition) :
 
         }.statement()
     }
+
+    private fun KotlinCompanion.generateUnsafeMethods(option: OneOfOption) {
+        kotlinMethod(
+            "unsafeJson".methodName(),
+            returnType = Library.UnsafeJsonClass.typeName().of(option.modelName.typeName()),
+            bodyAsAssignment = true
+        ) {
+            kotlinParameter(
+                "value".variableName(),
+                option.typeUsage.buildUnsafeJsonType(),
+                expression = nullLiteral()
+            )
+
+            var serialization = emitterContext.runEmitter(
+                UnsafeSerializationStatementEmitter(
+                    option.typeUsage,
+                    "value".variableName(),
+                    ContentType.ApplicationJson
+                )
+            ).resultStatement
+
+            serialization =
+                serialization.nullFallback(Misc.NullNodeClass.companionObject().property("instance".variableName()))
+            invoke(Library.UnsafeJsonClass.constructorName, serialization).statement()
+        }
+    }
+
 }

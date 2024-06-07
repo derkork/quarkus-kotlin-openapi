@@ -8,7 +8,11 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 
 fun Maybe<String?>.asJson(objectMapper: ObjectMapper): Maybe<JsonNode?> = onNotNull {
     try {
-        success(objectMapper.readValue(value, JsonNode::class.java))
+        if (value.isEmpty()) {
+            success(null)
+        } else {
+            success(objectMapper.readValue(value, JsonNode::class.java))
+        }
     } catch (_: Exception) {
         failure(ValidationError("is not valid json", context))
     }
