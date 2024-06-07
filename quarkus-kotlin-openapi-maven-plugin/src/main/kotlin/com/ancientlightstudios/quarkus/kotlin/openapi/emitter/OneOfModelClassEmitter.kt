@@ -57,7 +57,7 @@ class OneOfModelClassEmitter(private val typeDefinition: OneOfTypeDefinition, wi
                     generateSerializeMethods(it, spec.serializationDirection)
 
                     kotlinCompanion {
-                        generateUnsafeMethods(it)
+                        generateUnsafeMethods(it, spec.serializationDirection)
                     }
                 }
             }
@@ -236,7 +236,14 @@ class OneOfModelClassEmitter(private val typeDefinition: OneOfTypeDefinition, wi
         }.statement()
     }
 
-    private fun KotlinCompanion.generateUnsafeMethods(option: OneOfOption) {
+    private fun KotlinCompanion.generateUnsafeMethods(option: OneOfOption, serializationDirection: Direction) {
+        val types = typeDefinition.getContentTypes(serializationDirection)
+        if (types.contains(ContentType.ApplicationJson)) {
+            generateJsonUnsafeMethod(option)
+        }
+    }
+
+    private fun KotlinCompanion.generateJsonUnsafeMethod(option: OneOfOption) {
         kotlinMethod(
             "unsafeJson".methodName(),
             returnType = Library.UnsafeJsonClass.typeName().of(option.modelName.typeName()),

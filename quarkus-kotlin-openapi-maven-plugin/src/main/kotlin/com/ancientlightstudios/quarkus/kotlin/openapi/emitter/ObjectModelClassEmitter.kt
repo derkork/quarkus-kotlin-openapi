@@ -15,7 +15,6 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.Sim
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ContentType
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.*
-import com.fasterxml.jackson.databind.node.NullNode
 
 class ObjectModelClassEmitter(private val typeDefinition: ObjectTypeDefinition, private val withTestSupport: Boolean) :
     CodeEmitter {
@@ -46,7 +45,7 @@ class ObjectModelClassEmitter(private val typeDefinition: ObjectTypeDefinition, 
                     generateDeserializeMethods(spec.deserializationDirection)
 
                     if (withTestSupport) {
-                        generateUnsafeMethods()
+                        generateUnsafeMethods(spec.serializationDirection)
                     }
                 }
 
@@ -145,7 +144,10 @@ class ObjectModelClassEmitter(private val typeDefinition: ObjectTypeDefinition, 
         }
     }
 
-    private fun generateDefaultValueExpression(typeUsage: TypeUsage, fallback : KotlinExpression? = null): KotlinExpression? {
+    private fun generateDefaultValueExpression(
+        typeUsage: TypeUsage,
+        fallback: KotlinExpression? = null
+    ): KotlinExpression? {
         val declaredDefaultValue = when (val safeType = typeUsage.type) {
             is PrimitiveTypeDefinition -> safeType.defaultExpression()
             is EnumTypeDefinition -> safeType.defaultExpression()
@@ -158,7 +160,14 @@ class ObjectModelClassEmitter(private val typeDefinition: ObjectTypeDefinition, 
         return declaredDefaultValue ?: if (typeUsage.nullable) nullLiteral() else fallback
     }
 
-    private fun KotlinCompanion.generateUnsafeMethods() {
+    private fun KotlinCompanion.generateUnsafeMethods(serializationDirection: Direction) {
+        val types = typeDefinition.getContentTypes(serializationDirection)
+        if (types.contains(ContentType.ApplicationJson)) {
+            generateJsonUnsafeMethod()
+        }
+    }
+
+    private fun KotlinCompanion.generateJsonUnsafeMethod() {
         kotlinMethod(
             "unsafeJson".methodName(),
             returnType = Library.UnsafeJsonClass.typeName().of(typeDefinition.modelName.typeName()),
@@ -171,7 +180,7 @@ class ObjectModelClassEmitter(private val typeDefinition: ObjectTypeDefinition, 
                     it.typeUsage.buildUnsafeJsonType(),
                     expression = defaultValue
                 )
-                
+
             }
 
             var expression = invoke("objectNode".rawMethodName())
