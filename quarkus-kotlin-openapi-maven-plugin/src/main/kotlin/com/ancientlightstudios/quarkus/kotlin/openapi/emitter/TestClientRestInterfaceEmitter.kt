@@ -144,7 +144,7 @@ class TestClientRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitt
 
                     val parameterStatement = emitterContext.runEmitter(
                         SerializationStatementEmitter(
-                            parameter.typeUsage,
+                            parameter.content.typeUsage,
                             parameter.parameterVariableName,
                             parameter.content.mappedContentType
                         )

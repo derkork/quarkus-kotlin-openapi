@@ -28,7 +28,7 @@ class FeaturesJsonServerDelegateImplTest : ApiTestBase() {
         client.jsonRequiredObjectRaw {
             this.contentType("application/json")
         }.isBadRequestResponse {
-            assertThat(safeBody.messages).containsExactly("request.body: is not valid json")
+            assertThat(safeBody.messages).containsExactly("request.body: is required")
         }
     }
 
@@ -51,6 +51,16 @@ class FeaturesJsonServerDelegateImplTest : ApiTestBase() {
     }
 
     @Test
+    fun `sending nothing as an optional body is accepted`() {
+        client.jsonOptionalObjectRaw {
+            this.contentType("application/json")
+        }
+            .isOkResponse {
+                assertThat(safeBody).isNull()
+            }
+    }
+
+    @Test
     fun `sending a valid value is accepted`() {
         client.jsonRequiredObjectSafe(
             SimpleObject(statusRequired = SimpleEnum.First, itemsRequired = listOf("one"))
@@ -63,4 +73,14 @@ class FeaturesJsonServerDelegateImplTest : ApiTestBase() {
             assertThat(safeBody.itemsRequired).containsExactly("one")
         }
     }
+
+    @Test
+    fun `sending an invalid value is rejected`() {
+        client.jsonRequiredObjectUnsafe {
+            this.body(SimpleObject.unsafeJson(nameRequired = "foo", statusRequired = SimpleEnum.First))
+        }.isBadRequestResponse {
+            assertThat(safeBody.messages).containsExactly("request.body.itemsRequired: is required")
+        }
+    }
+
 }

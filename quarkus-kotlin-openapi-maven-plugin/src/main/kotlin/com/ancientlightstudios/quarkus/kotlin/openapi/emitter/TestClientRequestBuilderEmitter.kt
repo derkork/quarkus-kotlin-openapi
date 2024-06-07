@@ -1,6 +1,7 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.serialization.SerializationStatementEmitter
+import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.serialization.UnsafeSerializationStatementEmitter
 import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.RequestInspection
 import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.inspect
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ParameterVariableNameHint.parameterVariableName
@@ -12,12 +13,14 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.C
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.rawMethodName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.NullCheckExpression.Companion.nullCheck
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.PropertyExpression.Companion.property
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.GenericTypeName.Companion.of
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.SimpleTypeName.Companion.typeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ContentType
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ParameterKind
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableBody
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.ObjectTypeDefinition
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.OneOfTypeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.refactoring.AssignContentTypesRefactoring.Companion.getContentTypeForFormPart
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
 
@@ -122,6 +125,24 @@ class TestClientRequestBuilderEmitter : CodeEmitter {
                     "objectMapper".variableName().invoke("writeValueAsString".rawMethodName(), bodyStatement)
                 )
                 .assignment(requestSpecificationVariable)
+        }
+
+        if (content.typeUsage.type is ObjectTypeDefinition || content.typeUsage.type is OneOfTypeDefinition) {
+            clazz.kotlinMethod("body".methodName()) {
+                kotlinParameter("value".variableName(), content.typeUsage.buildUnsafeJsonType())
+
+                val bodyStatement = emitterContext.runEmitter(
+                    UnsafeSerializationStatementEmitter(content.typeUsage, "value".variableName(), content.mappedContentType)
+                ).resultStatement
+
+                requestSpecificationVariable
+                    .invoke("contentType".methodName(), content.rawContentType.literal())
+                    .invoke(
+                        "body".methodName(),
+                        "objectMapper".variableName().invoke("writeValueAsString".rawMethodName(), bodyStatement)
+                    )
+                    .assignment(requestSpecificationVariable)
+            }
         }
     }
 

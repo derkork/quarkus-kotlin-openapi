@@ -14,8 +14,8 @@ class ModelClassEmitter(private val withTestSupport: Boolean) : CodeEmitter {
                 }
 
                 is EnumTypeDefinition -> runEmitter(EnumModelClassEmitter(typeDefinition))
-                is ObjectTypeDefinition -> runEmitter(ObjectModelClassEmitter(typeDefinition))
-                is OneOfTypeDefinition -> runEmitter(OneOfModelClassEmitter(typeDefinition))
+                is ObjectTypeDefinition -> runEmitter(ObjectModelClassEmitter(typeDefinition, withTestSupport))
+                is OneOfTypeDefinition -> runEmitter(OneOfModelClassEmitter(typeDefinition, withTestSupport))
             }
         }
     }

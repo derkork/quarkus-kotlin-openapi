@@ -93,5 +93,6 @@ object Library {
     val DefaultValidatorClass = "DefaultValidator".rawClassName("com.ancientlightstudios.quarkus.kotlin.openapi")
     val RequestHandledSignalClass = "RequestHandledSignal".rawClassName("com.ancientlightstudios.quarkus.kotlin.openapi")
     val ResponseWithGenericStatusInterface = "ResponseWithGenericStatus".rawClassName("com.ancientlightstudios.quarkus.kotlin.openapi")
+    val UnsafeJsonClass = "UnsafeJson".rawClassName("com.ancientlightstudios.quarkus.kotlin.openapi")
 
 }

@@ -51,3 +51,15 @@ fun TypeUsage.buildValidType(forceNullable: Boolean = false): TypeName {
             .of(safeType.items.buildValidType(forceNullable))
     }
 }
+
+fun TypeUsage.buildUnsafeJsonType(): TypeName {
+    return when (val safeType = this.type) {
+        is PrimitiveTypeDefinition -> safeType.baseType.typeName(true)
+        is EnumTypeDefinition -> safeType.modelName.typeName(true)
+        is ObjectTypeDefinition -> Library.UnsafeJsonClass.typeName(true).of(safeType.modelName.typeName())
+        is OneOfTypeDefinition -> Library.UnsafeJsonClass.typeName(true).of(safeType.modelName.typeName())
+        is CollectionTypeDefinition -> Kotlin.ListClass.typeName(true)
+            .of(safeType.items.buildUnsafeJsonType())
+    }
+}
+

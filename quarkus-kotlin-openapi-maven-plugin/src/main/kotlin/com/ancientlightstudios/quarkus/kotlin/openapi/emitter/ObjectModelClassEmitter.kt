@@ -3,6 +3,7 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.deserialization.CombineIntoObjectStatementEmitter
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.deserialization.DeserializationStatementEmitter
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.serialization.SerializationStatementEmitter
+import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.serialization.UnsafeSerializationStatementEmitter
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.DeserializationDirectionHint.deserializationDirection
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.SerializationDirectionHint.serializationDirection
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
@@ -14,8 +15,10 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.Sim
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ContentType
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.*
+import com.fasterxml.jackson.databind.node.NullNode
 
-class ObjectModelClassEmitter(private val typeDefinition: ObjectTypeDefinition) : CodeEmitter {
+class ObjectModelClassEmitter(private val typeDefinition: ObjectTypeDefinition, private val withTestSupport: Boolean) :
+    CodeEmitter {
 
     private lateinit var emitterContext: EmitterContext
 
@@ -38,7 +41,14 @@ class ObjectModelClassEmitter(private val typeDefinition: ObjectTypeDefinition) 
                 }
 
                 generateSerializeMethods(spec.serializationDirection)
-                generateDeserializeMethods(spec.deserializationDirection)
+
+                kotlinCompanion {
+                    generateDeserializeMethods(spec.deserializationDirection)
+
+                    if (withTestSupport) {
+                        generateUnsafeMethods()
+                    }
+                }
 
             }
         }.writeFile()
@@ -51,15 +61,13 @@ class ObjectModelClassEmitter(private val typeDefinition: ObjectTypeDefinition) 
         }
     }
 
-    private fun KotlinClass.generateDeserializeMethods(deserializationDirection: Direction) {
+    private fun KotlinCompanion.generateDeserializeMethods(deserializationDirection: Direction) {
         val types = typeDefinition.getContentTypes(deserializationDirection)
             .intersect(listOf(ContentType.ApplicationJson))
 
         if (types.isNotEmpty()) {
-            kotlinCompanion {
-                if (types.contains(ContentType.ApplicationJson)) {
-                    generateJsonDeserializeMethod()
-                }
+            if (types.contains(ContentType.ApplicationJson)) {
+                generateJsonDeserializeMethod()
             }
         }
     }
@@ -137,22 +145,54 @@ class ObjectModelClassEmitter(private val typeDefinition: ObjectTypeDefinition) 
         }
     }
 
-    private fun generateDefaultValueExpression(typeUsage: TypeUsage): KotlinExpression? {
+    private fun generateDefaultValueExpression(typeUsage: TypeUsage, fallback : KotlinExpression? = null): KotlinExpression? {
         val declaredDefaultValue = when (val safeType = typeUsage.type) {
             is PrimitiveTypeDefinition -> safeType.defaultExpression()
             is EnumTypeDefinition -> safeType.defaultExpression()
             is CollectionTypeDefinition,
             is ObjectTypeDefinition,
-            is OneOfTypeDefinition-> null
+            is OneOfTypeDefinition -> null
         }
 
-        // if there is a default expression defined, use it. Otherwise, use the null expression, if null is allowed
-        return declaredDefaultValue ?: if (typeUsage.nullable) nullLiteral() else null
+        // if there is a default expression defined, use it. Otherwise, use the null expression, if null is allowed or the fallback
+        return declaredDefaultValue ?: if (typeUsage.nullable) nullLiteral() else fallback
     }
 
-    // TODO
-    /*
-        fun unsafe(title: String? = null, pages:Int? = null, kind: String? = null) : JsonBody<Book> {}
-    */
+    private fun KotlinCompanion.generateUnsafeMethods() {
+        kotlinMethod(
+            "unsafeJson".methodName(),
+            returnType = Library.UnsafeJsonClass.typeName().of(typeDefinition.modelName.typeName()),
+            bodyAsAssignment = true
+        ) {
+            typeDefinition.properties.forEach {
+                val defaultValue = generateDefaultValueExpression(it.typeUsage, nullLiteral())
+                kotlinParameter(
+                    it.name,
+                    it.typeUsage.buildUnsafeJsonType(),
+                    expression = defaultValue
+                )
+                
+            }
+
+            var expression = invoke("objectNode".rawMethodName())
+
+            typeDefinition.properties.forEach {
+                val serialization = emitterContext.runEmitter(
+                    UnsafeSerializationStatementEmitter(it.typeUsage, it.name, ContentType.ApplicationJson)
+                ).resultStatement
+
+                expression = expression.wrap().invoke(
+                    "setProperty".rawMethodName(),
+                    it.sourceName.literal(),
+                    serialization,
+                    // only check for required, not !nullable, because we want to include null in the response
+                    // if the type is nullable but required
+                    it.typeUsage.required.literal()
+                )
+            }
+
+            invoke(Library.UnsafeJsonClass.constructorName, expression).statement()
+        }
+    }
 
 }
