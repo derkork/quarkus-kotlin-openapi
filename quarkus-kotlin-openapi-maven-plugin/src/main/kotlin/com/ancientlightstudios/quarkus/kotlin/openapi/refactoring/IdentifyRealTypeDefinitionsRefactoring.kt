@@ -15,12 +15,12 @@ class IdentifyRealTypeDefinitionsRefactoring : SpecRefactoring {
         spec.inspect {
             bundles {
                 requests {
-                    parameters { tasks.add(unwrapOverlay(parameter.typeUsage)) }
+                    parameters { tasks.add(unwrapOverlay(parameter.content.typeUsage)) }
 
                     body { tasks.add(unwrapOverlay(body.content.typeUsage)) }
 
                     responses {
-                        headers { tasks.add(unwrapOverlay(header.typeUsage)) }
+                        headers { tasks.add(unwrapOverlay(header.content.typeUsage)) }
 
                         body { tasks.add(unwrapOverlay(body.content.typeUsage)) }
                     }

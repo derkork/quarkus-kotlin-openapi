@@ -73,7 +73,7 @@ class ClientDelegateEmitter(
         val parameterKind = parameter.kind
         val parameterName = parameter.parameterVariableName
 
-        kotlinParameter(parameterName, parameter.typeUsage.getSerializationTargetType()) {
+        kotlinParameter(parameterName, parameter.content.typeUsage.getSerializationTargetType()) {
             addAnnotation(getSourceAnnotation(parameterKind, parameter.name))
         }
     }

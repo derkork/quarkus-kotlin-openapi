@@ -26,7 +26,7 @@ class ServerRequestContainerEmitter : CodeEmitter {
     private fun RequestInspection.emitContainerFile() = kotlinFile(request.requestContainerClassName) {
         kotlinClass(fileName) {
             parameters {
-                val typeUsage = parameter.typeUsage
+                val typeUsage = parameter.content.typeUsage
                 kotlinMember(
                     parameter.parameterVariableName, typeUsage.buildValidType(),
                     accessModifier = null

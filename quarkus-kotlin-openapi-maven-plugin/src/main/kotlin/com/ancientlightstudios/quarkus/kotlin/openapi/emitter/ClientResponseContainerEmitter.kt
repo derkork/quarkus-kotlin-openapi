@@ -92,7 +92,7 @@ class ClientResponseContainerEmitter(private val withTestSupport: Boolean) : Cod
 
             headers.forEach {
                 kotlinMember(
-                    it.parameterVariableName, it.typeUsage.buildValidType(), accessModifier = null
+                    it.parameterVariableName, it.content.typeUsage.buildValidType(), accessModifier = null
                 )
             }
         }
@@ -118,7 +118,7 @@ class ClientResponseContainerEmitter(private val withTestSupport: Boolean) : Cod
 
             headers.forEach {
                 kotlinMember(
-                    it.parameterVariableName, it.typeUsage.buildValidType(), accessModifier = null
+                    it.parameterVariableName, it.content.typeUsage.buildValidType(), accessModifier = null
                 )
             }
 

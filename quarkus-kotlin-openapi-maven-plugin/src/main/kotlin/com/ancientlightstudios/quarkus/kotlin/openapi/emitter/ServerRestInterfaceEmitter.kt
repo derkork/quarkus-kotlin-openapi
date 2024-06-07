@@ -85,10 +85,10 @@ class ServerRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitter {
 
         return emitMethodParameter(
             parameter.parameterVariableName,
-            parameter.typeUsage.getDeserializationSourceType(),
+            parameter.content.typeUsage.getDeserializationSourceType(),
             getSourceAnnotation(parameterKind, parameter.name),
             "request.${parameterKind.value}.${parameter.name}".literal(),
-            parameter.typeUsage,
+            parameter.content.typeUsage,
             parameter.content.mappedContentType
         )
     }
