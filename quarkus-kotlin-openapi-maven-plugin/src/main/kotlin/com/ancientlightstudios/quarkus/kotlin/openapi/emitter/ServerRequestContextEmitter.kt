@@ -159,9 +159,9 @@ class ServerRequestContextEmitter : CodeEmitter {
         }
 
         val headerExpressions = headers.map {
-            kotlinParameter(it.parameterVariableName, it.typeUsage.buildValidType())
+            kotlinParameter(it.parameterVariableName, it.content.typeUsage.buildValidType())
             val serializationExpression = emitterContext.runEmitter(
-                SerializationStatementEmitter(it.typeUsage, it.parameterVariableName, it.content.mappedContentType)
+                SerializationStatementEmitter(it.content.typeUsage, it.parameterVariableName, it.content.mappedContentType)
             ).resultStatement
             invoke(Kotlin.PairClass.constructorName, it.name.literal(), serializationExpression)
         }

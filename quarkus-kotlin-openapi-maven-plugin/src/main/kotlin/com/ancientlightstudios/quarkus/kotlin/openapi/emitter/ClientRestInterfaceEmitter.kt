@@ -186,7 +186,7 @@ class ClientRestInterfaceEmitter : CodeEmitter {
         parameter: TransformableParameter
     ): VariableName {
         val parameterName = parameter.parameterVariableName
-        val typeUsage = parameter.typeUsage
+        val typeUsage = parameter.content.typeUsage
         val default = defaultParameterExpression(typeUsage)
         method.kotlinParameter(parameterName, typeUsage.buildValidType(), default)
 
@@ -373,7 +373,7 @@ class ClientRestInterfaceEmitter : CodeEmitter {
         // produces
         //
         // response.stringHeaders.get[First)("<headerName>")
-        val methodName = when (header.typeUsage.type) {
+        val methodName = when (header.content.typeUsage.type) {
             is CollectionTypeDefinition -> "get".rawMethodName()
             else -> "getFirst".rawMethodName()
         }
@@ -392,7 +392,7 @@ class ClientRestInterfaceEmitter : CodeEmitter {
         // val <parameterName>Maybe = <statement>
         //     .<deserializationStatement>
         return emitterContext.runEmitter(
-            DeserializationStatementEmitter(header.typeUsage, statement, header.content.mappedContentType, true)
+            DeserializationStatementEmitter(header.content.typeUsage, statement, header.content.mappedContentType, true)
         ).resultStatement.declaration(header.parameterVariableName.extend(postfix = "maybe"))
     }
 

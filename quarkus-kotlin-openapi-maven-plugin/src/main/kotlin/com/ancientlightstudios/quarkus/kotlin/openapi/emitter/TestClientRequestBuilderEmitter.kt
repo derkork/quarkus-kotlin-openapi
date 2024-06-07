@@ -56,7 +56,7 @@ class TestClientRequestBuilderEmitter : CodeEmitter {
             parameters {
                 if (parameter.kind != ParameterKind.Path) {
                     kotlinMethod(parameter.name.methodName()) {
-                        kotlinParameter("value".variableName(), parameter.typeUsage.buildValidType())
+                        kotlinParameter("value".variableName(), parameter.content.typeUsage.buildValidType())
 
                         val methodName = when (parameter.kind) {
                             ParameterKind.Query -> "queryParams"
@@ -79,7 +79,7 @@ class TestClientRequestBuilderEmitter : CodeEmitter {
                                 .assignment(requestSpecificationVariable)
                         }
 
-                        if (parameter.typeUsage.nullable && !parameter.typeUsage.required) {
+                        if (parameter.content.typeUsage.nullable && !parameter.content.typeUsage.required) {
                             "value".variableName().nullCheck().invoke("let".methodName()) {
                                 builder()
                             }.statement()

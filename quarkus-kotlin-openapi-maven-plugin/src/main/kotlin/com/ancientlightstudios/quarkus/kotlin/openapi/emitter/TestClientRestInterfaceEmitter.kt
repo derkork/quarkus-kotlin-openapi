@@ -71,8 +71,8 @@ class TestClientRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitt
             parameters {
                 kotlinParameter(
                     parameter.parameterVariableName,
-                    parameter.typeUsage.buildValidType(),
-                    parameter.typeUsage.type.defaultExpression()
+                    parameter.content.typeUsage.buildValidType(),
+                    parameter.content.typeUsage.type.defaultExpression()
                 )
 
                 if (parameter.kind == ParameterKind.Path) {
@@ -106,8 +106,8 @@ class TestClientRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitt
                 if (parameter.kind == ParameterKind.Path) {
                     kotlinParameter(
                         parameter.parameterVariableName,
-                        parameter.typeUsage.buildValidType(),
-                        parameter.typeUsage.type.defaultExpression()
+                        parameter.content.typeUsage.buildValidType(),
+                        parameter.content.typeUsage.type.defaultExpression()
                     )
                     pathParams.add(parameter.parameterVariableName)
                 }
@@ -138,8 +138,8 @@ class TestClientRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitt
                 if (parameter.kind == ParameterKind.Path) {
                     kotlinParameter(
                         parameter.parameterVariableName,
-                        parameter.typeUsage.buildValidType(),
-                        parameter.typeUsage.type.defaultExpression()
+                        parameter.content.typeUsage.buildValidType(),
+                        parameter.content.typeUsage.type.defaultExpression()
                     )
 
                     val parameterStatement = emitterContext.runEmitter(
@@ -385,7 +385,7 @@ class TestClientRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitt
             "validatableResponse".variableName().invoke("headers".methodName())
                 .invoke("getValues".methodName(), header.name.literal())
 
-        headerValueExpression = when (header.typeUsage.type) {
+        headerValueExpression = when (header.content.typeUsage.type) {
             is CollectionTypeDefinition -> headerValueExpression
             else -> headerValueExpression.invoke("firstOrNull".methodName())
         }
@@ -401,7 +401,7 @@ class TestClientRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitt
         // val <parameterName>Maybe = <statement>
         //     .<deserializationStatement>
         return emitterContext.runEmitter(
-            DeserializationStatementEmitter(header.typeUsage, statement, header.content.mappedContentType, true)
+            DeserializationStatementEmitter(header.content.typeUsage, statement, header.content.mappedContentType, true)
         ).resultStatement.declaration(header.parameterVariableName.extend(postfix = "maybe"))
     }
 
