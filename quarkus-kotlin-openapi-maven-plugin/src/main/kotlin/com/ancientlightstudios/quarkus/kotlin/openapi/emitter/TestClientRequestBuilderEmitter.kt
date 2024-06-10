@@ -68,13 +68,22 @@ class TestClientRequestBuilderEmitter : CodeEmitter {
                             ParameterKind.Path -> "lazyVogel" // filtered out above
                         }.methodName()
 
+                        val parameterStatement = emitterContext.runEmitter(
+                            SerializationStatementEmitter(
+                                parameter.content.typeUsage,
+                                "value".variableName(),
+                                parameter.content.mappedContentType
+                            )
+                        ).resultStatement
+
+
                         val builder: (StatementAware.() -> Unit) = {
                             val argument = invoke(
                                 "mapOf".methodName(),
                                 invoke(
                                     Kotlin.PairClass.constructorName,
                                     parameter.name.literal(),
-                                    "value".variableName()
+                                    parameterStatement
                                 )
                             )
 
