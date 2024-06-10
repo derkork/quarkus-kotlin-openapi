@@ -109,7 +109,16 @@ class TestClientRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitt
                         parameter.content.typeUsage.buildValidType(),
                         parameter.content.typeUsage.type.defaultExpression()
                     )
-                    pathParams.add(parameter.parameterVariableName)
+
+                    val parameterStatement = emitterContext.runEmitter(
+                        SerializationStatementEmitter(
+                            parameter.content.typeUsage,
+                            parameter.parameterVariableName,
+                            parameter.content.mappedContentType
+                        )
+                    ).resultStatement
+
+                    pathParams.add(parameterStatement)
                 }
             }
 
@@ -120,7 +129,11 @@ class TestClientRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitt
             )
 
             invoke(request.requestMethodName.extend(postfix = "Raw"), *pathParams.toTypedArray()) {
-                invoke(request.requestBuilderClassName.constructorName, "this".variableName(), "objectMapper".variableName())
+                invoke(
+                    request.requestBuilderClassName.constructorName,
+                    "this".variableName(),
+                    "objectMapper".variableName()
+                )
                     .invoke("apply".methodName(), "block".variableName())
                     .property("requestSpecification".variableName())
                     .statement()
@@ -138,21 +151,12 @@ class TestClientRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitt
                 if (parameter.kind == ParameterKind.Path) {
                     kotlinParameter(
                         parameter.parameterVariableName,
-                        parameter.content.typeUsage.buildValidType(),
-                        parameter.content.typeUsage.type.defaultExpression()
+                        Kotlin.AnyClass.typeName()
                     )
-
-                    val parameterStatement = emitterContext.runEmitter(
-                        SerializationStatementEmitter(
-                            parameter.content.typeUsage,
-                            parameter.parameterVariableName,
-                            parameter.content.mappedContentType
-                        )
-                    ).resultStatement
 
                     pathParams.add(
                         invoke(
-                            Kotlin.PairClass.constructorName, parameter.name.literal(), parameterStatement
+                            Kotlin.PairClass.constructorName, parameter.name.literal(), parameter.parameterVariableName
                         )
                     )
                 }
@@ -201,12 +205,15 @@ class TestClientRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitt
                 .invoke("extract".methodName())
                 .declaration("validatableResponse".variableName())
 
-             val result = emitResponseConversion(request, validatableResponse)
+            val result = emitResponseConversion(request, validatableResponse)
             invoke(request.responseValidatorClassName.constructorName, result, outputStream).returnStatement()
         }
     }
 
-    private fun StatementAware.emitResponseConversion(request: TransformableRequest, validatableResponse: VariableName): VariableName {
+    private fun StatementAware.emitResponseConversion(
+        request: TransformableRequest,
+        validatableResponse: VariableName
+    ): VariableName {
         val successClass = request.clientHttpResponseClassName
         val errorClass = request.clientErrorResponseClassName
 
@@ -381,7 +388,7 @@ class TestClientRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitt
         // produces
         //
         // validatableResponse.headers().getValues("<headerName>"[firstOrNull()])
-        var headerValueExpression : KotlinExpression =
+        var headerValueExpression: KotlinExpression =
             "validatableResponse".variableName().invoke("headers".methodName())
                 .invoke("getValues".methodName(), header.name.literal())
 
