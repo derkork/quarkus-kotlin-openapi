@@ -89,7 +89,12 @@ class Config(
     /**
      * A list of additional provider classes which should be added as @RegisterProvider annotations to the generated interface.
      */
-    private val additionalProviders: List<String> = listOf()
+    private val additionalProviders: List<String> = listOf(),
+
+    /**
+     * Whether to overwrite existing generated files.
+     */
+     val forceOverwriteGeneratedFiles: Boolean = false
 ) {
 
     fun additionalImports() = additionalImports.map { it.toRawClassName("Illegal value for additional import $it") }
@@ -103,7 +108,8 @@ class Config(
         return contentTypeMappings.firstOrNull { it.startsWith("$contentType=") }?.substringAfter("=")
     }
 
-    fun additionalProviders() = additionalProviders.map { it.toRawClassName("Illegal value for additional provider $it") }
+    fun additionalProviders() =
+        additionalProviders.map { it.toRawClassName("Illegal value for additional provider $it") }
 
     private fun String.toRawClassName(errorMessage: String): ClassName {
         val parts = split(':', limit = 2)

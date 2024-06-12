@@ -4,10 +4,14 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.Config
 import com.ancientlightstudios.quarkus.kotlin.openapi.GeneratorStage
 import com.ancientlightstudios.quarkus.kotlin.openapi.InterfaceType
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSpec
+import org.slf4j.LoggerFactory
 
 class EmitterStage(private val config: Config) : GeneratorStage {
 
+    private val log = LoggerFactory.getLogger(EmitterStage::class.java)
+
     override fun process(spec: TransformableSpec) {
+
         val context = EmitterContext(spec, config)
 
         when (config.interfaceType) {
@@ -17,6 +21,8 @@ class EmitterStage(private val config: Config) : GeneratorStage {
         }.forEach {
             context.runEmitter(it)
         }
+
+        log.info("Generated ${context.filesWritten + context.filesUpToDate} files (${context.filesWritten} new, ${context.filesUpToDate} up-to-date).")
     }
 
     private fun serverEmitters() = listOf(

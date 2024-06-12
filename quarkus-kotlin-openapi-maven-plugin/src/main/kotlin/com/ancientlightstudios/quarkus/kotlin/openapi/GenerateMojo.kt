@@ -82,6 +82,12 @@ abstract class GenerateMojo : AbstractMojo() {
     @Parameter
     var additionalProviders: List<String> = listOf()
 
+    /**
+     * If true, generated files will be overwritten even if they are newer than the source files.
+     */
+    @Parameter(defaultValue = "false")
+    var forceOverwriteGeneratedFiles: Boolean = false
+
     override fun execute() {
         val config = Config(
             sources,
@@ -97,7 +103,8 @@ abstract class GenerateMojo : AbstractMojo() {
             typeMappings,
             contentTypeMappings,
             interfaceType,
-            additionalProviders
+            additionalProviders,
+            forceOverwriteGeneratedFiles
         )
 
         Generator(config).generate()
