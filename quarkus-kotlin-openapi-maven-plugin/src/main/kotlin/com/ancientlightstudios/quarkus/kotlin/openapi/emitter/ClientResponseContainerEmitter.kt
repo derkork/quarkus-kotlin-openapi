@@ -137,20 +137,22 @@ class ClientResponseContainerEmitter(private val withTestSupport: Boolean) : Cod
                 me, sealed = true, interfaces = listOf(fileName, Library.IsErrorClass)
             ) {
                 generateErrorClass(
-                    "RequestErrorTimeout", me, "A timeout occurred when communicating with the server.".literal()
+                    "RequestErrorTimeout", me, Library.IsTimeoutErrorClass,  "A timeout occurred when communicating with the server.".literal()
                 )
-                generateErrorClass("RequestErrorUnreachable", me, "The server could not be reached.".literal())
+                generateErrorClass("RequestErrorUnreachable", me,  Library.IsUnreachableErrorClass, "The server could not be reached.".literal())
                 generateErrorClass(
                     "RequestErrorConnectionReset",
                     me,
+                    Library.IsConnectionResetErrorClass,
                     "The connection was reset while communicating with the server.".literal()
                 )
                 generateErrorClass(
                     "RequestErrorUnknown",
                     me,
+                    Library.IsUnknownErrorClass,
                     "An unknown error occurred when communicating with the server.".literal()
                 ) {
-                    kotlinMember("cause".variableName(), Kotlin.ExceptionClass.typeName(), accessModifier = null)
+                    kotlinMember("cause".variableName(), Kotlin.ExceptionClass.typeName(), accessModifier = null, override = true)
                 }
 
                 val responseClass = when(withTestSupport) {
@@ -161,6 +163,7 @@ class ClientResponseContainerEmitter(private val withTestSupport: Boolean) : Cod
                 generateErrorClass(
                     "ResponseError",
                     me,
+                    Library.IsResponseErrorClass,
                     "reason".variableName()
                 ) {
                     kotlinMember("reason".variableName(), Kotlin.StringClass.typeName(), accessModifier = null)
@@ -171,9 +174,9 @@ class ClientResponseContainerEmitter(private val withTestSupport: Boolean) : Cod
         }
 
     private fun KotlinInterface.generateErrorClass(
-        name: String, parent: ClassName, message: KotlinExpression, block: KotlinClass.() -> Unit = {}
+        name: String, parent: ClassName, errorInterface:ClassName, message: KotlinExpression, block: KotlinClass.() -> Unit = {}
     ) {
-        kotlinClass(name.className(""), baseClass = KotlinBaseClass(parent)) {
+        kotlinClass(name.className(""), baseClass = KotlinBaseClass(parent), interfaces = listOf(errorInterface)) {
 
             kotlinMember(
                 "errorMessage".variableName(),
