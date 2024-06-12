@@ -3,15 +3,26 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 import com.ancientlightstudios.quarkus.kotlin.openapi.Config
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinFile
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSpec
+import java.io.File
 import kotlin.io.path.Path
 
 class EmitterContext(val spec: TransformableSpec, private val config: Config) {
+
+    // get the last modified time of all input files
+    private val inputLastModifiedDate: Long = config.sourceFiles
+        .union(config.patchFiles).maxOfOrNull { File(it).lastModified() } ?: -1
 
     private val outputDirectory = Path(config.outputDirectory)
 
     fun getAdditionalImports() = config.additionalImports()
 
     fun <T : CodeEmitter> runEmitter(codeEmitter: T): T = codeEmitter.apply { emit() }
+
+    var filesWritten: Long = 0
+        private set
+
+    var filesUpToDate: Long = 0
+        private set
 
     fun KotlinFile.writeFile() {
         val packageName = fileName.packageName
@@ -25,11 +36,18 @@ class EmitterContext(val spec: TransformableSpec, private val config: Config) {
         targetPath.toFile().mkdirs()
 
         val outputFile = targetPath.resolve("${fileName.value}.kt").toFile()
-        check(outputFile.exists() || outputFile.createNewFile()) { "Could not create file $outputFile" }
+        if (!config.forceOverwriteGeneratedFiles) {
+            if (outputFile.exists() && outputFile.lastModified() > inputLastModifiedDate) {
+                filesUpToDate++
+                return
+            }
+        }
 
+        check(outputFile.exists() || outputFile.createNewFile()) { "Could not create file $outputFile" }
         outputFile.bufferedWriter().use {
             render(CodeWriter(it))
         }
+        filesWritten++
     }
 
 }
