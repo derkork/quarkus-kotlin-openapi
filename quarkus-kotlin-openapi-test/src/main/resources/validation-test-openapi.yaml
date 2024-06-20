@@ -1,0 +1,206 @@
+openapi: 3.1.0
+info:
+  title: Test-Suit
+  version: 1.0.0
+  description: fragment of the overall test suit
+
+paths:
+  /features/validation/optional:
+    get:
+      # validation for optional values
+      tags:
+        - validation
+      operationId: optionalValue
+      parameters:
+        - name: param
+          in: query
+          schema:
+            type: string
+            pattern: '[a-z]{2}'
+      responses:
+        '204':
+          description: No content
+        '400':
+          $ref: '#/components/responses/OperationError400'
+
+  /features/validation/nullable:
+    get:
+      # validation for nullable values
+      tags:
+        - validation
+      operationId: nullableValue
+      parameters:
+        - name: param
+          in: query
+          schema:
+            type:
+              - string
+              - 'null'
+            pattern: '[a-z]{2}'
+          required: true
+      responses:
+        '204':
+          description: No content
+        '400':
+          $ref: '#/components/responses/OperationError400'
+
+  /features/validation/numbers:
+    get:
+      # number validation with inclusive and exclusive bounds
+      tags:
+        - validation
+      operationId: numberValidation
+      parameters:
+        - name: inclusive
+          in: query
+          schema:
+            type: number
+            format: int32
+            minimum: 5
+            maximum: 10
+          required: true
+        - name: exclusive
+          in: query
+          schema:
+            type: number
+            format: int32
+            exclusiveMinimum: 5
+            exclusiveMaximum: 10
+          required: true
+      responses:
+        '204':
+          description: No content
+        '400':
+          $ref: '#/components/responses/OperationError400'
+
+  /features/validation/stringLength:
+    get:
+      # string size and pattern validation
+      tags:
+        - validation
+      operationId: stringLengthValidation
+      parameters:
+        - name: value
+          in: query
+          schema:
+            type: string
+            minLength: 5
+            maxLength: 10
+          required: true
+      responses:
+        '204':
+          description: No content
+        '400':
+          $ref: '#/components/responses/OperationError400'
+
+  /features/validation/stringPattern:
+    get:
+      # string size and pattern validation
+      tags:
+        - validation
+      operationId: stringPatternValidation
+      parameters:
+        - name: value
+          in: query
+          schema:
+            type: string
+            pattern: '[a-z]{2}'
+          required: true
+      responses:
+        '204':
+          description: No content
+        '400':
+          $ref: '#/components/responses/OperationError400'
+
+  /features/validation/array:
+    get:
+      # array validation in combination with item validation
+      tags:
+        - validation
+      operationId: arrayValidation
+      parameters:
+        - name: items
+          in: query
+          schema:
+            type: array
+            items:
+              type: number
+              format: int32
+              minimum: 5
+              maximum: 10
+            minItems: 2
+            maxItems: 5
+          required: true
+      responses:
+        '204':
+          description: No content
+        '400':
+          $ref: '#/components/responses/OperationError400'
+
+  /features/validation/constraints:
+    get:
+      # custom validation rules in combination with other rules
+      tags:
+        - validation
+      operationId: constraintsValidation
+      parameters:
+        - name: value
+          in: query
+          schema:
+            type: string
+            minLength: 5
+            x-constraints:
+              - withO
+              - allLower
+          required: true
+      responses:
+        '204':
+          description: No content
+        '400':
+          $ref: '#/components/responses/OperationError400'
+
+  /features/validation/response:
+    get:
+      tags:
+        - validation
+      operationId: responseValidation
+      parameters:
+        - name: response
+          in: query
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Ok
+          content:
+            text/plain:
+              schema:
+                type: string
+                minLength: 5
+                x-constraints:
+                  - withO
+                  - allLower
+        '400':
+          $ref: '#/components/responses/OperationError400'
+
+components:
+
+  schemas:
+    OperationError:
+      type: object
+      properties:
+        messages:
+          type: array
+          items:
+            type: string
+      required:
+        - messages
+
+  responses:
+    OperationError400:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/OperationError'

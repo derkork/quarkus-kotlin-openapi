@@ -91,7 +91,7 @@ class TestClientRequestBuilderEmitter : CodeEmitter {
                                 .assignment(requestSpecificationVariable)
                         }
 
-                        if (parameter.content.typeUsage.nullable && !parameter.content.typeUsage.required) {
+                        if (parameter.content.typeUsage.nullable) {
                             "value".variableName().nullCheck().invoke("let".methodName()) {
                                 builder()
                             }.statement()

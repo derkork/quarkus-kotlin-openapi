@@ -1,0 +1,74 @@
+openapi: 3.1.0
+info:
+  title: Test-Suit
+  version: 1.0.0
+  description: fragment of the overall test suit
+
+paths:
+  /features/generic/unknownStatusCode:
+    get:
+      # jakarta.ws.rs.core.Response.Status doesn't have a mapping for status code 422. So we check, that we still
+      # generate valid code
+      tags:
+        - generic
+      operationId: unknownStatusCode
+      responses:
+        '422':
+          description: Unprocessable entity
+
+  /features/generic/responseCode/{responseCodeHint}:
+    get:
+      # Check that different response codes are possible. Codes without a matching response are send via the generic
+      # status response
+      tags:
+        - generic
+      operationId: responseCode
+      parameters:
+        - name: responseCodeHint
+          in: path
+          schema:
+            $ref: '#/components/schemas/ResponseCodeHint'
+      responses:
+        200:
+          description: Ok
+        400:
+          # don't use the OperationError here
+          description: Bad request
+
+  /features/generic/responseCodeWithDefault/{responseCodeHint}:
+    get:
+      # Check that different response codes are possible. Codes without a matching response are send via the default
+      # response
+      tags:
+        - generic
+      operationId: responseCodeWithDefault
+      parameters:
+        - name: responseCodeHint
+          in: path
+          schema:
+            $ref: '#/components/schemas/ResponseCodeHint'
+      responses:
+        200:
+          description: Ok
+        400:
+          # don't use the OperationError here
+          description: Bad request
+        default:
+          description: default
+
+components:
+
+  schemas:
+    ResponseCodeHint:
+      type: number
+      format: int32
+      enum:
+        - 200
+        - 204
+        - 400
+        - 404
+      x-enum-item-names:
+        200: Ok
+        204: NoContent
+        400: BadRequest
+        404: NotFound
