@@ -52,6 +52,20 @@ class FeaturesParametersTest : ApiTestBase() {
     }
 
     @Test
+    fun `sending wrong parameter value is rejected (Test-Client)`() {
+        testClient.parametersPathRaw("foo", "not-a-number") { this }
+            .isBadRequestResponse {}
+    }
+
+    @Test
+    fun `sending wrong parameter value is rejected (Raw)`() {
+        prepareRequest()
+            .get("/features/parameters/{name}/kind/{id}", mapOf("name" to "foo", "id" to "not-a-number"))
+            .then()
+            .statusCode(400)
+    }
+
+    @Test
     fun `missing required parameters are rejected (Test-Client)`() {
         testClient.parametersRequiredNotNullUnsafe {}
             .isBadRequestResponse {
