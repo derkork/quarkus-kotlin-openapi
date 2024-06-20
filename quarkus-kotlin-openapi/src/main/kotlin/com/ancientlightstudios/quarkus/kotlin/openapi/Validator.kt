@@ -89,7 +89,7 @@ class ListValidator(context: String) : Validator(context) {
     }
 
     fun List<*>.maxSize(max: Int) {
-        if (size < max) {
+        if (size > max) {
             reportError("maximum size of $max expected, but is $size")
         }
     }
