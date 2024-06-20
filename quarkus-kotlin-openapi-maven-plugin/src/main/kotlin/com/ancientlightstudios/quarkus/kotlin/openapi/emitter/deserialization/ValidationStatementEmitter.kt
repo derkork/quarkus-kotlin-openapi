@@ -10,7 +10,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.compo
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.CustomConstraintsValidation
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.NumberValidation
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.StringValidation
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.EnumTypeDefinition
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.CollectionTypeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.PrimitiveTypeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.TypeDefinition
 
@@ -31,7 +31,7 @@ class ValidationStatementEmitter(
             )
         }
 
-        if (typeDefinition is EnumTypeDefinition) {
+        if (typeDefinition is CollectionTypeDefinition) {
             resultStatement = emitArrayValidation(resultStatement, validations.filterIsInstance<ArrayValidation>())
         }
 
