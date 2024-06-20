@@ -1,7 +1,8 @@
 openapi: 3.1.0
 info:
-  title: Filestore
+  title: Test-Suit
   version: 1.0.0
+  description: fragment of the overall test suit
 
 paths:
   /features/parameters/{name}/kind/{id}:

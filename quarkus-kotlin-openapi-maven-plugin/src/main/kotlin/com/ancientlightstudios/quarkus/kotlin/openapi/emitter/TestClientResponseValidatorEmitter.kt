@@ -6,7 +6,6 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ClientHttpRes
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ResponseContainerClassNameHint.responseContainerClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ResponseValidatorClassNameHint.responseValidatorClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.AssignableExpression.Companion.assignable
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.InvocationExpression.Companion.invoke
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.methodName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.PropertyExpression.Companion.property
@@ -44,6 +43,8 @@ class TestClientResponseValidatorEmitter : CodeEmitter {
                 type = Kotlin.ByteArrayOutputStreamClass.typeName(),
             )
 
+            emitGenericValidationMethod(request)
+
             responses {
                 val reason = when (val responseCode = response.responseCode) {
                     is ResponseCode.Default -> "default"
@@ -55,33 +56,65 @@ class TestClientResponseValidatorEmitter : CodeEmitter {
         }
     }
 
+    private fun KotlinClass.emitGenericValidationMethod(request: TransformableRequest) {
+        kotlinMethod("responseSatisfies".methodName(), bodyAsAssignment = true) {
+            kotlinParameter(
+                "block".variableName(),
+                TypeName.DelegateTypeName(request.responseContainerClassName.typeName(), emptyList(), Kotlin.UnitType)
+            )
+
+            // produces
+            // try {
+            //     response.block()
+            // } catch(e: Throwable) {
+            //     println(requestResponseLog)
+            //     throw e
+            // }
+            tryExpression {
+                "response".variableName().invoke("block".methodName()).statement()
+                catchBlock(Kotlin.ThrowableClass) {
+                    InvocationExpression.invoke("println".methodName(), "requestResponseLog".variableName()).statement()
+                    "e".variableName().throwStatement()
+                }
+            }.statement()
+        }
+    }
+
     private fun KotlinClass.emitResponseValidationMethod(request: TransformableRequest, reason: String) {
         val responseClass = request.clientHttpResponseClassName.nested(reason)
 
-        kotlinMethod(reason.methodName(prefix = "is", postfix = "Response")) {
+        kotlinMethod(reason.methodName(prefix = "is", postfix = "Response"), bodyAsAssignment = true) {
             kotlinParameter(
                 "block".variableName(),
                 TypeName.DelegateTypeName(responseClass.typeName(), emptyList(), Kotlin.UnitType)
             )
 
-            tryExpression {
+            // produces
+            // responseSatisfies {
+            //     when(response) {
+            //         ...
+            //     }
+            // }
+            invoke("responseSatisfies".methodName()) {
                 whenExpression("response".variableName()) {
+                    // produces
+                    // is <responseClass> -> response.block()
                     optionBlock(AssignableExpression.assignable(responseClass)) {
                         "response".variableName().invoke("block".methodName()).statement()
                     }
+
+                    // produces
+                    // else -> throw AssertionFailedError("Assertion failed.", <responseClass>::class.java.name, response.javaClass.name)
                     optionBlock("else".variableName()) {
                         InvocationExpression.invoke(
                             Misc.AssertionFailedErrorClass.constructorName,
                             "Assertion failed.".literal(),
-                             responseClass.javaClass().property("name".variableName()),
-                            "response".variableName().property("javaClass".variableName()).property("name".variableName())
+                            responseClass.javaClass().property("name".variableName()),
+                            "response".variableName().property("javaClass".variableName())
+                                .property("name".variableName())
                         ).throwStatement()
                     }
                 }.statement()
-                catchBlock(Kotlin.ThrowableClass) {
-                    InvocationExpression.invoke("println".methodName(), "requestResponseLog".variableName()).statement()
-                    "e".variableName().throwStatement()
-                }
             }.statement()
         }
     }

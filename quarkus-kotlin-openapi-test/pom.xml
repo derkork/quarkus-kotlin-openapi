@@ -134,8 +134,9 @@
                         <typeMapping>string:date-time=java.time:Instant</typeMapping>
                     </typeMappings>
                     <sources>
-                        <source>${project.basedir}/src/main/resources/features-openapi.yaml</source>
-                        <source>${project.basedir}/src/main/resources/features-parameter-openapi.yaml</source>
+                        <source>${project.basedir}/src/main/resources/generic-test-openapi.yaml</source>
+                        <source>${project.basedir}/src/main/resources/validation-test-openapi.yaml</source>
+                        <source>${project.basedir}/src/main/resources/parameter-test-openapi.yaml</source>
                     </sources>
                     <additionalImports>
                         <additionalImport>com.ancientlightstudios.example.custom:*</additionalImport>

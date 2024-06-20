@@ -29,6 +29,7 @@ abstract class ApiTestBase {
     protected fun prepareRequest(): RequestSpecification {
         return RestAssured.given()
             .baseUri(testUrl.toString())
+            .log().ifValidationFails()
             .config(
                 RestAssuredConfig.config()
                     .httpClient(
