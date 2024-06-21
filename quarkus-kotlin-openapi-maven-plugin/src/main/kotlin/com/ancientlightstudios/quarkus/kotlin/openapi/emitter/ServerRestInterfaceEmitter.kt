@@ -72,7 +72,7 @@ class ServerRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitter {
 
             val requestContainerName = emitterContext.runEmitter(
                 CombineIntoObjectStatementEmitter(
-                    "request".literal(), request.requestContainerClassName, requestContainerParts
+                    "request".literal(), request.requestContainerClassName, listOf(), requestContainerParts
                 )
             ).resultStatement?.declaration("request".variableName())
             emitDelegateInvocation(request, requestContainerName, request.requestContextClassName)
@@ -154,7 +154,7 @@ class ServerRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitter {
             }
 
             return emitterContext.runEmitter(
-                CombineIntoObjectStatementEmitter("request.body".literal(), safeType.modelName, parts)
+                CombineIntoObjectStatementEmitter("request.body".literal(), safeType.modelName, listOf(), parts)
             ).resultStatement?.declaration(body.parameterVariableName)
                 ?: ProbableBug("don't know how to deserialize form object")
         } else {

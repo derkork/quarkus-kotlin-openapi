@@ -43,7 +43,7 @@ class FeaturesValidationTest : ApiTestBase() {
     fun `omitted optional values are not validated (Raw)`() {
         prepareRequest()
             .get("/features/validation/optional")
-            .then()
+            .execute()
             .statusCode(204)
     }
 
@@ -68,7 +68,7 @@ class FeaturesValidationTest : ApiTestBase() {
         prepareRequest()
             .queryParam("param", "fo")
             .get("/features/validation/optional")
-            .then()
+            .execute()
             .statusCode(204)
     }
 
@@ -99,7 +99,7 @@ class FeaturesValidationTest : ApiTestBase() {
         val messages = prepareRequest()
             .queryParam("param", "foo")
             .get("/features/validation/optional")
-            .then()
+            .execute()
             .statusCode(400)
             .extract()
             .jsonPath()
@@ -129,7 +129,7 @@ class FeaturesValidationTest : ApiTestBase() {
     fun `nullable values with null are not validated (Raw)`() {
         prepareRequest()
             .get("/features/validation/nullable")
-            .then()
+            .execute()
             .statusCode(204)
     }
 
@@ -154,7 +154,7 @@ class FeaturesValidationTest : ApiTestBase() {
         prepareRequest()
             .queryParam("param", "fo")
             .get("/features/validation/nullable")
-            .then()
+            .execute()
             .statusCode(204)
     }
 
@@ -185,7 +185,7 @@ class FeaturesValidationTest : ApiTestBase() {
         val messages = prepareRequest()
             .queryParam("param", "foo")
             .get("/features/validation/nullable")
-            .then()
+            .execute()
             .statusCode(400)
             .extract()
             .jsonPath()
@@ -229,7 +229,7 @@ class FeaturesValidationTest : ApiTestBase() {
             .queryParam("inclusive", 4)
             .queryParam("exclusive", 5)
             .get("/features/validation/numbers")
-            .then()
+            .execute()
             .statusCode(400)
             .extract()
             .jsonPath()
@@ -276,7 +276,7 @@ class FeaturesValidationTest : ApiTestBase() {
             .queryParam("inclusive", 11)
             .queryParam("exclusive", 10)
             .get("/features/validation/numbers")
-            .then()
+            .execute()
             .statusCode(400)
             .extract()
             .jsonPath()
@@ -324,7 +324,7 @@ class FeaturesValidationTest : ApiTestBase() {
             .queryParam("inclusive", inclusiveParamValue)
             .queryParam("exclusive", exclusiveParamValue)
             .get("/features/validation/numbers")
-            .then()
+            .execute()
             .statusCode(204)
     }
 
@@ -359,7 +359,7 @@ class FeaturesValidationTest : ApiTestBase() {
         val messages = prepareRequest()
             .queryParam("value", '0'.repeat(4))
             .get("/features/validation/stringLength")
-            .then()
+            .execute()
             .statusCode(400)
             .extract()
             .jsonPath()
@@ -402,7 +402,7 @@ class FeaturesValidationTest : ApiTestBase() {
         val messages = prepareRequest()
             .queryParam("value", '0'.repeat(11))
             .get("/features/validation/stringLength")
-            .then()
+            .execute()
             .statusCode(400)
             .extract()
             .jsonPath()
@@ -439,7 +439,7 @@ class FeaturesValidationTest : ApiTestBase() {
         prepareRequest()
             .queryParam("value", '0'.repeat(length))
             .get("/features/validation/stringLength")
-            .then()
+            .execute()
             .statusCode(204)
     }
 
@@ -474,7 +474,7 @@ class FeaturesValidationTest : ApiTestBase() {
         val messages = prepareRequest()
             .queryParam("value", "00")
             .get("/features/validation/stringPattern")
-            .then()
+            .execute()
             .statusCode(400)
             .extract()
             .jsonPath()
@@ -508,7 +508,7 @@ class FeaturesValidationTest : ApiTestBase() {
         prepareRequest()
             .queryParam("value", "aa")
             .get("/features/validation/stringPattern")
-            .then()
+            .execute()
             .statusCode(204)
     }
 
@@ -543,7 +543,7 @@ class FeaturesValidationTest : ApiTestBase() {
         val messages = prepareRequest()
             .queryParam("items", 8.repeatAsItem(1))
             .get("/features/validation/array")
-            .then()
+            .execute()
             .statusCode(400)
             .extract()
             .jsonPath()
@@ -586,7 +586,7 @@ class FeaturesValidationTest : ApiTestBase() {
         val messages = prepareRequest()
             .queryParam("items", 8.repeatAsItem(6))
             .get("/features/validation/array")
-            .then()
+            .execute()
             .statusCode(400)
             .extract()
             .jsonPath()
@@ -623,7 +623,7 @@ class FeaturesValidationTest : ApiTestBase() {
         prepareRequest()
             .queryParam("items", 8.repeatAsItem(length))
             .get("/features/validation/array")
-            .then()
+            .execute()
             .statusCode(204)
     }
 
@@ -660,7 +660,7 @@ class FeaturesValidationTest : ApiTestBase() {
         val messages = prepareRequest()
             .queryParam("items", listOf(7, 4, 11))
             .get("/features/validation/array")
-            .then()
+            .execute()
             .statusCode(400)
             .extract()
             .jsonPath()
@@ -695,7 +695,7 @@ class FeaturesValidationTest : ApiTestBase() {
         prepareRequest()
             .queryParam("items", listOf(7, 5, 10))
             .get("/features/validation/array")
-            .then()
+            .execute()
             .statusCode(204)
     }
 
@@ -745,7 +745,7 @@ class FeaturesValidationTest : ApiTestBase() {
         val messages = prepareRequest()
             .queryParam("value", value)
             .get("/features/validation/constraints")
-            .then()
+            .execute()
             .statusCode(400)
             .extract()
             .jsonPath()
@@ -779,7 +779,7 @@ class FeaturesValidationTest : ApiTestBase() {
         prepareRequest()
             .queryParam("value", 'o'.repeat(5))
             .get("/features/validation/constraints")
-            .then()
+            .execute()
             .statusCode(204)
     }
 
@@ -808,7 +808,7 @@ class FeaturesValidationTest : ApiTestBase() {
         val response = prepareRequest()
             .queryParam("response", "AOAAA")
             .get("/features/validation/response")
-            .then()
+            .execute()
             .statusCode(200)
             .extract()
             .asString()

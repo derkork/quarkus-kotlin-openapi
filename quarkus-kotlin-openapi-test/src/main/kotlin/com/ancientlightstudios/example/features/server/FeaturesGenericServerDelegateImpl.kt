@@ -30,4 +30,11 @@ class FeaturesGenericServerDelegateImpl : FeaturesGenericServerDelegate {
             else -> defaultStatus(code.value)
         }
     }
+
+    override suspend fun EchoContext.echo(): Nothing {
+        val validRequest = request.validOrElse { badRequest(it.toOperationError()) }
+
+        ok(validRequest.body)
+    }
+
 }

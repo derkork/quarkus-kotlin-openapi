@@ -2,9 +2,6 @@ openapi: 3.1.0
 info:
   title: Filestore
   version: 1.0.0
-tags:
-  - name: plain
-  - name: json
 
 paths:
   /features/validation/numberValidation:
@@ -28,25 +25,6 @@ paths:
         '400':
           $ref: '#/components/responses/OperationError400'
 
-  /features/misc/unknownStatusCode:
-    get:
-      tags:
-        - misc
-      operationId: unknownStatusCode
-      responses:
-        '422':
-          description: Unprocessable entity
-
-  /features/misc/unknownStatusCode2:
-    get:
-      tags:
-        - misc
-      operationId: unknownStatusCode2
-      responses:
-        '422':
-          description: Unprocessable entity
-        'default':
-          description: Default
 
   /features/misc/objectExtensionTest:
     get:

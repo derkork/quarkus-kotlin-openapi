@@ -10,6 +10,7 @@ import org.hamcrest.Matchers.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 
+@Suppress("UastIncorrectHttpHeaderInspection")
 @QuarkusTest
 class FeaturesParametersTest : ApiTestBase() {
 
@@ -45,7 +46,7 @@ class FeaturesParametersTest : ApiTestBase() {
     fun `path parameters work (Raw)`() {
         prepareRequest()
             .get("/features/parameters/{name}/kind/{id}", mapOf("name" to "foo", "id" to 17))
-            .then()
+            .execute()
             .statusCode(200)
             .body("name", equalTo("foo"))
             .body("id", equalTo(17))
@@ -61,7 +62,7 @@ class FeaturesParametersTest : ApiTestBase() {
     fun `sending wrong parameter value is rejected (Raw)`() {
         prepareRequest()
             .get("/features/parameters/{name}/kind/{id}", mapOf("name" to "foo", "id" to "not-a-number"))
-            .then()
+            .execute()
             .statusCode(400)
     }
 
@@ -81,7 +82,7 @@ class FeaturesParametersTest : ApiTestBase() {
     fun `missing required parameters are rejected (Raw)`() {
         val messages = prepareRequest()
             .get("/features/parameters/requiredNotNull")
-            .then()
+            .execute()
             .statusCode(400)
             .extract()
             .jsonPath()
@@ -157,7 +158,7 @@ class FeaturesParametersTest : ApiTestBase() {
         val headers = response.headers().getList("headerCollectionValue").map { it.value }
         assertThat(headers).containsExactly("headerParamItem1", "headerParamItem2")
 
-        response.then()
+        response.execute()
             .statusCode(200)
             .header("headerSingleValue", equalTo("headerParam"))
             .body("querySingleValue", equalTo("queryParam"))
@@ -231,7 +232,7 @@ class FeaturesParametersTest : ApiTestBase() {
         val headers = response.headers().getList("headerCollectionValue").map { it.value }
         assertThat(headers).containsExactly("headerParamItem1", "headerParamItem2")
 
-        response.then()
+        response.execute()
             .statusCode(200)
             .header("headerSingleValue", equalTo("headerParam"))
             .body("querySingleValue", equalTo("queryParam"))
@@ -277,7 +278,7 @@ class FeaturesParametersTest : ApiTestBase() {
     fun `required nullable parameters with null values work (Raw)`() {
         prepareRequest()
             .get("/features/parameters/requiredNullable")
-            .then()
+            .execute()
             .statusCode(200)
             .header("headerSingleValue", equalTo(null))
             .header("headerCollectionValue", equalTo(null))
@@ -351,7 +352,7 @@ class FeaturesParametersTest : ApiTestBase() {
         val headers = response.headers().getList("headerCollectionValue").map { it.value }
         assertThat(headers).containsExactly("headerParamItem1", "headerParamItem2")
 
-        response.then()
+        response.execute()
             .statusCode(200)
             .header("headerSingleValue", equalTo("headerParam"))
             .body("querySingleValue", equalTo("queryParam"))
@@ -397,7 +398,7 @@ class FeaturesParametersTest : ApiTestBase() {
     fun `optional non null parameters with null values work (Raw)`() {
         prepareRequest()
             .get("/features/parameters/optionalNotNull")
-            .then()
+            .execute()
             .statusCode(200)
             .header("headerSingleValue", equalTo(null))
             .header("headerCollectionValue", equalTo(null))
@@ -471,7 +472,7 @@ class FeaturesParametersTest : ApiTestBase() {
         val headers = response.headers().getList("headerCollectionValue").map { it.value }
         assertThat(headers).containsExactly("headerParamItem1", "headerParamItem2")
 
-        response.then()
+        response.execute()
             .statusCode(200)
             .header("headerSingleValue", equalTo("headerParam"))
             .body("querySingleValue", equalTo("queryParam"))
@@ -517,7 +518,7 @@ class FeaturesParametersTest : ApiTestBase() {
     fun `optional nullable parameters with null values work (Raw)`() {
         prepareRequest()
             .get("/features/parameters/optionalNullable")
-            .then()
+            .execute()
             .statusCode(200)
             .header("headerSingleValue", equalTo(null))
             .header("headerCollectionValue", equalTo(null))

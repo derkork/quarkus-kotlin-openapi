@@ -137,6 +137,7 @@
                         <source>${project.basedir}/src/main/resources/generic-test-openapi.yaml</source>
                         <source>${project.basedir}/src/main/resources/validation-test-openapi.yaml</source>
                         <source>${project.basedir}/src/main/resources/parameter-test-openapi.yaml</source>
+                        <source>${project.basedir}/src/main/resources/plain-test-openapi.yaml</source>
                     </sources>
                     <additionalImports>
                         <additionalImport>com.ancientlightstudios.example.custom:*</additionalImport>

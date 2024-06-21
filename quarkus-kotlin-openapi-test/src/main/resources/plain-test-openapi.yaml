@@ -1,0 +1,85 @@
+openapi: 3.1.0
+info:
+  title: Test-Suit
+  version: 1.0.0
+  description: fragment of the overall test suit
+
+paths:
+  /features/plain/plainEnumParameter:
+    get:
+      tags:
+        - plain
+      operationId: plainEnumParameter
+      parameters:
+        - name: param
+          in: query
+          schema:
+            $ref: '#/components/schemas/PlainEnum'
+      responses:
+        '200':
+          description: Ok
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/PlainEnum'
+                type:
+                  - 'null'
+        '400':
+          $ref: '#/components/responses/OperationError400'
+
+  /features/plain/plainEnumBody:
+    post:
+      tags:
+        - plain
+      operationId: plainEnumBody
+      requestBody:
+        required: false
+        content:
+          text/plain:
+            schema:
+              $ref: '#/components/schemas/PlainEnum'
+      responses:
+        '200':
+          description: Ok
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/PlainEnum'
+                type:
+                  - 'null'
+        '400':
+          $ref: '#/components/responses/OperationError400'
+
+components:
+
+  schemas:
+    PlainEnum:
+      type: number
+      format: int32
+      enum:
+        - 1
+        - 2
+        - 4
+        - 8
+      x-enum-item-names:
+        # only some items have a customized label
+        1: One
+        4: Four
+
+    OperationError:
+      type: object
+      properties:
+        messages:
+          type: array
+          items:
+            type: string
+      required:
+        - messages
+
+  responses:
+    OperationError400:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/OperationError'
