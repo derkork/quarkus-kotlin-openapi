@@ -371,7 +371,7 @@ class TestClientRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitt
             if (responseContainerParts.isNotEmpty()) {
                 emitterContext.runEmitter(
                     CombineIntoObjectStatementEmitter(
-                        "response".literal(), responseClass, responseContainerParts + additionalParameter
+                        "response".literal(), responseClass, additionalParameter, responseContainerParts
                     )
                 ).resultStatement?.statement()
             } else {

@@ -9,6 +9,7 @@ import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
+import com.ancientlightstudios.example.features.testclient.EchoError as TestEchoError
 import com.ancientlightstudios.example.features.testclient.ResponseCodeError as TestResponseCodeError
 import com.ancientlightstudios.example.features.testclient.model.ResponseCodeHint as TestResponseCodeHint
 
@@ -42,7 +43,7 @@ class FeaturesGenericTest : ApiTestBase() {
     fun `unknown status codes are supported (Raw)`() {
         prepareRequest()
             .get("/features/generic/unknownStatusCode")
-            .then()
+            .execute()
             .statusCode(422)
     }
 
@@ -66,7 +67,7 @@ class FeaturesGenericTest : ApiTestBase() {
     fun `mapped status codes are supported (Raw)`() {
         prepareRequest()
             .get("/features/generic/responseCode/200")
-            .then()
+            .execute()
             .statusCode(200)
     }
 
@@ -94,7 +95,7 @@ class FeaturesGenericTest : ApiTestBase() {
     fun `unmapped status codes via status-method are supported (Raw)`() {
         prepareRequest()
             .get("/features/generic/responseCode/204")
-            .then()
+            .execute()
             .statusCode(204)
     }
 
@@ -118,7 +119,7 @@ class FeaturesGenericTest : ApiTestBase() {
     fun `mapped status code works even if a default mapping exists (Raw)`() {
         prepareRequest()
             .get("/features/generic/responseCodeWithDefault/200")
-            .then()
+            .execute()
             .statusCode(200)
     }
 
@@ -146,8 +147,20 @@ class FeaturesGenericTest : ApiTestBase() {
     fun `default mapping is used for unmapped status codes (Raw)`() {
         prepareRequest()
             .get("/features/generic/responseCodeWithDefault/204")
-            .then()
+            .execute()
             .statusCode(204)
+    }
+
+    @Test
+    fun `sending the wrong content type is rejected (Test-Client)`() {
+        testClient.echoRaw { this.contentType("application/xml") }
+            .responseSatisfies {
+                if (this is TestEchoError.ResponseError) {
+                    assertThat(this.response.statusCode()).isEqualTo(415)
+                } else {
+                    fail("unexpected response")
+                }
+            }
     }
 
 }

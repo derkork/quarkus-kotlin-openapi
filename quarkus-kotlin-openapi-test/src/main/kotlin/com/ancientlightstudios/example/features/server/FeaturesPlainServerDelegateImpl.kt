@@ -1,20 +1,18 @@
 package com.ancientlightstudios.example.features.server
 
-import com.ancientlightstudios.example.features.server.model.SimpleEnum
-import com.ancientlightstudios.quarkus.kotlin.openapi.Maybe
 import com.ancientlightstudios.quarkus.kotlin.openapi.validOrElse
 import jakarta.enterprise.context.ApplicationScoped
 
 @ApplicationScoped
 class FeaturesPlainServerDelegateImpl : FeaturesPlainServerDelegate {
 
-    override suspend fun PlainOptionalEnumContext.plainOptionalEnum(): Nothing {
+    override suspend fun PlainEnumParameterContext.plainEnumParameter(): Nothing {
         val validRequest = request.validOrElse { badRequest(it.toOperationError()) }
 
-        ok(validRequest.body)
+        ok(validRequest.param)
     }
 
-    override suspend fun PlainRequiredEnumContext.plainRequiredEnum(): Nothing {
+    override suspend fun PlainEnumBodyContext.plainEnumBody(): Nothing {
         val validRequest = request.validOrElse { badRequest(it.toOperationError()) }
 
         ok(validRequest.body)

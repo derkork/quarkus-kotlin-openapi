@@ -56,6 +56,27 @@ paths:
         default:
           description: default
 
+  /features/generic/echo:
+    post:
+      tags:
+        - generic
+      operationId: echo
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EchoMessage'
+        required: true
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EchoMessage'
+        400:
+          $ref: '#/components/responses/OperationError400'
+
 components:
 
   schemas:
@@ -72,3 +93,29 @@ components:
         204: NoContent
         400: BadRequest
         404: NotFound
+
+    EchoMessage:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+        - message
+
+    OperationError:
+      type: object
+      properties:
+        messages:
+          type: array
+          items:
+            type: string
+      required:
+        - messages
+
+  responses:
+    OperationError400:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/OperationError'

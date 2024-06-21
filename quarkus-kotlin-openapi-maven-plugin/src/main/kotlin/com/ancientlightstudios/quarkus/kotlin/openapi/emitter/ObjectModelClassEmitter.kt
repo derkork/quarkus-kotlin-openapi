@@ -136,7 +136,7 @@ class ObjectModelClassEmitter(private val typeDefinition: ObjectTypeDefinition, 
                 } else {
                     emitterContext.runEmitter(
                         CombineIntoObjectStatementEmitter(
-                            "context".variableName(), typeDefinition.modelName, objectParts
+                            "context".variableName(), typeDefinition.modelName, listOf(), objectParts
                         )
                     ).resultStatement?.statement()
                 }

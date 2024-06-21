@@ -11,6 +11,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName
 class CombineIntoObjectStatementEmitter(
     private val context: KotlinExpression,
     private val containerClassName: ClassName,
+    private val plainPrefixParameterNames: List<VariableName>,
     private val parameterNames: List<VariableName>
 ) : CodeEmitter {
 
@@ -24,7 +25,8 @@ class CombineIntoObjectStatementEmitter(
     //
     // there is a cast expression for every input parameter in the ctor invocation
     override fun EmitterContext.emit() {
-        if (parameterNames.isEmpty()) {
+        // TODO:  eeds rework, this test might not work in all situation
+        if (plainPrefixParameterNames.isEmpty() && parameterNames.isEmpty()) {
             return
         }
 
@@ -34,7 +36,7 @@ class CombineIntoObjectStatementEmitter(
 
         val maybeParameters = listOf(context, *parameterNames.toTypedArray())
         resultStatement = InvocationExpression.invoke("maybeAllOf".rawMethodName(), maybeParameters) {
-            InvocationExpression.invoke(containerClassName.constructorName, parameterExpressions).statement()
+            InvocationExpression.invoke(containerClassName.constructorName, plainPrefixParameterNames + parameterExpressions).statement()
         }
     }
 }
