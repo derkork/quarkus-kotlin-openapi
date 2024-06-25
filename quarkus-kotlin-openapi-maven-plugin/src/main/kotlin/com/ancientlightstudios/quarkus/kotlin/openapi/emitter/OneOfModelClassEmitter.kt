@@ -113,7 +113,7 @@ class OneOfModelClassEmitter(private val typeDefinition: OneOfTypeDefinition, wi
                 SerializationStatementEmitter(option.typeUsage, serialization, ContentType.ApplicationJson)
             ).resultStatement
 
-            if (option.typeUsage.nullable) {
+            if (option.typeUsage.isNullable()) {
                 serialization =
                     serialization.nullFallback(Misc.NullNodeClass.companionObject().property("instance".variableName()))
             }

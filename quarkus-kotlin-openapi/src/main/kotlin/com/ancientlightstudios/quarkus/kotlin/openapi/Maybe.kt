@@ -100,7 +100,7 @@ inline fun <I, O> Maybe<I?>.mapNotNull(
     onNotNull {
         try {
             success(block(value))
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             failure(ValidationError(validationMessage, context))
         }
     }

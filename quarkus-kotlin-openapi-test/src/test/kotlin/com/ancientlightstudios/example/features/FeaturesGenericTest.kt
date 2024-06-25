@@ -163,4 +163,13 @@ class FeaturesGenericTest : ApiTestBase() {
             }
     }
 
+    @Test
+    fun `sending the wrong content type is rejected (Raw)`() {
+        prepareRequest()
+            .contentType("application/xml")
+            .post("features/generic/echo")
+            .execute()
+            .statusCode(415)
+    }
+
 }

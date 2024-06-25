@@ -85,15 +85,15 @@ class ClientResponseContainerEmitter(private val withTestSupport: Boolean) : Cod
                 "status".variableName(), Kotlin.IntClass.typeName(), accessModifier = null, override = true
             )
 
-            body?.let {
-                val type = it.content.typeUsage.buildValidType()
-                kotlinMember("safeBody".variableName(), type, accessModifier = null)
-            }
-
             headers.forEach {
                 kotlinMember(
                     it.parameterVariableName, it.content.typeUsage.buildValidType(), accessModifier = null
                 )
+            }
+
+            body?.let {
+                val type = it.content.typeUsage.buildValidType()
+                kotlinMember("safeBody".variableName(), type, accessModifier = null)
             }
         }
     }

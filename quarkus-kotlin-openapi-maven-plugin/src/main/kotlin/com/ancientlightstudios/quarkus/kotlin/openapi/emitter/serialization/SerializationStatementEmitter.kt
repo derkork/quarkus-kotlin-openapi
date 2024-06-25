@@ -2,6 +2,7 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.emitter.serialization
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeEmitter
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.EmitterContext
+import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.isNullable
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.InvocationExpression.Companion.invoke
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.rawMethodName
@@ -23,7 +24,7 @@ class SerializationStatementEmitter(
     //
     // e.g. if the base statement is just the variable name 'foo' it will produce 'foo?'
     override fun EmitterContext.emit() {
-        if (typeUsage.nullable) {
+        if (typeUsage.isNullable()) {
             resultStatement = resultStatement.nullCheck()
         }
 

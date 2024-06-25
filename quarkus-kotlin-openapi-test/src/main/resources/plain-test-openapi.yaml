@@ -50,6 +50,189 @@ paths:
         '400':
           $ref: '#/components/responses/OperationError400'
 
+  /features/plain/integerType:
+    post:
+      tags:
+        - plain
+      operationId: plainIntegerType
+      parameters:
+        - name: param
+          in: query
+          schema:
+            type: number
+            format: int32
+          required: true
+      requestBody:
+        content:
+          text/plain:
+            schema:
+              type: number
+              format: int32
+        required: true
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  parameterValue:
+                    type: number
+                    format: int32
+                  bodyValue:
+                    type: number
+                    format: int32
+                required:
+                  - parameterValue
+                  - bodyValue
+        '400':
+          $ref: '#/components/responses/OperationError400'
+
+  /features/plain/floatingType:
+    post:
+      tags:
+        - plain
+      operationId: plainFloatingType
+      parameters:
+        - name: param
+          in: query
+          schema:
+            type: number
+            format: float
+          required: true
+      requestBody:
+        content:
+          text/plain:
+            schema:
+              type: number
+              format: float
+        required: true
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  parameterValue:
+                    type: number
+                    format: float
+                  bodyValue:
+                    type: number
+                    format: float
+                required:
+                  - parameterValue
+                  - bodyValue
+        '400':
+          $ref: '#/components/responses/OperationError400'
+
+  /features/plain/booleanType:
+    post:
+      tags:
+        - plain
+      operationId: plainBooleanType
+      parameters:
+        - name: param
+          in: query
+          schema:
+            type: boolean
+          required: true
+      requestBody:
+        content:
+          text/plain:
+            schema:
+              type: boolean
+        required: true
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  parameterValue:
+                    type: boolean
+                  bodyValue:
+                    type: boolean
+                required:
+                  - parameterValue
+                  - bodyValue
+        '400':
+          $ref: '#/components/responses/OperationError400'
+
+  /features/plain/stringType:
+    post:
+      tags:
+        - plain
+      operationId: plainStringType
+      parameters:
+        - name: param
+          in: query
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          text/plain:
+            schema:
+              type: string
+        required: true
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  parameterValue:
+                    type: string
+                  bodyValue:
+                    type: string
+                required:
+                  - parameterValue
+                  - bodyValue
+        '400':
+          $ref: '#/components/responses/OperationError400'
+
+  /features/plain/enumType:
+    post:
+      tags:
+        - plain
+      operationId: plainEnumType
+      parameters:
+        - name: param
+          in: query
+          schema:
+            $ref: '#/components/schemas/PlainEnum'
+          required: true
+      requestBody:
+        content:
+          text/plain:
+            schema:
+              $ref: '#/components/schemas/PlainEnum'
+        required: true
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  parameterValue:
+                    $ref: '#/components/schemas/PlainEnum'
+                  bodyValue:
+                    $ref: '#/components/schemas/PlainEnum'
+                required:
+                  - parameterValue
+                  - bodyValue
+        '400':
+          $ref: '#/components/responses/OperationError400'
+
 components:
 
   schemas:

@@ -2,6 +2,7 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.emitter.deserialization
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeEmitter
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.EmitterContext
+import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.isNullable
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.InvocationExpression.Companion.invoke
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.companionMethod
@@ -34,7 +35,7 @@ class DeserializationStatementEmitter(
             is OneOfTypeDefinition -> emitForOneOfType(safeType, resultStatement)
         }
 
-        if (!typeUsage.nullable) {
+        if (!typeUsage.isNullable()) {
             resultStatement = resultStatement.wrap().invoke("required".rawMethodName())
         }
     }

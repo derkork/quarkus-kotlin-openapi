@@ -258,7 +258,7 @@ class ClientRestInterfaceEmitter : CodeEmitter {
         method.kotlinParameter(parameterName, typeUsage.buildValidType(), default)
 
         if (safeType is ObjectTypeDefinition) {
-            val statement = if (typeUsage.nullable) {
+            val statement = if (typeUsage.isNullable()) {
                 parameterName.nullCheck()
             } else {
                 parameterName
@@ -414,7 +414,7 @@ class ClientRestInterfaceEmitter : CodeEmitter {
     }
 
     private fun defaultParameterExpression(typeUsage: TypeUsage): KotlinExpression? {
-        return when (typeUsage.nullable) {
+        return when (typeUsage.isNullable()) {
             true -> nullLiteral()
             else -> null
         }

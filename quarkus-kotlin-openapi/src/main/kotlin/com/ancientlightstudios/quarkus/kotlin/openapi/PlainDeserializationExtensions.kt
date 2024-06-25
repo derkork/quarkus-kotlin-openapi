@@ -31,7 +31,13 @@ fun Maybe<String?>.asDouble(): Maybe<Double?> = this.mapNotNull("is not a double
 fun Maybe<String?>.asBigDecimal(): Maybe<BigDecimal?> = this.mapNotNull("is not a valid decimal") { it.toBigDecimal() }
 
 @Suppress("unused")
-fun Maybe<String?>.asBoolean(): Maybe<Boolean?> = this.mapNotNull("is not a boolean") { it.toBoolean() }
+fun Maybe<String?>.asBoolean(): Maybe<Boolean?> = this.mapNotNull("is not a boolean") { it.toBooleanStrict()
+    when(val value = it.lowercase()) {
+        "true" -> true
+        "false"-> false
+        else ->  throw IllegalArgumentException()
+    }
+}
 
 @Suppress("unused")
 fun Maybe<String?>.asByteArray(): Maybe<ByteArray?> = this.mapNotNull("is not a valid base64 encoded byte array") {
