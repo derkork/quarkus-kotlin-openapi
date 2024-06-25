@@ -1,5 +1,6 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.emitter.serialization
 
+import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.isNullable
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.Kotlin
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.GenericTypeName.Companion.of
@@ -15,10 +16,10 @@ object Serialization {
     // TODO: binary types
     fun TypeUsage.getSerializationTargetType(): TypeName {
         return when (val safeType = type) {
-            is CollectionTypeDefinition -> Kotlin.ListClass.typeName(nullable)
+            is CollectionTypeDefinition -> Kotlin.ListClass.typeName(isNullable())
                 .of(safeType.items.getSerializationTargetType())
 
-            else -> Kotlin.StringClass.typeName(nullable)
+            else -> Kotlin.StringClass.typeName(isNullable())
         }
     }
 

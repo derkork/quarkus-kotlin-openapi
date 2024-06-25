@@ -1,0 +1,145 @@
+openapi: 3.1.0
+info:
+  title: Test-Suit
+  version: 1.0.0
+  description: fragment of the overall test suit
+
+paths:
+  /features/oneOf/withoutDiscriminator:
+    post:
+      tags:
+        - oneOf
+      operationId: oneOfWithoutDiscriminator
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OneOfWithoutDiscriminator'
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OneOfWithoutDiscriminator'
+        '400':
+          $ref: '#/components/responses/OperationError400'
+
+  /features/oneOf/withDiscriminator:
+    post:
+      tags:
+        - oneOf
+      operationId: oneOfWithDiscriminator
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OneOfWithDiscriminator'
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OneOfWithDiscriminator'
+        '400':
+          $ref: '#/components/responses/OperationError400'
+
+  /features/oneOf/withDiscriminatorAndMapping:
+    post:
+      tags:
+        - oneOf
+      operationId: oneOfWithDiscriminatorAndMapping
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OneOfWithDiscriminatorAndMapping'
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OneOfWithDiscriminatorAndMapping'
+        '400':
+          $ref: '#/components/responses/OperationError400'
+
+
+components:
+
+  schemas:
+    OneOfWithoutDiscriminator:
+      oneOf:
+        - $ref: '#/components/schemas/Book'
+        - $ref: '#/components/schemas/Song'
+          type:
+            - 'null'
+          x-container-model-name: OneOfWithoutDiscriminatorSong
+
+    OneOfWithDiscriminator:
+      oneOf:
+        - $ref: '#/components/schemas/Book'
+        - $ref: '#/components/schemas/Song'
+      discriminator:
+        propertyName: kind
+
+    OneOfWithDiscriminatorAndMapping:
+      oneOf:
+        - $ref: '#/components/schemas/Book'
+        - $ref: '#/components/schemas/Song'
+      discriminator:
+        propertyName: kind
+        mapping:
+          booooook: '#/components/schemas/Book'
+
+    Book:
+      type: object
+      properties:
+        title:
+          type: string
+        pages:
+          type: number
+          format: int32
+        kind:
+          type: string
+      required:
+        - title
+        - pages
+        - kind
+
+    Song:
+      type: object
+      properties:
+        title:
+          type: string
+        duration:
+          type: number
+          format: int32
+        kind:
+          type: string
+      required:
+        - title
+        - duration
+        - kind
+
+    OperationError:
+      type: object
+      properties:
+        messages:
+          type: array
+          items:
+            type: string
+      required:
+        - messages
+
+  responses:
+    OperationError400:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/OperationError'

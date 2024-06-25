@@ -12,7 +12,7 @@
     <parent>
         <groupId>com.ancientlightstudios</groupId>
         <artifactId>quarkus-kotlin-openapi-root</artifactId>
-        <version>0.2.3</version>
+        <version>0.2.4</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -134,10 +134,13 @@
                         <typeMapping>string:date-time=java.time:Instant</typeMapping>
                     </typeMappings>
                     <sources>
+                        <source>${project.basedir}/src/main/resources/form-test-openapi.yaml</source>
                         <source>${project.basedir}/src/main/resources/generic-test-openapi.yaml</source>
-                        <source>${project.basedir}/src/main/resources/validation-test-openapi.yaml</source>
+                        <source>${project.basedir}/src/main/resources/json-test-openapi.yaml</source>
+                        <source>${project.basedir}/src/main/resources/oneof-test-openapi.yaml</source>
                         <source>${project.basedir}/src/main/resources/parameter-test-openapi.yaml</source>
                         <source>${project.basedir}/src/main/resources/plain-test-openapi.yaml</source>
+                        <source>${project.basedir}/src/main/resources/validation-test-openapi.yaml</source>
                     </sources>
                     <additionalImports>
                         <additionalImport>com.ancientlightstudios.example.custom:*</additionalImport>

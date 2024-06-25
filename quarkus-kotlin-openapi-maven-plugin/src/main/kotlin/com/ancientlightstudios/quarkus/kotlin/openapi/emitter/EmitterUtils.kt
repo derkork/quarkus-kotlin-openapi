@@ -41,14 +41,14 @@ fun getSourceAnnotation(source: ParameterKind, name: String): KotlinAnnotation {
     return KotlinAnnotation(annotationClass, null to name.literal())
 }
 
-fun TypeUsage.buildValidType(forceNullable: Boolean = false): TypeName {
+fun TypeUsage.buildValidType(): TypeName {
     return when (val safeType = this.type) {
-        is PrimitiveTypeDefinition -> safeType.baseType.typeName(forceNullable || nullable)
-        is EnumTypeDefinition -> safeType.modelName.typeName(forceNullable || nullable)
-        is ObjectTypeDefinition -> safeType.modelName.typeName(forceNullable || nullable)
-        is OneOfTypeDefinition -> safeType.modelName.typeName(forceNullable || nullable)
-        is CollectionTypeDefinition -> Kotlin.ListClass.typeName(forceNullable || nullable)
-            .of(safeType.items.buildValidType(forceNullable))
+        is PrimitiveTypeDefinition -> safeType.baseType.typeName(isNullable())
+        is EnumTypeDefinition -> safeType.modelName.typeName(isNullable())
+        is ObjectTypeDefinition -> safeType.modelName.typeName(isNullable())
+        is OneOfTypeDefinition -> safeType.modelName.typeName(isNullable())
+        is CollectionTypeDefinition -> Kotlin.ListClass.typeName(isNullable())
+            .of(safeType.items.buildValidType())
     }
 }
 
@@ -63,3 +63,22 @@ fun TypeUsage.buildUnsafeJsonType(): TypeName {
     }
 }
 
+fun TypeUsage.isNullable() : Boolean {
+    if (required && !type.nullable) {
+        // null values are just not allowed
+        return false
+    }
+
+    val hasDefault = when(val safeType = type) {
+        is PrimitiveTypeDefinition -> safeType.defaultValue != null
+        is EnumTypeDefinition -> safeType.defaultValue != null
+        else -> false
+    }
+
+    if (hasDefault) {
+        // if there is a default value set, this type never accepts null values
+        return false
+    }
+    
+    return type.nullable || !required
+}

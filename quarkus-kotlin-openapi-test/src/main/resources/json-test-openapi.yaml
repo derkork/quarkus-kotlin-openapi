@@ -1,0 +1,108 @@
+openapi: 3.1.0
+info:
+  title: Test-Suit
+  version: 1.0.0
+  description: fragment of the overall test suit
+
+paths:
+  /features/json/optional/object:
+    post:
+      tags:
+        - json
+      operationId: jsonOptionalObject
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SimpleObjectOptional'
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimpleObjectOptional'
+        '400':
+          $ref: '#/components/responses/OperationError400'
+
+  /features/json/required/object:
+    post:
+      tags:
+        - json
+      operationId: jsonRequiredObject
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SimpleObject'
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimpleObject'
+        '400':
+          $ref: '#/components/responses/OperationError400'
+
+components:
+  schemas:
+    JsonEnum:
+      type: string
+      enum:
+        - first
+        - second
+      x-enum-item-names:
+        first: TheFirst
+
+    SimpleObject:
+      type: object
+      properties:
+        nameOptional:
+          type: string
+          default: 'i am optional'
+        nameRequired:
+          type: string
+          default: 'i am required'
+        statusOptional:
+          $ref: '#/components/schemas/JsonEnum'
+        statusRequired:
+          $ref: '#/components/schemas/JsonEnum'
+        itemsOptional:
+          type: array
+          items:
+            type: number
+            format: int32
+        itemsRequired:
+          type: array
+          items:
+            type: number
+            format: int32
+      required:
+        - nameRequired
+        - statusRequired
+        - itemsRequired
+
+    SimpleObjectOptional:
+      $ref: '#/components/schemas/SimpleObject'
+      type:
+        - 'null'
+
+    OperationError:
+      type: object
+      properties:
+        messages:
+          type: array
+          items:
+            type: string
+      required:
+        - messages
+
+  responses:
+    OperationError400:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/OperationError'

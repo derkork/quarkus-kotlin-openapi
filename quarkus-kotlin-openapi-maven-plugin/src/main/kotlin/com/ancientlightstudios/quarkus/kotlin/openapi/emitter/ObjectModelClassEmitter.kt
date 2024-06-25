@@ -157,7 +157,7 @@ class ObjectModelClassEmitter(private val typeDefinition: ObjectTypeDefinition, 
         }
 
         // if there is a default expression defined, use it. Otherwise, use the null expression, if null is allowed or the fallback
-        return declaredDefaultValue ?: if (typeUsage.nullable) nullLiteral() else fallback
+        return declaredDefaultValue ?: if (typeUsage.isNullable()) nullLiteral() else fallback
     }
 
     private fun KotlinCompanion.generateUnsafeMethods(serializationDirection: Direction) {

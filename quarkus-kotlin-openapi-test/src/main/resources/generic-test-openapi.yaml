@@ -77,6 +77,68 @@ paths:
         400:
           $ref: '#/components/responses/OperationError400'
 
+  /features/misc/objectExtensionTest:
+    get:
+      tags:
+        - generic
+      operationId: objectExtensionTest
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseObjectExtension'
+        '500':
+          description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseObject'
+
+  /features/split/test1:
+    post:
+      tags:
+        - generic
+      operationId: splitTest1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IndirectSplit'
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IndirectSplit'
+        '400':
+          $ref: '#/components/responses/OperationError400'
+
+  /features/split/test2:
+    post:
+      tags:
+        - generic
+      operationId: splitTest2
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WriteOnlyObject'
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadOnlyObject'
+        '400':
+          $ref: '#/components/responses/OperationError400'
+
+
 components:
 
   schemas:
@@ -101,6 +163,63 @@ components:
           type: string
       required:
         - message
+
+    BaseObject:
+      properties:
+        prop1:
+          type: string
+        prop2:
+          type: string
+      required:
+        - prop1
+
+    BaseObjectExtension:
+      $ref: '#/components/schemas/BaseObject'
+      required:
+        - prop2
+
+    ReadOnlyType:
+      type: string
+      readOnly: true
+
+    ObjectWithReadOnlyProperty:
+      type: object
+      properties:
+        readOnlyProperty:
+          $ref: '#/components/schemas/ReadOnlyType'
+        normalProperty:
+          type: string
+      required:
+        - readOnlyProperty
+        - normalProperty
+
+    IndirectSplit:
+      type: 'null'
+      $ref: '#/components/schemas/ObjectWithReadOnlyProperty'
+
+    ReadOnlyObject:
+      type: object
+      properties:
+        readOnlyProperty:
+          type: string
+          readOnly: true
+        normalProperty:
+          type: string
+      required:
+        - readOnlyProperty
+        - normalProperty
+
+    WriteOnlyObject:
+      type: object
+      properties:
+        writeOnlyProperty:
+          type: string
+          writeOnly: true
+        normalProperty:
+          type: string
+      required:
+        - writeOnlyProperty
+        - normalProperty
 
     OperationError:
       type: object

@@ -91,7 +91,7 @@ class TestClientRequestBuilderEmitter : CodeEmitter {
                                 .assignment(requestSpecificationVariable)
                         }
 
-                        if (parameter.content.typeUsage.nullable) {
+                        if (parameter.content.typeUsage.isNullable()) {
                             "value".variableName().nullCheck().invoke("let".methodName()) {
                                 builder()
                             }.statement()
@@ -181,7 +181,7 @@ class TestClientRequestBuilderEmitter : CodeEmitter {
 
             val safeType = typeUsage.type
             if (safeType is ObjectTypeDefinition) {
-                val baseStatement = if (typeUsage.nullable) {
+                val baseStatement = if (typeUsage.isNullable()) {
                     "value".variableName().nullCheck()
                 } else {
                     "value".variableName()
