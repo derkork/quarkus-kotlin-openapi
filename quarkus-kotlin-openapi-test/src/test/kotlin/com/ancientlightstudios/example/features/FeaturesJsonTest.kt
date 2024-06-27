@@ -55,7 +55,7 @@ class FeaturesJsonTest : ApiTestBase() {
             .post("/features/json/optional/object")
             .execute()
             .statusCode(200)
-            .body(equalTo("null"))
+            .body(equalTo(""))
     }
 
     @Test
@@ -75,7 +75,7 @@ class FeaturesJsonTest : ApiTestBase() {
             .post("/features/json/optional/object")
             .execute()
             .statusCode(200)
-            .body(equalTo("null"))
+            .body(equalTo(""))
     }
 
     @Test

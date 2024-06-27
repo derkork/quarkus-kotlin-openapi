@@ -109,7 +109,6 @@ class TestClientRequestBuilderEmitter : CodeEmitter {
     }
 
     private fun TransformableBody.emitBodyMethods(clazz: KotlinClass, requestSpecificationVariable: VariableName) {
-        // TODO: support more than just json
         when (content.mappedContentType) {
             ContentType.ApplicationJson -> emitJsonBodyMethod(clazz, requestSpecificationVariable)
             ContentType.TextPlain -> emitPlainBodyMethod(clazz, requestSpecificationVariable)
@@ -131,7 +130,7 @@ class TestClientRequestBuilderEmitter : CodeEmitter {
                 .invoke("contentType".methodName(), content.rawContentType.literal())
                 .invoke(
                     "body".methodName(),
-                    "objectMapper".variableName().invoke("writeValueAsString".rawMethodName(), bodyStatement)
+                    bodyStatement.invoke("asString".methodName(), "objectMapper".variableName())
                 )
                 .assignment(requestSpecificationVariable)
         }
@@ -148,7 +147,7 @@ class TestClientRequestBuilderEmitter : CodeEmitter {
                     .invoke("contentType".methodName(), content.rawContentType.literal())
                     .invoke(
                         "body".methodName(),
-                        "objectMapper".variableName().invoke("writeValueAsString".rawMethodName(), bodyStatement)
+                        bodyStatement.invoke("asString".methodName(), "objectMapper".variableName())
                     )
                     .assignment(requestSpecificationVariable)
             }
@@ -211,10 +210,5 @@ class TestClientRequestBuilderEmitter : CodeEmitter {
             statement.assignment(requestSpecificationVariable)
         }
     }
-
-    /*
-fun body(value: UnsafeJson<SimpleForm>) {
-}
-*/
 
 }
