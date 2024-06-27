@@ -60,8 +60,10 @@ components:
       type: object
       properties:
         nameOptional:
-          type: string
-          default: 'i am optional'
+          description: "this allOf should be stripped out by a refactoring"
+          allOf:
+            - type: string
+              default: 'i am optional'
         nameRequired:
           type: string
           default: 'i am required'

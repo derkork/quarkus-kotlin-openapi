@@ -1,13 +1,20 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi
 
 import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.JsonNodeFactory
+import com.fasterxml.jackson.databind.node.NullNode
 import com.fasterxml.jackson.databind.node.ObjectNode
 import java.math.BigDecimal
 import java.math.BigInteger
 
 
 private val factory = JsonNodeFactory.instance
+
+fun JsonNode?.asString(objectMapper: ObjectMapper) : String = when(this) {
+    null, is NullNode -> ""
+    else -> objectMapper.writeValueAsString(this)
+}
 
 fun String.asJson(): JsonNode = factory.textNode(this)
 

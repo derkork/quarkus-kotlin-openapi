@@ -23,7 +23,7 @@ class FeaturesPlainTest : ApiTestBase() {
     val testClient: FeaturesPlainTestClient
         get() = FeaturesPlainTestClient(objectMapper) { prepareRequest() }
 
-    // @Test
+    @Test
     fun `empty parameter and empty response is supported (Client)`() {
         runBlocking {
             val response = client.plainEnumParameter()
@@ -35,7 +35,7 @@ class FeaturesPlainTest : ApiTestBase() {
         }
     }
 
-    // @Test
+    @Test
     fun `empty parameter and empty response is supported (Test-Client)`() {
         testClient.plainEnumParameterSafe(null)
             .isOkResponse {
@@ -43,17 +43,17 @@ class FeaturesPlainTest : ApiTestBase() {
             }
     }
 
-    // @Test
+    @Test
     fun `empty parameter and empty response is supported (Raw)`() {
         prepareRequest()
             .get("/features/plain/plainEnumParameter")
             .execute()
             .statusCode(200)
-            .body(equalTo(null))
+            .body(equalTo(""))
     }
 
 
-    // @Test
+    @Test
     fun `empty request is supported (Client)`() {
         runBlocking {
             val response = client.plainEnumBody()
@@ -65,22 +65,25 @@ class FeaturesPlainTest : ApiTestBase() {
         }
     }
 
-    // @Test
+    @Test
     fun `empty request is supported (Test-Client)`() {
-        testClient.plainEnumBodySafe(null)
+        // TODO: can be replaced with the save/unsafe method, if we only set the body if it is not null
+        testClient.plainEnumBodyRaw {
+            contentType("text/plain")
+        }
             .isOkResponse {
                 assertThat(safeBody).isNull()
             }
     }
 
-    // @Test
+    @Test
     fun `empty request is supported (Raw)`() {
         prepareRequest()
             .contentType("text/plain")
             .post("/features/plain/plainEnumBody")
             .execute()
             .statusCode(200)
-            .body(equalTo(null))
+            .body(equalTo(""))
     }
 
     @ParameterizedTest

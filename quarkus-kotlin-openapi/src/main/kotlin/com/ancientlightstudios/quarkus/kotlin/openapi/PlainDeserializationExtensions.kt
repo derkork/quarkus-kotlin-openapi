@@ -5,6 +5,15 @@ import java.math.BigInteger
 import java.util.*
 
 @Suppress("unused")
+fun Maybe<String?>.emptyStringAsNull(): Maybe<String?> = onNotNull {
+    if (value.isEmpty()) {
+        success(null)
+    } else {
+        this@emptyStringAsNull
+    }
+}
+
+@Suppress("unused")
 fun Maybe<String?>.asString(): Maybe<String?> = this
 
 @Suppress("unused")
@@ -31,11 +40,12 @@ fun Maybe<String?>.asDouble(): Maybe<Double?> = this.mapNotNull("is not a double
 fun Maybe<String?>.asBigDecimal(): Maybe<BigDecimal?> = this.mapNotNull("is not a valid decimal") { it.toBigDecimal() }
 
 @Suppress("unused")
-fun Maybe<String?>.asBoolean(): Maybe<Boolean?> = this.mapNotNull("is not a boolean") { it.toBooleanStrict()
-    when(val value = it.lowercase()) {
+fun Maybe<String?>.asBoolean(): Maybe<Boolean?> = this.mapNotNull("is not a boolean") {
+    it.toBooleanStrict()
+    when (val value = it.lowercase()) {
         "true" -> true
-        "false"-> false
-        else ->  throw IllegalArgumentException()
+        "false" -> false
+        else -> throw IllegalArgumentException()
     }
 }
 

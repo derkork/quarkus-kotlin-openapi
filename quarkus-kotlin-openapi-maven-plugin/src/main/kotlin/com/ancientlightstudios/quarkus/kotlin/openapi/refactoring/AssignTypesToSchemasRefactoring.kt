@@ -1,11 +1,15 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.refactoring
 
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.OriginPathHint.originPath
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeDefinitionHint.hasTypeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.TypeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.TypeUsage
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
+import org.slf4j.LoggerFactory
 
 class AssignTypesToSchemasRefactoring(private val typeMapper: TypeMapper) : SpecRefactoring {
+
+    private val log = LoggerFactory.getLogger(AssignTypesToSchemasRefactoring::class.java)
 
     override fun RefactoringContext.perform() {
         // this can be used by the nested type creators to finalize the type usages once all types are created
@@ -28,6 +32,11 @@ class AssignTypesToSchemasRefactoring(private val typeMapper: TypeMapper) : Spec
             // everything which was not yet mapped, for the next loop
             tasks = spec.schemas.filterNot { it.hasTypeDefinition }.toMutableSet()
             if (sizeBefore <= tasks.size) {
+                log.warn("the following schemas can't be converted into types")
+                tasks.forEach {
+                    log.warn("- ${it.originPath}")
+                }
+
                 ProbableBug("endless loop detected while converting schemas into types")
             }
         }

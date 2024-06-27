@@ -69,7 +69,14 @@ class DeserializationStatementEmitter(
         typeDefinition: EnumTypeDefinition, baseStatement: KotlinExpression
     ): KotlinExpression {
         val methodName = typeDefinition.modelName.companionMethod("as ${typeDefinition.modelName.value}")
-        var result = baseStatement.invoke(methodName)
+
+        var result = if (contentType == ContentType.TextPlain) {
+            baseStatement.invoke("emptyStringAsNull".methodName())
+        } else {
+            baseStatement
+        }
+
+        result = result.invoke(methodName)
         result = runEmitter(ValidationStatementEmitter(typeDefinition, result)).resultStatement
         result = runEmitter(DefaultValueStatementEmitter(typeDefinition.defaultExpression(), result)).resultStatement
         return result

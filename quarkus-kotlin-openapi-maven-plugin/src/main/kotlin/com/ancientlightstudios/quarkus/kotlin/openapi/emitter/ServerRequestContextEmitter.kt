@@ -152,7 +152,7 @@ class ServerRequestContextEmitter : CodeEmitter {
             ).resultStatement
 
             if (body.content.mappedContentType == ContentType.ApplicationJson) {
-                bodyExpression = "objectMapper".variableName().invoke("writeValueAsString".methodName(), bodyExpression)
+                bodyExpression = bodyExpression.invoke("asString".methodName(), "objectMapper".variableName())
             }
 
             mediaTypeExpression = body.content.rawContentType.literal()

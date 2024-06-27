@@ -16,6 +16,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ResponseConta
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeUsageHint.typeUsage
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.InvocationExpression.Companion.invoke
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.methodName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.rawMethodName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.NullCheckExpression.Companion.nullCheck
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.PropertyExpression.Companion.property
@@ -196,8 +197,7 @@ class ClientRestInterfaceEmitter : CodeEmitter {
 
         // TODO: it's now almost the same as for the body. re-use stuff
         return when (parameter.content.mappedContentType) {
-            ContentType.ApplicationJson -> "objectMapper".variableName()
-                .invoke("writeValueAsString".rawMethodName(), statement)
+            ContentType.ApplicationJson -> statement.invoke("asString".methodName(), "objectMapper".variableName())
 
             else -> statement
         }.declaration(parameterName.extend(postfix = "Payload"))
@@ -225,8 +225,7 @@ class ClientRestInterfaceEmitter : CodeEmitter {
             SerializationStatementEmitter(typeUsage, parameterName, body.content.mappedContentType)
         ).resultStatement
 
-        return "objectMapper".variableName()
-            .invoke("writeValueAsString".rawMethodName(), jsonNode)
+        return jsonNode.invoke("asString".methodName(), "objectMapper".variableName())
             .declaration(parameterName.extend(postfix = "Payload"))
     }
 
@@ -336,10 +335,20 @@ class ClientRestInterfaceEmitter : CodeEmitter {
             if (body != null) {
                 // TODO: we probably need different target types here (e.g. for binary)
                 // produces
-                // response.readEntity(String::class.java)
-                val entity = "response".variableName()
-                    .invoke("readEntity".rawMethodName(), Kotlin.StringClass.javaClass())
-                    .declaration("entity".variableName())
+                // val entity = when(response.hasEntity()) {
+                //     true -> response.readEntity(String::class.java)
+                //     false-> null
+                // }
+                val entity = whenExpression("response".variableName().invoke("hasEntity".methodName())) {
+                    optionBlock(true.literal()) {
+                        "response".variableName()
+                            .invoke("readEntity".rawMethodName(), Kotlin.StringClass.javaClass())
+                            .statement()
+                    }    
+                    optionBlock(false.literal()) {
+                        nullLiteral().statement()
+                    }
+                }.declaration("entity".variableName())
 
                 val statement = invoke(Library.MaybeSuccessClass.constructorName, "response.body".literal(), entity)
 

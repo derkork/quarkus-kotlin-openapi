@@ -238,7 +238,7 @@ class FeaturesOneOfTest : ApiTestBase() {
             }
     }
 
-    // @Test
+    @Test
     fun `sending null as option2 is accepted by endpoint without discriminator (Raw)`() {
         prepareRequest()
             .contentType("application/json")
