@@ -10,7 +10,8 @@ class KotlinMethod(
     private val receiverType: TypeName? = null,
     private val bodyAsAssignment: Boolean = false,
     private val accessModifier: KotlinAccessModifier? = null,
-    private val override: Boolean = false
+    private val override: Boolean = false,
+    private val genericParameter: List<TypeName> = emptyList()
 ) : KotlinRenderable, AnnotationAware, ParameterAware, StatementAware, CommentAware {
 
     private val annotations = KotlinAnnotationContainer()
@@ -60,6 +61,12 @@ class KotlinMethod(
         }
 
         write("fun ")
+
+        if (genericParameter.isNotEmpty()) {
+            val parameterList = genericParameter.joinToString(", ", prefix = "<", postfix = ">") { it.value }
+            write("$parameterList ")
+        }
+
         if (receiverType != null) {
             write("${receiverType.value}.")
         }
@@ -104,10 +111,12 @@ fun MethodAware.kotlinMethod(
     bodyAsAssignment: Boolean = false,
     accessModifier: KotlinAccessModifier? = null,
     override: Boolean = false,
+    genericParameter: List<TypeName> = emptyList(),
     block: KotlinMethod.() -> Unit = {}
 ) {
-    val content =
-        KotlinMethod(name, suspend, returnType, receiverType, bodyAsAssignment, accessModifier, override).apply(block)
+    val content = KotlinMethod(
+        name, suspend, returnType, receiverType, bodyAsAssignment, accessModifier, override, genericParameter
+    ).apply(block)
     addMethod(content)
 
 }

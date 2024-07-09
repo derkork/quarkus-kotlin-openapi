@@ -6,6 +6,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ClientHttpRes
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ResponseContainerClassNameHint.responseContainerClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ResponseValidatorClassNameHint.responseValidatorClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName.Companion.rawClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.InvocationExpression.Companion.invoke
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.methodName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.PropertyExpression.Companion.property
@@ -43,6 +44,7 @@ class TestClientResponseValidatorEmitter : CodeEmitter {
                 type = Kotlin.ByteArrayOutputStreamClass.typeName(),
             )
 
+            emitVerifyResponseMethod(request)
             emitGenericValidationMethod(request)
 
             responses {
@@ -56,11 +58,12 @@ class TestClientResponseValidatorEmitter : CodeEmitter {
         }
     }
 
-    private fun KotlinClass.emitGenericValidationMethod(request: TransformableRequest) {
-        kotlinMethod("responseSatisfies".methodName(), bodyAsAssignment = true) {
+    private fun KotlinClass.emitVerifyResponseMethod(request: TransformableRequest) {
+        val tType = "T".rawClassName("", true).typeName()
+        kotlinMethod("verifyResponse".methodName(), bodyAsAssignment = true, returnType = tType, genericParameter = listOf(tType)) {
             kotlinParameter(
                 "block".variableName(),
-                TypeName.DelegateTypeName(request.responseContainerClassName.typeName(), emptyList(), Kotlin.UnitType)
+                TypeName.DelegateTypeName(request.responseContainerClassName.typeName(), emptyList(), tType)
             )
 
             // produces
@@ -80,6 +83,20 @@ class TestClientResponseValidatorEmitter : CodeEmitter {
         }
     }
 
+    private fun KotlinClass.emitGenericValidationMethod(request: TransformableRequest) {
+        kotlinMethod("responseSatisfies".methodName(), bodyAsAssignment = true) {
+            kotlinParameter(
+                "block".variableName(),
+                TypeName.DelegateTypeName(request.responseContainerClassName.typeName(), emptyList(), Kotlin.UnitType)
+            )
+
+            // produces
+            // verifyResponse(block)
+            invoke("verifyResponse".methodName(), "block".variableName())
+                .statement()
+        }
+    }
+
     private fun KotlinClass.emitResponseValidationMethod(request: TransformableRequest, reason: String) {
         val responseClass = request.clientHttpResponseClassName.nested(reason)
 
@@ -90,17 +107,17 @@ class TestClientResponseValidatorEmitter : CodeEmitter {
             )
 
             // produces
-            // responseSatisfies {
+            // verifyResponse {
             //     when(response) {
             //         ...
             //     }
             // }
-            invoke("responseSatisfies".methodName()) {
+            invoke("verifyResponse".methodName()) {
                 whenExpression("response".variableName()) {
                     // produces
                     // is <responseClass> -> response.block()
                     optionBlock(AssignableExpression.assignable(responseClass)) {
-                        "response".variableName().invoke("block".methodName()).statement()
+                        "response".variableName().invoke("apply".methodName(), "block".variableName()).statement()
                     }
 
                     // produces
