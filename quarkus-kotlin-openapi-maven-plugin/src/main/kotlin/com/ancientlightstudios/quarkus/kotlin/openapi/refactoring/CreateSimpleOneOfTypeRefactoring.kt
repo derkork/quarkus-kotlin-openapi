@@ -6,6 +6,11 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName.Co
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchema
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.*
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.BaseSchemaComponent.Companion.baseSchemaComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.ContainerModelNameComponent.Companion.containerModelNameComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.NullableComponent.Companion.nullableComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.SchemaModifierComponent.Companion.schemaModifierComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.ValidationComponent.Companion.validationComponents
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.*
 
 class CreateSimpleOneOfTypeRefactoring(
@@ -15,9 +20,9 @@ class CreateSimpleOneOfTypeRefactoring(
 ) : SpecRefactoring {
 
     override fun RefactoringContext.perform() {
-        val nullable = schema.getComponent<NullableComponent>()?.nullable
-        val modifier = schema.getComponent<SchemaModifierComponent>()?.modifier
-        val validations = schema.getComponents<ValidationComponent>().map { it.validation }
+        val nullable = schema.nullableComponent()?.nullable
+        val modifier = schema.schemaModifierComponent()?.modifier
+        val validations = schema.validationComponents().map { it.validation }
 
         val discriminator = oneOf.discriminator
 
@@ -30,7 +35,7 @@ class CreateSimpleOneOfTypeRefactoring(
             typeResolver.schedule(usage) { optionSchema.typeDefinition }
 
             // generate a generic container name unless one was specified
-            val containerName = when(val name = schemaUsage.schema.getComponent<ContainerModelNameComponent>()) {
+            val containerName = when(val name = schemaUsage.schema.containerModelNameComponent()) {
                 null ->typeName.extend(postfix = schemaUsage.schema.name)
                 else -> name.value.className(modelPackage)
             }
@@ -52,7 +57,7 @@ class CreateSimpleOneOfTypeRefactoring(
     private fun getAliases(optionSchema: TransformableSchema, discriminator: OneOfDiscriminator?) : List<String> {
         // TODO: little hack for now
         return if (discriminator != null) {
-            val originPath = when(val baseSchema = optionSchema.getComponent<BaseSchemaComponent>()) {
+            val originPath = when(val baseSchema = optionSchema.baseSchemaComponent()) {
                 null -> optionSchema.originPath
                 else -> baseSchema.schema.originPath
             }

@@ -7,6 +7,11 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.Schem
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.SchemaTypes
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchema
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.*
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.ArrayItemsComponent.Companion.arrayItemsComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.NullableComponent.Companion.nullableComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.SchemaModifierComponent.Companion.schemaModifierComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.TypeComponent.Companion.typeComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.ValidationComponent.Companion.validationComponents
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
 
@@ -19,10 +24,10 @@ class CreateSimpleCollectionTypeRefactoring(
 
     @Suppress("DuplicatedCode")
     override fun RefactoringContext.perform() {
-        val type = schema.getComponent<TypeComponent>()?.type
-        val nullable = schema.getComponent<NullableComponent>()?.nullable
-        val modifier = schema.getComponent<SchemaModifierComponent>()?.modifier
-        val validations = schema.getComponents<ValidationComponent>().map { it.validation }
+        val type = schema.typeComponent()?.type
+        val nullable = schema.nullableComponent()?.nullable
+        val modifier = schema.schemaModifierComponent()?.modifier
+        val validations = schema.validationComponents().map { it.validation }
 
         val typeDefinition = when (parentType) {
             null -> createNewType(type, nullable, modifier, validations)
@@ -42,7 +47,7 @@ class CreateSimpleCollectionTypeRefactoring(
             ProbableBug("Incompatible type $type for a collection type")
         }
 
-        val items = schema.getComponent<ArrayItemsComponent>()?.schema
+        val items = schema.arrayItemsComponent()?.schema
             ?: ProbableBug("Array schema without item schema. Found in ${schema.originPath}")
 
         // by default array items are always required. But it's still possible to define the schema as nullable
@@ -68,7 +73,7 @@ class CreateSimpleCollectionTypeRefactoring(
             ProbableBug("Incompatible type $type for a collection type")
         }
 
-        if (schema.getComponent<ArrayItemsComponent>()?.schema != null) {
+        if (schema.arrayItemsComponent()?.schema != null) {
             ProbableBug("Redefining the schema of array items is not allowed. Found in ${schema.originPath}")
         }
 

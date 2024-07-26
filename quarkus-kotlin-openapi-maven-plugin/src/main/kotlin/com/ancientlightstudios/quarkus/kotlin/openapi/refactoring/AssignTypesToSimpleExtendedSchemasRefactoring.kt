@@ -4,6 +4,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeDefinitio
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeDefinitionHint.typeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchema
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.BaseSchemaComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.BaseSchemaComponent.Companion.baseSchemaComponent
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.SomeOfComponent
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
@@ -23,7 +24,7 @@ class AssignTypesToSimpleExtendedSchemasRefactoring(
         @Suppress("UNCHECKED_CAST")
         val candidates = tasks
             .filter { schema -> schema.components.none { it is SomeOfComponent } }
-            .map { it to it.getComponent<BaseSchemaComponent>() }
+            .map { it to it.baseSchemaComponent() }
             .filter { it.second != null }
             .filter { it.second!!.schema.hasTypeDefinition }
                 as List<Pair<TransformableSchema, BaseSchemaComponent>>

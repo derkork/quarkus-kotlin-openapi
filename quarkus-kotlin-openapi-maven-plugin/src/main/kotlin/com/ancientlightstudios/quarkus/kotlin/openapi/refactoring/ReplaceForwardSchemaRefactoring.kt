@@ -2,6 +2,7 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.refactoring
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.inspect
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.BaseSchemaComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.BaseSchemaComponent.Companion.baseSchemaComponent
 
 // if a schema only contains a BaseSchemaComponent, we can replace it with the inner schema
 class ReplaceForwardSchemaRefactoring : SpecRefactoring {
@@ -14,7 +15,7 @@ class ReplaceForwardSchemaRefactoring : SpecRefactoring {
                     return@schemas
                 }
 
-                val base = schema.getComponent<BaseSchemaComponent>() ?: return@schemas
+                val base = schema.baseSchemaComponent() ?: return@schemas
                 performRefactoring(SwapSchemaRefactoring(schema, base.schema))
                 performRefactoring(DeleteSchemaRefactoring(schema))
             }
