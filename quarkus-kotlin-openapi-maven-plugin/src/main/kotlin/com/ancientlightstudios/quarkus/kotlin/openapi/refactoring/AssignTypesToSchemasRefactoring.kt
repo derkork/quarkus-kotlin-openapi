@@ -18,12 +18,13 @@ class AssignTypesToSchemasRefactoring(private val typeMapper: TypeMapper) : Spec
         // just take everything as the starting set
         var tasks = spec.schemas.toMutableSet()
 
+        // handle all definitions without a base definition or *Of component
+        performRefactoring(AssignTypesToSimpleSchemasRefactoring(tasks, typeMapper, typeResolver))
+
         // while we have work left
         while (tasks.isNotEmpty()) {
             val sizeBefore = tasks.size
 
-            // handle all definitions without a base definition or *Of component
-            performRefactoring(AssignTypesToSimpleSchemasRefactoring(tasks, typeMapper, typeResolver))
             // handle all definitions with just a base definition
             performRefactoring(AssignTypesToSimpleExtendedSchemasRefactoring(tasks, typeMapper, typeResolver))
 

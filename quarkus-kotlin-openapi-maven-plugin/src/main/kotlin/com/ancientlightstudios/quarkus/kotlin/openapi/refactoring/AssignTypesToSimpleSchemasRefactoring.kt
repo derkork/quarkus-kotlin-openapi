@@ -4,6 +4,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.Schem
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchema
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.ReferencingComponent
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.TypeComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.TypeComponent.Companion.typeComponent
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.TypeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.TypeUsage
 
@@ -26,7 +27,7 @@ class AssignTypesToSimpleSchemasRefactoring(
 
         // now transform each of them
         candidates.forEach { definition ->
-            val type = definition.getComponent<TypeComponent>()?.type ?: SchemaTypes.Object
+            val type = definition.typeComponent()?.type ?: SchemaTypes.Object
 
             when (type) {
                 SchemaTypes.String,

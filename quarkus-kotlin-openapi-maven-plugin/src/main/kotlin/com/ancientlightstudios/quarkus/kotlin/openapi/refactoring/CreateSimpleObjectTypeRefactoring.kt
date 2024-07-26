@@ -8,6 +8,12 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.Schem
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.SchemaTypes
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchema
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.*
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.NullableComponent.Companion.nullableComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.ObjectComponent.Companion.objectComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.ObjectValidationComponent.Companion.objectValidationComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.SchemaModifierComponent.Companion.schemaModifierComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.TypeComponent.Companion.typeComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.ValidationComponent.Companion.validationComponents
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
 
@@ -20,10 +26,10 @@ class CreateSimpleObjectTypeRefactoring(
 
     @Suppress("DuplicatedCode")
     override fun RefactoringContext.perform() {
-        val type = schema.getComponent<TypeComponent>()?.type
-        val nullable = schema.getComponent<NullableComponent>()?.nullable
-        val modifier = schema.getComponent<SchemaModifierComponent>()?.modifier
-        val validations = schema.getComponents<ValidationComponent>().map { it.validation }
+        val type = schema.typeComponent()?.type
+        val nullable = schema.nullableComponent()?.nullable
+        val modifier = schema.schemaModifierComponent()?.modifier
+        val validations = schema.validationComponents().map { it.validation }
 
         val typeDefinition = when (parentType) {
             null -> createNewType(type, nullable, modifier, validations)
@@ -45,8 +51,8 @@ class CreateSimpleObjectTypeRefactoring(
             ProbableBug("Incompatible type $type for an object type")
         }
 
-        val required = schema.getComponent<ObjectValidationComponent>()?.required?.toSet() ?: setOf()
-        val properties = schema.getComponent<ObjectComponent>()?.properties
+        val required = schema.objectValidationComponent()?.required?.toSet() ?: setOf()
+        val properties = schema.objectComponent()?.properties
             ?: ProbableBug("Object schema without properties. Found in ${schema.originPath}")
 
         val objectProperties = properties.map {
@@ -78,8 +84,8 @@ class CreateSimpleObjectTypeRefactoring(
             ProbableBug("schema ${schema.originPath} has different readonly/write-only modifier than it's base schema")
         }
 
-        val required = schema.getComponent<ObjectValidationComponent>()?.required?.toSet() ?: setOf()
-        val properties = schema.getComponent<ObjectComponent>()?.properties ?: listOf()
+        val required = schema.objectValidationComponent()?.required?.toSet() ?: setOf()
+        val properties = schema.objectComponent()?.properties ?: listOf()
 
         val requiredByBase = parentType.required
         val requiredChanged = required.subtract(requiredByBase).isNotEmpty()

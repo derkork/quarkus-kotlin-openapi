@@ -18,9 +18,6 @@ class TransformableSchema(
         }
     }
 
-    @JvmName("getFilteredComponents")
-    inline fun <reified T : SchemaComponent> getComponents() = components.filterIsInstance<T>()
-
 }
 
 

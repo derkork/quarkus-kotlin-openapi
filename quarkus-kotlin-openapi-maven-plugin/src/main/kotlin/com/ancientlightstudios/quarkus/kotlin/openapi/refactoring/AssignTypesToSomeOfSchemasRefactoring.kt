@@ -3,6 +3,7 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.refactoring
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchema
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.BaseSchemaComponent
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.OneOfComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.OneOfComponent.Companion.oneOfComponent
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.TypeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.TypeUsage
 
@@ -23,7 +24,7 @@ class AssignTypesToSomeOfSchemasRefactoring(
         tasks.removeAll(candidates)
 
         candidates.forEach { definition ->
-            val oneOf = definition.getComponent<OneOfComponent>()
+            val oneOf = definition.oneOfComponent()
             performRefactoring(CreateSimpleOneOfTypeRefactoring(definition, oneOf!!, typeResolver))
         }
     }

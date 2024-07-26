@@ -1,6 +1,16 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components
 
-class ValidationComponent(val validation: SchemaValidation) : SchemaComponent, MetaComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchema
+
+class ValidationComponent(val validation: SchemaValidation) : SchemaComponent, MetaComponent {
+
+    companion object {
+
+        fun TransformableSchema.validationComponents() = components.filterIsInstance<ValidationComponent>()
+
+    }
+
+}
 
 sealed interface SchemaValidation
 
