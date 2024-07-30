@@ -16,27 +16,13 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ServerRestInt
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.*
 
-class EnsureUniqueNamesRefactoring : SpecRefactoring {
+class ModelNameRefactoring : SpecRefactoring {
 
     override fun RefactoringContext.perform() {
-        val registry = NameRegistry()
-        spec.inspect {
-            bundles {
-                bundle.clientDelegateClassName = registry.uniqueNameFor(bundle.clientDelegateClassName)
-                bundle.clientRestInterfaceClassName = registry.uniqueNameFor(bundle.clientRestInterfaceClassName)
-                bundle.serverDelegateClassName = registry.uniqueNameFor(bundle.serverDelegateClassName)
-                bundle.serverRestInterfaceClassName = registry.uniqueNameFor(bundle.serverRestInterfaceClassName)
-
-                requests {
-                    request.clientErrorResponseClassName = registry.uniqueNameFor(request.clientErrorResponseClassName)
-                    request.clientHttpResponseClassName = registry.uniqueNameFor(request.clientHttpResponseClassName)
-                    request.requestContainerClassName = registry.uniqueNameFor(request.requestContainerClassName)
-                    request.requestContextClassName = registry.uniqueNameFor(request.requestContextClassName)
-                    request.requestBuilderClassName = registry.uniqueNameFor(request.requestBuilderClassName)
-                    request.responseContainerClassName = registry.uniqueNameFor(request.responseContainerClassName)
-                    request.responseValidatorClassName = registry.uniqueNameFor(request.responseValidatorClassName)
-                }
-            }
+        val prefix = config.modelNamePrefix.trim()
+        val postfix = config.modelNamePostfix.trim()
+        if (prefix.isBlank() && postfix.isBlank()) {
+            return
         }
 
         spec.modelTypes
@@ -48,43 +34,19 @@ class EnsureUniqueNamesRefactoring : SpecRefactoring {
 
                     // this cast is safe, because overlays were filtered out before
                     is EnumTypeDefinition ->
-                        (it as RealEnumTypeDefinition).modelName = registry.uniqueNameFor(it.modelName)
+                        (it as RealEnumTypeDefinition).modelName = it.modelName.extend(prefix, postfix)
 
                     is ObjectTypeDefinition ->
-                        (it as RealObjectTypeDefinition).modelName = registry.uniqueNameFor(it.modelName)
+                        (it as RealObjectTypeDefinition).modelName = it.modelName.extend(prefix, postfix)
 
                     is OneOfTypeDefinition -> {
-                        (it as RealOneOfTypeDefinition).modelName = registry.uniqueNameFor(it.modelName)
+                        (it as RealOneOfTypeDefinition).modelName = it.modelName.extend(prefix, postfix)
                         it.options.forEach { 
-                            it.modelName = registry.uniqueNameFor(it.modelName)
+                            it.modelName = it.modelName.extend(prefix, postfix)
                         }
                     }
                 }
             }
-    }
-
-}
-
-class NameRegistry {
-
-    private val nameBuilder = mutableMapOf<String, NameBuilder>()
-
-    fun uniqueNameFor(name: ClassName): ClassName {
-        val builder = nameBuilder[name.value]
-        return if (builder != null) {
-            builder.next(name)
-        } else {
-            nameBuilder[name.value] = NameBuilder()
-            name
-        }
-    }
-
-    private class NameBuilder {
-
-        private var nextIndex = 1
-
-        fun next(name: ClassName) = name.extend(postfix = "${nextIndex++}")
-
     }
 
 }

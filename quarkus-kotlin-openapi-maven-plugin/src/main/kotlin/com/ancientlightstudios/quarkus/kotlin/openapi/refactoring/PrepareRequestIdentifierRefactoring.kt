@@ -24,13 +24,13 @@ class PrepareRequestIdentifierRefactoring : SpecRefactoring {
                 requests {
                     val name = generateName(request)
                     request.requestMethodName = name.methodName()
-                    request.requestContainerClassName = name.className(interfacePackage, postfix = "Request")
-                    request.requestContextClassName = name.className(interfacePackage, postfix = "Context")
-                    request.requestBuilderClassName = name.className(interfacePackage, postfix = "Builder")
-                    request.responseContainerClassName = name.className(interfacePackage, postfix = "Response")
-                    request.responseValidatorClassName = name.className(interfacePackage, postfix = "Validator")
-                    request.clientHttpResponseClassName = name.className(interfacePackage, postfix = "HttpResponse")
-                    request.clientErrorResponseClassName = name.className(interfacePackage, postfix = "Error")
+                    request.requestContainerClassName = name.className(interfacePackage, postfix = config.operationRequestPostfix)
+                    request.requestContextClassName = name.className(interfacePackage, postfix = config.operationContextPostfix)
+                    request.requestBuilderClassName = name.className(interfacePackage, postfix = config.operationBuilderPostfix)
+                    request.responseContainerClassName = name.className(interfacePackage, postfix = config.operationResponsePostfix)
+                    request.responseValidatorClassName = name.className(interfacePackage, postfix = config.operationValidatorPostfix)
+                    request.clientHttpResponseClassName = name.className(interfacePackage, postfix = config.operationHttpResponsePostfix)
+                    request.clientErrorResponseClassName = name.className(interfacePackage, postfix = config.operationErrorPostfix)
 
                     parameters {
                         parameter.parameterVariableName = parameter.name.variableName()

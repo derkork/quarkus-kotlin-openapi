@@ -94,7 +94,17 @@ class Config(
     /**
      * Whether to overwrite existing generated files.
      */
-     val forceOverwriteGeneratedFiles: Boolean = false
+     val forceOverwriteGeneratedFiles: Boolean = false,
+
+    val operationRequestPostfix : String = "Request",
+    val operationResponsePostfix : String = "Response",
+    val operationHttpResponsePostfix : String = "HttpResponse",
+    val operationErrorPostfix : String = "Error",
+    val operationContextPostfix : String = "Context",
+    val operationBuilderPostfix : String = "Builder",
+    val operationValidatorPostfix : String = "Validator",
+    val modelNamePrefix : String = "",
+    val modelNamePostfix : String = ""
 ) {
 
     fun additionalImports() = additionalImports.map { it.toRawClassName("Illegal value for additional import $it") }

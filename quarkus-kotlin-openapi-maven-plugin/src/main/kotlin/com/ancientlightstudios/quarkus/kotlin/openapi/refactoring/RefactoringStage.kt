@@ -40,6 +40,8 @@ class RefactoringStage(private val config: Config) : GeneratorStage {
         context.performRefactoring(PrepareBundleIdentifierRefactoring(config.interfaceName))
         context.performRefactoring(PrepareRequestIdentifierRefactoring())
 
+        context.performRefactoring(ModelNameRefactoring())
+        
         // type definitions which needs to be exported are identified, make sure their names don't collide with other
         // stuff
         context.performRefactoring(EnsureUniqueNamesRefactoring())
