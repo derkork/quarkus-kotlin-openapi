@@ -88,6 +88,33 @@ abstract class GenerateMojo : AbstractMojo() {
     @Parameter(defaultValue = "false")
     var forceOverwriteGeneratedFiles: Boolean = false
 
+    @Parameter(defaultValue = "Request")
+    lateinit var operationRequestPostfix : String
+
+    @Parameter(defaultValue = "Response")
+    lateinit var operationResponsePostfix : String
+
+    @Parameter(defaultValue = "HttpResponse")
+    lateinit var operationHttpResponsePostfix : String
+
+    @Parameter(defaultValue = "Error")
+    lateinit var operationErrorPostfix : String
+
+    @Parameter(defaultValue = "Context")
+    lateinit var operationContextPostfix : String
+
+    @Parameter(defaultValue = "Builder")
+    lateinit var operationBuilderPostfix : String
+
+    @Parameter(defaultValue = "Validator")
+    lateinit var operationValidatorPostfix : String
+
+    @Parameter(defaultValue = "")
+    var modelNamePrefix : String = ""
+
+    @Parameter(defaultValue = "")
+    var modelNamePostfix : String = ""
+
     override fun execute() {
         val config = Config(
             sources,
@@ -104,7 +131,16 @@ abstract class GenerateMojo : AbstractMojo() {
             contentTypeMappings,
             interfaceType,
             additionalProviders,
-            forceOverwriteGeneratedFiles
+            forceOverwriteGeneratedFiles,
+            operationRequestPostfix,
+            operationResponsePostfix,
+            operationHttpResponsePostfix,
+            operationErrorPostfix,
+            operationContextPostfix,
+            operationBuilderPostfix,
+            operationValidatorPostfix,
+            modelNamePrefix,
+            modelNamePostfix
         )
 
         Generator(config).generate()
