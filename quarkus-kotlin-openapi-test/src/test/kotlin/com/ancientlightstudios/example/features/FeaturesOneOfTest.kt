@@ -128,11 +128,11 @@ class FeaturesOneOfTest : ApiTestBase() {
             TestOneOfWithoutDiscriminatorBook(TestBook("foo", 10, "book"))
         )
             .isOkResponse {
-                val safeBody = safeBody as? TestOneOfWithoutDiscriminatorBook
-                    ?: fail("wrong response body")
-                assertThat(safeBody.value.title).isEqualTo("foo")
-                assertThat(safeBody.value.pages).isEqualTo(10)
-                assertThat(safeBody.value.kind).isEqualTo("book")
+                safeBody.isOneOfWithoutDiscriminatorBook {
+                    assertThat(title).isEqualTo("foo")
+                    assertThat(pages).isEqualTo(10)
+                    assertThat(kind).isEqualTo("book")
+                }
             }
     }
 
