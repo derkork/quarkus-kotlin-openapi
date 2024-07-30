@@ -21,7 +21,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.Direction
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.OneOfOption
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.OneOfTypeDefinition
 
-class OneOfModelClassEmitter(private val typeDefinition: OneOfTypeDefinition, withTestSupport: Boolean) :
+class OneOfModelClassEmitter(private val typeDefinition: OneOfTypeDefinition, private val withTestSupport: Boolean) :
     CodeEmitter {
 
     private lateinit var emitterContext: EmitterContext
@@ -35,6 +35,10 @@ class OneOfModelClassEmitter(private val typeDefinition: OneOfTypeDefinition, wi
 
             kotlinInterface(fileName, sealed = true) {
                 generateSerializeMethods(spec.serializationDirection)
+
+                if (withTestSupport) {
+                    generateTestMethods()
+                }
 
                 kotlinCompanion {
                     // TODO: detect collisions if multiple options have the same type (e.g. two ints)
@@ -266,6 +270,38 @@ class OneOfModelClassEmitter(private val typeDefinition: OneOfTypeDefinition, wi
             serialization =
                 serialization.nullFallback(Misc.NullNodeClass.companionObject().property("instance".variableName()))
             invoke(Library.UnsafeJsonClass.constructorName, serialization).statement()
+        }
+    }
+
+    private fun KotlinInterface.generateTestMethods() {
+
+        /**
+         *     fun isBook(block: Book.() -> Unit) = when(this) {
+         *             is OneOfWithDiscriminatorBook ->  value.apply(block)
+         *             else -> throw AssertionFailedError("Assertion failed.", OneOfWithDiscriminatorBook::class.java.name, javaClass.name)
+         *         }
+         *     }
+         *
+         */
+        
+        typeDefinition.options.forEach { option ->
+            kotlinMethod(option.modelName.value.methodName(prefix = "is"), bodyAsAssignment = true) {
+                kotlinParameter("block".variableName(), TypeName.DelegateTypeName(option.typeUsage.buildValidType(), returnType = Kotlin.UnitType))
+
+                whenExpression("this".variableName()) {
+                    optionBlock(AssignableExpression.assignable(option.modelName)) {
+                        "value".variableName().invoke("apply".methodName(), "block".variableName()).statement()
+                    }
+                    optionBlock("else".variableName()) {
+                        InvocationExpression.invoke(
+                            Misc.AssertionFailedErrorClass.constructorName,
+                            "Assertion failed.".literal(),
+                            option.modelName.javaClass().property("name".variableName()),
+                            "javaClass".variableName().property("name".variableName())
+                        ).throwStatement()
+                    }
+                }.statement()
+            }
         }
     }
 
