@@ -1,0 +1,88 @@
+openapi: 3.1.0
+info:
+  title: Test-Suit
+  version: 1.0.0
+  description: fragment of the overall test suit
+
+paths:
+  /features/octet/required/fileUpload:
+    post:
+      tags:
+        - octet
+      operationId: fileUploadRequired
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+              minLength: 2
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '400':
+          $ref: '#/components/responses/OperationError400'
+        '500':
+          $ref: '#/components/responses/OperationError500'
+
+  /features/octet/optional/fileUpload:
+    post:
+      tags:
+        - octet
+      operationId: fileUploadOptional
+      requestBody:
+        required: false
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+              minLength: 2
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/octet-stream:
+              schema:
+                type:
+                  - string
+                  - "null"
+                format: binary
+        '400':
+          $ref: '#/components/responses/OperationError400'
+        '500':
+          $ref: '#/components/responses/OperationError500'
+
+components:
+
+  schemas:
+    OperationError:
+      type: object
+      properties:
+        messages:
+          type: array
+          items:
+            type: string
+      required:
+        - messages
+
+  responses:
+    OperationError400:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/OperationError'
+
+    OperationError500:
+      description: Server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/OperationError'

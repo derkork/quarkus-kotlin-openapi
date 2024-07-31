@@ -24,7 +24,9 @@ class SerializationStatementEmitter(
     //
     // e.g. if the base statement is just the variable name 'foo' it will produce 'foo?'
     override fun EmitterContext.emit() {
-        if (typeUsage.isNullable()) {
+        // TODO: the check for content type is necessary right, because there is no other transformation and would produce just a single ?
+        // should be changed if we know how other content types work and how we can change the serialization and deserialization code
+        if (typeUsage.isNullable() && contentType != ContentType.ApplicationOctetStream) {
             resultStatement = resultStatement.nullCheck()
         }
 

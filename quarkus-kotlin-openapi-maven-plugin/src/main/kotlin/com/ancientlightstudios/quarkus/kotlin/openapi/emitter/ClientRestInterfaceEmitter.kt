@@ -283,8 +283,10 @@ class ClientRestInterfaceEmitter : CodeEmitter {
     }
 
     private fun TryCatchExpression.emitOctetBody(method: KotlinMethod, body: TransformableBody): VariableName {
+        val parameterName = body.parameterVariableName
         val default = defaultParameterExpression(body.content.typeUsage)
-        return "octet".variableName()
+        method.kotlinParameter(parameterName, Kotlin.ByteArrayClass.typeName(body.content.typeUsage.isNullable()), default)
+        return parameterName
     }
 
     private fun WhenOptionAware.generateKnownResponseOption(
@@ -333,18 +335,24 @@ class ClientRestInterfaceEmitter : CodeEmitter {
             }
 
             if (body != null) {
-                // TODO: we probably need different target types here (e.g. for binary)
                 // produces
                 // val entity = when(response.hasEntity()) {
-                //     true -> response.readEntity(String::class.java)
+                //     true -> response.readEntity(ByteArray::class.java)
                 //     false-> null
                 // }
                 val entity = whenExpression("response".variableName().invoke("hasEntity".methodName())) {
                     optionBlock(true.literal()) {
-                        "response".variableName()
-                            .invoke("readEntity".rawMethodName(), Kotlin.StringClass.javaClass())
-                            .statement()
-                    }    
+                        var statement: KotlinExpression = "response".variableName()
+                            .invoke("readEntity".rawMethodName(), Kotlin.ByteArrayClass.javaClass())
+
+                        // TODO: we probably need different target types here (e.g. for binary)
+                        if (body.content.mappedContentType != ContentType.ApplicationOctetStream) {
+                            // TODO: different encodings
+                            statement = statement.nullCheck().invoke("decodeToString".methodName())
+                        }
+
+                        statement.statement()
+                    }
                     optionBlock(false.literal()) {
                         nullLiteral().statement()
                     }

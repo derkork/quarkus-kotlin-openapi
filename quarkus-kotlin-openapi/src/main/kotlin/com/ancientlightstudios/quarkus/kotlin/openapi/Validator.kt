@@ -51,6 +51,23 @@ class StringValidator(context: String) : Validator(context) {
 }
 
 @Suppress("unused")
+class ByteArrayValidator(context: String) : Validator(context) {
+
+    fun ByteArray.minLength(min: Int) {
+        if (size < min) {
+            reportError("minimum length of $min expected, but is $size")
+        }
+    }
+
+    fun ByteArray.maxLength(max: Int) {
+        if (size > max) {
+            reportError("maximum length of $max expected, but is $size")
+        }
+    }
+
+}
+
+@Suppress("unused")
 class NumberValidator<T>(context: String) : Validator(context) {
 
     fun T.minimum(min: Comparable<T>, exclusive: Boolean) {

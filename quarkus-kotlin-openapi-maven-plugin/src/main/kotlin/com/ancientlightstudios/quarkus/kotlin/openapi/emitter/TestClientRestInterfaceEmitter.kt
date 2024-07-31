@@ -351,10 +351,15 @@ class TestClientRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitt
 
             if (body != null) {
                 // TODO: we probably need different target types here (e.g. for binary)
+                val deserializationMethod = when(body.content.mappedContentType) {
+                    ContentType.ApplicationOctetStream -> "asByteArray"
+                    else -> "asString"
+                }
+
                 // produces
-                // validatableResponse.body().asString()
+                // validatableResponse.body().<deserializationMethod>()
                 val entity = "validatableResponse".variableName().invoke("body".methodName())
-                    .invoke("asString".methodName()).declaration("entity".variableName())
+                    .invoke(deserializationMethod.methodName()).declaration("entity".variableName())
 
                 val statement = invoke(Library.MaybeSuccessClass.constructorName, "response.body".literal(), entity)
 

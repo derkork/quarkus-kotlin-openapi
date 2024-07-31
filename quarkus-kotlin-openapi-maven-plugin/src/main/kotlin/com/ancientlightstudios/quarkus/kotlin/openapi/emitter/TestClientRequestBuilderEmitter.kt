@@ -113,8 +113,8 @@ class TestClientRequestBuilderEmitter : CodeEmitter {
             ContentType.ApplicationJson -> emitJsonBodyMethod(clazz, requestSpecificationVariable)
             ContentType.TextPlain -> emitPlainBodyMethod(clazz, requestSpecificationVariable)
             ContentType.ApplicationFormUrlencoded -> emitFormBodyMethod(clazz, requestSpecificationVariable)
+            ContentType.ApplicationOctetStream -> emitOctetStreamBodyMethod(clazz, requestSpecificationVariable)
             ContentType.MultipartFormData -> ProbableBug("Multipart-Form not yet supported for test client")
-            ContentType.ApplicationOctetStream -> ProbableBug("Octet-Stream not yet supported for test client")
         }
     }
 
@@ -211,4 +211,16 @@ class TestClientRequestBuilderEmitter : CodeEmitter {
         }
     }
 
+    private fun TransformableBody.emitOctetStreamBodyMethod(clazz: KotlinClass, requestSpecificationVariable: VariableName) {
+        clazz.kotlinMethod("body".methodName()) {
+            val typeUsage = content.typeUsage
+            kotlinParameter("value".variableName(), Kotlin.ByteArrayClass.typeName(typeUsage.isNullable()))
+
+            var statement = requestSpecificationVariable
+                .invoke("contentType".methodName(), content.rawContentType.literal())
+                .invoke("body".methodName(), "value".variableName())
+                .assignment(requestSpecificationVariable)
+
+        }
+    }
 }
