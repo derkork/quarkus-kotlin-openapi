@@ -59,7 +59,7 @@ class ClientDelegateEmitter(
         kotlinMethod(
             request.requestMethodName,
             true,
-            Misc.RestResponseClass.typeName().of(Kotlin.StringClass.typeName(true))
+            Misc.RestResponseClass.typeName().of(Kotlin.ByteArrayClass.typeName(true))
         ) {
             addRequestMethodAnnotation(request.method)
             addPathAnnotation(request.path)
@@ -106,8 +106,10 @@ class ClientDelegateEmitter(
                 }
             }
 
-            ContentType.MultipartFormData,
-            ContentType.ApplicationOctetStream -> ProbableBug("not yet implemented")
+            ContentType.ApplicationOctetStream ->
+                kotlinParameter(body.parameterVariableName, Kotlin.ByteArrayClass.typeName(typeUsage.isNullable()))
+
+            ContentType.MultipartFormData -> ProbableBug("not yet implemented")
         }
     }
 

@@ -14,6 +14,15 @@ fun Maybe<String?>.emptyStringAsNull(): Maybe<String?> = onNotNull {
 }
 
 @Suppress("unused")
+fun Maybe<ByteArray?>.emptyArrayAsNull(): Maybe<ByteArray?> = onNotNull {
+    if (value.isEmpty()) {
+        success(null)
+    } else {
+        this@emptyArrayAsNull
+    }
+}
+
+@Suppress("unused")
 fun Maybe<String?>.asString(): Maybe<String?> = this
 
 @Suppress("unused")

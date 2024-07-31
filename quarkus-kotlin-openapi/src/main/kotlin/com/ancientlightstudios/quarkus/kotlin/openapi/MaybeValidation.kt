@@ -30,6 +30,23 @@ fun Maybe<String?>.validateString(block: StringValidator.(String) -> Unit): Mayb
         }
     }
 
+// TODO: name should be validateByteArray, but we can't determine the correct name right now in the ValidationStatementEmitter
+@Suppress("unused")
+@JvmName("validateByteArray")
+fun Maybe<ByteArray?>.validateString(block: ByteArrayValidator.(ByteArray) -> Unit): Maybe<ByteArray?> =
+    onNotNull {
+        try {
+            val errors = ByteArrayValidator(context).apply { this.block(value) }.validationErrors
+            if (errors.isEmpty()) {
+                this@validateString
+            } else {
+                failure(errors)
+            }
+        } catch (_: Exception) {
+            failure(ValidationError("is not a valid value", context))
+        }
+    }
+
 @Suppress("unused")
 @JvmName("validateNumber")
 fun <T : Number> Maybe<T?>.validateNumber(block: NumberValidator<T>.(T) -> Unit): Maybe<T?> =

@@ -50,7 +50,7 @@ class DeserializationStatementEmitter(
     ): KotlinExpression {
         // TODO: we probably need something like this for other contenttype and type definition combinations too
         var result = if (contentType == ContentType.ApplicationOctetStream) {
-            baseStatement
+            baseStatement.invoke("emptyArrayAsNull".methodName()).wrap()
         } else {
             baseStatement.invoke("as${typeDefinition.baseType.value}".rawMethodName())
         }
@@ -68,15 +68,12 @@ class DeserializationStatementEmitter(
     private fun EmitterContext.emitForEnumType(
         typeDefinition: EnumTypeDefinition, baseStatement: KotlinExpression
     ): KotlinExpression {
-        val methodName = typeDefinition.modelName.companionMethod("as ${typeDefinition.modelName.value}")
-
         var result = if (contentType == ContentType.TextPlain) {
-            baseStatement.invoke("emptyStringAsNull".methodName())
+            baseStatement.invoke("emptyStringAsNull".methodName()).wrap()
         } else {
             baseStatement
         }
-
-        result = result.invoke(methodName)
+        result = result.invoke(typeDefinition.modelName.companionMethod("as ${typeDefinition.modelName.value}"))
         result = runEmitter(ValidationStatementEmitter(typeDefinition, result)).resultStatement
         result = runEmitter(DefaultValueStatementEmitter(typeDefinition.defaultExpression(), result)).resultStatement
         return result
@@ -159,15 +156,14 @@ class DeserializationStatementEmitter(
     private fun EmitterContext.emitForOneOfType(
         typeDefinition: OneOfTypeDefinition, baseStatement: KotlinExpression
     ): KotlinExpression {
-        val methodName = typeDefinition.modelName.companionMethod("as ${typeDefinition.modelName.value}")
-
         var result = if (fromRaw) {
             baseStatement.invoke("asJson".rawMethodName(), "objectMapper".variableName()).wrap()
         } else {
             baseStatement
         }
-        result = result.invoke("asObject".rawMethodName())
-            .wrap().invoke(methodName)
+        
+        result = result.invoke("asObject".rawMethodName()).wrap()
+            .invoke(typeDefinition.modelName.companionMethod("as ${typeDefinition.modelName.value}"))
         result = runEmitter(ValidationStatementEmitter(typeDefinition, result)).resultStatement
         return result
     }
