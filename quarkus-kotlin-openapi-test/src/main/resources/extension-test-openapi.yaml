@@ -1,0 +1,99 @@
+openapi: 3.1.0
+info:
+  title: Test-Suit
+  version: 1.0.0
+  description: fragment of the overall test suit
+
+paths:
+  /features/extension/instant:
+    post:
+      tags:
+        - extension
+      operationId: instantExtension
+      parameters:
+        - name: headerValue
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: string
+              format: date-time
+      responses:
+        '200':
+          description: ok
+          headers:
+            headerValue:
+              required: true
+              schema:
+                type: string
+                format: date-time
+          content:
+            application/json:
+              schema:
+                type: string
+                format: date-time
+        '400':
+          $ref: '#/components/responses/OperationError400'
+
+  /features/extension/uuid:
+    post:
+      tags:
+        - extension
+      operationId: uuidExtension
+      parameters:
+        - name: headerValue
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: string
+              format: uuid
+      responses:
+        '200':
+          description: ok
+          headers:
+            headerValue:
+              required: true
+              schema:
+                type: string
+                format: uuid
+          content:
+            application/json:
+              schema:
+                type: string
+                format: uuid
+        '400':
+          $ref: '#/components/responses/OperationError400'
+
+components:
+
+  schemas:
+    OperationError:
+      type: object
+      properties:
+        messages:
+          type: array
+          items:
+            type: string
+      required:
+        - messages
+
+  responses:
+    OperationError400:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/OperationError'

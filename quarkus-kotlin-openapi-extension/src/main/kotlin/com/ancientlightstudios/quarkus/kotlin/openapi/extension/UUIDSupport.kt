@@ -1,10 +1,10 @@
-package com.ancientlightstudios.example.custom
+package com.ancientlightstudios.quarkus.kotlin.openapi.extension
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.*
 import com.fasterxml.jackson.databind.JsonNode
 import java.util.*
 
-fun Maybe<String?>.asUuid(): Maybe<UUID?> = onNotNull {
+fun Maybe<String?>.asUUID(): Maybe<UUID?> = onNotNull {
     try {
         success(UUID.fromString(value))
     } catch (e: IllegalArgumentException) {
@@ -13,6 +13,9 @@ fun Maybe<String?>.asUuid(): Maybe<UUID?> = onNotNull {
 }
 
 @JvmName("asUuidFromJson")
-fun Maybe<JsonNode?>.asUuid(): Maybe<UUID?> = asString().asUuid()
+fun Maybe<JsonNode?>.asUUID(): Maybe<UUID?> = asString().asUUID()
 
-fun UUID.asJson(): JsonNode = toString().asJson()
+@JvmName("asStringFromUUID")
+fun UUID.asString(): String = toString()
+
+fun UUID.asJson(): JsonNode = asString().asJson()

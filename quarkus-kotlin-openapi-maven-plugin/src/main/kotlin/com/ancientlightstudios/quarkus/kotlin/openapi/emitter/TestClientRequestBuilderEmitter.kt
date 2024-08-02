@@ -44,6 +44,7 @@ class TestClientRequestBuilderEmitter : CodeEmitter {
         val requestSpecificationVariable = "requestSpecification".variableName()
         kotlinClass(fileName) {
             registerImports(Library.AllClasses)
+            registerImports(emitterContext.getAdditionalImports())
 
             kotlinMember(
                 requestSpecificationVariable,

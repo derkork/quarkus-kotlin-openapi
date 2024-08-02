@@ -4,10 +4,10 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>quarkus-kotlin-openapi</artifactId>
+    <artifactId>quarkus-kotlin-openapi-extension</artifactId>
     <packaging>jar</packaging>
-    <name>Quarkus Kotlin OpenAPI - Support Library</name>
-    <description>A support library providing shared classes that the generated code will use.</description>
+    <name>Quarkus Kotlin OpenAPI - Extension Library</name>
+    <description>An additional support library providing frequently used features.</description>
 
     <parent>
         <groupId>com.ancientlightstudios</groupId>
@@ -31,20 +31,11 @@
     <dependencies>
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-test-junit5</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-stdlib-jdk8</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkus.resteasy.reactive</groupId>
-            <artifactId>resteasy-reactive-common</artifactId>
-            <scope>provided</scope>
+            <groupId>com.ancientlightstudios</groupId>
+            <artifactId>quarkus-kotlin-openapi</artifactId>
         </dependency>
     </dependencies>
 
