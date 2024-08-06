@@ -17,4 +17,10 @@ class FeaturesExtensionServerDelegateImpl : FeaturesExtensionServerDelegate {
 
         ok(validRequest.body, validRequest.headerValue)
     }
+
+    override suspend fun LocalDateExtensionContext.localDateExtension(): Nothing {
+        val validRequest = request.validOrElse { badRequest(it.toOperationError()) }
+
+        ok(validRequest.body, validRequest.headerValue)
+    }
 }

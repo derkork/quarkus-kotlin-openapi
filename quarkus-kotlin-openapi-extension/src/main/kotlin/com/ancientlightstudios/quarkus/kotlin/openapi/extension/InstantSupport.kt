@@ -8,7 +8,7 @@ fun Maybe<String?>.asInstant(): Maybe<Instant?> = onNotNull {
     try {
         success(Instant.parse(value))
     } catch (e: Exception) {
-        failure(ValidationError("Invalid instant: $value", context))
+        failure(ValidationError("Invalid instant.", context))
     }
 }
 

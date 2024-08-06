@@ -2,6 +2,7 @@ package com.ancientlightstudios.example.features
 
 import com.ancientlightstudios.example.features.client.FeaturesExtensionClient
 import com.ancientlightstudios.example.features.client.InstantExtensionHttpResponse
+import com.ancientlightstudios.example.features.client.LocalDateExtensionHttpResponse
 import com.ancientlightstudios.example.features.client.UuidExtensionHttpResponse
 import com.ancientlightstudios.example.features.testclient.FeaturesExtensionTestClient
 import io.quarkus.test.junit.QuarkusTest
@@ -12,6 +13,7 @@ import org.assertj.core.api.Assertions.fail
 import org.hamcrest.Matchers.equalTo
 import org.junit.jupiter.api.Test
 import java.time.Instant
+import java.time.LocalDate
 import java.util.*
 
 @QuarkusTest
@@ -97,6 +99,82 @@ class FeaturesExtensionTest : ApiTestBase() {
             .statusCode(200)
             .header("headerValue", instant1.toString())
             .body(equalTo("\"$instant2\""))
+    }
+
+    @Test
+    fun `invalid localDate value will be rejected (Test-Client)`() {
+        testClient.localDateExtensionRaw {
+            queryParam("headerValue", "not-an-localDate")
+                .contentType("application/json")
+                .body("\"not-an-localDate\"")
+        }.isBadRequestResponse {
+            assertThat(safeBody.messages).containsExactly(
+                listOf("query.headerValue", "Invalid date"),
+                listOf("body", "Invalid date"),
+            )
+        }
+    }
+
+    @Test
+    fun `invalid localDate value will be rejected (Raw)`() {
+        val messages = prepareRequest()
+            .queryParam("headerValue", "not-an-localDate")
+            .contentType("application/json")
+            .body("\"not-an-localDate\"")
+            .post("/features/extension/localDate")
+            .execute()
+            .statusCode(400)
+            .extract()
+            .jsonPath()
+            .getList<String>("messages")
+
+        assertThat(messages).containsExactly(
+            listOf("query.headerValue", "Invalid date"),
+            listOf("body", "Invalid date"),
+        )
+    }
+
+    @Test
+    fun `valid localDate value is accepted (Client)`() {
+        val localDate1 = LocalDate.now()
+        val localDate2 = localDate1.plusDays(1)
+        runBlocking {
+            val response = client.localDateExtension(localDate1, localDate2)
+            if (response is LocalDateExtensionHttpResponse.Ok) {
+                assertThat(response.headerValue).isEqualTo(localDate1)
+                assertThat(response.safeBody).isEqualTo(localDate2)
+            } else {
+                fail("unexpected response")
+            }
+        }
+    }
+
+    @Test
+    fun `valid localDate value is accepted (Test-Client)`() {
+        val localDate1 = LocalDate.now()
+        val localDate2 = localDate1.plusDays(1)
+
+        testClient.localDateExtensionSafe(localDate1, localDate2)
+            .isOkResponse {
+                assertThat(headerValue).isEqualTo(localDate1)
+                assertThat(safeBody).isEqualTo(localDate2)
+            }
+    }
+
+    @Test
+    fun `valid localDate value is accepted (Raw)`() {
+        val localDate1 = LocalDate.now()
+        val localDate2 = localDate1.plusDays(1)
+
+        prepareRequest()
+            .queryParam("headerValue", localDate1.toString())
+            .contentType("application/json")
+            .body("\"$localDate2\"")
+            .post("/features/extension/localDate")
+            .execute()
+            .statusCode(200)
+            .header("headerValue", localDate1.toString())
+            .body(equalTo("\"$localDate2\""))
     }
 
     @Test

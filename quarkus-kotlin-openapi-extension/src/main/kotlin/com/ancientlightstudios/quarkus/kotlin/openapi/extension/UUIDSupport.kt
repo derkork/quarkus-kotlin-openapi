@@ -8,7 +8,7 @@ fun Maybe<String?>.asUUID(): Maybe<UUID?> = onNotNull {
     try {
         success(UUID.fromString(value))
     } catch (e: IllegalArgumentException) {
-        failure(ValidationError("Invalid UUID: $value", context))
+        failure(ValidationError("Invalid UUID.", context))
     }
 }
 
