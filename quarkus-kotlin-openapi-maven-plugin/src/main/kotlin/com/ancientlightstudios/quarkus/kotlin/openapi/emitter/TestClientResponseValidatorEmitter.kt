@@ -60,7 +60,8 @@ class TestClientResponseValidatorEmitter : CodeEmitter {
 
     private fun KotlinClass.emitVerifyResponseMethod(request: TransformableRequest) {
         val tType = "T".rawClassName("", true).typeName()
-        kotlinMethod("verifyResponse".methodName(), bodyAsAssignment = true, returnType = tType, genericParameter = listOf(tType)) {
+        kotlinMethod("verifyResponse".methodName(), accessModifier = KotlinAccessModifier.Private, bodyAsAssignment = true,
+                returnType = tType, genericParameter = listOf(tType)) {
             kotlinParameter(
                 "block".variableName(),
                 TypeName.DelegateTypeName(request.responseContainerClassName.typeName(), emptyList(), tType)

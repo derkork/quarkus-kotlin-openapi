@@ -89,8 +89,3 @@ fun ObjectNode.merge(other: JsonNode): ObjectNode {
 }
 
 fun ArrayNode.merge(other: JsonNode): ArrayNode = addAll(other.asArrayNode { "Only arrays can be merged into arrays" })
-
-/**
- * applies the specified patch to this json node
- */
-fun JsonNode.patch(patchNode: JsonNode): JsonNode = JsonPatch.apply(patchNode, this)

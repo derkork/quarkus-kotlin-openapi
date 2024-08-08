@@ -104,9 +104,9 @@ class FeaturesExtensionTest : ApiTestBase() {
     @Test
     fun `invalid localDate value will be rejected (Test-Client)`() {
         testClient.localDateExtensionRaw {
-            queryParam("headerValue", "not-an-localDate")
+            queryParam("headerValue", "not-a-localDate")
                 .contentType("application/json")
-                .body("\"not-an-localDate\"")
+                .body("\"not-a-localDate\"")
         }.isBadRequestResponse {
             assertThat(safeBody.messages).containsExactly(
                 listOf("query.headerValue", "Invalid date"),
@@ -118,9 +118,9 @@ class FeaturesExtensionTest : ApiTestBase() {
     @Test
     fun `invalid localDate value will be rejected (Raw)`() {
         val messages = prepareRequest()
-            .queryParam("headerValue", "not-an-localDate")
+            .queryParam("headerValue", "not-a-localDate")
             .contentType("application/json")
-            .body("\"not-an-localDate\"")
+            .body("\"not-a-localDate\"")
             .post("/features/extension/localDate")
             .execute()
             .statusCode(400)
