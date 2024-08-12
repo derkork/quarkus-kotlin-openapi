@@ -249,41 +249,7 @@ class SchemaBuilder(
             components.add(EnumItemNamesComponent(names))
         }
     }
-
-//    private fun ParseContext.extractOneOfValidation(target: MutableList<OpenApiValidation>) {
-//        val fragments = node.withArray("oneOf")
-//            .mapIndexed { idx, it ->
-//                contextFor(it, "oneOf[$idx]").parseAsSchema()
-//            }
-//
-//        val discriminator = node.resolvePointer(JsonPointer.fromSegments("discriminator", "propertyName"))?.asText()
-//
-//        // process mapping overrides
-//        val additionalMappings = node.resolvePointer(JsonPointer.fromSegments("discriminator", "mapping"))
-//            ?.asObjectNode { "Discriminator mapping must be an object. $contextPath" }
-//            ?.propertiesAsList()
-//            ?.map { (key, node) ->
-//                val reference = node.asText()
-//                val index = fragments.indexOfFirst { it is OpenApiSchema.Reference && it.targetPath == reference }
-//                if (index < 0) {
-//                    SpecIssue("Can't find schema referenced by discriminator mapping $reference in $contextPath")
-//                }
-//                key to index
-//            } ?: listOf()
-//
-//        if (fragments.isNotEmpty() || discriminator != null || additionalMappings.isNotEmpty()) {
-//            target.add(
-//                OpenApiOneOfValidation(
-//                    fragments.mapTo(mutableListOf()) {
-//                        OpenApiSchemaUsage(OpenApiMetadata(), it)
-//                    },
-//                    discriminator,
-//                    additionalMappings.toMutableList()
-//                )
-//            )
-//        }
-//    }
-//
+    
 }
 
 fun ParseContext.parseAsSchema() =

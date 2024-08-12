@@ -9,6 +9,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.RequestContai
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.RequestMethodNameHint.requestMethodName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.RequestContextClassNameHint.requestContextClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ResponseContainerClassNameHint.responseContainerClassName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ResponseInterfaceNameHint.responseInterfaceName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ResponseValidatorClassNameHint.responseValidatorClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName.Companion.className
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.methodName
@@ -48,6 +49,8 @@ class PrepareRequestIdentifierRefactoring : SpecRefactoring {
                         body {
                             body.parameterVariableName = "body".variableName()
                         }
+
+                        response.interfaceName?.let { response.responseInterfaceName = it.className(interfacePackage) }
                     }
                 }
             }
