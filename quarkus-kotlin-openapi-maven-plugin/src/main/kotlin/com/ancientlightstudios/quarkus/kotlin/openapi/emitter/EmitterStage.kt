@@ -30,6 +30,7 @@ class EmitterStage(private val config: Config) : GeneratorStage {
         ServerRestInterfaceEmitter(config.pathPrefix),
         ServerRequestContainerEmitter(),
         ServerRequestContextEmitter(),
+        ServerResponseInterfaceEmitter(),
         ModelClassEmitter(false)
     )
 

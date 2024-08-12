@@ -26,7 +26,9 @@ class ResponseBuilder(private val code: ResponseCode, private val node: ObjectNo
             .propertiesAsList()
             .map { (name, headerNode) -> contextFor(headerNode, "headers", name).parseAsResponseHeader(name) }
 
-        return TransformableResponse(code, body, headers).apply {
+        val interfaceName = node.getTextOrNull("x-generic-response-name")
+
+        return TransformableResponse(code, body, headers, interfaceName).apply {
             originPath = contextPath
         }
     }

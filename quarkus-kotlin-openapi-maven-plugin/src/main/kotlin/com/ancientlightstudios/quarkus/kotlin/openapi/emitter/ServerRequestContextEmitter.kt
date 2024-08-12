@@ -6,6 +6,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.inspect
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ParameterVariableNameHint.parameterVariableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.RequestContainerClassNameHint.requestContainerClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.RequestContextClassNameHint.requestContextClassName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ResponseInterfaceNameHint.responseInterfaceName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeUsageHint.typeUsage
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.InvocationExpression.Companion.invoke
@@ -42,9 +43,11 @@ class ServerRequestContextEmitter : CodeEmitter {
         registerImports(Library.AllClasses)
         registerImports(emitterContext.getAdditionalImports())
 
-        val interfaces = when(defaultResponseExists) {
-            true -> emptyList()
-            else -> listOf(Library.ResponseWithGenericStatusInterface)
+        // all interfaces defined by the responses
+        val interfaces = request.responses.mapNotNull { it.responseInterfaceName }.toSet().toMutableList()
+
+        if (!defaultResponseExists) {
+            interfaces.add(Library.ResponseWithGenericStatusInterface)
         }
 
         kotlinClass(fileName, interfaces = interfaces) {
@@ -59,8 +62,14 @@ class ServerRequestContextEmitter : CodeEmitter {
 
             request.responses.forEach {
                 when (val code = it.responseCode) {
-                    is ResponseCode.HttpStatusCode -> emitStatusMethod(code, it.body, it.headers)
-                    is ResponseCode.Default -> emitDefaultStatusMethod(it.body, it.headers)
+                    is ResponseCode.HttpStatusCode -> emitStatusMethod(
+                        code,
+                        it.body,
+                        it.headers,
+                        it.responseInterfaceName
+                    )
+
+                    is ResponseCode.Default -> emitDefaultStatusMethod(it.body, it.headers, it.responseInterfaceName)
                 }
             }
         }
@@ -72,7 +81,7 @@ class ServerRequestContextEmitter : CodeEmitter {
             false -> null
         }
 
-        val parameterDefaultValue = when(defaultResponseExists) {
+        val parameterDefaultValue = when (defaultResponseExists) {
             true -> nullLiteral()
             false -> null
         }
@@ -84,7 +93,8 @@ class ServerRequestContextEmitter : CodeEmitter {
 
         kotlinMethod(
             "status".methodName(), bodyAsAssignment = true, accessModifier = accessModifier,
-            returnType = Kotlin.NothingType, override = !defaultResponseExists) {
+            returnType = Kotlin.NothingType, override = !defaultResponseExists
+        ) {
             kotlinParameter(statusVariable, Kotlin.IntClass.typeName())
             kotlinParameter(typeVariable, Kotlin.StringClass.typeName(true), parameterDefaultValue)
             kotlinParameter(bodyVariable, Kotlin.AnyClass.typeName(true), parameterDefaultValue)
@@ -116,18 +126,26 @@ class ServerRequestContextEmitter : CodeEmitter {
     private fun KotlinClass.emitStatusMethod(
         statusCode: ResponseCode.HttpStatusCode,
         body: TransformableBody?,
-        headers: List<TransformableParameter>
+        headers: List<TransformableParameter>,
+        responseInterfaceName: ClassName?
     ) {
-        kotlinMethod(statusCode.statusCodeReason().methodName(), bodyAsAssignment = true, returnType = Kotlin.NothingType) {
+        kotlinMethod(
+            statusCode.statusCodeReason().methodName(), bodyAsAssignment = true,
+            returnType = Kotlin.NothingType, override = responseInterfaceName != null
+        ) {
             emitMethodBody(statusCode.value.literal(), body, headers)
         }
     }
 
     private fun KotlinClass.emitDefaultStatusMethod(
         body: TransformableBody?,
-        headers: List<TransformableParameter>
+        headers: List<TransformableParameter>,
+        responseInterfaceName: ClassName?
     ) {
-        kotlinMethod("defaultStatus".methodName(), bodyAsAssignment = true, returnType = Kotlin.NothingType) {
+        kotlinMethod(
+            "defaultStatus".methodName(), bodyAsAssignment = true,
+            returnType = Kotlin.NothingType, override = responseInterfaceName != null
+        ) {
             val statusVariable = "status".variableName()
             kotlinParameter(statusVariable, Kotlin.IntClass.typeName())
             emitMethodBody(statusVariable, body, headers)
@@ -161,7 +179,11 @@ class ServerRequestContextEmitter : CodeEmitter {
         val headerExpressions = headers.map {
             kotlinParameter(it.parameterVariableName, it.content.typeUsage.buildValidType())
             val serializationExpression = emitterContext.runEmitter(
-                SerializationStatementEmitter(it.content.typeUsage, it.parameterVariableName, it.content.mappedContentType)
+                SerializationStatementEmitter(
+                    it.content.typeUsage,
+                    it.parameterVariableName,
+                    it.content.mappedContentType
+                )
             ).resultStatement
             invoke(Kotlin.PairClass.constructorName, it.name.literal(), serializationExpression)
         }
