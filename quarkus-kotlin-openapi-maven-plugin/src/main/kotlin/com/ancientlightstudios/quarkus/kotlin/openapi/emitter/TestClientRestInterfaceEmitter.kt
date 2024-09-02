@@ -182,15 +182,13 @@ class TestClientRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitt
             val validatableResponse = invoke("specBuilder".methodName()).wrap()
                 .invoke(
                     "filter".methodName(), invoke(
-                        RestAssured.RequestLoggingFilterClass.constructorName,
-                        RestAssured.LogDetailClass.companionObject().property("ALL".rawConstantName()),
+                        Library.RequestLoggingFilterClass.constructorName,
                         printStream
                     )
                 ).wrap()
                 .invoke(
                     "filter".methodName(), invoke(
-                        RestAssured.ResponseLoggingFilterClass.constructorName,
-                        RestAssured.LogDetailClass.companionObject().property("ALL".rawConstantName()),
+                        Library.ResponseLoggingFilterClass.constructorName,
                         printStream
                     )
                 ).wrap()
