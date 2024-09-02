@@ -59,11 +59,7 @@ object Jakarta {
 object RestAssured {
 
     val ResponseClass = "Response".className("io.restassured.response")
-    val ValidatableResponseClass = "ValidatableResponse".rawClassName("io.restassured.response")
     val RequestSpecificationClass = "RequestSpecification".rawClassName("io.restassured.specification")
-    val RequestLoggingFilterClass = "RequestLoggingFilter".rawClassName("io.restassured.filter.log")
-    val ResponseLoggingFilterClass = "ResponseLoggingFilter".rawClassName("io.restassured.filter.log")
-    val LogDetailClass = "LogDetail".rawClassName("io.restassured.filter.log")
 
 }
 
@@ -99,5 +95,7 @@ object Library {
     val RequestHandledSignalClass = "RequestHandledSignal".rawClassName("com.ancientlightstudios.quarkus.kotlin.openapi")
     val ResponseWithGenericStatusInterface = "ResponseWithGenericStatus".rawClassName("com.ancientlightstudios.quarkus.kotlin.openapi")
     val UnsafeJsonClass = "UnsafeJson".rawClassName("com.ancientlightstudios.quarkus.kotlin.openapi")
+    val RequestLoggingFilterClass = "RequestLoggingFilter".rawClassName("com.ancientlightstudios.quarkus.kotlin.openapi.testsupport")
+    val ResponseLoggingFilterClass = "ResponseLoggingFilter".rawClassName("com.ancientlightstudios.quarkus.kotlin.openapi.testsupport")
 
 }

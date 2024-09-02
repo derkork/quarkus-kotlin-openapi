@@ -12,7 +12,7 @@
     <parent>
         <groupId>com.ancientlightstudios</groupId>
         <artifactId>quarkus-kotlin-openapi-root</artifactId>
-        <version>0.4.2</version>
+        <version>0.4.3</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -44,6 +44,11 @@
         <dependency>
             <groupId>io.quarkus.resteasy.reactive</groupId>
             <artifactId>resteasy-reactive-common</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.rest-assured</groupId>
+            <artifactId>rest-assured</artifactId>
             <scope>provided</scope>
         </dependency>
     </dependencies>
