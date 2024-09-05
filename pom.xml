@@ -6,7 +6,7 @@
 
     <artifactId>quarkus-kotlin-openapi-root</artifactId>
     <groupId>com.ancientlightstudios</groupId>
-    <version>0.4.3</version>
+    <version>0.4.4</version>
     <packaging>pom</packaging>
 
     <name>Quarkus Kotlin OpenAPI - ROOT</name>
