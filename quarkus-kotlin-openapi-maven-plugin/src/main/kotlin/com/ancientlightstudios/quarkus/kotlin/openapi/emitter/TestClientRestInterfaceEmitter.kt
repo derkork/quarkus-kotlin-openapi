@@ -171,39 +171,64 @@ class TestClientRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitt
 
             val outputStream = invoke(Kotlin.ByteArrayOutputStreamClass.constructorName)
                 .declaration("outputStream".variableName())
+
             val printStream = invoke(Kotlin.PrintStreamClass.constructorName, outputStream)
                 .declaration("printStream".variableName())
 
-            val pathParamMap = invoke(
-                "mapOf".methodName(), pathParams,
-                listOf(Kotlin.StringClass.typeName(), Kotlin.AnyClass.typeName())
-            )
+            val result = TryCatchExpression.tryExpression {
+                val pathParamMap = InvocationExpression.invoke(
+                    "mapOf".methodName(), pathParams,
+                    listOf(Kotlin.StringClass.typeName(), Kotlin.AnyClass.typeName())
+                )
 
-            val validatableResponse = invoke("specBuilder".methodName()).wrap()
-                .invoke(
-                    "filter".methodName(), invoke(
-                        Library.RequestLoggingFilterClass.constructorName,
-                        printStream
-                    )
-                ).wrap()
-                .invoke(
-                    "filter".methodName(), invoke(
-                        Library.ResponseLoggingFilterClass.constructorName,
-                        printStream
-                    )
-                ).wrap()
-                .invoke("run".methodName(), "block".variableName()).wrap()
-                .invoke(
-                    request.method.value.methodName(),
-                    request.path.literal(),
-                    pathParamMap
-                )  // TODO: prefix
-                .wrap()
-                .invoke("then".methodName()).wrap()
-                .invoke("extract".methodName())
-                .declaration("validatableResponse".variableName())
+                val validatableResponse = InvocationExpression.invoke("specBuilder".methodName()).wrap()
+                    .invoke(
+                        "filter".methodName(), InvocationExpression.invoke(
+                            Library.RequestLoggingFilterClass.constructorName,
+                            printStream
+                        )
+                    ).wrap()
+                    .invoke(
+                        "filter".methodName(), InvocationExpression.invoke(
+                            Library.ResponseLoggingFilterClass.constructorName,
+                            printStream
+                        )
+                    ).wrap()
+                    .invoke("run".methodName(), "block".variableName()).wrap()
+                    .invoke(
+                        request.method.value.methodName(),
+                        request.path.literal(),
+                        pathParamMap
+                    )  // TODO: prefix
+                    .wrap()
+                    .invoke("then".methodName()).wrap()
+                    .invoke("extract".methodName())
+                    .declaration("validatableResponse".variableName())
 
-            val result = emitResponseConversion(request, validatableResponse)
+                emitResponseConversion(request, validatableResponse)
+
+                val errorClass = request.clientErrorResponseClassName
+
+                // produces
+                // catch (_: TimeoutException) {
+                //     AddMovieRatingError.RequestErrorTimeout()
+                // }
+                catchBlock(Misc.TimeoutExceptionClass, ignoreVariable = true) {
+                    // otherwise the tryExpression will be picked as the receiver which will produce a compiler error
+                    // due to the dsl annotation or an endless recursion without the annotation
+                    InvocationExpression.invoke(errorClass.rawNested("RequestErrorTimeout").constructorName).statement()
+                }
+
+                // produces
+                // catch (e: Exception) {
+                //     AddMovieRatingError.RequestErrorUnknown(e)
+                // }
+                catchBlock(Kotlin.ExceptionClass) {
+                    InvocationExpression.invoke(
+                        errorClass.rawNested("RequestErrorUnknown").constructorName, "e".variableName()
+                    ).statement()
+                }
+            }.declaration("result")
             invoke(request.responseValidatorClassName.constructorName, result, outputStream).returnStatement()
         }
     }
@@ -211,95 +236,74 @@ class TestClientRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitt
     private fun StatementAware.emitResponseConversion(
         request: TransformableRequest,
         validatableResponse: VariableName
-    ): VariableName {
+    ) {
         val successClass = request.clientHttpResponseClassName
         val errorClass = request.clientErrorResponseClassName
 
-        return TryCatchExpression.tryExpression {
+        // produces
+        // val statusCode = <validatableResponse>.statusCode()
+        val statusCode = validatableResponse.invoke("statusCode".methodName()).declaration("statusCode")
+
+        // produces
+        // val responseMaybe: Maybe<[ResponseContainerClass]> = when (statusCode) {
+        //     ...
+        // }
+        val responseMaybe = "responseMaybe".rawVariableName()
+        WhenExpression.whenExpression(statusCode) {
+            // generate options for all known status codes
+            request.responses.filter { it.responseCode is ResponseCode.HttpStatusCode }.forEach {
+                generateKnownResponseOption(
+                    successClass,
+                    it.responseCode as ResponseCode.HttpStatusCode,
+                    it.body,
+                    it.headers
+                )
+            }
+
+            // generate option for the default status or fallback otherwise
+            val defaultResponse = request.responses.firstOrNull { it.responseCode == ResponseCode.Default }
+            when (defaultResponse) {
+                null -> generateFallbackResponseOption(errorClass)
+                else -> generateDefaultResponseOption(
+                    successClass, defaultResponse.body, defaultResponse.headers
+                )
+            }
+        }.declaration(
+            responseMaybe,
+            typeName = Library.MaybeClass.typeName().of(request.responseContainerClassName.typeName())
+        )
+
+
+        // produces
+        // when(responseMaybe) {
+        //    ...
+        // }
+        WhenExpression.whenExpression(responseMaybe) {
             // produces
-            // val statusCode = <validatableResponse>.statusCode()
-            val statusCode = validatableResponse.invoke("statusCode".methodName()).declaration("statusCode")
-
-            // produces
-            // val responseMaybe: Maybe<[ResponseContainerClass]> = when (statusCode) {
-            //     ...
-            // }
-            val responseMaybe = "responseMaybe".rawVariableName()
-            WhenExpression.whenExpression(statusCode) {
-                // generate options for all known status codes
-                request.responses.filter { it.responseCode is ResponseCode.HttpStatusCode }.forEach {
-                    generateKnownResponseOption(
-                        successClass,
-                        it.responseCode as ResponseCode.HttpStatusCode,
-                        it.body,
-                        it.headers
-                    )
-                }
-
-                // generate option for the default status or fallback otherwise
-                val defaultResponse = request.responses.firstOrNull { it.responseCode == ResponseCode.Default }
-                when (defaultResponse) {
-                    null -> generateFallbackResponseOption(errorClass)
-                    else -> generateDefaultResponseOption(
-                        successClass, defaultResponse.body, defaultResponse.headers
-                    )
-                }
-            }.declaration(
-                responseMaybe,
-                typeName = Library.MaybeClass.typeName().of(request.responseContainerClassName.typeName())
-            )
-
-
-            // produces
-            // when(responseMaybe) {
-            //    ...
-            // }
-            WhenExpression.whenExpression(responseMaybe) {
-                // produces
-                // is Maybe.Success -> responseMaybe.value
-                optionBlock(AssignableExpression.assignable(Library.MaybeSuccessClass)) {
-                    responseMaybe.property("value".rawVariableName()).statement()
-                }
-
-                // produces
-                // is Maybe.Failure -> {
-                //     val errors = responseMaybe.errors.joinToString { "${it.path}: ${it.message}" }
-                //     <ResponseObject>(errors, validatableResponse.response())
-                // }
-                optionBlock(AssignableExpression.assignable(Library.MaybeFailureClass)) {
-                    responseMaybe.property("errors".variableName())
-                        .invoke("joinToString".rawMethodName()) {
-                            "\${it.path}: \${it.message}".literal().statement()
-                        }.declaration("errors".variableName())
-
-                    InvocationExpression.invoke(
-                        errorClass.rawNested("ResponseError").constructorName,
-                        "errors".variableName(),
-                        "validatableResponse".variableName().invoke("response".methodName())
-                    ).statement()
-                }
-            }.statement()
-
-            // produces
-            // catch (_: TimeoutException) {
-            //     AddMovieRatingError.RequestErrorTimeout()
-            // }
-            catchBlock(Misc.TimeoutExceptionClass, ignoreVariable = true) {
-                // otherwise the tryExpression will be picked as the receiver which will produce a compiler error
-                // due to the dsl annotation or an endless recursion without the annotation
-                InvocationExpression.invoke(errorClass.rawNested("RequestErrorTimeout").constructorName).statement()
+            // is Maybe.Success -> responseMaybe.value
+            optionBlock(AssignableExpression.assignable(Library.MaybeSuccessClass)) {
+                responseMaybe.property("value".rawVariableName()).statement()
             }
 
             // produces
-            // catch (e: Exception) {
-            //     AddMovieRatingError.RequestErrorUnknown(e)
+            // is Maybe.Failure -> {
+            //     val errors = responseMaybe.errors.joinToString { "${it.path}: ${it.message}" }
+            //     <ResponseObject>(errors, validatableResponse.response())
             // }
-            catchBlock(Kotlin.ExceptionClass) {
+            optionBlock(AssignableExpression.assignable(Library.MaybeFailureClass)) {
+                responseMaybe.property("errors".variableName())
+                    .invoke("joinToString".rawMethodName()) {
+                        "\${it.path}: \${it.message}".literal().statement()
+                    }.declaration("errors".variableName())
+
                 InvocationExpression.invoke(
-                    errorClass.rawNested("RequestErrorUnknown").constructorName, "e".variableName()
+                    errorClass.rawNested("ResponseError").constructorName,
+                    "errors".variableName(),
+                    "validatableResponse".variableName().invoke("response".methodName())
                 ).statement()
             }
-        }.declaration("result")
+        }.statement()
+
     }
 
     private fun WhenOptionAware.generateKnownResponseOption(
@@ -349,7 +353,7 @@ class TestClientRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitt
 
             if (body != null) {
                 // TODO: we probably need different target types here (e.g. for binary)
-                val deserializationMethod = when(body.content.mappedContentType) {
+                val deserializationMethod = when (body.content.mappedContentType) {
                     ContentType.ApplicationOctetStream -> "asByteArray"
                     else -> "asString"
                 }
