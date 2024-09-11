@@ -60,8 +60,8 @@ class FeaturesJsonTest : ApiTestBase() {
 
     @Test
     fun `sending nothing as an optional body works (Test-Client)`() {
-        testClient.jsonOptionalObjectRaw {
-            contentType("application/json")
+        testClient.jsonOptionalObjectUnsafe {
+            body(null as TestSimpleObject?)
         }
             .isOkResponse {
                 assertThat(safeBody).isNull()
@@ -81,7 +81,7 @@ class FeaturesJsonTest : ApiTestBase() {
     @Test
     fun `sending null as a required body is rejected (Test-Client)`() {
         testClient.jsonRequiredObjectUnsafe {
-            body(null as UnsafeJson<TestSimpleObject>?)
+            body(null as TestSimpleObject?)
         }
             .isBadRequestResponse {
                 assertThat(safeBody.messages).containsExactly(listOf("request.body", "required"))
@@ -105,8 +105,8 @@ class FeaturesJsonTest : ApiTestBase() {
 
     @Test
     fun `sending nothing as a required body is rejected (Test-Client)`() {
-        testClient.jsonRequiredObjectRaw {
-            contentType("application/json")
+        testClient.jsonRequiredObjectUnsafe {
+            body(null as TestSimpleObject?)
         }
             .isBadRequestResponse {
                 assertThat(safeBody.messages).containsExactly(listOf("request.body", "required"))
