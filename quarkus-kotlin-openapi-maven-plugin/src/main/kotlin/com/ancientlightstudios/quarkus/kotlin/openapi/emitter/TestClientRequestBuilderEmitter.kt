@@ -8,12 +8,10 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ParameterVari
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.RequestBuilderClassNameHint.requestBuilderClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeUsageHint.typeUsage
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.IfElseExpression.Companion.ifElseExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.InvocationExpression.Companion.invoke
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.methodName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.rawMethodName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.NullCheckExpression.Companion.nullCheck
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.PropertyExpression.Companion.property
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.GenericTypeName.Companion.of
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.SimpleTypeName.Companion.typeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ContentType
@@ -21,6 +19,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.Param
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableBody
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.ObjectTypeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.OneOfTypeDefinition
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.TypeUsage
 import com.ancientlightstudios.quarkus.kotlin.openapi.refactoring.AssignContentTypesRefactoring.Companion.getContentTypeForFormPart
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
 
@@ -60,7 +59,10 @@ class TestClientRequestBuilderEmitter : CodeEmitter {
             parameters {
                 if (parameter.kind != ParameterKind.Path) {
                     kotlinMethod(parameter.name.methodName()) {
-                        kotlinParameter("value".variableName(), parameter.content.typeUsage.buildValidType())
+                        val nullableType = parameter.content.typeUsage.forceNullable()
+
+                        // TODO: the buildValidType might revert the nullable again if this type has a default value
+                        kotlinParameter("value".variableName(), nullableType.buildValidType())
 
                         val methodName = when (parameter.kind) {
                             ParameterKind.Query -> "queryParams"
@@ -71,17 +73,22 @@ class TestClientRequestBuilderEmitter : CodeEmitter {
 
                         val parameterStatement = emitterContext.runEmitter(
                             SerializationStatementEmitter(
-                                parameter.content.typeUsage,
+                                nullableType,
                                 "value".variableName(),
-                                parameter.content.mappedContentType
+                                parameter.content.mappedContentType,
+                                true // we only use the statement inside a null check
                             )
                         ).resultStatement
 
-
-                        val builder: (StatementAware.() -> Unit) = {
-                            val argument = invoke(
+                        // produces
+                        //
+                        // if (value != null) {
+                        //     requestSpecification = requestSpecification.<methodName>(mapOf(Pair(<parameter.name>, <parameterStatement>)))
+                        // }
+                        ifElseExpression("value".variableName().compareWith(nullLiteral(), "!=")) {
+                            val argument = InvocationExpression.invoke(
                                 "mapOf".methodName(),
-                                invoke(
+                                InvocationExpression.invoke(
                                     Kotlin.PairClass.constructorName,
                                     parameter.name.literal(),
                                     parameterStatement
@@ -90,15 +97,7 @@ class TestClientRequestBuilderEmitter : CodeEmitter {
 
                             requestSpecificationVariable.invoke(methodName, argument)
                                 .assignment(requestSpecificationVariable)
-                        }
-
-                        if (parameter.content.typeUsage.isNullable()) {
-                            "value".variableName().nullCheck().invoke("let".methodName()) {
-                                builder()
-                            }.statement()
-                        } else {
-                            builder()
-                        }
+                        }.statement()
                     }
                 }
             }
@@ -120,108 +119,223 @@ class TestClientRequestBuilderEmitter : CodeEmitter {
     }
 
     private fun TransformableBody.emitJsonBodyMethod(clazz: KotlinClass, requestSpecificationVariable: VariableName) {
+        // generate the default body method
         clazz.kotlinMethod("body".methodName()) {
-            kotlinParameter("value".variableName(), content.typeUsage.buildValidType())
+            val nullableType = content.typeUsage.forceNullable()
+            kotlinParameter("value".variableName(), nullableType.buildValidType())
 
             val bodyStatement = emitterContext.runEmitter(
-                SerializationStatementEmitter(content.typeUsage, "value".variableName(), content.mappedContentType)
+                SerializationStatementEmitter(
+                    nullableType,
+                    "value".variableName(),
+                    content.mappedContentType,
+                    true // we only use the statement inside a null check
+                )
             ).resultStatement
 
+            // produces
+            //
+            // requestSpecification = requestSpecification.contentType("<rawContentType>")
             requestSpecificationVariable
                 .invoke("contentType".methodName(), content.rawContentType.literal())
-                .invoke(
-                    "body".methodName(),
-                    bodyStatement.invoke("asString".methodName(), "objectMapper".variableName())
-                )
                 .assignment(requestSpecificationVariable)
-        }
 
-        if (content.typeUsage.type is ObjectTypeDefinition || content.typeUsage.type is OneOfTypeDefinition) {
-            clazz.kotlinMethod("body".methodName()) {
-                kotlinParameter("value".variableName(), content.typeUsage.buildUnsafeJsonType())
-
-                val bodyStatement = emitterContext.runEmitter(
-                    UnsafeSerializationStatementEmitter(content.typeUsage, "value".variableName(), content.mappedContentType)
-                ).resultStatement
-
+            // produces
+            //
+            // if (value != null) {
+            //     requestSpecification = requestSpecification.body(<bodyStatement>)
+            // }
+            ifElseExpression("value".variableName().compareWith(nullLiteral(), "!=")) {
                 requestSpecificationVariable
-                    .invoke("contentType".methodName(), content.rawContentType.literal())
                     .invoke(
                         "body".methodName(),
                         bodyStatement.invoke("asString".methodName(), "objectMapper".variableName())
                     )
                     .assignment(requestSpecificationVariable)
+            }.statement()
+        }
+
+        // generate a body method with a UnsafeJson parameter for object and oneOf types
+        if (content.typeUsage.type is ObjectTypeDefinition || content.typeUsage.type is OneOfTypeDefinition) {
+            clazz.kotlinMethod("body".methodName()) {
+                kotlinParameter("value".variableName(), content.typeUsage.buildUnsafeJsonType())
+
+                val bodyStatement = emitterContext.runEmitter(
+                    UnsafeSerializationStatementEmitter(
+                        content.typeUsage,
+                        "value".variableName(),
+                        content.mappedContentType,
+                        true // we only use the statement inside a null check
+                    )
+                ).resultStatement
+
+                // produces
+                //
+                // requestSpecification = requestSpecification.contentType("<rawContentType>")
+                requestSpecificationVariable
+                    .invoke("contentType".methodName(), content.rawContentType.literal())
+                    .assignment(requestSpecificationVariable)
+
+                // produces
+                //
+                // if (value != null) {
+                //     requestSpecification = requestSpecification.body(<bodyStatement>)
+                // }
+                ifElseExpression("value".variableName().compareWith(nullLiteral(), "!=")) {
+                    requestSpecificationVariable
+                        .invoke(
+                            "body".methodName(),
+                            bodyStatement.invoke("asString".methodName(), "objectMapper".variableName())
+                        )
+                        .assignment(requestSpecificationVariable)
+                }.statement()
             }
         }
     }
 
     private fun TransformableBody.emitPlainBodyMethod(clazz: KotlinClass, requestSpecificationVariable: VariableName) {
         clazz.kotlinMethod("body".methodName()) {
-            kotlinParameter("value".variableName(), content.typeUsage.buildValidType())
+            val nullableType = content.typeUsage.forceNullable()
+            kotlinParameter("value".variableName(), nullableType.buildValidType())
 
             val bodyStatement = emitterContext.runEmitter(
-                SerializationStatementEmitter(content.typeUsage, "value".variableName(), content.mappedContentType)
+                SerializationStatementEmitter(
+                    nullableType,
+                    "value".variableName(),
+                    content.mappedContentType,
+                    true // we only use the statement inside a null check
+                )
             ).resultStatement
 
+            // produces
+            //
+            // requestSpecification = requestSpecification.contentType("<rawContentType>")
             requestSpecificationVariable
                 .invoke("contentType".methodName(), content.rawContentType.literal())
-                .invoke("body".methodName(), bodyStatement)
                 .assignment(requestSpecificationVariable)
+
+            // produces
+            //
+            // if (value != null) {
+            //     requestSpecification = requestSpecification.body(<bodyStatement>)
+            // }
+            ifElseExpression("value".variableName().compareWith(nullLiteral(), "!=")) {
+                requestSpecificationVariable
+                    .invoke("body".methodName(), bodyStatement)
+                    .assignment(requestSpecificationVariable)
+            }.statement()
         }
     }
 
     private fun TransformableBody.emitFormBodyMethod(clazz: KotlinClass, requestSpecificationVariable: VariableName) {
         clazz.kotlinMethod("body".methodName()) {
-            val typeUsage = content.typeUsage
-            kotlinParameter("value".variableName(), typeUsage.buildValidType())
+            val nullableType = content.typeUsage.forceNullable()
+            kotlinParameter("value".variableName(), nullableType.buildValidType())
 
-            var statement = requestSpecificationVariable
+            // produces
+            //
+            // requestSpecification = requestSpecification.contentType("<rawContentType>")
+            requestSpecificationVariable
                 .invoke("contentType".methodName(), content.rawContentType.literal())
-
-
-            val safeType = typeUsage.type
-            if (safeType is ObjectTypeDefinition) {
-                val baseStatement = if (typeUsage.isNullable()) {
-                    "value".variableName().nullCheck()
-                } else {
-                    "value".variableName()
-                }
-
-                // TODO: in case of json we probably want the writeValueAsString method to convert the payload
-                //   see jsonBody. same for restClient
-                safeType.properties.forEach {
-                    val propertyType = it.typeUsage
-                    val contentType = getContentTypeForFormPart(propertyType.type)
-                    val propertyStatement =
-                        emitterContext.runEmitter(
-                            SerializationStatementEmitter(propertyType, baseStatement.property(it.name), contentType)
-                        ).resultStatement
-
-                    statement =
-                        statement.wrap().invoke("formParam".methodName(), it.sourceName.literal(), propertyStatement)
-                }
-            } else {
-                val serializeStatement = emitterContext.runEmitter(
-                    SerializationStatementEmitter(typeUsage, "value".variableName(), content.mappedContentType)
-                ).resultStatement
-
-                statement = statement.invoke("formParam".methodName(), parameterVariableName, serializeStatement)
-            }
-
-            statement.assignment(requestSpecificationVariable)
-        }
-    }
-
-    private fun TransformableBody.emitOctetStreamBodyMethod(clazz: KotlinClass, requestSpecificationVariable: VariableName) {
-        clazz.kotlinMethod("body".methodName()) {
-            val typeUsage = content.typeUsage
-            kotlinParameter("value".variableName(), Kotlin.ByteArrayClass.typeName(typeUsage.isNullable()))
-
-            var statement = requestSpecificationVariable
-                .invoke("contentType".methodName(), content.rawContentType.literal())
-                .invoke("body".methodName(), "value".variableName())
                 .assignment(requestSpecificationVariable)
 
+            // produces
+            //
+            // if (value != null) {
+            //     ...
+            // }
+            ifElseExpression("value".variableName().compareWith(nullLiteral(), "!=")) {
+                val safeType = nullableType.type
+                if (safeType is ObjectTypeDefinition) {
+                    // TODO: in case of json we probably want the writeValueAsString method to convert the payload
+                    //   see jsonBody. same for restClient
+                    safeType.properties.forEach {
+                        val propertyType = it.typeUsage
+                        val contentType = getContentTypeForFormPart(propertyType.type)
+                        if (propertyType.nullable) {
+                            ifElseExpression(
+                                "value".variableName().property(it.name).compareWith(nullLiteral(), "!=")
+                            ) {
+                                renderFormParamStatement(
+                                    requestSpecificationVariable,
+                                    propertyType,
+                                    "value".variableName().property(it.name),
+                                    contentType,
+                                    it.sourceName
+                                )
+                            }
+                        } else {
+                            renderFormParamStatement(
+                                requestSpecificationVariable,
+                                propertyType,
+                                "value".variableName().property(it.name),
+                                contentType,
+                                it.sourceName
+                            )
+                        }
+                    }
+                } else {
+                    renderFormParamStatement(
+                        requestSpecificationVariable,
+                        nullableType,
+                        "value".variableName(),
+                        content.mappedContentType,
+                        parameterVariableName.value
+                    )
+                }
+            }.statement()
         }
     }
+
+    private fun StatementAware.renderFormParamStatement(
+        requestSpecificationVariable: VariableName,
+        type: TypeUsage,
+        parameter: KotlinExpression,
+        contentType: ContentType,
+        parameterName: String
+    ) {
+        val serializeStatement = emitterContext.runEmitter(
+            SerializationStatementEmitter(
+                type,
+                parameter,
+                contentType,
+                true // we only use the statement inside a null check
+            )
+        ).resultStatement
+
+        requestSpecificationVariable
+            .invoke("formParam".methodName(), parameterName.literal(), serializeStatement)
+            .assignment(requestSpecificationVariable)
+
+    }
+
+
+    private fun TransformableBody.emitOctetStreamBodyMethod(
+        clazz: KotlinClass,
+        requestSpecificationVariable: VariableName
+    ) {
+        clazz.kotlinMethod("body".methodName()) {
+            kotlinParameter("value".variableName(), Kotlin.ByteArrayClass.typeName(true))
+
+            // produces
+            //
+            // requestSpecification = requestSpecification.contentType("<rawContentType>")
+            requestSpecificationVariable
+                .invoke("contentType".methodName(), content.rawContentType.literal())
+                .assignment(requestSpecificationVariable)
+
+            // produces
+            //
+            // if (value != null) {
+            //     requestSpecification = requestSpecification.body(value)
+            // }
+            ifElseExpression("value".variableName().compareWith(nullLiteral(), "!=")) {
+                requestSpecificationVariable
+                    .invoke("body".methodName(), "value".variableName())
+                    .assignment(requestSpecificationVariable)
+            }.statement()
+        }
+    }
+
+    private fun TypeUsage.forceNullable() = TypeUsage(false, this.type)
 }

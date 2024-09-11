@@ -67,9 +67,8 @@ class FeaturesPlainTest : ApiTestBase() {
 
     @Test
     fun `empty request is supported (Test-Client)`() {
-        // TODO: can be replaced with the save/unsafe method, if we only set the body if it is not null
-        testClient.plainEnumBodyRaw {
-            contentType("text/plain")
+        testClient.plainEnumBodyUnsafe {
+            body(null)
         }
             .isOkResponse {
                 assertThat(safeBody).isNull()

@@ -18,7 +18,8 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
 class UnsafeSerializationStatementEmitter(
     private val typeUsage: TypeUsage,
     baseStatement: KotlinExpression,
-    private val contentType: ContentType
+    private val contentType: ContentType,
+    private val forceSkipNullCheck: Boolean = false
 ) : CodeEmitter {
 
     var resultStatement = baseStatement
@@ -27,7 +28,9 @@ class UnsafeSerializationStatementEmitter(
     //
     // e.g. if the base statement is just the variable name 'foo' it will produce 'foo?'
     override fun EmitterContext.emit() {
-        resultStatement = resultStatement.nullCheck()
+        if (!forceSkipNullCheck) {
+            resultStatement = resultStatement.nullCheck()
+        }
         resultStatement = when (val safeType = typeUsage.type) {
             is PrimitiveTypeDefinition -> emitForPrimitiveType(resultStatement)
             is EnumTypeDefinition -> emitForEnumType(resultStatement)

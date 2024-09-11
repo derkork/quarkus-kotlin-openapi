@@ -15,7 +15,8 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
 class SerializationStatementEmitter(
     private val typeUsage: TypeUsage,
     baseStatement: KotlinExpression,
-    private val contentType: ContentType
+    private val contentType: ContentType,
+    private val forceSkipNullCheck: Boolean = false
 ) : CodeEmitter {
 
     var resultStatement = baseStatement
@@ -24,9 +25,9 @@ class SerializationStatementEmitter(
     //
     // e.g. if the base statement is just the variable name 'foo' it will produce 'foo?'
     override fun EmitterContext.emit() {
-        // TODO: the check for content type is necessary right, because there is no other transformation and would produce just a single ?
+        // TODO: the check for content type is necessary right now, because there is no other transformation and would produce just a single ?
         // should be changed if we know how other content types work and how we can change the serialization and deserialization code
-        if (typeUsage.isNullable() && contentType != ContentType.ApplicationOctetStream) {
+        if (!forceSkipNullCheck && typeUsage.isNullable() && contentType != ContentType.ApplicationOctetStream) {
             resultStatement = resultStatement.nullCheck()
         }
 

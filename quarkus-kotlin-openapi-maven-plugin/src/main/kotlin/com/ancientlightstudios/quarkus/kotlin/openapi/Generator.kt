@@ -26,7 +26,31 @@ class Generator(private val config: Config) {
         EmitterStage(config).process(spec)
 
         val duration = Duration.between(start, Instant.now())
-        log.info("Plugin took $duration")
+
+        log.info("Plugin took ${duration.prettyPrint()}")
     }
 
+    private fun Duration.prettyPrint() : String {
+        val hours = toHoursPart()
+        val minutes = toMinutesPart()
+        val seconds = toSecondsPart()
+        val milliseconds = toMillisPart()
+
+        val result = StringBuilder()
+        if (hours > 0) {
+            result.append("${hours}h")
+        }
+        if (minutes > 0) {
+            result.append("${minutes}m")
+        }
+        if (seconds > 0) {
+            result.append("${seconds}s")
+        }
+        // ignore milliseconds if there are minutes or hours
+        if (hours == 0 && minutes == 0 && milliseconds > 0) {
+            result.append("${milliseconds}ms")
+        }
+        
+        return result.toString()
+    }
 }

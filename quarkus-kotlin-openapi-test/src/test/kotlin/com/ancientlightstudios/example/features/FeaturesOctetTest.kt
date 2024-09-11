@@ -67,8 +67,8 @@ class FeaturesOctetTest : ApiTestBase() {
 
     @Test
     fun `null body is supported for optional content (Test-Client)`() {
-        testClient.fileUploadOptionalRaw {
-            this.contentType("application/octet-stream")
+        testClient.fileUploadOptionalUnsafe {
+            body(null)
         }
             .isOkResponse {
                 assertThat(safeBody).isEqualTo(null)
@@ -124,8 +124,8 @@ class FeaturesOctetTest : ApiTestBase() {
 
     @Test
     fun `null body is rejected when required (Test-Client)`() {
-        testClient.fileUploadRequiredRaw {
-            this.contentType("application/octet-stream")
+        testClient.fileUploadRequiredUnsafe {
+            body(null)
         }
             .isBadRequestResponse {
                 assertThat(safeBody.messages).containsExactly(listOf("body", "required"))

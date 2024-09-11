@@ -18,6 +18,22 @@ fun ClassName.literalFor(value: String) = when (this) {
     else -> ProbableBug("Unknown type ${this.value} for literal")
 }
 
+// TODO: probably not the best way to implement this (needs support for || and &&, etc). but for now until we have a better approach
+fun KotlinExpression.compareWith(other: KotlinExpression, mode: String) = object : KotlinExpression {
+
+    override fun ImportCollector.registerImports() {
+        registerFrom(this@compareWith)
+        registerFrom(other)
+    }
+
+    override fun render(writer: CodeWriter) = with(writer) {
+        this@compareWith.render(this)
+        write(" $mode ")
+        other.render(this)
+    }
+
+}
+
 fun KotlinExpression.nullFallback(fallback: KotlinExpression) = object : KotlinExpression {
 
     override fun ImportCollector.registerImports() {
