@@ -1,0 +1,61 @@
+﻿{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Hello World API",
+    "description": "A sample API.",
+    "version": "1.0"
+  },
+  "paths": {
+    "/hello-world": {
+      "get": {
+        "summary": "Hello world operation",
+        "description": "A demonstration of a GET call on a sample resource.",
+        "operationId": "get-hello-world",
+        "parameters": [
+          {
+            "name": "who",
+            "in": "query",
+            "description": "A sample parameter that is optional and has a default value of \"sample\".",
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Request was missing a required parameter.",
+            "content": {
+                "application/json": {
+                    "schema": {
+                    "type": "object",
+                    "properties": {
+                        "error": {
+                        "type": "string"
+                        }
+                    }
+                    }
+                }
+            }
+          }
+        }
+      }
+    }
+  }
+}
