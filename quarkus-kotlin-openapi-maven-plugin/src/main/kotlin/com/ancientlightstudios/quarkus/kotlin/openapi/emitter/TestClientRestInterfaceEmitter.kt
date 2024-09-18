@@ -26,10 +26,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.Sim
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.rawVariableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.*
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.CollectionTypeDefinition
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.EnumTypeDefinition
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.PrimitiveTypeDefinition
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.TypeDefinition
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.*
 
 class TestClientRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitter {
 
@@ -72,7 +69,7 @@ class TestClientRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitt
                 kotlinParameter(
                     parameter.parameterVariableName,
                     parameter.content.typeUsage.buildValidType(),
-                    parameter.content.typeUsage.type.defaultExpression()
+                    parameter.content.typeUsage.defaultExpression(nullLiteral())
                 )
 
                 if (parameter.kind == ParameterKind.Path) {
@@ -86,7 +83,7 @@ class TestClientRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitt
                 kotlinParameter(
                     body.parameterVariableName,
                     body.content.typeUsage.buildValidType(),
-                    body.content.typeUsage.type.defaultExpression()
+                    body.content.typeUsage.defaultExpression(nullLiteral())
                 )
                 statements.add(invoke("body".methodName(), body.parameterVariableName))
             }
@@ -107,7 +104,7 @@ class TestClientRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitt
                     kotlinParameter(
                         parameter.parameterVariableName,
                         parameter.content.typeUsage.buildValidType(),
-                        parameter.content.typeUsage.type.defaultExpression()
+                        parameter.content.typeUsage.defaultExpression()
                     )
 
                     val parameterStatement = emitterContext.runEmitter(
@@ -436,11 +433,17 @@ class TestClientRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitt
         }
     }
 
-    private fun TypeDefinition.defaultExpression() = when (this) {
-        is PrimitiveTypeDefinition -> this.defaultExpression()
-        is EnumTypeDefinition -> this.defaultExpression()
-        else -> null
-    }
+    private fun TypeUsage.defaultExpression(fallback: KotlinExpression? = null) : KotlinExpression? {
+        val defaultValue = when (val typeDefinition = type) {
+            is PrimitiveTypeDefinition -> typeDefinition.defaultExpression()
+            is EnumTypeDefinition -> typeDefinition.defaultExpression()
+            else -> null
+        }
 
+        return when(isNullable()) {
+            false -> defaultValue
+            true -> defaultValue ?: fallback
+        }
+    }
 }
 
