@@ -68,8 +68,8 @@ class AssignContentTypesRefactoring : SpecRefactoring {
             when (contentType) {
                 ContentType.ApplicationJson -> propagate(propertyType, direction, contentType)
 
-                ContentType.ApplicationFormUrlencoded,
-                ContentType.MultipartFormData -> propagate(
+//                ContentType.MultipartFormData,
+                ContentType.ApplicationFormUrlencoded -> propagate(
                     propertyType, direction, getContentTypeForFormPart(propertyType)
                 )
 
@@ -88,7 +88,7 @@ class AssignContentTypesRefactoring : SpecRefactoring {
             ContentType.ApplicationJson -> propagate(itemType, direction, contentType)
 
             ContentType.ApplicationFormUrlencoded,
-            ContentType.MultipartFormData -> propagate(itemType, direction, getContentTypeForFormPart(itemType))
+//            ContentType.MultipartFormData -> propagate(itemType, direction, getContentTypeForFormPart(itemType))
 
             ContentType.ApplicationOctetStream -> ProbableBug("don't know how to handle $contentType for collections")
         }

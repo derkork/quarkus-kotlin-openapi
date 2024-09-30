@@ -30,9 +30,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.Conte
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ResponseCode
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableBody
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableParameter
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.CollectionTypeDefinition
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.ObjectTypeDefinition
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.TypeUsage
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.refactoring.AssignContentTypesRefactoring.Companion.getContentTypeForFormPart
 
 class ClientRestInterfaceEmitter : CodeEmitter {
@@ -208,7 +206,7 @@ class ClientRestInterfaceEmitter : CodeEmitter {
         return when (body.content.mappedContentType) {
             ContentType.ApplicationJson -> listOf(emitJsonBody(method, body))
             ContentType.TextPlain -> listOf(emitPlainBody(method, body))
-            ContentType.MultipartFormData -> emitMultipartBody(method, body)
+//            ContentType.MultipartFormData -> emitMultipartBody(method, body)
             ContentType.ApplicationFormUrlencoded -> emitFormBody(method, body)
             ContentType.ApplicationOctetStream -> listOf(emitOctetBody(method, body))
         }
@@ -431,10 +429,16 @@ class ClientRestInterfaceEmitter : CodeEmitter {
     }
 
     private fun defaultParameterExpression(typeUsage: TypeUsage): KotlinExpression? {
-        return when (typeUsage.isNullable()) {
-            true -> nullLiteral()
-            else -> null
+        val declaredDefaultValue = when (val safeType = typeUsage.type) {
+            is PrimitiveTypeDefinition -> safeType.defaultExpression()
+            is EnumTypeDefinition -> safeType.defaultExpression()
+            is CollectionTypeDefinition,
+            is ObjectTypeDefinition,
+            is OneOfTypeDefinition -> null
         }
+
+        // if there is a default expression defined, use it. Otherwise, use the null expression, if null is allowed
+        return declaredDefaultValue ?: if (typeUsage.isNullable()) nullLiteral() else null
     }
 
 }

@@ -19,10 +19,22 @@ class FeaturesPlainServerDelegateImpl : FeaturesPlainServerDelegate {
         ok(validRequest.body)
     }
 
+    override suspend fun PlainBigIntegerTypeContext.plainBigIntegerType(): Nothing {
+        val validRequest = request.validOrElse { badRequest(it.toOperationError()) }
+
+        ok(PlainBigIntegerType200Response(validRequest.param, validRequest.body))
+    }
+
     override suspend fun PlainIntegerTypeContext.plainIntegerType(): Nothing {
         val validRequest = request.validOrElse { badRequest(it.toOperationError()) }
 
         ok(PlainIntegerType200Response(validRequest.param, validRequest.body))
+    }
+
+    override suspend fun PlainBigDecimalTypeContext.plainBigDecimalType(): Nothing {
+        val validRequest = request.validOrElse { badRequest(it.toOperationError()) }
+
+        ok(PlainBigDecimalType200Response(validRequest.param, validRequest.body))
     }
 
     override suspend fun PlainFloatingTypeContext.plainFloatingType(): Nothing {

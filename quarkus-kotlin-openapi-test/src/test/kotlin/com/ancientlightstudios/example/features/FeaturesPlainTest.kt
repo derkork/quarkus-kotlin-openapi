@@ -12,6 +12,8 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
+import java.math.BigDecimal
+import java.math.BigInteger
 import com.ancientlightstudios.example.features.testclient.model.PlainEnum as TestPlainEnum
 
 @QuarkusTest
@@ -120,6 +122,74 @@ class FeaturesPlainTest : ApiTestBase() {
     }
 
     @Test
+    fun `sending invalid big integer value is rejected (Test-Client)`() {
+        testClient.plainBigIntegerTypeRaw {
+            queryParam("param", "foo")
+                .contentType("text/plain")
+                .body("foo")
+        }.isBadRequestResponse {
+            assertThat(safeBody.messages).containsExactly(
+                listOf("request.query.param", "not a valid integer"),
+                listOf("request.body", "not a valid integer")
+            )
+        }
+    }
+
+    @Test
+    fun `sending invalid big integer value is rejected (Raw)`() {
+        val messages = prepareRequest()
+            .queryParam("param", "foo")
+            .contentType("text/plain")
+            .body("foo")
+            .post("/features/plain/bigIntegerType")
+            .execute()
+            .statusCode(400)
+            .extract()
+            .jsonPath()
+            .getList<String>("messages")
+
+        assertThat(messages).containsExactly(
+            listOf("request.query.param", "not a valid integer"),
+            listOf("request.body", "not a valid integer")
+        )
+    }
+
+    @Test
+    fun `sending valid big integer value is accepted (Client)`() {
+        runBlocking {
+            val response = client.plainBigIntegerType(BigInteger("5"), BigInteger("10"))
+            if (response is PlainBigIntegerTypeHttpResponse.Ok) {
+                assertThat(response.safeBody.parameterValue).isEqualTo(BigInteger("5"))
+                assertThat(response.safeBody.bodyValue).isEqualTo(BigInteger("10"))
+            } else {
+                fail("unexpected response")
+            }
+        }
+    }
+
+    @Test
+    fun `sending valid big integer value is accepted (Test-Client)`() {
+        testClient.plainBigIntegerTypeSafe(BigInteger("5"), BigInteger("10"))
+            .isOkResponse {
+                assertThat(safeBody.parameterValue).isEqualTo(BigInteger("5"))
+                assertThat(safeBody.bodyValue).isEqualTo(BigInteger("10"))
+            }
+    }
+
+    @Test
+    fun `sending valid big integer value is accepted (Raw)`() {
+        prepareRequest()
+            .queryParam("param", 5)
+            .contentType("text/plain")
+            .body(10)
+            .post("/features/plain/bigIntegerType")
+            .execute()
+            .statusCode(200)
+            .body("parameterValue", equalTo(5))
+            .body("bodyValue", equalTo(10))
+    }
+
+    @Test
     fun `sending invalid integer value is rejected (Test-Client)`() {
         testClient.plainIntegerTypeRaw {
             queryParam("param", "foo")
@@ -185,6 +255,74 @@ class FeaturesPlainTest : ApiTestBase() {
             .statusCode(200)
             .body("parameterValue", equalTo(5))
             .body("bodyValue", equalTo(10))
+    }
+
+    @Test
+    fun `sending invalid big decimal value is rejected (Test-Client)`() {
+        testClient.plainBigDecimalTypeRaw {
+            queryParam("param", "foo")
+                .contentType("text/plain")
+                .body("foo")
+        }.isBadRequestResponse {
+            assertThat(safeBody.messages).containsExactly(
+                listOf("request.query.param", "not a valid decimal"),
+                listOf("request.body", "not a valid decimal")
+            )
+        }
+    }
+
+    @Test
+    fun `sending invalid big decimal value is rejected (Raw)`() {
+        val messages = prepareRequest()
+            .queryParam("param", "foo")
+            .contentType("text/plain")
+            .body("foo")
+            .post("/features/plain/bigDecimalType")
+            .execute()
+            .statusCode(400)
+            .extract()
+            .jsonPath()
+            .getList<String>("messages")
+
+        assertThat(messages).containsExactly(
+            listOf("request.query.param", "not a valid decimal"),
+            listOf("request.body", "not a valid decimal")
+        )
+    }
+
+    @Test
+    fun `sending valid big decimal value is accepted (Client)`() {
+        runBlocking {
+            val response = client.plainBigDecimalType(BigDecimal("5.5"), BigDecimal("10.5"))
+            if (response is PlainBigDecimalTypeHttpResponse.Ok) {
+                assertThat(response.safeBody.parameterValue).isEqualTo(BigDecimal("5.5"))
+                assertThat(response.safeBody.bodyValue).isEqualTo(BigDecimal("10.5"))
+            } else {
+                fail("unexpected response")
+            }
+        }
+    }
+
+    @Test
+    fun `sending valid big decimal value is accepted (Test-Client)`() {
+        testClient.plainBigDecimalTypeSafe(BigDecimal("5.5"), BigDecimal("10.5"))
+            .isOkResponse {
+                assertThat(safeBody.parameterValue).isEqualTo(BigDecimal("5.5"))
+                assertThat(safeBody.bodyValue).isEqualTo(BigDecimal("10.5"))
+            }
+    }
+
+    @Test
+    fun `sending valid big decimal value is accepted (Raw)`() {
+        prepareRequest()
+            .queryParam("param", 5.5f)
+            .contentType("text/plain")
+            .body(10.5f)
+            .post("/features/plain/bigDecimalType")
+            .execute()
+            .statusCode(200)
+            .body("parameterValue", equalTo(5.5f))
+            .body("bodyValue", equalTo(10.5f))
     }
 
     @Test

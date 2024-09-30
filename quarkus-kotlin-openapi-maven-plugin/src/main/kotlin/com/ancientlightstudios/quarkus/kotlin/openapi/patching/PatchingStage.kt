@@ -3,8 +3,8 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.patching
 import com.ancientlightstudios.quarkus.kotlin.openapi.Config
 import com.ancientlightstudios.quarkus.kotlin.openapi.parser.merge
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ConfigIssue
+import com.ancientlightstudios.quarkus.kotlin.openapi.utils.SpecIssue
 import com.dashjoin.jsonata.Jsonata.jsonata
-import com.dashjoin.jsonata.json.Json
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
@@ -35,13 +35,17 @@ class PatchingStage(private val config: Config) {
     }
 
     private fun JsonNode.applyPatch(patchFile: String): JsonNode {
-        val schema = patchFile.substringBefore("://", "jsonpatch")
-        val path = patchFile.substringAfter("://")
+        try {
+            val schema = patchFile.substringBefore("://", "jsonpatch")
+            val path = patchFile.substringAfter("://")
 
-        return when (schema) {
-            "jsonpatch" -> applyJsonPatch(path)
-            "jsonata" -> applyJsonataPatch(path)
-            else -> ConfigIssue("unsupported patch format $schema in $patchFile")
+            return when (schema) {
+                "jsonpatch" -> applyJsonPatch(path)
+                "jsonata" -> applyJsonataPatch(path)
+                else -> ConfigIssue("unsupported patch format $schema in $patchFile")
+            }
+        } catch (e:Exception) {
+            SpecIssue("Unable to apply patch $patchFile. Reason is ${e.message}")
         }
     }
 

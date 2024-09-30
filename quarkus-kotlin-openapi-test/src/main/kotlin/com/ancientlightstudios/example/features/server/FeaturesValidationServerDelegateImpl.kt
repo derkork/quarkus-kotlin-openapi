@@ -16,6 +16,16 @@ class FeaturesValidationServerDelegateImpl : FeaturesValidationServerDelegate {
         noContent()
     }
 
+    override suspend fun BigDecimalValidationContext.bigDecimalValidation(): Nothing {
+        request.validOrElse { badRequest(it.toOperationError()) }
+        noContent()
+    }
+
+    override suspend fun BigIntegerValidationContext.bigIntegerValidation(): Nothing {
+        request.validOrElse { badRequest(it.toOperationError()) }
+        noContent()
+    }
+
     override suspend fun NumberValidationContext.numberValidation(): Nothing {
         request.validOrElse { badRequest(it.toOperationError()) }
         noContent()

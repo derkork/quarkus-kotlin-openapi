@@ -10,11 +10,12 @@
 - nullable/required for form-parameter!? wenn objekt optional aber property required?
 
 
-- literal Funktionen für BigInteger, BigDecimal
-             
-
 - cache für $ref auf Parameter, Responses, Bodies, damit inline-schemas in geteilten responses nicht zu doppelten model-klassen führen
-- 
+
+- IfProfile an Classen generieren        
+
+bessere Fehlermeldungen
+- und bei probable bug
 
 # Beschreibung
 

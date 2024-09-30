@@ -11,6 +11,8 @@ import org.junit.jupiter.api.fail
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.ValueSource
+import java.math.BigDecimal
+import java.math.BigInteger
 import kotlin.test.assertTrue
 import com.ancientlightstudios.example.features.testclient.ResponseValidationError as TestResponseValidationError
 
@@ -193,6 +195,272 @@ class FeaturesValidationTest : ApiTestBase() {
 
         assertThat(messages)
             .containsExactly(listOf("request.query.param", "match pattern"))
+    }
+
+    @Test
+    fun `big decimal below minimum are rejected (Client)`() {
+        runBlocking {
+            val response = client.bigDecimalValidation(BigDecimal("5.4"), BigDecimal("5.5"))
+            if (response is BigDecimalValidationHttpResponse.BadRequest) {
+                assertThat(response.safeBody.messages)
+                    .containsExactly(
+                        listOf("request.query.inclusive", "minimum"),
+                        listOf("request.query.exclusive", "exclusive minimum")
+                    )
+            } else {
+                fail("unexpected response")
+            }
+        }
+    }
+
+    @Test
+    fun `big decimal below minimum are rejected (Test-Client)`() {
+        testClient.bigDecimalValidationSafe(BigDecimal("5.4"), BigDecimal("5.5"))
+            .isBadRequestResponse {
+                assertThat(safeBody.messages)
+                    .containsExactly(
+                        listOf("request.query.inclusive", "minimum"),
+                        listOf("request.query.exclusive", "exclusive minimum")
+                    )
+            }
+    }
+
+    @Test
+    fun `big decimal below minimum are rejected (Raw)`() {
+        val messages = prepareRequest()
+            .queryParam("inclusive", "5.4")
+            .queryParam("exclusive", "5.5")
+            .get("/features/validation/bigDecimal")
+            .execute()
+            .statusCode(400)
+            .extract()
+            .jsonPath()
+            .getList<String>("messages")
+
+        assertThat(messages)
+            .containsExactly(
+                listOf("request.query.inclusive", "minimum"),
+                listOf("request.query.exclusive", "exclusive minimum")
+            )
+    }
+
+    @Test
+    fun `big decimal above maximum are rejected (Client)`() {
+        runBlocking {
+            val response = client.bigDecimalValidation(BigDecimal("10.6"), BigDecimal("10.5"))
+            if (response is BigDecimalValidationHttpResponse.BadRequest) {
+                assertThat(response.safeBody.messages)
+                    .containsExactly(
+                        listOf("request.query.inclusive", "maximum"),
+                        listOf("request.query.exclusive", "exclusive maximum")
+                    )
+            } else {
+                fail("unexpected response")
+            }
+        }
+    }
+
+    @Test
+    fun `big decimal above maximum are rejected (Test-Client)`() {
+        testClient.bigDecimalValidationSafe(BigDecimal("10.6"), BigDecimal("10.5"))
+            .isBadRequestResponse {
+                assertThat(safeBody.messages)
+                    .containsExactly(
+                        listOf("request.query.inclusive", "maximum"),
+                        listOf("request.query.exclusive", "exclusive maximum")
+                    )
+            }
+    }
+
+    @Test
+    fun `big decimal above maximum are rejected (Raw)`() {
+        val messages = prepareRequest()
+            .queryParam("inclusive", "10.6")
+            .queryParam("exclusive", "10.5")
+            .get("/features/validation/bigDecimal")
+            .execute()
+            .statusCode(400)
+            .extract()
+            .jsonPath()
+            .getList<String>("messages")
+
+        assertThat(messages)
+            .containsExactly(
+                listOf("request.query.inclusive", "maximum"),
+                listOf("request.query.exclusive", "exclusive maximum")
+            )
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+        "5.5,5.51",
+        "10.5,10.49"
+    )
+    fun `valid big decimal are accepted (Client)`(inclusiveParamValue: BigDecimal, exclusiveParamValue: BigDecimal) {
+        runBlocking {
+            val response = client.bigDecimalValidation(inclusiveParamValue, exclusiveParamValue)
+            if (response !is BigDecimalValidationHttpResponse.NoContent) {
+                fail("unexpected response")
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+        "5.5,5.51",
+        "10.5,10.49"
+    )
+    fun `valid big decimal are accepted (Test-Client)`(inclusiveParamValue: BigDecimal, exclusiveParamValue: BigDecimal) {
+        testClient.bigDecimalValidationSafe(inclusiveParamValue, exclusiveParamValue)
+            .isNoContentResponse {
+            }
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+        "5.5,5.51",
+        "10.5,10.49"
+    )
+    fun `valid big decimal are accepted (Raw)`(inclusiveParamValue: BigDecimal, exclusiveParamValue: BigDecimal) {
+        prepareRequest()
+            .queryParam("inclusive", inclusiveParamValue)
+            .queryParam("exclusive", exclusiveParamValue)
+            .get("/features/validation/bigDecimal")
+            .execute()
+            .statusCode(204)
+    }
+
+    @Test
+    fun `big integer below minimum are rejected (Client)`() {
+        runBlocking {
+            val response = client.bigIntegerValidation(BigInteger("4"), BigInteger("5"))
+            if (response is BigIntegerValidationHttpResponse.BadRequest) {
+                assertThat(response.safeBody.messages)
+                    .containsExactly(
+                        listOf("request.query.inclusive", "minimum"),
+                        listOf("request.query.exclusive", "exclusive minimum")
+                    )
+            } else {
+                fail("unexpected response")
+            }
+        }
+    }
+
+    @Test
+    fun `big integer below minimum are rejected (Test-Client)`() {
+        testClient.bigIntegerValidationSafe(BigInteger("4"), BigInteger("5"))
+            .isBadRequestResponse {
+                assertThat(safeBody.messages)
+                    .containsExactly(
+                        listOf("request.query.inclusive", "minimum"),
+                        listOf("request.query.exclusive", "exclusive minimum")
+                    )
+            }
+    }
+
+    @Test
+    fun `big integer below minimum are rejected (Raw)`() {
+        val messages = prepareRequest()
+            .queryParam("inclusive", 4)
+            .queryParam("exclusive", 5)
+            .get("/features/validation/bigInteger")
+            .execute()
+            .statusCode(400)
+            .extract()
+            .jsonPath()
+            .getList<String>("messages")
+
+        assertThat(messages)
+            .containsExactly(
+                listOf("request.query.inclusive", "minimum"),
+                listOf("request.query.exclusive", "exclusive minimum")
+            )
+    }
+
+    @Test
+    fun `big integer above maximum are rejected (Client)`() {
+        runBlocking {
+            val response = client.bigIntegerValidation(BigInteger("11"), BigInteger("10"))
+            if (response is BigIntegerValidationHttpResponse.BadRequest) {
+                assertThat(response.safeBody.messages)
+                    .containsExactly(
+                        listOf("request.query.inclusive", "maximum"),
+                        listOf("request.query.exclusive", "exclusive maximum")
+                    )
+            } else {
+                fail("unexpected response")
+            }
+        }
+    }
+
+    @Test
+    fun `big integer above maximum are rejected (Test-Client)`() {
+        testClient.bigIntegerValidationSafe(BigInteger("11"), BigInteger("10"))
+            .isBadRequestResponse {
+                assertThat(safeBody.messages)
+                    .containsExactly(
+                        listOf("request.query.inclusive", "maximum"),
+                        listOf("request.query.exclusive", "exclusive maximum")
+                    )
+            }
+    }
+
+    @Test
+    fun `big integer above maximum are rejected (Raw)`() {
+        val messages = prepareRequest()
+            .queryParam("inclusive", 11)
+            .queryParam("exclusive", 10)
+            .get("/features/validation/bigInteger")
+            .execute()
+            .statusCode(400)
+            .extract()
+            .jsonPath()
+            .getList<String>("messages")
+
+        assertThat(messages)
+            .containsExactly(
+                listOf("request.query.inclusive", "maximum"),
+                listOf("request.query.exclusive", "exclusive maximum")
+            )
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+        "5,6",
+        "10,9"
+    )
+    fun `valid big integer are accepted (Client)`(inclusiveParamValue: BigInteger, exclusiveParamValue: BigInteger) {
+        runBlocking {
+            val response = client.bigIntegerValidation(inclusiveParamValue, exclusiveParamValue)
+            if (response !is BigIntegerValidationHttpResponse.NoContent) {
+                fail("unexpected response")
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+        "5,6",
+        "10,9"
+    )
+    fun `valid big integer are accepted (Test-Client)`(inclusiveParamValue: BigInteger, exclusiveParamValue: BigInteger) {
+        testClient.bigIntegerValidationSafe(inclusiveParamValue, exclusiveParamValue)
+            .isNoContentResponse {
+            }
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+        "5,6",
+        "10,9"
+    )
+    fun `valid big integer are accepted (Raw)`(inclusiveParamValue: BigInteger, exclusiveParamValue: BigInteger) {
+        prepareRequest()
+            .queryParam("inclusive", inclusiveParamValue)
+            .queryParam("exclusive", exclusiveParamValue)
+            .get("/features/validation/bigInteger")
+            .execute()
+            .statusCode(204)
     }
 
     @Test

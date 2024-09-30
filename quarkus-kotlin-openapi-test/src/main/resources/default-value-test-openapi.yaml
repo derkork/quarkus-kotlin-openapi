@@ -1,0 +1,208 @@
+openapi: 3.1.0
+info:
+  title: Test-Suit
+  version: 1.0.0
+  description: fragment of the overall test suit
+
+paths:
+  /features/default/defaultParameterValues:
+    get:
+      tags:
+        - defaultValue
+      operationId: defaultParameterValues
+      parameters:
+        - name: stringParam
+          in: query
+          schema:
+            type: string
+            default: "foo"
+          required: false
+        - name: booleanParam
+          in: query
+          schema:
+            type: boolean
+            default: "true"
+          required: false
+        - name: intParam
+          in: query
+          schema:
+            type: integer
+            format: int32
+            default: "10"
+          required: false
+        - name: uintParam
+          in: query
+          schema:
+            type: integer
+            format: uint32
+            default: "11"
+          required: false
+        - name: longParam
+          in: query
+          schema:
+            type: integer
+            format: int64
+            default: "12"
+          required: false
+        - name: ulongParam
+          in: query
+          schema:
+            type: integer
+            format: uint64
+            default: "13"
+          required: false
+        - name: floatParam
+          in: query
+          schema:
+            type: number
+            format: float
+            default: "14.5"
+          required: false
+        - name: doubleParam
+          in: query
+          schema:
+            type: number
+            format: double
+            default: "15.5"
+          required: false
+        - name: bigDecimalParam
+          in: query
+          schema:
+            type: number
+            default: "16.5"
+          required: false
+        - name: bigIntegerParam
+          in: query
+          schema:
+            type: integer
+            default: "17"
+          required: false
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DefaultValueResponseObject"
+        '400':
+          $ref: '#/components/responses/OperationError400'
+
+  /features/default/defaultBodyValues:
+    post:
+      tags:
+        - defaultValue
+      operationId: defaultBodyValues
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                stringParam:
+                  type: string
+                  default: "foo"
+                booleanParam:
+                  type: boolean
+                  default: "true"
+                intParam:
+                  type: number
+                  format: int32
+                  default: "10"
+                uintParam:
+                  type: number
+                  format: uint32
+                  default: "11"
+                longParam:
+                  type: number
+                  format: int64
+                  default: "12"
+                ulongParam:
+                  type: number
+                  format: uint64
+                  default: "13"
+                floatParam:
+                  type: number
+                  format: float
+                  default: "14.5"
+                doubleParam:
+                  type: number
+                  format: double
+                  default: "15.5"
+                bigDecimalParam:
+                  type: number
+                  default: "16.5"
+                bigIntegerParam:
+                  type: integer
+                  default: "17"
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DefaultValueResponseObject"
+        '400':
+          $ref: '#/components/responses/OperationError400'
+
+components:
+
+  schemas:
+    DefaultValueResponseObject:
+      type: object
+      properties:
+        stringParam:
+          type: string
+        booleanParam:
+          type: boolean
+        intParam:
+          type: number
+          format: int32
+        uintParam:
+          type: number
+          format: uint32
+        longParam:
+          type: number
+          format: int64
+        ulongParam:
+          type: number
+          format: uint64
+        floatParam:
+          type: number
+          format: float
+        doubleParam:
+          type: number
+          format: double
+        bigDecimalParam:
+          type: number
+        bigIntegerParam:
+          type: integer
+      required:
+        - stringParam
+        - booleanParam
+        - intParam
+        - uintParam
+        - longParam
+        - ulongParam
+        - floatParam
+        - doubleParam
+        - bigDecimalParam
+        - bigIntegerParam
+
+    OperationError:
+      type: object
+      properties:
+        messages:
+          type: array
+          items:
+            type: string
+      required:
+        - messages
+
+  responses:
+    OperationError400:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/OperationError'

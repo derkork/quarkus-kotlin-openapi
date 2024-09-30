@@ -55,6 +55,12 @@ class ServerRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitter {
             kotlinMember("delegate".variableName(), bundle.serverDelegateClassName.typeName())
             kotlinMember("objectMapper".variableName(), Misc.ObjectMapperClass.typeName())
 
+            // produces:
+            //
+            // private val log = LoggerFactory.getLogger(FeaturesDefaultValueServer::class.java)
+            val loggerExpression = Misc.LoggerFactoryClass.companionObject().invoke("getLogger".methodName(), fileName.javaClass())
+            kotlinMember("log".variableName(), Misc.LoggerClass.typeName(), default = loggerExpression, initializedInConstructor = false)
+
             requests {
                 emitRequest(this@kotlinClass)
             }
@@ -66,16 +72,38 @@ class ServerRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitter {
             addRequestMethodAnnotation(request.method)
             addPathAnnotation(request.path)
 
-            val requestContainerParts = mutableListOf<VariableName>()
-            parameters { requestContainerParts.add(emitParameter(parameter)) }
-            body { requestContainerParts.add(emitBody(body)) }
+            // produces:
+            //
+            // MDC.put("request-method", "<method>")
+            // MDC.put("request-path", "<path>")
+            // return withContext(MDCContext()) {
+            //    ...
+            // }
+            Misc.MDCClass.companionObject()
+                .invoke("put".methodName(), "request-method".literal(), request.method.value.literal())
+                .statement()
+            Misc.MDCClass.companionObject()
+                .invoke("put".methodName(), "request-path".literal(), request.path.literal())
+                .statement()
+            invoke("withContext".methodName("kotlinx.coroutines"), invoke(Misc.MDCContextClass.constructorName)) {
+                // produces:
+                //
+                // log.info("[<method>] <path> processing request")
+                "log".variableName()
+                    .invoke("info".methodName(), "[${request.method.value}] ${request.path} - processing request.".literal())
+                    .statement()
 
-            val requestContainerName = emitterContext.runEmitter(
-                CombineIntoObjectStatementEmitter(
-                    "request".literal(), request.requestContainerClassName, listOf(), requestContainerParts
-                )
-            ).resultStatement?.declaration("request".variableName())
-            emitDelegateInvocation(request, requestContainerName, request.requestContextClassName)
+                val requestContainerParts = mutableListOf<VariableName>()
+                parameters { requestContainerParts.add(emitParameter(parameter)) }
+                body { requestContainerParts.add(emitBody(body)) }
+
+                val requestContainerName = emitterContext.runEmitter(
+                    CombineIntoObjectStatementEmitter(
+                        "request".literal(), request.requestContainerClassName, listOf(), requestContainerParts
+                    )
+                ).resultStatement?.declaration("request".variableName())
+                emitDelegateInvocation(request, requestContainerName, request.requestContextClassName)
+            }.returnStatement()
         }
     }
 
@@ -99,7 +127,7 @@ class ServerRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitter {
         return when (body.content.mappedContentType) {
             ContentType.ApplicationJson -> emitJsonBody(body)
             ContentType.TextPlain -> emitPlainBody(body)
-            ContentType.MultipartFormData -> emitMultipartBody(body)
+//            ContentType.MultipartFormData -> emitMultipartBody(body)
             ContentType.ApplicationFormUrlencoded -> emitFormBody(body)
             ContentType.ApplicationOctetStream -> emitOctetBody(body)
         }
@@ -182,7 +210,7 @@ class ServerRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitter {
     }
 
     // generates the call to the delegate
-    private fun KotlinMethod.emitDelegateInvocation(
+    private fun StatementAware.emitDelegateInvocation(
         request: TransformableRequest,
         requestContainerName: VariableName?,
         requestContextClassName: ClassName
@@ -193,16 +221,32 @@ class ServerRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitter {
         }
 
         val requestContextName = invoke(requestContextClassName.constructorName, arguments)
-            .declaration("response".variableName())
+            .declaration("context".variableName())
 
         tryExpression {
-            "delegate".variableName().invoke("apply".methodName()) {
+            "delegate".variableName().invoke("run".methodName()) {
                 requestContextName.invoke(request.requestMethodName).statement()
             }.statement()
 
             val signalName = "requestHandledSignal".rawVariableName()
             catchBlock(Library.RequestHandledSignalClass, signalName) {
-                signalName.property("response".variableName()).returnStatement()
+                // produces:
+                //
+                // log.info("[<method>] <path> responding with status code ${requestHandledSignal.response.status}")
+                "log".variableName()
+                    .invoke("info".methodName(), "[${request.method.value}] ${request.path} - responding with status code \${requestHandledSignal.response.status}.".literal())
+                    .statement()
+                signalName.property("response".variableName()).statement()
+            }
+            catchBlock(Kotlin.ExceptionClass, "e".variableName()) {
+                // produces:
+                //
+                // log.error("[<method>] <path> unexpected exception occurred. Please check the delegate implementation to make sure it never throws an exception. Response is now undefined.")
+                // throw e
+                "log".variableName()
+                    .invoke("error".methodName(), "[${request.method.value}] ${request.path} - unexpected exception occurred. Please check the delegate implementation to make sure it never throws an exception. Response is now undefined.".literal())
+                    .statement()
+                "e".variableName().throwStatement()
             }
         }.statement()
     }

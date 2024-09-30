@@ -114,7 +114,7 @@ class TestClientRequestBuilderEmitter : CodeEmitter {
             ContentType.TextPlain -> emitPlainBodyMethod(clazz, requestSpecificationVariable)
             ContentType.ApplicationFormUrlencoded -> emitFormBodyMethod(clazz, requestSpecificationVariable)
             ContentType.ApplicationOctetStream -> emitOctetStreamBodyMethod(clazz, requestSpecificationVariable)
-            ContentType.MultipartFormData -> ProbableBug("Multipart-Form not yet supported for test client")
+//            ContentType.MultipartFormData -> ProbableBug("Multipart-Form not yet supported for test client")
         }
     }
 

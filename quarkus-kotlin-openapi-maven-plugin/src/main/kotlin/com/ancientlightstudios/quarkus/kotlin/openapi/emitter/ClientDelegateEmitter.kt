@@ -109,7 +109,7 @@ class ClientDelegateEmitter(
             ContentType.ApplicationOctetStream ->
                 kotlinParameter(body.parameterVariableName, Kotlin.ByteArrayClass.typeName(typeUsage.isNullable()))
 
-            ContentType.MultipartFormData -> ProbableBug("not yet implemented")
+//            ContentType.MultipartFormData -> ProbableBug("Multipart-Form not yet implemented for client")
         }
     }
 

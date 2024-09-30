@@ -29,7 +29,6 @@ object Kotlin {
     val IllegalStateExceptionClass = "IllegalStateException".rawClassName("kotlin", true)
     val ByteArrayOutputStreamClass = "ByteArrayOutputStream".rawClassName("java.io")
     val PrintStreamClass = "PrintStream".rawClassName("java.io")
-    val AssertionErrorClass = "AssertionError".rawClassName("kotlin", true)
 
 }
 
@@ -75,7 +74,10 @@ object Misc {
     val RegisterProviderClass = "RegisterProvider".rawClassName("org.eclipse.microprofile.rest.client.annotation")
     val TimeoutExceptionClass = "TimeoutException".rawClassName("java.util.concurrent")
     val AssertionFailedErrorClass = "AssertionFailedError".rawClassName("org.opentest4j")
-
+    val LoggerFactoryClass = "LoggerFactory".rawClassName("org.slf4j")
+    val LoggerClass = "Logger".rawClassName("org.slf4j")
+    val MDCClass = "MDC".rawClassName("org.slf4j")
+    val MDCContextClass = "MDCContext".rawClassName("kotlinx.coroutines.slf4j")
 }
 
 object Library {

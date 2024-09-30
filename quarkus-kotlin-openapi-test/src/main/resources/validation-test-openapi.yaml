@@ -44,6 +44,60 @@ paths:
         '400':
           $ref: '#/components/responses/OperationError400'
 
+  /features/validation/bigDecimal:
+    get:
+      # number validation with inclusive and exclusive bounds
+      tags:
+        - validation
+      operationId: bigDecimalValidation
+      parameters:
+        - name: inclusive
+          in: query
+          schema:
+            type: number
+            minimum: 5.5
+            maximum: 10.5
+          required: true
+        - name: exclusive
+          in: query
+          schema:
+            type: number
+            exclusiveMinimum: 5.5
+            exclusiveMaximum: 10.5
+          required: true
+      responses:
+        '204':
+          description: No content
+        '400':
+          $ref: '#/components/responses/OperationError400'
+
+  /features/validation/bigInteger:
+    get:
+      # number validation with inclusive and exclusive bounds
+      tags:
+        - validation
+      operationId: bigIntegerValidation
+      parameters:
+        - name: inclusive
+          in: query
+          schema:
+            type: integer
+            minimum: 5
+            maximum: 10
+          required: true
+        - name: exclusive
+          in: query
+          schema:
+            type: integer
+            exclusiveMinimum: 5
+            exclusiveMaximum: 10
+          required: true
+      responses:
+        '204':
+          description: No content
+        '400':
+          $ref: '#/components/responses/OperationError400'
+
   /features/validation/numbers:
     get:
       # number validation with inclusive and exclusive bounds

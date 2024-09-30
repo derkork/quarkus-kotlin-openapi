@@ -15,6 +15,8 @@ fun ClassName.literalFor(value: String) = when (this) {
     Kotlin.FloatClass -> value.floatLiteral()
     Kotlin.DoubleClass -> value.doubleLiteral()
     Kotlin.BooleanClass -> value.booleanLiteral()
+    Kotlin.BigDecimalClass -> value.bigDecimalLiteral()
+    Kotlin.BigIntegerClass -> value.bigIntegerLiteral()
     else -> ProbableBug("Unknown type ${this.value} for literal")
 }
 
@@ -178,32 +180,12 @@ fun String.intLiteral() = object : KotlinExpression {
 
 }
 
-fun UInt.literal() = object : KotlinExpression {
-
-    override fun ImportCollector.registerImports() {}
-
-    override fun render(writer: CodeWriter) = with(writer) {
-        write("${this@literal}U")
-    }
-
-}
-
 fun String.uintLiteral() = object : KotlinExpression {
 
     override fun ImportCollector.registerImports() {}
 
     override fun render(writer: CodeWriter) = with(writer) {
         write("${this@uintLiteral}U")
-    }
-
-}
-
-fun Long.literal() = object : KotlinExpression {
-
-    override fun ImportCollector.registerImports() {}
-
-    override fun render(writer: CodeWriter) = with(writer) {
-        write("${this@literal}L")
     }
 
 }
@@ -218,16 +200,6 @@ fun String.longLiteral() = object : KotlinExpression {
 
 }
 
-fun ULong.literal() = object : KotlinExpression {
-
-    override fun ImportCollector.registerImports() {}
-
-    override fun render(writer: CodeWriter) = with(writer) {
-        write("${this@literal}UL")
-    }
-
-}
-
 fun String.ulongLiteral() = object : KotlinExpression {
 
     override fun ImportCollector.registerImports() {}
@@ -238,32 +210,12 @@ fun String.ulongLiteral() = object : KotlinExpression {
 
 }
 
-fun Float.literal() = object : KotlinExpression {
-
-    override fun ImportCollector.registerImports() {}
-
-    override fun render(writer: CodeWriter) = with(writer) {
-        write("${this@literal}F")
-    }
-
-}
-
 fun String.floatLiteral() = object : KotlinExpression {
 
     override fun ImportCollector.registerImports() {}
 
     override fun render(writer: CodeWriter) = with(writer) {
         write("${this@floatLiteral}F")
-    }
-
-}
-
-fun Double.literal() = object : KotlinExpression {
-
-    override fun ImportCollector.registerImports() {}
-
-    override fun render(writer: CodeWriter) = with(writer) {
-        write("${this@literal}")
     }
 
 }
@@ -294,6 +246,30 @@ fun String.booleanLiteral() = object : KotlinExpression {
 
     override fun render(writer: CodeWriter) = with(writer) {
         write(this@booleanLiteral)
+    }
+
+}
+
+fun String.bigDecimalLiteral() = object : KotlinExpression {
+
+    override fun ImportCollector.registerImports() {
+        register(Kotlin.BigDecimalClass)
+    }
+
+    override fun render(writer: CodeWriter) = with(writer) {
+        write("BigDecimal(\"${this@bigDecimalLiteral}\")")
+    }
+
+}
+
+fun String.bigIntegerLiteral() = object : KotlinExpression {
+
+    override fun ImportCollector.registerImports() {
+        register(Kotlin.BigIntegerClass)
+    }
+
+    override fun render(writer: CodeWriter) = with(writer) {
+        write("BigInteger(\"${this@bigIntegerLiteral}\")")
     }
 
 }

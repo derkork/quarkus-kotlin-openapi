@@ -12,7 +12,7 @@
     <parent>
         <groupId>com.ancientlightstudios</groupId>
         <artifactId>quarkus-kotlin-openapi-root</artifactId>
-        <version>0.4.7</version>
+        <version>0.4.8</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -148,6 +148,7 @@
                         <source>${project.basedir}/src/main/resources/validation-test-openapi.yaml</source>
                         <source>${project.basedir}/src/main/resources/octetstream-test-openapi.yaml</source>
                         <source>${project.basedir}/src/main/resources/extension-test-openapi.yaml</source>
+                        <source>${project.basedir}/src/main/resources/default-value-test-openapi.yaml</source>
                     </sources>
                     <additionalImports>
                         <additionalImport>com.ancientlightstudios.example.custom:*</additionalImport>
