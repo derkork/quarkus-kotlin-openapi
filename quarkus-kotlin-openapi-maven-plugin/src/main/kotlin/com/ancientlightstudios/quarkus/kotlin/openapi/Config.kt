@@ -104,7 +104,10 @@ class Config(
     val operationBuilderPostfix : String = "Builder",
     val operationValidatorPostfix : String = "Validator",
     val modelNamePrefix : String = "",
-    val modelNamePostfix : String = ""
+    val modelNamePostfix : String = "",
+
+    val onlyProfile: String = "",
+    val exceptProfile: String = ""
 ) {
 
     fun additionalImports() = additionalImports.map { it.toRawClassName("Illegal value for additional import $it") }

@@ -6,7 +6,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.Trans
 import java.io.File
 import kotlin.io.path.Path
 
-class EmitterContext(val spec: TransformableSpec, private val config: Config) {
+class EmitterContext(val spec: TransformableSpec, val config: Config) {
 
     // get the last modified time of all input files
     private val inputLastModifiedDate: Long = config.sourceFiles

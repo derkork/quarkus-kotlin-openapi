@@ -115,6 +115,12 @@ abstract class GenerateMojo : AbstractMojo() {
     @Parameter(defaultValue = "")
     var modelNamePostfix : String = ""
 
+    @Parameter(defaultValue = "")
+    var onlyProfile : String = ""
+
+    @Parameter(defaultValue = "")
+    var exceptProfile : String = ""
+
     override fun execute() {
         val config = Config(
             sources,
@@ -140,7 +146,9 @@ abstract class GenerateMojo : AbstractMojo() {
             operationBuilderPostfix,
             operationValidatorPostfix,
             modelNamePrefix,
-            modelNamePostfix
+            modelNamePostfix,
+            onlyProfile,
+            exceptProfile
         )
 
         Generator(config).generate()

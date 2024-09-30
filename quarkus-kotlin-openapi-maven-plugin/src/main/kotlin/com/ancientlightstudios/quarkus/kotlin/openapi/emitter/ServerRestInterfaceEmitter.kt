@@ -50,6 +50,14 @@ class ServerRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitter {
         registerImports(emitterContext.getAdditionalImports())
 
         kotlinClass(fileName) {
+            if (emitterContext.config.onlyProfile.isNotBlank()) {
+                kotlinAnnotation(Quarkus.IfBuildProfileAnnotationClass, emitterContext.config.onlyProfile.literal())
+            }
+
+            if (emitterContext.config.exceptProfile.isNotBlank()) {
+                kotlinAnnotation(Quarkus.UnlessBuildProfileAnnotationClass, emitterContext.config.exceptProfile.literal())
+            }
+
             addPathAnnotation(pathPrefix)
 
             kotlinMember("delegate".variableName(), bundle.serverDelegateClassName.typeName())

@@ -80,6 +80,13 @@ object Misc {
     val MDCContextClass = "MDCContext".rawClassName("kotlinx.coroutines.slf4j")
 }
 
+object Quarkus {
+
+    val IfBuildProfileAnnotationClass = "IfBuildProfile".rawClassName("io.quarkus.arc.profile")
+    val UnlessBuildProfileAnnotationClass = "UnlessBuildProfile".rawClassName("io.quarkus.arc.profile")
+
+}
+
 object Library {
 
     val AllClasses = "*".rawClassName("com.ancientlightstudios.quarkus.kotlin.openapi")
