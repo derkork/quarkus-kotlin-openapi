@@ -104,6 +104,9 @@ class ServerRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitter {
                 val requestContainerParts = mutableListOf<VariableName>()
                 parameters { requestContainerParts.add(emitParameter(parameter)) }
                 body { requestContainerParts.add(emitBody(body)) }
+                kotlinParameter("headers".variableName(), Jakarta.HttpHeadersClass.typeName()) {
+                    kotlinAnnotation(Jakarta.ContextAnnotationClass)
+                }
 
                 val requestContainerName = emitterContext.runEmitter(
                     CombineIntoObjectStatementEmitter(
@@ -224,8 +227,8 @@ class ServerRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitter {
         requestContextClassName: ClassName
     ) {
         val arguments = when (requestContainerName) {
-            null -> listOf("objectMapper".variableName())
-            else -> listOf(requestContainerName, "objectMapper".variableName())
+            null -> listOf("objectMapper".variableName(), "headers".variableName())
+            else -> listOf(requestContainerName, "objectMapper".variableName(), "headers".variableName())
         }
 
         val requestContextName = invoke(requestContextClassName.constructorName, arguments)

@@ -1,9 +1,6 @@
 package com.ancientlightstudios.example.features.server
 
-import com.ancientlightstudios.example.features.server.model.BaseObjectExtension
-import com.ancientlightstudios.example.features.server.model.ObjectWithReadOnlyPropertyDown
-import com.ancientlightstudios.example.features.server.model.ReadOnlyObject
-import com.ancientlightstudios.example.features.server.model.ResponseCodeHint
+import com.ancientlightstudios.example.features.server.model.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.validOrElse
 import jakarta.enterprise.context.ApplicationScoped
 
@@ -58,4 +55,12 @@ class FeaturesGenericServerDelegateImpl : FeaturesGenericServerDelegate {
         ok(ReadOnlyObject(body.writeOnlyProperty, body.normalProperty))
     }
 
+    override suspend fun RawHeadersContext.rawHeaders(): Nothing {
+        ok(RawHeaders200Response(
+            rawHeaderValue("singleValueHeader1"),
+            rawHeaderValues("multiValueHeader1"),
+            rawHeaderValue("singleValueHeader2"),
+            rawHeaderValues("multiValueHeader2")
+        ))
+    }
 }

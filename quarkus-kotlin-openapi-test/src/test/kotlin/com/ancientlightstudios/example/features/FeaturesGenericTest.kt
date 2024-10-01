@@ -42,6 +42,8 @@ class FeaturesGenericTest : ApiTestBase() {
     @Test
     fun `unknown status codes are supported (Raw)`() {
         prepareRequest()
+            .header("x-foo2", "narf")
+            .header("x-foo3", "zort", "puit")
             .get("/features/generic/unknownStatusCode")
             .execute()
             .statusCode(422)
@@ -172,4 +174,16 @@ class FeaturesGenericTest : ApiTestBase() {
             .statusCode(415)
     }
 
+    @Test
+    fun `verify raw header`() {
+        testClient.rawHeadersRaw {
+            header("singleValueHeader2", "fooBar")
+                .header("multiValueHeader2", "puit", "zort", "narf", "troz")
+        }.isOkResponse {
+            assertThat(safeBody.missingSingleValueHeader).isNull()
+            assertThat(safeBody.missingMultiValueHeader).isEmpty()
+            assertThat(safeBody.singleValueHeader).isEqualTo("fooBar")
+            assertThat(safeBody.multiValueHeader).containsExactly("puit", "zort", "narf", "troz")
+        }
+    }
 }

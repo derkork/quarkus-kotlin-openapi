@@ -12,8 +12,6 @@
 
 - cache für $ref auf Parameter, Responses, Bodies, damit inline-schemas in geteilten responses nicht zu doppelten model-klassen führen
 
-- IfProfile an Classen generieren        
-
 bessere Fehlermeldungen
 - und bei probable bug
 

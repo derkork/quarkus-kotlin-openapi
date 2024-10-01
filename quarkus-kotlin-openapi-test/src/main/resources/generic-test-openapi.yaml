@@ -138,6 +138,31 @@ paths:
         '400':
           $ref: '#/components/responses/OperationError400'
 
+  /features/rawHeaders:
+    get:
+      tags:
+        - generic
+      operationId: rawHeaders
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  missingSingleValueHeader:
+                    type: string
+                  missingMultiValueHeader:
+                    type: array
+                    items:
+                      type: string
+                  singleValueHeader:
+                    type: string
+                  multiValueHeader:
+                    type: array
+                    items:
+                      type: string
 
 components:
 

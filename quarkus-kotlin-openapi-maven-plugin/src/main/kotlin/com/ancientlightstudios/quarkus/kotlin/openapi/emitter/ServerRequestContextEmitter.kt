@@ -12,6 +12,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.InvocationExpression.Companion.invoke
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.methodName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.rawMethodName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.NullCheckExpression.Companion.nullCheck
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.PropertyExpression.Companion.property
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.GenericTypeName.Companion.of
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.SimpleTypeName.Companion.typeName
@@ -57,6 +58,7 @@ class ServerRequestContextEmitter : CodeEmitter {
                 kotlinMember("request".variableName(), requestType, accessModifier = null)
             }
             kotlinMember("objectMapper".variableName(), Misc.ObjectMapperClass.typeName())
+            kotlinMember("headers".variableName(), Jakarta.HttpHeadersClass.typeName())
 
             emitGenericStatusMethod(defaultResponseExists)
 
@@ -72,6 +74,8 @@ class ServerRequestContextEmitter : CodeEmitter {
                     is ResponseCode.Default -> emitDefaultStatusMethod(it.body, it.headers, it.responseInterfaceName)
                 }
             }
+
+            emitRawHeaderMethods()
         }
     }
 
@@ -197,4 +201,33 @@ class ServerRequestContextEmitter : CodeEmitter {
         ).statement()
     }
 
+    private fun KotlinClass.emitRawHeaderMethods() {
+        // produces:
+        //
+        // fun rawHeaderValue(name: String) = headers.getRequestHeader(name)?.firstOrNull()
+        //
+        //
+        kotlinMethod("rawHeaderValue".methodName(), bodyAsAssignment = true) {
+            kotlinParameter("name".variableName(), Kotlin.StringClass.typeName())
+
+            "headers".variableName()
+                .invoke("getRequestHeader".methodName(), "name".variableName())
+                .nullCheck()
+                .invoke("firstOrNull".methodName())
+                .statement()
+        }
+
+        // produces:
+        //
+        // fun rawHeaderValues(name: String) = headers.getRequestHeader(name) ?: listOf()
+        kotlinMethod("rawHeaderValues".methodName(), bodyAsAssignment = true) {
+            kotlinParameter("name".variableName(), Kotlin.StringClass.typeName())
+
+            "headers".variableName()
+                .invoke("getRequestHeader".methodName(), "name".variableName())
+                .nullFallback(invoke("listOf".methodName()))
+                .statement()
+        }
+
+    }
 }

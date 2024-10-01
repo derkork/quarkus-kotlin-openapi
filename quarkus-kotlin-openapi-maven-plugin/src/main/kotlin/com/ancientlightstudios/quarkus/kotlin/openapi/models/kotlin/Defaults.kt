@@ -52,6 +52,8 @@ object Jakarta {
     val WebApplicationExceptionClass = "WebApplicationException".rawClassName("jakarta.ws.rs")
     val ResponseClass = "Response".className("jakarta.ws.rs.core")
     val ApplicationScopedClass = "ApplicationScoped".rawClassName("jakarta.enterprise.context")
+    val HttpHeadersClass = "HttpHeaders".rawClassName("jakarta.ws.rs.core")
+    val ContextAnnotationClass = "Context".rawClassName("jakarta.ws.rs.core")
 
 }
 
