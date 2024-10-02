@@ -44,12 +44,14 @@ class ServerRequestContextEmitter : CodeEmitter {
         registerImports(Library.AllClasses)
         registerImports(emitterContext.getAdditionalImports())
 
-        // all interfaces defined by the responses
-        val interfaces = request.responses.mapNotNull { it.responseInterfaceName }.toSet().toMutableList()
-
+        val interfaces = mutableListOf(Library.RequestContextInterface)
+        // the generic status interface if allowed
         if (!defaultResponseExists) {
             interfaces.add(Library.ResponseWithGenericStatusInterface)
         }
+
+        // all interfaces defined by the responses
+        interfaces.addAll(request.responses.mapNotNull { it.responseInterfaceName }.toSet())
 
         kotlinClass(fileName, interfaces = interfaces) {
             if (request.hasInputParameter()) {
@@ -207,7 +209,7 @@ class ServerRequestContextEmitter : CodeEmitter {
         // fun rawHeaderValue(name: String) = headers.getRequestHeader(name)?.firstOrNull()
         //
         //
-        kotlinMethod("rawHeaderValue".methodName(), bodyAsAssignment = true) {
+        kotlinMethod("rawHeaderValue".methodName(), bodyAsAssignment = true, override = true) {
             kotlinParameter("name".variableName(), Kotlin.StringClass.typeName())
 
             "headers".variableName()
@@ -220,7 +222,7 @@ class ServerRequestContextEmitter : CodeEmitter {
         // produces:
         //
         // fun rawHeaderValues(name: String) = headers.getRequestHeader(name) ?: listOf()
-        kotlinMethod("rawHeaderValues".methodName(), bodyAsAssignment = true) {
+        kotlinMethod("rawHeaderValues".methodName(), bodyAsAssignment = true, override = true) {
             kotlinParameter("name".variableName(), Kotlin.StringClass.typeName())
 
             "headers".variableName()

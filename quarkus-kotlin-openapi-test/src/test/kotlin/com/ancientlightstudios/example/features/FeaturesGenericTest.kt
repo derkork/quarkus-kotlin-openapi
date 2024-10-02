@@ -42,8 +42,6 @@ class FeaturesGenericTest : ApiTestBase() {
     @Test
     fun `unknown status codes are supported (Raw)`() {
         prepareRequest()
-            .header("x-foo2", "narf")
-            .header("x-foo3", "zort", "puit")
             .get("/features/generic/unknownStatusCode")
             .execute()
             .statusCode(422)
