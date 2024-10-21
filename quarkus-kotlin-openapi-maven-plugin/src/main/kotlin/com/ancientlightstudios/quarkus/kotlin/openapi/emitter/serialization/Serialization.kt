@@ -14,10 +14,16 @@ object Serialization {
     // it's List<<DeserializationType for nested type>> for collections
     // and String for everything else. Nullable depends on the type and the forceNullable parameter
     // TODO: binary types
-    fun TypeUsage.getSerializationTargetType(): TypeName {
+    fun TypeUsage.getSerializationTargetType(omitList: Boolean = false): TypeName {
         return when (val safeType = type) {
-            is CollectionTypeDefinition -> Kotlin.ListClass.typeName(isNullable())
-                .of(safeType.items.getSerializationTargetType())
+            is CollectionTypeDefinition -> {
+                if (omitList) {
+                    safeType.items.getSerializationTargetType(true)
+                } else {
+                    Kotlin.ListClass.typeName(isNullable())
+                        .of(safeType.items.getSerializationTargetType())
+                }
+            }
 
             else -> Kotlin.StringClass.typeName(isNullable())
         }

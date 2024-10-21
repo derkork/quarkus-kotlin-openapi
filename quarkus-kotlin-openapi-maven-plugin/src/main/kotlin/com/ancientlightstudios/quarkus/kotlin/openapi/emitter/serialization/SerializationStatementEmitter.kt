@@ -6,8 +6,12 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.isNullable
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.InvocationExpression.Companion.invoke
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.rawMethodName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.Misc
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.NullCheckExpression.Companion.nullCheck
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.PropertyExpression.Companion.property
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.companionObject
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.nullFallback
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ContentType
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
@@ -90,8 +94,14 @@ class SerializationStatementEmitter(
         //     <SerializationStatement for nested type>
         // }
         return baseStatement.invoke(methodName) {
-            runEmitter(SerializationStatementEmitter(typeDefinition.items, "it".variableName(), contentType))
-                .resultStatement.statement()
+            var statement = runEmitter(SerializationStatementEmitter(typeDefinition.items, "it".variableName(), contentType))
+                .resultStatement
+
+            if (contentType == ContentType.ApplicationJson && typeDefinition.items.isNullable()) {
+                statement = statement.nullFallback(Misc.NullNodeClass.companionObject().property("instance".variableName()))
+            }
+
+            statement.statement()
         }
     }
 

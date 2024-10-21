@@ -16,7 +16,6 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.Conte
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableBody
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableParameter
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.ObjectTypeDefinition
-import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
 
 class ClientDelegateEmitter(
     private val pathPrefix: String,
@@ -84,7 +83,8 @@ class ClientDelegateEmitter(
         addConsumesAnnotation(content.rawContentType)
 
         return when (body.content.mappedContentType) {
-            ContentType.ApplicationJson,
+            ContentType.ApplicationJson ->
+                kotlinParameter(body.parameterVariableName, typeUsage.getSerializationTargetType(true))
             ContentType.TextPlain ->
                 kotlinParameter(body.parameterVariableName, typeUsage.getSerializationTargetType())
 
