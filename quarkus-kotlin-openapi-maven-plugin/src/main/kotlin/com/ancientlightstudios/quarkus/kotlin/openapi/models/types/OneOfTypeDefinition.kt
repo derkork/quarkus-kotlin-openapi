@@ -1,7 +1,6 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.types
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ContentType
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.SchemaModifier
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.SchemaValidation

@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ArrayNode
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.databind.node.ValueNode
-import com.flipkart.zjsonpatch.JsonPatch
 
 /**
  * returns this node as an object node or generates a SpecIssue

@@ -15,7 +15,6 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ResponseValid
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ServerDelegateClassNameHint.serverDelegateClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ServerRestInterfaceClassNameHint.serverRestInterfaceClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName.Companion.className
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.*
 
 class EnsureUniqueNamesRefactoring : SpecRefactoring {

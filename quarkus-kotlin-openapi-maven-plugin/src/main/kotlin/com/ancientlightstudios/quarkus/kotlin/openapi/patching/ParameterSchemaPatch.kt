@@ -15,7 +15,7 @@ class ParameterSchemaPatch : JsonPatch {
         Configuration.setDefaults(object : Configuration.Defaults {
             override fun jsonProvider() = JacksonJsonNodeJsonProvider()
 
-            override fun options() = mutableSetOf<Option>(Option.SUPPRESS_EXCEPTIONS)
+            override fun options() = mutableSetOf(Option.SUPPRESS_EXCEPTIONS)
 
             override fun mappingProvider() = JacksonMappingProvider()
         })

@@ -2,7 +2,6 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.extension
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.*
 import com.fasterxml.jackson.databind.JsonNode
-import java.time.Instant
 import java.time.LocalDate
 
 

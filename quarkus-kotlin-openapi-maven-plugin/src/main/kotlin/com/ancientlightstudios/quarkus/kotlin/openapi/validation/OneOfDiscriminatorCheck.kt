@@ -3,7 +3,6 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.validation
 import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.inspect
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.OriginPathHint.originPath
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSpec
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.BaseSchemaComponent
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.BaseSchemaComponent.Companion.baseSchemaComponent
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.OneOfComponent
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.SpecIssue

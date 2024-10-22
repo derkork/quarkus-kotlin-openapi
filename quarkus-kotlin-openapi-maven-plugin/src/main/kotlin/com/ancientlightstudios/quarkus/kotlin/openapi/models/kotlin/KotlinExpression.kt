@@ -225,7 +225,7 @@ fun String.doubleLiteral() = object : KotlinExpression {
     override fun ImportCollector.registerImports() {}
 
     override fun render(writer: CodeWriter) = with(writer) {
-        write("${this@doubleLiteral}")
+        write(this@doubleLiteral)
     }
 
 }
