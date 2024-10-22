@@ -16,7 +16,6 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ResponseConta
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ResponseValidatorClassNameHint.responseValidatorClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeUsageHint.typeUsage
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ConstantName.Companion.rawConstantName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.InvocationExpression.Companion.invoke
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.methodName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.rawMethodName
@@ -26,7 +25,10 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.Sim
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.rawVariableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.*
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.*
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.CollectionTypeDefinition
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.EnumTypeDefinition
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.PrimitiveTypeDefinition
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.TypeUsage
 
 class TestClientRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitter {
 
@@ -178,7 +180,7 @@ class TestClientRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitt
                     listOf(Kotlin.StringClass.typeName(), Kotlin.AnyClass.typeName())
                 )
 
-                val validatableResponse = InvocationExpression.invoke("specBuilder".methodName()).wrap()
+                var validatableResponse = InvocationExpression.invoke("specBuilder".methodName()).wrap()
                     .invoke(
                         "filter".methodName(), InvocationExpression.invoke(
                             Library.RequestLoggingFilterClass.constructorName,
@@ -191,6 +193,17 @@ class TestClientRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitt
                             printStream
                         )
                     ).wrap()
+
+                request.body?.let {
+                    // produces
+                    //
+                    // .contentType("<rawContentType>")
+                    validatableResponse = validatableResponse
+                        .invoke("contentType".methodName(), it.content.rawContentType.literal())
+                        .wrap()
+                }
+
+                val validatableResponseVariable = validatableResponse
                     .invoke("run".methodName(), "block".variableName()).wrap()
                     .invoke(
                         request.method.value.methodName(),
@@ -202,7 +215,7 @@ class TestClientRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitt
                     .invoke("extract".methodName())
                     .declaration("validatableResponse".variableName())
 
-                emitResponseConversion(request, validatableResponse)
+                emitResponseConversion(request, validatableResponseVariable)
 
                 val errorClass = request.clientErrorResponseClassName
 
@@ -433,14 +446,14 @@ class TestClientRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitt
         }
     }
 
-    private fun TypeUsage.defaultExpression(fallback: KotlinExpression? = null) : KotlinExpression? {
+    private fun TypeUsage.defaultExpression(fallback: KotlinExpression? = null): KotlinExpression? {
         val defaultValue = when (val typeDefinition = type) {
             is PrimitiveTypeDefinition -> typeDefinition.defaultExpression()
             is EnumTypeDefinition -> typeDefinition.defaultExpression()
             else -> null
         }
 
-        return when(isNullable()) {
+        return when (isNullable()) {
             false -> defaultValue
             true -> defaultValue ?: fallback
         }

@@ -46,6 +46,57 @@ paths:
         '400':
           $ref: '#/components/responses/OperationError400'
 
+  /features/json/optional/array:
+    post:
+      tags:
+        - json
+      operationId: jsonOptionalArray
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/SimpleObjectOptional'
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type:
+                  - array
+                  - "null"
+                items:
+                  $ref: '#/components/schemas/SimpleObjectOptional'
+        '400':
+          $ref: '#/components/responses/OperationError400'
+
+  /features/json/required/array:
+    post:
+      tags:
+        - json
+      operationId: jsonRequiredArray
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/SimpleObject'
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SimpleObject'
+        '400':
+          $ref: '#/components/responses/OperationError400'
+
 components:
   schemas:
     JsonEnum:

@@ -52,24 +52,24 @@ fun TypeUsage.buildValidType(): TypeName {
     }
 }
 
-fun TypeUsage.buildUnsafeJsonType(): TypeName {
+fun TypeUsage.buildUnsafeJsonType(outerTypeNullable: Boolean = true): TypeName {
     return when (val safeType = this.type) {
-        is PrimitiveTypeDefinition -> safeType.baseType.typeName(true)
-        is EnumTypeDefinition -> safeType.modelName.typeName(true)
-        is ObjectTypeDefinition -> Library.UnsafeJsonClass.typeName(true).of(safeType.modelName.typeName())
-        is OneOfTypeDefinition -> Library.UnsafeJsonClass.typeName(true).of(safeType.modelName.typeName())
-        is CollectionTypeDefinition -> Kotlin.ListClass.typeName(true)
-            .of(safeType.items.buildUnsafeJsonType())
+        is PrimitiveTypeDefinition -> safeType.baseType.typeName(outerTypeNullable)
+        is EnumTypeDefinition -> safeType.modelName.typeName(outerTypeNullable)
+        is ObjectTypeDefinition -> Library.UnsafeJsonClass.typeName(outerTypeNullable).of(safeType.modelName.typeName())
+        is OneOfTypeDefinition -> Library.UnsafeJsonClass.typeName(outerTypeNullable).of(safeType.modelName.typeName())
+        is CollectionTypeDefinition -> Kotlin.ListClass.typeName(outerTypeNullable)
+            .of(safeType.items.buildUnsafeJsonType(true))
     }
 }
 
-fun TypeUsage.isNullable() : Boolean {
+fun TypeUsage.isNullable(): Boolean {
     if (required && !type.nullable) {
         // null values are just not allowed
         return false
     }
 
-    val hasDefault = when(val safeType = type) {
+    val hasDefault = when (val safeType = type) {
         is PrimitiveTypeDefinition -> safeType.defaultValue != null
         is EnumTypeDefinition -> safeType.defaultValue != null
         else -> false
@@ -79,6 +79,6 @@ fun TypeUsage.isNullable() : Boolean {
         // if there is a default value set, this type never accepts null values
         return false
     }
-    
+
     return type.nullable || !required
 }

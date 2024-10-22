@@ -17,11 +17,11 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ContentType
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ParameterKind
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableBody
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.CollectionTypeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.ObjectTypeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.OneOfTypeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.TypeUsage
 import com.ancientlightstudios.quarkus.kotlin.openapi.refactoring.AssignContentTypesRefactoring.Companion.getContentTypeForFormPart
-import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
 
 class TestClientRequestBuilderEmitter : CodeEmitter {
 
@@ -128,37 +128,26 @@ class TestClientRequestBuilderEmitter : CodeEmitter {
                 SerializationStatementEmitter(
                     nullableType,
                     "value".variableName(),
-                    content.mappedContentType,
-                    true // we only use the statement inside a null check
+                    content.mappedContentType
                 )
             ).resultStatement
 
             // produces
             //
-            // requestSpecification = requestSpecification.contentType("<rawContentType>")
+            // requestSpecification = requestSpecification.body(<bodyStatement>)
             requestSpecificationVariable
-                .invoke("contentType".methodName(), content.rawContentType.literal())
+                .invoke(
+                    "body".methodName(),
+                    bodyStatement.invoke("asString".methodName(), "objectMapper".variableName())
+                )
                 .assignment(requestSpecificationVariable)
-
-            // produces
-            //
-            // if (value != null) {
-            //     requestSpecification = requestSpecification.body(<bodyStatement>)
-            // }
-            ifElseExpression("value".variableName().compareWith(nullLiteral(), "!=")) {
-                requestSpecificationVariable
-                    .invoke(
-                        "body".methodName(),
-                        bodyStatement.invoke("asString".methodName(), "objectMapper".variableName())
-                    )
-                    .assignment(requestSpecificationVariable)
-            }.statement()
         }
 
         // generate a body method with a UnsafeJson parameter for object and oneOf types
-        if (content.typeUsage.type is ObjectTypeDefinition || content.typeUsage.type is OneOfTypeDefinition) {
+        if (content.typeUsage.type is ObjectTypeDefinition || content.typeUsage.type is OneOfTypeDefinition || content.typeUsage.type is CollectionTypeDefinition) {
             clazz.kotlinMethod("body".methodName()) {
-                kotlinParameter("value".variableName(), content.typeUsage.buildUnsafeJsonType())
+                kotlinAnnotation(Kotlin.JvmNameClass, "name".variableName() to "bodyWithUnsafe".literal())
+                kotlinParameter("value".variableName(), content.typeUsage.buildUnsafeJsonType(false))
 
                 val bodyStatement = emitterContext.runEmitter(
                     UnsafeSerializationStatementEmitter(
@@ -171,24 +160,13 @@ class TestClientRequestBuilderEmitter : CodeEmitter {
 
                 // produces
                 //
-                // requestSpecification = requestSpecification.contentType("<rawContentType>")
+                // requestSpecification = requestSpecification.body(<bodyStatement>)
                 requestSpecificationVariable
-                    .invoke("contentType".methodName(), content.rawContentType.literal())
+                    .invoke(
+                        "body".methodName(),
+                        bodyStatement.invoke("asString".methodName(), "objectMapper".variableName())
+                    )
                     .assignment(requestSpecificationVariable)
-
-                // produces
-                //
-                // if (value != null) {
-                //     requestSpecification = requestSpecification.body(<bodyStatement>)
-                // }
-                ifElseExpression("value".variableName().compareWith(nullLiteral(), "!=")) {
-                    requestSpecificationVariable
-                        .invoke(
-                            "body".methodName(),
-                            bodyStatement.invoke("asString".methodName(), "objectMapper".variableName())
-                        )
-                        .assignment(requestSpecificationVariable)
-                }.statement()
             }
         }
     }
@@ -209,13 +187,6 @@ class TestClientRequestBuilderEmitter : CodeEmitter {
 
             // produces
             //
-            // requestSpecification = requestSpecification.contentType("<rawContentType>")
-            requestSpecificationVariable
-                .invoke("contentType".methodName(), content.rawContentType.literal())
-                .assignment(requestSpecificationVariable)
-
-            // produces
-            //
             // if (value != null) {
             //     requestSpecification = requestSpecification.body(<bodyStatement>)
             // }
@@ -231,13 +202,6 @@ class TestClientRequestBuilderEmitter : CodeEmitter {
         clazz.kotlinMethod("body".methodName()) {
             val nullableType = content.typeUsage.forceNullable()
             kotlinParameter("value".variableName(), nullableType.buildValidType())
-
-            // produces
-            //
-            // requestSpecification = requestSpecification.contentType("<rawContentType>")
-            requestSpecificationVariable
-                .invoke("contentType".methodName(), content.rawContentType.literal())
-                .assignment(requestSpecificationVariable)
 
             // produces
             //
@@ -310,19 +274,12 @@ class TestClientRequestBuilderEmitter : CodeEmitter {
     }
 
 
-    private fun TransformableBody.emitOctetStreamBodyMethod(
+    private fun emitOctetStreamBodyMethod(
         clazz: KotlinClass,
         requestSpecificationVariable: VariableName
     ) {
         clazz.kotlinMethod("body".methodName()) {
             kotlinParameter("value".variableName(), Kotlin.ByteArrayClass.typeName(true))
-
-            // produces
-            //
-            // requestSpecification = requestSpecification.contentType("<rawContentType>")
-            requestSpecificationVariable
-                .invoke("contentType".methodName(), content.rawContentType.literal())
-                .assignment(requestSpecificationVariable)
 
             // produces
             //
