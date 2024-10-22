@@ -1,0 +1,48 @@
+openapi: 3.0.2
+info:
+  title: Reduced Swagger Petstore API
+  version: 1.0.0
+  description: A sample API offering a reduced subset of the Swagger Petstore API for demonstrating how to use clients.
+
+paths:
+  /available-pets:
+    get:
+      operationId: getAvailablePets
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Pet'
+        '500':
+          description: internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: internal server error
+
+components:
+  schemas:
+    Pet:
+      required:
+        - name
+        - photoUrls
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 10
+        name:
+          type: string
+          example: doggie
+        photoUrls:
+          type: array
+          items:
+            type: string

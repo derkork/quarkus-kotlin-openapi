@@ -73,9 +73,8 @@ implementation from an OpenAPI specification:
                 </execution>
             </executions>
         </plugin>
-    </plugin>
-</plugins>
-        </build>
+    </plugins>
+</build>
 ```
 
 With this setup the plugin will generate a server implementation for the given OpenAPI spec as part of your normal maven
@@ -106,7 +105,7 @@ You may notice a few peculiarities here:
   no `CompletionStage`, no `Future`, just plain Kotlin coroutines.
 - The function is part of a receiver context object (`GetHelloWorldContext`). This object contains all the information
   about the current request, like the request parameters, the request body, the response, etc. This allows us to write
-  your code in a very clean and concise way while being completely type-safe. We will see how this works in a moment.
+  our code in a very clean and concise way while being completely type-safe. We will see how this works in a moment.
 - The function returns `Nothing`. This is because we want to have full type safety and correctness for our API. So we
   cannot use a `RestResponse<*>` or similar thing as a return type as this would allow us to return invalid responses.
   Instead, we use functions on the `GetHelloWorldContext` object to set the response status, headers, body, etc. We will

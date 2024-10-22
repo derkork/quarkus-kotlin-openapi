@@ -3,25 +3,24 @@
          xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
-    <artifactId>quarkus-kotlin-openapi-test</artifactId>
+    <groupId>com.ancientlightstudios</groupId>
+    <artifactId>quarkus-kotlin-openapi-example-clients</artifactId>
+    <version>1.0.0</version>
     <packaging>jar</packaging>
-    <name>Quarkus Kotlin OpenAPI - Kotlin Test</name>
-    <description>An example application using the Kotlin OpenAPI generator.</description>
-    <licenses>
-        <license>
-            <name>Apache License, Version 2.0</name>
-            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-        </license>
-    </licenses>
+    <name>Quarkus Kotlin OpenAPI - Clients</name>
+    <description>An example application using the Kotlin OpenAPI to generate OpenAPI clients.</description>
 
-    <parent>
-        <groupId>com.ancientlightstudios</groupId>
-        <artifactId>quarkus-kotlin-openapi-root</artifactId>
-        <version>0.4.12</version>
-        <relativePath>../pom.xml</relativePath>
-    </parent>
-
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <kotlin.code.style>official</kotlin.code.style>
+        <kotlin.compiler.jvmTarget>17</kotlin.compiler.jvmTarget>
+        <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
+        <kotlin.version>1.9.24</kotlin.version>
+        <maven.compiler.target>17</maven.compiler.target>
+        <maven.compiler.source>17</maven.compiler.source>
+        <quarkus.version>3.11.3</quarkus.version>
+        <quarkus.kotlin.openapi.version>0.4.10</quarkus.kotlin.openapi.version>
+    </properties>
 
     <dependencyManagement>
         <dependencies>
@@ -38,11 +37,11 @@
     <dependencies>
         <dependency>
             <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-resteasy-reactive-jackson</artifactId>
+            <artifactId>quarkus-rest-jackson</artifactId>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-rest-client-reactive</artifactId>
+            <artifactId>quarkus-rest-client</artifactId>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
@@ -50,7 +49,7 @@
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-resteasy-reactive</artifactId>
+            <artifactId>quarkus-rest</artifactId>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
@@ -66,7 +65,7 @@
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-rest-client-reactive-jackson</artifactId>
+            <artifactId>quarkus-rest-client-jackson</artifactId>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.module</groupId>
@@ -101,10 +100,7 @@
         <dependency>
             <groupId>com.ancientlightstudios</groupId>
             <artifactId>quarkus-kotlin-openapi</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.ancientlightstudios</groupId>
-            <artifactId>quarkus-kotlin-openapi-extension</artifactId>
+            <version>${quarkus.kotlin.openapi.version}</version>
         </dependency>
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
@@ -137,32 +133,9 @@
             <plugin>
                 <groupId>com.ancientlightstudios</groupId>
                 <artifactId>quarkus-kotlin-openapi-maven-plugin</artifactId>
-                <version>${project.version}</version>
-                <configuration>
-                    <splitByTags>true</splitByTags>
-                    <typeMappings>
-                        <typeMapping>string:uuid=java.util:UUID</typeMapping>
-                        <typeMapping>string:date-time=java.time:Instant</typeMapping>
-                        <typeMapping>string:date=java.time:LocalDate</typeMapping>
-                    </typeMappings>
-                    <sources>
-                        <source>${project.basedir}/src/main/resources/form-test-openapi.yaml</source>
-                        <source>${project.basedir}/src/main/resources/generic-test-openapi.yaml</source>
-                        <source>${project.basedir}/src/main/resources/json-test-openapi.yaml</source>
-                        <source>${project.basedir}/src/main/resources/oneof-test-openapi.yaml</source>
-                        <source>${project.basedir}/src/main/resources/parameter-test-openapi.yaml</source>
-                        <source>${project.basedir}/src/main/resources/plain-test-openapi.yaml</source>
-                        <source>${project.basedir}/src/main/resources/validation-test-openapi.yaml</source>
-                        <source>${project.basedir}/src/main/resources/octetstream-test-openapi.yaml</source>
-                        <source>${project.basedir}/src/main/resources/extension-test-openapi.yaml</source>
-                        <source>${project.basedir}/src/main/resources/default-value-test-openapi.yaml</source>
-                    </sources>
-                    <additionalImports>
-                        <additionalImport>com.ancientlightstudios.example.custom:*</additionalImport>
-                        <additionalImport>com.ancientlightstudios.quarkus.kotlin.openapi.extension:*</additionalImport>
-                    </additionalImports>
-                </configuration>
+                <version>${quarkus.kotlin.openapi.version}</version>
                 <executions>
+                    <!-- Generate our server -->
                     <execution>
                         <id>generate-server</id>
                         <phase>generate-sources</phase>
@@ -170,33 +143,28 @@
                             <goal>generate</goal>
                         </goals>
                         <configuration>
-                            <interfaceName>Features</interfaceName>
+                            <sources>
+                                <source>${project.basedir}/src/main/resources/server-openapi.yaml</source>
+                            </sources>
+                            <interfaceName>MyPetStoreApi</interfaceName>
                             <interfaceType>SERVER</interfaceType>
-                            <packageName>com.ancientlightstudios.example.features.server</packageName>
+                            <packageName>com.ancientlightstudios.example.clients.server</packageName>
                         </configuration>
                     </execution>
+                    <!-- Generate the client to talk to the upstream server. -->
                     <execution>
                         <id>generate-client</id>
-                        <phase>generate-test-sources</phase>
+                        <phase>generate-sources</phase>
                         <goals>
-                            <goal>test-generate</goal>
+                            <goal>generate</goal>
                         </goals>
                         <configuration>
-                            <interfaceName>Features</interfaceName>
+                            <sources>
+                                <source>${project.basedir}/src/main/resources/pet-store-openapi.yaml</source>
+                            </sources>
+                            <interfaceName>UpstreamPetStoreApi</interfaceName>
                             <interfaceType>CLIENT</interfaceType>
-                            <packageName>com.ancientlightstudios.example.features.client</packageName>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>generate-test-client</id>
-                        <phase>generate-test-sources</phase>
-                        <goals>
-                            <goal>test-generate</goal>
-                        </goals>
-                        <configuration>
-                            <interfaceName>Features</interfaceName>
-                            <interfaceType>TEST_CLIENT</interfaceType>
-                            <packageName>com.ancientlightstudios.example.features.testclient</packageName>
+                            <packageName>com.ancientlightstudios.example.clients.client</packageName>
                         </configuration>
                     </execution>
                 </executions>
@@ -258,33 +226,8 @@
             </plugin>
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.1.2</version>
             </plugin>
         </plugins>
     </build>
-
-    <profiles>
-        <profile>
-            <id>release</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.jetbrains.dokka</groupId>
-                        <artifactId>dokka-maven-plugin</artifactId>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-source-plugin</artifactId>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-gpg-plugin</artifactId>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.sonatype.plugins</groupId>
-                        <artifactId>nexus-staging-maven-plugin</artifactId>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 </project>

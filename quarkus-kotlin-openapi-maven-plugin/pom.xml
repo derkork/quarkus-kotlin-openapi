@@ -8,6 +8,16 @@
     <packaging>maven-plugin</packaging>
     <name>Quarkus Kotlin OpenAPI - Maven Plugin</name>
     <description>A Maven plugin to use the OpenAPI generator.</description>
+    <licenses>
+        <license>
+            <name>GNU General Public License, v3</name>
+            <url>https://www.gnu.org/licenses/gpl-3.0.en.html</url>
+            <comments>
+                This license only applies to the plugin source code itself, not to the code that is generated
+                by this plugin. The generated code can be licensed under any license (or no license at all).
+            </comments>
+        </license>
+    </licenses>
 
     <parent>
         <groupId>com.ancientlightstudios</groupId>
