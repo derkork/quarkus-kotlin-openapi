@@ -8,7 +8,6 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.compo
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.SomeOfComponent
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
-import com.fasterxml.jackson.databind.annotation.JsonAppend.Prop
 
 // converts schema with a base ref but no *Of component into a type. This can lead to new real types or just
 // overlays.

@@ -4,8 +4,6 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.Trans
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.BaseSchemaComponent
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.OneOfComponent
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.OneOfComponent.Companion.oneOfComponent
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.TypeDefinition
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.TypeUsage
 
 // converts schema without any referencing components but a *of component
 class AssignTypesToSomeOfSchemasRefactoring(

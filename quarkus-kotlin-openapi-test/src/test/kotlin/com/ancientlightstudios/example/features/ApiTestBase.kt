@@ -6,8 +6,6 @@ import io.restassured.RestAssured
 import io.restassured.config.HttpClientConfig
 import io.restassured.config.RestAssuredConfig
 import io.restassured.response.Response
-import io.restassured.response.Validatable
-import io.restassured.response.ValidatableResponse
 import io.restassured.specification.RequestSpecification
 import jakarta.inject.Inject
 import org.junit.jupiter.api.BeforeEach

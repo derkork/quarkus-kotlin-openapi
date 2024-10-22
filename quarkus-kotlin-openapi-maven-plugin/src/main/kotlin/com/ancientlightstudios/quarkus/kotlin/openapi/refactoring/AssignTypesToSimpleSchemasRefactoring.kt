@@ -3,10 +3,7 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.refactoring
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.SchemaTypes
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchema
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.ReferencingComponent
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.TypeComponent
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.TypeComponent.Companion.typeComponent
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.TypeDefinition
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.TypeUsage
 
 // converts the most basic form of a schema into a type. Is responsible for schemas without any base ref or *Of component.
 // Because these schemas don't have other dependencies they will always receive a real type and never an overlay
