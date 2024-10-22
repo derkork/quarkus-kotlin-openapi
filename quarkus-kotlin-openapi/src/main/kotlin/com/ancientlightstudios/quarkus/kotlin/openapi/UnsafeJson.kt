@@ -6,11 +6,13 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 
 class UnsafeJson<T>(val value: JsonNode) {
 
+    @Suppress("unused")
     fun modifyObject(block: ObjectNode.() -> ObjectNode) = when (value) {
         is ObjectNode -> UnsafeJson<T>(value.run(block))
         else -> throw IllegalStateException("object node expected")
     }
 
+    @Suppress("unused")
     fun modifyArray(block: ArrayNode.() -> ArrayNode) = when (value) {
         is ArrayNode -> UnsafeJson<T>(value.run(block))
         else -> throw IllegalStateException("array node expected")

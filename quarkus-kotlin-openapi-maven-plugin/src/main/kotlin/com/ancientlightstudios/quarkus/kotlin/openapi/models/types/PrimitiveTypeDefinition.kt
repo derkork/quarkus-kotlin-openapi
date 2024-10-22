@@ -2,8 +2,6 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.models.types
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinExpression
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.PropertyExpression.Companion.property
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.companionObject
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.literalFor
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ContentType
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.SchemaModifier

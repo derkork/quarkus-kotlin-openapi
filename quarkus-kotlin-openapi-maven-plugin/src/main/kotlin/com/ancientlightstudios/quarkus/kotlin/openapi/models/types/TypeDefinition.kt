@@ -1,6 +1,5 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.types
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeDefinitionHint
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ContentType
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.SchemaModifier
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.SchemaValidation

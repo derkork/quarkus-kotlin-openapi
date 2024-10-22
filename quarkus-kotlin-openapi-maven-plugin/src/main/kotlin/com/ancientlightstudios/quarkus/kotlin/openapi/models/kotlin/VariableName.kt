@@ -1,7 +1,6 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.methodName
 
 @Suppress("DataClassPrivateConstructor")
 data class VariableName private constructor(val value: String) : KotlinExpression {

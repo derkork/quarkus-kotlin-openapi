@@ -35,7 +35,7 @@ fun Maybe<out JsonNode?>.asList(): Maybe<List<JsonNode?>?> = onNotNull {
     when (this.value) {
         is NullNode -> success(null)
         is ArrayNode -> success(this.value.toList())
-        else -> Maybe.Failure(context, ValidationError("is not a valid json object", context))
+        else -> Maybe.Failure(context, ValidationError("is not a valid json array", context))
     }
 }
 
