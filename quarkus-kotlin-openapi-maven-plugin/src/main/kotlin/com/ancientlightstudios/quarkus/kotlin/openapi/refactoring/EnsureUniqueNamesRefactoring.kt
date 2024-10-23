@@ -57,8 +57,12 @@ class EnsureUniqueNamesRefactoring : SpecRefactoring {
                     is EnumTypeDefinition ->
                         (it as RealEnumTypeDefinition).modelName = registry.uniqueNameFor(it.modelName)
 
-                    is ObjectTypeDefinition ->
-                        (it as RealObjectTypeDefinition).modelName = registry.uniqueNameFor(it.modelName)
+                    is ObjectTypeDefinition -> {
+                        if (!it.isPureMap) {
+                            (it as RealObjectTypeDefinition).modelName = registry.uniqueNameFor(it.modelName)
+                        }
+                        // nothing to do here for a pure map
+                    }
 
                     is OneOfTypeDefinition -> {
                         (it as RealOneOfTypeDefinition).modelName = registry.uniqueNameFor(it.modelName)

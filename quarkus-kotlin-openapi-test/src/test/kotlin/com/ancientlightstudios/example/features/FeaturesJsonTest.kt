@@ -491,4 +491,262 @@ class FeaturesJsonTest : ApiTestBase() {
         assertThat(messages).containsExactly(listOf("request.body[0].itemsRequired", "is required"))
     }
 
+    @Test
+    fun `sending null as an optional simple map body works (Client)`() {
+        runBlocking {
+            val response = client.jsonOptionalMap(null)
+            if (response is JsonOptionalMapHttpResponse.Ok) {
+                assertThat(response.safeBody).isNull()
+            } else {
+                fail("unexpected response")
+            }
+        }
+    }
+
+    @Test
+    fun `sending null as an optional simple map body works (Test-Client)`() {
+        testClient.jsonOptionalMapSafe(null)
+            .isOkResponse {
+                assertThat(safeBody).isNull()
+            }
+    }
+
+    @Test
+    fun `sending null as an optional simple map body works (Raw)`() {
+        prepareRequest()
+            .contentType("application/json")
+            .body("null")
+            .post("/features/json/optional/map")
+            .execute()
+            .statusCode(200)
+            .body(equalTo(""))
+    }
+
+    @Test
+    fun `sending nothing as an optional simple map body works (Test-Client)`() {
+        testClient.jsonOptionalMapUnsafe {}
+            .isOkResponse {
+                assertThat(safeBody).isNull()
+            }
+    }
+
+    @Test
+    fun `sending nothing as an optional simple map body works (Raw)`() {
+        prepareRequest()
+            .contentType("application/json")
+            .post("/features/json/optional/map")
+            .execute()
+            .statusCode(200)
+            .body(equalTo(""))
+    }
+
+    @Test
+    fun `sending null as a required simple map body is rejected (Test-Client)`() {
+        testClient.jsonRequiredMapUnsafe {
+            body(null)
+        }
+            .isBadRequestResponse {
+                assertThat(safeBody.messages).containsExactly(listOf("request.body", "required"))
+            }
+    }
+
+    @Test
+    fun `sending null as a required simple map body is rejected (Raw)`() {
+        val messages = prepareRequest()
+            .contentType("application/json")
+            .body("null")
+            .post("/features/json/required/map")
+            .execute()
+            .statusCode(400)
+            .extract()
+            .jsonPath()
+            .getList<String>("messages")
+
+        assertThat(messages).containsExactly(listOf("request.body", "required"))
+    }
+
+    @Test
+    fun `sending nothing as a required simple map body is rejected (Test-Client)`() {
+        testClient.jsonRequiredMapUnsafe {}
+            .isBadRequestResponse {
+                assertThat(safeBody.messages).containsExactly(listOf("request.body", "required"))
+            }
+    }
+
+    @Test
+    fun `sending nothing as a required simple map body is rejected (Raw)`() {
+        val messages = prepareRequest()
+            .contentType("application/json")
+            .post("/features/json/required/map")
+            .execute()
+            .statusCode(400)
+            .extract()
+            .jsonPath()
+            .getList<String>("messages")
+
+        assertThat(messages).containsExactly(listOf("request.body", "required"))
+    }
+
+    @Test
+    fun `sending an empty simple map value is accepted (Client)`() {
+        runBlocking {
+            val response = client.jsonRequiredMap(mapOf())
+
+            if (response is JsonRequiredMapHttpResponse.Ok) {
+                assertThat(response.safeBody.size).isEqualTo(0)
+            } else {
+                fail("unexpected response")
+            }
+        }
+    }
+
+    @Test
+    fun `sending an empty simple map value is accepted (Test-Client)`() {
+        testClient.jsonRequiredMapSafe(mapOf())
+            .isOkResponse {
+                assertThat(safeBody.size).isEqualTo(0)
+            }
+    }
+
+    @Test
+    fun `sending an empty simple map value is accepted (Raw)`() {
+        prepareRequest()
+            .contentType("application/json")
+            .body("{}")
+            .post("/features/json/required/map")
+            .execute()
+            .statusCode(200)
+            .body("size()", equalTo(0))
+    }
+
+    @Test
+    fun `sending an simple map value is accepted (Client)`() {
+        runBlocking {
+            val response = client.jsonRequiredMap(
+                mapOf(
+                    "first" to SimpleObject(
+                        statusRequired = JsonEnum.Second,
+                        itemsRequired = listOf(10)
+                    )
+                )
+            )
+
+            if (response is JsonRequiredMapHttpResponse.Ok) {
+                assertThat(response.safeBody.size).isEqualTo(1)
+                val first = response.safeBody["first"] ?: fail("map entry not found")
+                assertThat(first.nameOptional).isEqualTo("i am optional")
+                assertThat(first.nameRequired).isEqualTo("i am required")
+                assertThat(first.statusOptional).isNull()
+                assertThat(first.statusRequired).isEqualTo(JsonEnum.Second)
+                assertThat(first.itemsOptional).isNull()
+                assertThat(first.itemsRequired).containsExactly(10)
+            } else {
+                fail("unexpected response")
+            }
+        }
+    }
+
+    @Test
+    fun `sending an simple map value is accepted (Test-Client)`() {
+        testClient.jsonRequiredMapSafe(
+            mapOf(
+                "first" to TestSimpleObject(
+                    statusRequired = TestJsonEnum.Second,
+                    itemsRequired = listOf(10)
+                )
+            )
+        ).isOkResponse {
+            assertThat(safeBody.size).isEqualTo(1)
+            val first = safeBody["first"] ?: fail("map entry not found")
+            assertThat(first.nameOptional).isEqualTo("i am optional")
+            assertThat(first.nameRequired).isEqualTo("i am required")
+            assertThat(first.statusOptional).isNull()
+            assertThat(first.statusRequired).isEqualTo(TestJsonEnum.Second)
+            assertThat(first.itemsOptional).isNull()
+            assertThat(first.itemsRequired).containsExactly(10)
+        }
+    }
+
+    @Test
+    fun `sending an simple map value is accepted (Raw)`() {
+        prepareRequest()
+            .contentType("application/json")
+            .body(
+                """{
+                     "first": {
+                       "statusRequired": "second",
+                       "itemsRequired": [10]
+                    }
+                }""".trimIndent()
+            )
+            .post("/features/json/required/map")
+            .execute()
+            .statusCode(200)
+            .body("size()", equalTo(1))
+            .body("first.nameOptional", equalTo("i am optional"))
+            .body("first.nameRequired", equalTo("i am required"))
+            .body("first.statusOptional", equalTo(null))
+            .body("first.statusRequired", equalTo(JsonEnum.Second.value))
+            .body("first.itemsOptional", equalTo(null))
+            .body("first.itemsRequired", containsInAnyOrder(10))
+    }
+
+    @Test
+    fun `sending an incompatible simple map value is rejected (Test-Client)`() {
+        testClient.jsonRequiredMapRaw {
+            contentType("application/json")
+                .body("true")
+        }
+            .isBadRequestResponse {
+                assertThat(safeBody.messages).containsExactly(listOf("request.body", "is not a valid json object"))
+            }
+    }
+
+    @Test
+    fun `sending an incompatible simple map value is rejected (Raw)`() {
+        val messages = prepareRequest()
+            .contentType("application/json")
+            .body("true")
+            .post("/features/json/required/map")
+            .execute()
+            .statusCode(400)
+            .extract()
+            .jsonPath()
+            .getList<String>("messages")
+
+        assertThat(messages).containsExactly(listOf("request.body", "is not a valid json object"))
+    }
+
+    @Test
+    fun `sending an invalid simple map value is rejected (Test-Client)`() {
+        testClient.jsonRequiredMapUnsafe {
+            body(mapOf("first" to TestSimpleObject.unsafeJson(nameRequired = "foo", statusRequired = TestJsonEnum.TheFirst)))
+        }
+            .isBadRequestResponse {
+                assertThat(safeBody.messages).containsExactly(listOf("request.body.first.itemsRequired", "is required"))
+            }
+    }
+
+    @Test
+    fun `sending an invalid simple map value is rejected (Raw)`() {
+        val messages = prepareRequest()
+            .contentType("application/json")
+            .body(
+                """{
+                    "first": {
+                      "nameRequired": "foo",
+                      "statusRequired": "first"
+                    }
+                }""".trimIndent()
+            )
+            .post("/features/json/required/map")
+            .execute()
+            .statusCode(400)
+            .extract()
+            .jsonPath()
+            .getList<String>("messages")
+
+        assertThat(messages).containsExactly(listOf("request.body.first.itemsRequired", "is required"))
+    }
+
 }

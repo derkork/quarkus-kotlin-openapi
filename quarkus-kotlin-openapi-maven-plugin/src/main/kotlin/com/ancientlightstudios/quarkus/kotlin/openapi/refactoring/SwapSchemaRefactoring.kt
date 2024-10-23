@@ -3,10 +3,7 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.refactoring
 import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.inspect
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.SchemaUsage
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchema
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.ArrayItemsComponent
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.BaseSchemaComponent
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.ObjectComponent
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.SomeOfComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.*
 
 class SwapSchemaRefactoring(
     private val current: TransformableSchema,
@@ -40,6 +37,7 @@ class SwapSchemaRefactoring(
                 components<BaseSchemaComponent> { checkAndReplace(component) }
                 components<ArrayItemsComponent> { checkAndReplace(component) }
                 components<ObjectComponent> { component.properties.forEach { checkAndReplace(it) } }
+                components<MapComponent> { checkAndReplace(component) }
                 components<SomeOfComponent> { component.schemas.forEach { checkAndReplace(it) } }
             }
         }

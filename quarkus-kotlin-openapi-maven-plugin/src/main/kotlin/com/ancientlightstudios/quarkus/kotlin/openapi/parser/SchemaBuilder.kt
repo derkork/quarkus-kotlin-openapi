@@ -6,7 +6,9 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.Schem
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchema
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.SpecIssue
+import com.fasterxml.jackson.databind.node.BooleanNode
 import com.fasterxml.jackson.databind.node.ObjectNode
+import com.fasterxml.jackson.databind.node.TextNode
 import java.util.*
 
 class SchemaBuilder(
@@ -29,6 +31,7 @@ class SchemaBuilder(
             addNullableComponent(components)
             addArrayComponent(components)
             addObjectComponent(components)
+            addMapComponent(components)
             addAllOfComponent(components)
             addAnyOfComponent(components)
             addOneOfComponent(components)
@@ -40,6 +43,7 @@ class SchemaBuilder(
             addEnumValidationComponent(components)
             addStringValidationComponent(components)
             addNumberValidationComponent(components)
+            addPropertiesValidationComponent(components)
         }
 
         schema.components = components
@@ -147,6 +151,14 @@ class SchemaBuilder(
         }
     }
 
+    private fun addPropertiesValidationComponent(components: MutableList<SchemaComponent>) {
+        val minProperties = node.getTextOrNull("minProperties")?.toInt()
+        val maxProperties = node.getTextOrNull("maxProperties")?.toInt()
+        if (minProperties != null || maxProperties != null) {
+            components.add(ValidationComponent(PropertiesValidation(minProperties, maxProperties)))
+        }
+    }
+
     private fun ParseContext.extractComparableNumber(name: String): ComparableNumber? {
         val capitalizedPostfix = name.replaceFirstChar {
             if (it.isLowerCase()) it.titlecase(Locale.ENGLISH) else it.toString()
@@ -229,6 +241,26 @@ class SchemaBuilder(
         }
     }
 
+    private fun ParseContext.addMapComponent(components: MutableList<SchemaComponent>) {
+        val additionalPropertiesNode = node.get("additionalProperties") ?: return
+
+        // value is a boolean and set to false. break here
+        if (additionalPropertiesNode is BooleanNode && !additionalPropertiesNode.booleanValue()) {
+            return
+        }
+
+        // value is a string and set to "false". break here
+        if (additionalPropertiesNode is TextNode && additionalPropertiesNode.textValue() == "false") {
+            return
+        }
+
+        val mapValueSchema = contextFor(additionalPropertiesNode, "additionalProperties")
+            .also { contextNode.asObjectNode { "Only json object supported for $contextPath" } }
+            .parseAsSchema()
+
+        components.add(MapComponent(mapValueSchema))
+    }
+
     private fun addObjectValidationComponent(components: MutableList<SchemaComponent>) {
         val required = node.withArray("required").map { it.asText() }
         if (required.isNotEmpty()) {
@@ -249,7 +281,7 @@ class SchemaBuilder(
             components.add(EnumItemNamesComponent(names))
         }
     }
-    
+
 }
 
 fun ParseContext.parseAsSchema() =

@@ -22,6 +22,7 @@ object Kotlin {
     val ULongClass = "ULong".rawClassName("kotlin", true)
     val BigIntegerClass = "BigInteger".rawClassName("java.math")
     val ListClass = "List".rawClassName("kotlin.collections", true)
+    val MapClass = "Map".rawClassName("kotlin.collections", true)
     val ExceptionClass = "Exception".rawClassName("kotlin", true)
     val ThrowableClass = "Throwable".rawClassName("kotlin", true)
     val JvmNameClass = "JvmName".rawClassName("kotlin.jvm", true)

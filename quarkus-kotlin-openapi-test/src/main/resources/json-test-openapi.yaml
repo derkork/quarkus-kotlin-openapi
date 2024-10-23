@@ -97,6 +97,57 @@ paths:
         '400':
           $ref: '#/components/responses/OperationError400'
 
+  /features/json/optional/map:
+    post:
+      tags:
+        - json
+      operationId: jsonOptionalMap
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties:
+                $ref: '#/components/schemas/SimpleObjectOptional'
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type:
+                  - object
+                  - "null"
+                additionalProperties:
+                  $ref: '#/components/schemas/SimpleObjectOptional'
+        '400':
+          $ref: '#/components/responses/OperationError400'
+
+  /features/json/required/map:
+    post:
+      tags:
+        - json
+      operationId: jsonRequiredMap
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties:
+                $ref: '#/components/schemas/SimpleObject'
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  $ref: '#/components/schemas/SimpleObject'
+        '400':
+          $ref: '#/components/responses/OperationError400'
+
 components:
   schemas:
     JsonEnum:

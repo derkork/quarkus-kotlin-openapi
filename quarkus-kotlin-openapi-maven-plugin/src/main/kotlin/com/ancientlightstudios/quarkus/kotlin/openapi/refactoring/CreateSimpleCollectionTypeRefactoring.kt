@@ -56,7 +56,6 @@ class CreateSimpleCollectionTypeRefactoring(
         typeResolver.schedule(itemTypeUsage) { items.typeDefinition }
 
         return RealCollectionTypeDefinition(
-            schema.name.className(modelPackage),
             nullable ?: false, modifier, itemTypeUsage, validations
         )
     }

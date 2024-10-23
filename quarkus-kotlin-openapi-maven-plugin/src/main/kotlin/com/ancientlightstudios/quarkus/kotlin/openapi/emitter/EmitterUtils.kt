@@ -45,7 +45,14 @@ fun TypeUsage.buildValidType(): TypeName {
     return when (val safeType = this.type) {
         is PrimitiveTypeDefinition -> safeType.baseType.typeName(isNullable())
         is EnumTypeDefinition -> safeType.modelName.typeName(isNullable())
-        is ObjectTypeDefinition -> safeType.modelName.typeName(isNullable())
+        is ObjectTypeDefinition -> {
+            if (safeType.isPureMap) {
+                Kotlin.MapClass.typeName(isNullable())
+                    .of(Kotlin.StringClass.typeName(false), safeType.additionalProperties!!.buildValidType())
+            } else {
+                safeType.modelName.typeName(isNullable())
+            }
+        }
         is OneOfTypeDefinition -> safeType.modelName.typeName(isNullable())
         is CollectionTypeDefinition -> Kotlin.ListClass.typeName(isNullable())
             .of(safeType.items.buildValidType())
@@ -56,7 +63,14 @@ fun TypeUsage.buildUnsafeJsonType(outerTypeNullable: Boolean = true): TypeName {
     return when (val safeType = this.type) {
         is PrimitiveTypeDefinition -> safeType.baseType.typeName(outerTypeNullable)
         is EnumTypeDefinition -> safeType.modelName.typeName(outerTypeNullable)
-        is ObjectTypeDefinition -> Library.UnsafeJsonClass.typeName(outerTypeNullable).of(safeType.modelName.typeName())
+        is ObjectTypeDefinition -> {
+            if (safeType.isPureMap) {
+                Kotlin.MapClass.typeName(outerTypeNullable)
+                    .of(Kotlin.StringClass.typeName(), safeType.additionalProperties!!.buildUnsafeJsonType(true))
+            } else {
+                Library.UnsafeJsonClass.typeName(outerTypeNullable).of(safeType.modelName.typeName())
+            }
+        }
         is OneOfTypeDefinition -> Library.UnsafeJsonClass.typeName(outerTypeNullable).of(safeType.modelName.typeName())
         is CollectionTypeDefinition -> Kotlin.ListClass.typeName(outerTypeNullable)
             .of(safeType.items.buildUnsafeJsonType(true))

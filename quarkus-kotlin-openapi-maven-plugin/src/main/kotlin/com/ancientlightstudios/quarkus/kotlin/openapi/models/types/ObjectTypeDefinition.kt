@@ -5,12 +5,15 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.Conte
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.SchemaModifier
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.SchemaValidation
 
-// TODO: add support for maps
 interface ObjectTypeDefinition : TypeDefinition {
 
     val modelName: ClassName
 
     val properties: List<ObjectTypeProperty>
+
+    val additionalProperties: TypeUsage?
+
+    val isPureMap: Boolean
 
     val required: Set<String>
 
@@ -21,6 +24,7 @@ class RealObjectTypeDefinition(
     override val nullable: Boolean,
     override val modifier: SchemaModifier?,
     override var properties: List<ObjectTypeProperty>,
+    override val additionalProperties: TypeUsage?,
     override val required: Set<String>,
     override val validations: List<SchemaValidation>
 ) : ObjectTypeDefinition {
@@ -48,6 +52,7 @@ class RealObjectTypeDefinition(
             properties.map {
                 ObjectTypeProperty(it.sourceName, it.name, TypeUsage(it.typeUsage.required, it.typeUsage.type))
             },
+            additionalProperties?.let { TypeUsage(it.required, it.type) },
             required,
             validations
         ).also {
@@ -60,6 +65,7 @@ class RealObjectTypeDefinition(
             properties.map {
                 ObjectTypeProperty(it.sourceName, it.name, TypeUsage(it.typeUsage.required, it.typeUsage.type))
             },
+            additionalProperties?.let { TypeUsage(it.required, it.type) },
             required,
             validations
         ).also {
@@ -71,7 +77,14 @@ class RealObjectTypeDefinition(
     override fun replaceType(old: TypeDefinition, new: TypeDefinition) {
         properties.filter { it.typeUsage.type == old }
             .forEach { it.typeUsage.type = new }
+        
+        if (additionalProperties?.type == old) {
+            additionalProperties.type = new
+        }
     }
+
+    override val isPureMap: Boolean
+        get() = additionalProperties != null && properties.isEmpty()
 }
 
 // TODO: as the base must be mutable we can't use Delegation (not yet supported by kotlin yet). So we have to implement
@@ -94,6 +107,12 @@ class ObjectTypeDefinitionOverlay(
 
     override val properties: List<ObjectTypeProperty>
         get() = base.properties
+
+    override val additionalProperties: TypeUsage?
+        get() = base.additionalProperties
+
+    override val isPureMap: Boolean
+        get() = base.isPureMap
 
     override val required: Set<String>
         get() = base.required

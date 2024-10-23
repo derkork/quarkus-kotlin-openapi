@@ -1,5 +1,7 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi
 
+import com.fasterxml.jackson.databind.JsonNode
+
 @Suppress("unused")
 fun <T> Maybe<T?>.validate(block: DefaultValidator.(T) -> Unit): Maybe<T?> =
     onNotNull {
@@ -164,6 +166,32 @@ fun <I, O> Maybe<List<I?>?>.mapItems(block: (Maybe.Success<I?>) -> Maybe<O>): Ma
             failure(ValidationError("is not a valid value", context))
         }
     }
+
+@Suppress("unused")
+fun <T> Maybe<JsonNode?>.propertiesAsMap(vararg ignoredProperties: String, block: (Maybe.Success<JsonNode?>) -> Maybe<T>): Maybe<Map<String, T>?> =
+    onNotNull {
+        try {
+            val map = mutableMapOf<String, T>()
+            val errors = mutableListOf<ValidationError>()
+            
+            val names = value.fieldNames().asSequence().toList().minus(ignoredProperties.toSet())
+            names.forEach {
+                when (val validatedValue = block(Maybe.Success("$context.$it", value[it]))) {
+                    is Maybe.Failure -> errors.addAll(validatedValue.errors)
+                    is Maybe.Success -> map[it] = validatedValue.value
+                }
+            }
+
+            if (errors.isNotEmpty()) {
+                failure(errors)
+            } else {
+                success(map)
+            }
+        } catch (_: Exception) {
+            failure(ValidationError("is not a valid value", context))
+        }
+    }
+
 
 /**
  * checks that the value of the maybe is not null

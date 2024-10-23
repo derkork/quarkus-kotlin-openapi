@@ -7,14 +7,11 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.compo
 
 interface CollectionTypeDefinition : TypeDefinition {
 
-    val modelName: ClassName
-
     val items: TypeUsage
 
 }
 
 class RealCollectionTypeDefinition(
-    override val modelName: ClassName,
     override val nullable: Boolean,
     override val modifier: SchemaModifier?,
     override val items: TypeUsage,
@@ -38,7 +35,6 @@ class RealCollectionTypeDefinition(
 
     override fun split(): Pair<TypeDefinition, TypeDefinition> {
         val upType = RealCollectionTypeDefinition(
-            modelName.extend(postfix = "Up"),
             nullable,
             modifier,
             TypeUsage(items.required, items.type),
@@ -47,7 +43,6 @@ class RealCollectionTypeDefinition(
             it._contentTypes[Direction.Up] = _contentTypes[Direction.Up] ?: mutableSetOf()
         }
         val downType = RealCollectionTypeDefinition(
-            modelName.extend(postfix = "Down"),
             nullable,
             modifier,
             TypeUsage(items.required, items.type),
@@ -73,9 +68,6 @@ class CollectionTypeDefinitionOverlay(
     private val modifierOverlay: SchemaModifier?,
     private val additionalValidations: List<SchemaValidation> = listOf()
 ) : CollectionTypeDefinition, TypeDefinitionOverlay {
-
-    override val modelName: ClassName
-        get() = base.modelName
 
     override val nullable: Boolean
         get() = forceNullable || base.nullable

@@ -4,6 +4,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.inspect
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.NameSuggestionHint.nameSuggestion
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchema
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.ArrayItemsComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.MapComponent
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.ObjectComponent
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.SomeOfComponent
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
@@ -70,6 +71,7 @@ class SchemaNameRefactoring : SpecRefactoring {
                             assignAndSchedule(it.schema, "$prefix ${it.name}")
                         }
                     }
+                    components<MapComponent> { assignAndSchedule(component.schema, "$prefix value") }
                     components<SomeOfComponent> {
                         component.schemas.forEachIndexed { index, schema ->
                             assignAndSchedule(schema.schema, "$prefix option ${index + 1}")

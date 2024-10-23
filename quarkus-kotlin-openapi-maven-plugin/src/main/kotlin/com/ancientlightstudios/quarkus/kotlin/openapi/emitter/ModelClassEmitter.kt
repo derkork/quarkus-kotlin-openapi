@@ -14,7 +14,12 @@ class ModelClassEmitter(private val withTestSupport: Boolean) : CodeEmitter {
                 }
 
                 is EnumTypeDefinition -> runEmitter(EnumModelClassEmitter(typeDefinition))
-                is ObjectTypeDefinition -> runEmitter(ObjectModelClassEmitter(typeDefinition, withTestSupport))
+                is ObjectTypeDefinition -> {
+                    if (!typeDefinition.isPureMap) {
+                        runEmitter(ObjectModelClassEmitter(typeDefinition, withTestSupport))
+                    }
+                    // pure maps are build-in, so nothing to do here
+                }
                 is OneOfTypeDefinition -> runEmitter(OneOfModelClassEmitter(typeDefinition, withTestSupport))
             }
         }

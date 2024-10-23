@@ -7,11 +7,12 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.SchemaModifier
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.SchemaTypes
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchema
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.*
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.MapComponent.Companion.mapComponent
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.NullableComponent.Companion.nullableComponent
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.ObjectComponent.Companion.objectComponent
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.ObjectValidationComponent.Companion.objectValidationComponent
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.SchemaModifierComponent.Companion.schemaModifierComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.SchemaValidation
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.TypeComponent.Companion.typeComponent
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.ValidationComponent.Companion.validationComponents
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.*
@@ -39,7 +40,6 @@ class CreateSimpleObjectTypeRefactoring(
         schema.typeDefinition = typeDefinition
     }
 
-    // TODO: map support
     private fun RefactoringContext.createNewType(
         type: SchemaTypes?,
         nullable: Boolean?,
@@ -52,8 +52,17 @@ class CreateSimpleObjectTypeRefactoring(
         }
 
         val required = schema.objectValidationComponent()?.required?.toSet() ?: setOf()
-        val properties = schema.objectComponent()?.properties
-            ?: ProbableBug("Object schema without properties. Found in ${schema.originPath}")
+        val properties = schema.objectComponent()?.properties ?: listOf()
+        var mapValuesTypeUsage: TypeUsage? = null
+        val mapValuesSchema = schema.mapComponent()?.schema?.let { schema ->
+            val typeUsage = TypeUsage(true)
+            typeResolver.schedule(typeUsage) { schema.typeDefinition }
+            mapValuesTypeUsage = typeUsage
+        }
+
+        if (mapValuesSchema == null && properties.isEmpty()) {
+            ProbableBug("Object schema without properties. Found in ${schema.originPath}")
+        }
 
         val objectProperties = properties.map {
             val propertyTypeUsage = TypeUsage(required.contains(it.name))
@@ -62,9 +71,10 @@ class CreateSimpleObjectTypeRefactoring(
             ObjectTypeProperty(it.name, it.name.variableName(), propertyTypeUsage)
         }
 
+
         return RealObjectTypeDefinition(
             schema.name.className(modelPackage),
-            nullable ?: false, modifier, objectProperties, required, validations
+            nullable ?: false, modifier, objectProperties, mapValuesTypeUsage, required, validations
         )
     }
 
@@ -90,8 +100,10 @@ class CreateSimpleObjectTypeRefactoring(
         val requiredByBase = parentType.required
         val requiredChanged = required.subtract(requiredByBase).isNotEmpty()
 
+        val mapValuesSchema = schema.mapComponent()?.schema
+
         // object structure is still the same, we can just create an overlay
-        if (!requiredChanged && properties.isEmpty()) {
+        if (!requiredChanged && properties.isEmpty() && mapValuesSchema == null) {
             return ObjectTypeDefinitionOverlay(parentType, nullable == true, modifier, validations)
         }
 
@@ -119,11 +131,19 @@ class CreateSimpleObjectTypeRefactoring(
             ObjectTypeProperty(it.name, it.name.variableName(), propertyTypeUsage)
         } + filteredOldProperties
 
+        var mapValuesTypeUsage: TypeUsage? = null
+        mapValuesSchema?.let { schema ->
+            val typeUsage = TypeUsage(true)
+            typeResolver.schedule(typeUsage) { schema.typeDefinition }
+            mapValuesTypeUsage = typeUsage
+        }
+
         return RealObjectTypeDefinition(
             schema.name.className(modelPackage),
             nullable == true || parentType.nullable,
             modifier ?: parentType.modifier,
             newProperties,
+            mapValuesTypeUsage ?: parentType.additionalProperties,
             newRequired,
             parentType.validations + validations
         )

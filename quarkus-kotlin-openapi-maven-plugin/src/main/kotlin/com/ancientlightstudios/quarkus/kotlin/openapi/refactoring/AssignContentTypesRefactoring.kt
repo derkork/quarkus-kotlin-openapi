@@ -63,6 +63,14 @@ class AssignContentTypesRefactoring : SpecRefactoring {
     private fun propagateToObject(
         typeDefinition: ObjectTypeDefinition, direction: Direction, contentType: ContentType
     ) {
+        typeDefinition.additionalProperties?.let {
+            val propertyType = it.type
+            when (contentType) {
+                ContentType.ApplicationJson -> propagate(propertyType, direction, contentType)
+                else -> ProbableBug("don't know how to handle $contentType for maps")
+            }
+        }
+
         typeDefinition.properties.forEach {
             val propertyType = it.typeUsage.type
             when (contentType) {
@@ -87,13 +95,12 @@ class AssignContentTypesRefactoring : SpecRefactoring {
             ContentType.TextPlain,
             ContentType.ApplicationJson -> propagate(itemType, direction, contentType)
 
-            ContentType.ApplicationFormUrlencoded,
-//            ContentType.MultipartFormData -> propagate(itemType, direction, getContentTypeForFormPart(itemType))
+//            ContentType.MultipartFormData ->
+            ContentType.ApplicationFormUrlencoded -> propagate(itemType, direction, getContentTypeForFormPart(itemType))
 
             ContentType.ApplicationOctetStream -> ProbableBug("don't know how to handle $contentType for collections")
         }
     }
-
 
     companion object {
 

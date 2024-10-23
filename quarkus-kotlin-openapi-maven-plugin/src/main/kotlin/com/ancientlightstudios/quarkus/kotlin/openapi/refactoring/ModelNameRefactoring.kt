@@ -23,8 +23,12 @@ class ModelNameRefactoring : SpecRefactoring {
                     is EnumTypeDefinition ->
                         (it as RealEnumTypeDefinition).modelName = it.modelName.extend(prefix, postfix)
 
-                    is ObjectTypeDefinition ->
-                        (it as RealObjectTypeDefinition).modelName = it.modelName.extend(prefix, postfix)
+                    is ObjectTypeDefinition -> {
+                        if (!it.isPureMap) {
+                            (it as RealObjectTypeDefinition).modelName = it.modelName.extend(prefix, postfix)
+                        }
+                        // nothing to do here for a pure map
+                    }
 
                     is OneOfTypeDefinition -> {
                         (it as RealOneOfTypeDefinition).modelName = it.modelName.extend(prefix, postfix)

@@ -24,3 +24,5 @@ class NumberValidation(val minimum: ComparableNumber? = null, val maximum: Compa
 data class ComparableNumber(val value: String, val exclusive: Boolean)
 
 class CustomConstraintsValidation(val constraints: List<String>) : SchemaValidation
+
+class PropertiesValidation(val minProperties: Int? = null, val maxProperties: Int? = null) : SchemaValidation

@@ -29,4 +29,16 @@ class FeaturesJsonServerDelegateImpl : FeaturesJsonServerDelegate {
 
         ok(validRequest.body)
     }
+
+    override suspend fun JsonOptionalMapContext.jsonOptionalMap(): Nothing {
+        val validRequest = request.validOrElse { badRequest(it.toOperationError()) }
+
+        ok(validRequest.body)
+    }
+
+    override suspend fun JsonRequiredMapContext.jsonRequiredMap(): Nothing {
+        val validRequest = request.validOrElse { badRequest(it.toOperationError()) }
+
+        ok(validRequest.body)
+    }
 }

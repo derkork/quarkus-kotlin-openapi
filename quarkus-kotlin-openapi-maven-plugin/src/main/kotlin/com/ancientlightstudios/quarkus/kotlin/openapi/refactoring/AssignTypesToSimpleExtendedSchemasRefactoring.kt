@@ -48,7 +48,7 @@ class AssignTypesToSimpleExtendedSchemasRefactoring(
                 )
 
                 // TODO: fix this
-                is OneOfTypeDefinition -> ProbableBug("\$ref not yet supported for OneOf schemas")
+                is OneOfTypeDefinition -> ProbableBug("\$ref pointing to a OneOf schemas is not yet supported")
             }
         }
     }
