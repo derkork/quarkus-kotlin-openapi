@@ -1,0 +1,9 @@
+components:
+  schemas:
+    User:
+      properties:
+        id:
+          readOnly: true
+
+      required:
+        - id

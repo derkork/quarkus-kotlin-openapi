@@ -8,6 +8,12 @@ description: "Creating clients with Quarkus Kotlin OpenAPI."
 #  {{ page.title }}
 ## Table of contents
 
+- [Introduction](#introduction)
+- [Using the client in code](#using-the-client-in-code)
+- [Error handling](#error-handling)
+- [Client configuration](#client-configuration)
+
+
 ## Introduction
 In many projects you will not only create a REST server, but also will need to create clients that consume other REST services. You can use the OpenAPI generator to create a client for your REST service. The general approach is very similar to creating a server, but with a few differences. First, let's configure the generation of a client in the `pom.xml` file.
 
@@ -161,11 +167,11 @@ if (response is FindPetsByStatusHttpResponse.Ok) {
 internalServerError(GetAvailablePets500Response("Internal error."))     
 ```
 
-In general it is a good idea though to spend a bit more time on good error handling as errors _will_ occur in production and its much better to have good log output and error messages when they do.
+In general it is a good idea though to spend a bit more time on good error handling as errors _will_ occur in production and it is much better to have good log output and error messages when they do.
 
 ## Client configuration
 
-Under the hood, all generated clients are Quarkus built-in REST clients. This allows us to configure them like any other Quarkus rest client and use every feature that Quarkus offers for them. For example we can set up endpoint urls, connection timeouts, trusted certificates, etc. in the `application.properties` file:
+Under the hood, all generated clients are Quarkus built-in REST clients. This allows us to configure them like any other Quarkus REST client and use every feature that Quarkus offers for them. For example we can set up endpoint urls, connection timeouts, trusted certificates, etc. in the `application.properties` file:
 
 ```properties
 quarkus.rest-client."upstream-pet-store-api-client".uri=https://petstore3.swagger.io/api/v3
@@ -173,7 +179,7 @@ quarkus.rest-client."upstream-pet-store-api-client".connect-timeout=5000
 quarkus.rest-client."upstream-pet-store-api-client".read-timeout=5000
 ```
 
-The name of the client in the configuration is derived from the generated class name, so because our client class is named `UpstreamPetStoreApiClient`, the configuration key is `upstream-pet-store-api-client`. Quarkus can also log all requests and responses of the client. This can be very helpful for debugging. To enable this, add the following configuration to the `application.properties` file:
+The name of the client in the configuration is derived from the generated class name. So because our client class is named `UpstreamPetStoreApiClient`, the configuration key is `upstream-pet-store-api-client`. Quarkus can also log all requests and responses of the client. This can be very helpful for debugging. To enable this, add the following configuration to the `application.properties` file:
 
 ```properties
 quarkus.log.category."org.jboss.resteasy.reactive.client.logging".level=DEBUG

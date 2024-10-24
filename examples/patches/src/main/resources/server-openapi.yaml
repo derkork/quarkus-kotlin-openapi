@@ -1,0 +1,87 @@
+openapi: 3.0.2
+info:
+  title: Reduced Swagger Petstore API
+  version: 1.0.0
+  description: A sample API offering a reduced subset of the Swagger Petstore API for demonstrating how to use clients.
+
+paths:
+  /user:
+    post:
+      operationId: createUser
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        '500':
+          description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorInfo"
+
+  /order:
+    post:
+      operationId: createOrder
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Order'
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '500':
+          description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorInfo"
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          example: fbed0fb3-b5e4-4de2-b628-db4af24ba859
+          pattern: '^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$'
+        userName:
+          type: string
+          maxLength: 255
+        displayName:
+          type: string
+          maxLength: 255
+        age:
+          type: integer
+      required:
+        - userName
+        - displayName
+
+    Order:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 55eb32f1-e212-4586-8b11-bd0eea80ced9
+          pattern: '^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$'
+        itemId:
+          type: string
+          example: 55eb32f1-e212-4586-8b11-bd0eea80ced9
+          pattern: '^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$'
+
+    ErrorInfo:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Some error occurred."

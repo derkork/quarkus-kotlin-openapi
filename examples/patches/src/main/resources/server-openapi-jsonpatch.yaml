@@ -1,0 +1,7 @@
+# Remove RegEx pattern and add UUID format to the id property of the User schema
+- op: remove
+  path: /components/schemas/User/properties/id/pattern
+
+- op: add
+  path: /components/schemas/User/properties/id/format
+  value: uuid
