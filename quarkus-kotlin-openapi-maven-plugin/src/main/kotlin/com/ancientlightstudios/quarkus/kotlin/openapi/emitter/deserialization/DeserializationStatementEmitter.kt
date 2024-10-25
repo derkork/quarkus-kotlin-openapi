@@ -35,7 +35,13 @@ class DeserializationStatementEmitter(
             is PrimitiveTypeDefinition -> emitForPrimitiveType(safeType, resultStatement)
             is EnumTypeDefinition -> emitForEnumType(safeType, resultStatement)
             is CollectionTypeDefinition -> emitForCollectionType(safeType, resultStatement)
-            is ObjectTypeDefinition -> emitForObjectType(safeType, resultStatement)
+            is ObjectTypeDefinition -> {
+                if (safeType.isPureMap) {
+                    emitForMapType(safeType, resultStatement)
+                } else {
+                    emitForObjectType(safeType, resultStatement)
+                }
+            }
             is OneOfTypeDefinition -> emitForOneOfType(safeType, resultStatement)
         }
 
@@ -86,10 +92,10 @@ class DeserializationStatementEmitter(
     // if it's a collection type, generates an expression like this
     //
     // <baseStatement>[.asList()]
-    //     [ValidationStatements]
     //     .mapItems {
     //         <DeserializationStatement for nested type>
     //     }
+    //     [ValidationStatements]
     //
     // the .asList() is only added for application/json
     private fun EmitterContext.emitForCollectionType(
@@ -104,6 +110,33 @@ class DeserializationStatementEmitter(
         result = result.wrap().invoke("mapItems".methodName())
         {
             runEmitter(DeserializationStatementEmitter(typeDefinition.items, "it".variableName(), contentType, false))
+                .resultStatement.statement()
+        }
+        result = runEmitter(ValidationStatementEmitter(typeDefinition, result)).resultStatement
+        return result
+    }
+
+    // if it's a map type, generates an expression like this
+    //
+    // <baseStatement>[.asObject()]
+    //     .propertiesAsMap {
+    //         <DeserializationStatement for nested type>
+    //     }
+    //     [ValidationStatements]
+    //
+    // the .asObject() is only added for application/json
+    private fun EmitterContext.emitForMapType(
+        typeDefinition: ObjectTypeDefinition, baseStatement: KotlinExpression
+    ): KotlinExpression {
+        var result = baseStatement
+
+        if (contentType == ContentType.ApplicationJson) {
+            result = result.invoke("asObject".rawMethodName())
+        }
+
+        result = result.wrap().invoke("propertiesAsMap".methodName())
+        {
+            runEmitter(DeserializationStatementEmitter(typeDefinition.additionalProperties!!, "it".variableName(), contentType, false))
                 .resultStatement.statement()
         }
         result = runEmitter(ValidationStatementEmitter(typeDefinition, result)).resultStatement

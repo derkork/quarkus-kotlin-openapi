@@ -29,7 +29,6 @@ class FeaturesExtensionTest : ApiTestBase() {
     fun `invalid instant value will be rejected (Test-Client)`() {
         testClient.instantExtensionRaw {
             queryParam("headerValue", "not-an-instant")
-                .contentType("application/json")
                 .body("\"not-an-instant\"")
         }.isBadRequestResponse {
             assertThat(safeBody.messages).containsExactly(
@@ -105,7 +104,6 @@ class FeaturesExtensionTest : ApiTestBase() {
     fun `invalid localDate value will be rejected (Test-Client)`() {
         testClient.localDateExtensionRaw {
             queryParam("headerValue", "not-a-localDate")
-                .contentType("application/json")
                 .body("\"not-a-localDate\"")
         }.isBadRequestResponse {
             assertThat(safeBody.messages).containsExactly(
@@ -181,7 +179,6 @@ class FeaturesExtensionTest : ApiTestBase() {
     fun `invalid uuid value will be rejected (Test-Client)`() {
         testClient.uuidExtensionRaw {
             queryParam("headerValue", "not-an-uuid")
-                .contentType("application/json")
                 .body("\"not-an-uuid\"")
         }.isBadRequestResponse {
             assertThat(safeBody.messages).containsExactly(

@@ -5,9 +5,12 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.JsonNodeFactory
 import com.fasterxml.jackson.databind.node.NullNode
 import com.fasterxml.jackson.databind.node.ObjectNode
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.math.BigDecimal
 import java.math.BigInteger
 
+private val log: Logger = LoggerFactory.getLogger("com.ancientlightstudios.quarkus.kotlin.openapi.JsonSerializationExtensions")
 
 private val factory = JsonNodeFactory.instance
 
@@ -78,6 +81,23 @@ fun ObjectNode.setProperty(name: String, value: JsonNode?, required: Boolean): O
     return this.set(name, value)
 }
 
+fun <T> ObjectNode.setAdditionalProperties(properties: Map<String, T>?, vararg ignoredProperties: String, block: (T) -> JsonNode?): ObjectNode {
+    if (properties == null) {
+        return this
+    }
+    
+    val ignore = ignoredProperties.toSet()
+    val duplicates = properties.keys.intersect(ignore)
+    if (duplicates.isNotEmpty()) {
+        log.info("the following additional properties are ignored because they would shadow real properties from the object: ${duplicates.joinToString()}")
+    }
+
+    val transformedProperties = properties
+        .filterKeys { it !in ignore }
+        .mapValues { (_, value) -> block(value) }
+
+    return setAll(transformedProperties)
+}
 
 fun JsonNode?.shallowMerge(other: JsonNode?): JsonNode? {
     return this?.let {

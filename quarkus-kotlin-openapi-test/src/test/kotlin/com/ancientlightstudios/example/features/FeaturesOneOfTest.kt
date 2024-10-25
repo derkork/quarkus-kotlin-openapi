@@ -36,12 +36,11 @@ class FeaturesOneOfTest : ApiTestBase() {
     @Test
     fun `sending the wrong value is rejected by endpoint without discriminator (Test-Client)`() {
         testClient.oneOfWithoutDiscriminatorRaw {
-            contentType("application/json")
-                .body(
-                    """{
+            body(
+                """{
                       "foo": "bar"
                     }""".trimIndent()
-                )
+            )
         }
             .isBadRequestResponse {
                 assertThat(safeBody.messages.size).isEqualTo(6)
@@ -66,15 +65,14 @@ class FeaturesOneOfTest : ApiTestBase() {
     @Test
     fun `sending an object matching all options is rejected by endpoint without discriminator (Test-Client)`() {
         testClient.oneOfWithoutDiscriminatorRaw {
-            contentType("application/json")
-                .body(
-                    """{
+            body(
+                """{
                         "title": "foo",
                         "pages": 10,
                         "duration": 200,
                         "kind": "all" 
                     }""".trimMargin()
-                )
+            )
         }
             .isBadRequestResponse {
                 assertThat(safeBody.messages).containsExactly(listOf("request.body", "ambiguous"))
@@ -251,12 +249,11 @@ class FeaturesOneOfTest : ApiTestBase() {
     @Test
     fun `sending the wrong discriminator is rejected by endpoint with discriminator (Test-Client)`() {
         testClient.oneOfWithDiscriminatorRaw {
-            contentType("application/json")
-                .body(
-                    """{
+            body(
+                """{
                       "kind": "all"
                     }""".trimIndent()
-                )
+            )
         }
             .isBadRequestResponse {
                 assertThat(safeBody.messages).containsExactly(listOf("discriminator field", "has invalid value"))
@@ -285,12 +282,11 @@ class FeaturesOneOfTest : ApiTestBase() {
     @Test
     fun `sending no discriminator is rejected by endpoint with discriminator (Test-Client)`() {
         testClient.oneOfWithDiscriminatorRaw {
-            contentType("application/json")
-                .body(
-                    """{
+            body(
+                """{
                       "foo": "bar"
                     }""".trimIndent()
-                )
+            )
         }
             .isBadRequestResponse {
                 assertThat(safeBody.messages).containsExactly(listOf("discriminator field", "is missing"))
@@ -423,12 +419,11 @@ class FeaturesOneOfTest : ApiTestBase() {
     @Test
     fun `sending the wrong discriminator is rejected by endpoint with discriminator and mapping (Test-Client)`() {
         testClient.oneOfWithDiscriminatorAndMappingRaw {
-            contentType("application/json")
-                .body(
-                    """{
+            body(
+                """{
                       "kind": "all"
                     }""".trimIndent()
-                )
+            )
         }
             .isBadRequestResponse {
                 assertThat(safeBody.messages).containsExactly(listOf("discriminator field", "has invalid value"))
@@ -457,12 +452,11 @@ class FeaturesOneOfTest : ApiTestBase() {
     @Test
     fun `sending no discriminator is rejected by endpoint with discriminator and mapping (Test-Client)`() {
         testClient.oneOfWithDiscriminatorAndMappingRaw {
-            contentType("application/json")
-                .body(
-                    """{
+            body(
+                """{
                       "foo": "bar"
                     }""".trimIndent()
-                )
+            )
         }
             .isBadRequestResponse {
                 assertThat(safeBody.messages).containsExactly(listOf("discriminator field", "is missing"))
@@ -511,14 +505,13 @@ class FeaturesOneOfTest : ApiTestBase() {
     @ValueSource(strings = ["Book", "booooook"])
     fun `sending option1 is accepted by endpoint with discriminator and mapping (Test-Client)`(mapping: String) {
         testClient.oneOfWithDiscriminatorAndMappingRaw {
-            contentType("application/json")
-                .body(
-                    """{
+            body(
+                """{
                     "title": "foo",
                     "pages": 10,
                     "kind": "$mapping" 
                 }""".trimIndent()
-                )
+            )
         }
             .isOkResponse {
                 val safeBody = safeBody as? TestOneOfWithDiscriminatorAndMappingBook

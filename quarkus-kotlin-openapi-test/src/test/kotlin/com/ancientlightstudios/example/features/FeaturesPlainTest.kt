@@ -125,7 +125,6 @@ class FeaturesPlainTest : ApiTestBase() {
     fun `sending invalid big integer value is rejected (Test-Client)`() {
         testClient.plainBigIntegerTypeRaw {
             queryParam("param", "foo")
-                .contentType("text/plain")
                 .body("foo")
         }.isBadRequestResponse {
             assertThat(safeBody.messages).containsExactly(
@@ -193,7 +192,6 @@ class FeaturesPlainTest : ApiTestBase() {
     fun `sending invalid integer value is rejected (Test-Client)`() {
         testClient.plainIntegerTypeRaw {
             queryParam("param", "foo")
-                .contentType("text/plain")
                 .body("foo")
         }.isBadRequestResponse {
             assertThat(safeBody.messages).containsExactly(
@@ -261,7 +259,6 @@ class FeaturesPlainTest : ApiTestBase() {
     fun `sending invalid big decimal value is rejected (Test-Client)`() {
         testClient.plainBigDecimalTypeRaw {
             queryParam("param", "foo")
-                .contentType("text/plain")
                 .body("foo")
         }.isBadRequestResponse {
             assertThat(safeBody.messages).containsExactly(
@@ -329,7 +326,6 @@ class FeaturesPlainTest : ApiTestBase() {
     fun `sending invalid floating value is rejected (Test-Client)`() {
         testClient.plainFloatingTypeRaw {
             queryParam("param", "foo")
-                .contentType("text/plain")
                 .body("foo")
         }.isBadRequestResponse {
             assertThat(safeBody.messages).containsExactly(
@@ -397,7 +393,6 @@ class FeaturesPlainTest : ApiTestBase() {
     fun `sending invalid boolean value is rejected (Test-Client)`() {
         testClient.plainBooleanTypeRaw {
             queryParam("param", "foo")
-                .contentType("text/plain")
                 .body("foo")
         }.isBadRequestResponse {
             assertThat(safeBody.messages).containsExactly(
@@ -500,7 +495,6 @@ class FeaturesPlainTest : ApiTestBase() {
     fun `sending invalid enum value is rejected (Test-Client)`() {
         testClient.plainEnumTypeRaw {
             queryParam("param", "foo")
-                .contentType("text/plain")
                 .body("foo")
         }.isBadRequestResponse {
             assertThat(safeBody.messages).containsExactly(

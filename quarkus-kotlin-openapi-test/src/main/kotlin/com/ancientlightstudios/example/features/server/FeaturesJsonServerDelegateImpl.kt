@@ -41,4 +41,10 @@ class FeaturesJsonServerDelegateImpl : FeaturesJsonServerDelegate {
 
         ok(validRequest.body)
     }
+
+    override suspend fun JsonNestedMapContext.jsonNestedMap(): Nothing {
+        val validRequest = request.validOrElse { badRequest(it.toOperationError()) }
+
+        ok(validRequest.body)
+    }
 }

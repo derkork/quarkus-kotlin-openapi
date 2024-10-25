@@ -283,7 +283,11 @@ class ClientRestInterfaceEmitter : CodeEmitter {
     private fun TryCatchExpression.emitOctetBody(method: KotlinMethod, body: TransformableBody): VariableName {
         val parameterName = body.parameterVariableName
         val default = defaultParameterExpression(body.content.typeUsage)
-        method.kotlinParameter(parameterName, Kotlin.ByteArrayClass.typeName(body.content.typeUsage.isNullable()), default)
+        method.kotlinParameter(
+            parameterName,
+            Kotlin.ByteArrayClass.typeName(body.content.typeUsage.isNullable()),
+            default
+        )
         return parameterName
     }
 

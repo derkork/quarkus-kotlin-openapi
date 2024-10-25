@@ -148,6 +148,27 @@ paths:
         '400':
           $ref: '#/components/responses/OperationError400'
 
+  /features/json/nestedMap:
+    post:
+      tags:
+        - json
+      operationId: jsonNestedMap
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Container'
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Container'
+        '400':
+          $ref: '#/components/responses/OperationError400'
+
 components:
   schemas:
     JsonEnum:
@@ -187,6 +208,40 @@ components:
         - nameRequired
         - statusRequired
         - itemsRequired
+
+    Container:
+      type: object
+      properties:
+        withNonNullValues:
+          $ref: '#/components/schemas/ContainerPart'
+          x-model-name: NonNullContainerPart
+          additionalProperties:
+            type: number
+            format: int32
+            maximum: 100
+        withNullableValues:
+          $ref: '#/components/schemas/ContainerPart'
+          x-model-name: NullableContainerPart
+          additionalProperties:
+            type:
+              - number
+              - 'null'
+            format: int32
+            maximum: 100
+      required:
+        - withNonNullValues
+        - withNullableValues
+
+    ContainerPart:
+      type: object
+      properties:
+        foo:
+          type: string
+        bar:
+          type: number
+          format: int64
+      required:
+        - foo
 
     SimpleObjectOptional:
       $ref: '#/components/schemas/SimpleObject'

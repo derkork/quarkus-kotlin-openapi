@@ -39,6 +39,15 @@ class ObjectModelClassEmitter(private val typeDefinition: ObjectTypeDefinition, 
                     )
                 }
 
+                typeDefinition.additionalProperties?.let {
+                    kotlinMember(
+                        "additionalProperties".variableName(),
+                        Kotlin.MapClass.typeName().of(Kotlin.StringClass.typeName(), it.buildValidType()),
+                        accessModifier = null,
+                        default = invoke("mapOf".methodName())
+                    )
+                }
+
                 generateSerializeMethods(spec.serializationDirection)
 
                 kotlinCompanion {
@@ -96,6 +105,19 @@ class ObjectModelClassEmitter(private val typeDefinition: ObjectTypeDefinition, 
                 )
             }
 
+            typeDefinition.additionalProperties?.let {
+                val protectedNames = typeDefinition.properties.map { it.sourceName.literal() }
+                
+                expression = expression.wrap().invoke(
+                    "setAdditionalProperties".rawMethodName(),
+                    "additionalProperties".variableName(),
+                    *protectedNames.toTypedArray()) {
+                    emitterContext.runEmitter(
+                        SerializationStatementEmitter(it, "it".variableName(), ContentType.ApplicationJson)
+                    ).resultStatement.statement()
+                }
+            }
+
             expression.statement()
         }
     }
@@ -117,7 +139,7 @@ class ObjectModelClassEmitter(private val typeDefinition: ObjectTypeDefinition, 
             invoke("onNotNull".rawMethodName()) {
                 // iterate over all members and create a deserialize statement for each
                 val root = "value".variableName()
-                val objectParts = typeDefinition.properties.map {
+                val objectParts = typeDefinition.properties.mapTo(mutableListOf()) {
 
                     val statement = root.invoke(
                         "findProperty".rawMethodName(),
@@ -128,6 +150,19 @@ class ObjectModelClassEmitter(private val typeDefinition: ObjectTypeDefinition, 
                     emitterContext.runEmitter(
                         DeserializationStatementEmitter(it.typeUsage, statement, ContentType.ApplicationJson, false)
                     ).resultStatement.declaration("${it.sourceName}Maybe".variableName())
+                }
+
+                typeDefinition.additionalProperties?.let {
+                    val protectedNames = typeDefinition.properties.map { it.sourceName.literal() }
+                    val maybe = invoke("propertiesAsMap".rawMethodName(), *protectedNames.toTypedArray()) {
+                        emitterContext.runEmitter(
+                            DeserializationStatementEmitter(it, "it".variableName(), ContentType.ApplicationJson, false)
+                        ).resultStatement.statement()
+                    }
+                        .invoke("required".rawMethodName())
+                        .declaration("additionalPropertiesMaybe".variableName())
+
+                    objectParts.add(maybe)
                 }
 
                 if (objectParts.isEmpty()) {
@@ -198,6 +233,25 @@ class ObjectModelClassEmitter(private val typeDefinition: ObjectTypeDefinition, 
                     // if the type is nullable but required
                     it.typeUsage.required.literal()
                 )
+            }
+
+            typeDefinition.additionalProperties?.let {
+                kotlinParameter(
+                    "additionalProperties".variableName(),
+                    Kotlin.MapClass.typeName(true).of(Kotlin.StringClass.typeName(), it.buildUnsafeJsonType()),
+                    expression = nullLiteral()
+                )
+
+                val protectedNames = typeDefinition.properties.map { it.sourceName.literal() }
+
+                expression = expression.wrap().invoke(
+                    "setAdditionalProperties".rawMethodName(),
+                    "additionalProperties".variableName(),
+                    *protectedNames.toTypedArray()) {
+                    emitterContext.runEmitter(
+                        UnsafeSerializationStatementEmitter(it, "it".variableName(), ContentType.ApplicationJson)
+                    ).resultStatement.statement()
+                }
             }
 
             invoke(Library.UnsafeJsonClass.constructorName, expression).statement()

@@ -2,15 +2,12 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.emitter.serialization
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeEmitter
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.EmitterContext
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.InvocationExpression.Companion.invoke
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.rawMethodName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.Misc
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.NullCheckExpression.Companion.nullCheck
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.PropertyExpression.Companion.property
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.companionObject
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.nullFallback
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ContentType
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
@@ -35,7 +32,13 @@ class UnsafeSerializationStatementEmitter(
             is PrimitiveTypeDefinition -> emitForPrimitiveType(resultStatement)
             is EnumTypeDefinition -> emitForEnumType(resultStatement)
             is CollectionTypeDefinition -> emitForCollectionType(safeType, resultStatement)
-            is ObjectTypeDefinition -> emitForObjectType(resultStatement)
+            is ObjectTypeDefinition -> {
+                if (safeType.isPureMap) {
+                    emitForMapType(safeType, resultStatement)
+                } else {
+                    emitForObjectType(resultStatement)
+                }
+            }
             is OneOfTypeDefinition -> emitForOneOfType(resultStatement)
         }
     }
@@ -96,6 +99,28 @@ class UnsafeSerializationStatementEmitter(
             if (contentType == ContentType.ApplicationJson) {
                 innerStatement = innerStatement.nullFallback(Misc.NullNodeClass.companionObject().property("instance".variableName()))
             }
+
+            innerStatement.statement()
+        }
+    }
+
+    private fun EmitterContext.emitForMapType(
+        typeDefinition: ObjectTypeDefinition, baseStatement: KotlinExpression
+    ): KotlinExpression {
+        val methodName = when (contentType) {
+            ContentType.ApplicationJson -> "asJson".rawMethodName()
+            else -> ProbableBug("Unsupported content type $contentType for map serialization")
+        }
+
+        // produces:
+        //
+        // <baseStatement>.<methodName> {
+        //     <SerializationStatement for nested type>
+        // }
+        return baseStatement.invoke(methodName) {
+            var innerStatement = runEmitter(UnsafeSerializationStatementEmitter(typeDefinition.additionalProperties!!, "it".variableName(), contentType))
+                .resultStatement
+                innerStatement = innerStatement.nullFallback(Misc.NullNodeClass.companionObject().property("instance".variableName()))
 
             innerStatement.statement()
         }
