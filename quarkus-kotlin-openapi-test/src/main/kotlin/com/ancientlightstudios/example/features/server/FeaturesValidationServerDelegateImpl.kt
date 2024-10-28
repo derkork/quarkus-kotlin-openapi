@@ -55,4 +55,24 @@ class FeaturesValidationServerDelegateImpl : FeaturesValidationServerDelegate {
         val validRequest = request.validOrElse { badRequest(it.toOperationError()) }
         ok(validRequest.response)
     }
+
+    override suspend fun PropertiesOnPureMapValidationContext.propertiesOnPureMapValidation(): Nothing {
+        request.validOrElse { badRequest(it.toOperationError()) }
+        noContent()
+    }
+
+    override suspend fun PropertiesOnNestedMapValidationContext.propertiesOnNestedMapValidation(): Nothing {
+        request.validOrElse { badRequest(it.toOperationError()) }
+        noContent()
+    }
+
+    override suspend fun PropertiesOnObjectValidationContext.propertiesOnObjectValidation(): Nothing {
+        request.validOrElse { badRequest(it.toOperationError()) }
+        noContent()
+    }
+
+    override suspend fun PropertiesOnObjectWithDefaultValidationContext.propertiesOnObjectWithDefaultValidation(): Nothing {
+        request.validOrElse { badRequest(it.toOperationError()) }
+        noContent()
+    }
 }

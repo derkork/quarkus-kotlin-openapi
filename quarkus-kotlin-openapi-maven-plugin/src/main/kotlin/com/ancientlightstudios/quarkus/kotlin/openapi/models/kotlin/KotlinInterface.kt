@@ -5,7 +5,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
 class KotlinInterface(
     private val name: ClassName,
     private val sealed: Boolean = false,
-    private val interfaces: List<ClassName> = emptyList()
+    private val interfaces: List<ClassName> = listOf()
 ) : KotlinRenderable, AnnotationAware, MethodAware, CommentAware, ClassAware, CompanionAware {
 
     private val annotations = KotlinAnnotationContainer()
@@ -93,7 +93,7 @@ interface InterfaceAware {
 fun InterfaceAware.kotlinInterface(
     name: ClassName,
     sealed: Boolean = false,
-    interfaces: List<ClassName> = emptyList(),
+    interfaces: List<ClassName> = listOf(),
     block: KotlinInterface.() -> Unit
 ) {
     val content = KotlinInterface(name, sealed, interfaces).apply(block)

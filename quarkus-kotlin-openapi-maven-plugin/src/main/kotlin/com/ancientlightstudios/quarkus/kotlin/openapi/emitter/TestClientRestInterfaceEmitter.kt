@@ -123,7 +123,7 @@ class TestClientRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitt
 
             kotlinParameter(
                 "block".variableName(),
-                TypeName.DelegateTypeName(request.requestBuilderClassName.typeName(), emptyList(), Kotlin.UnitType),
+                TypeName.DelegateTypeName(request.requestBuilderClassName.typeName(), listOf(), Kotlin.UnitType),
                 expression = emptyLambda()
             )
 
@@ -163,7 +163,7 @@ class TestClientRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitt
             kotlinParameter(
                 "block".variableName(), TypeName.DelegateTypeName(
                     RestAssured.RequestSpecificationClass.typeName(),
-                    emptyList(),
+                    listOf(),
                     RestAssured.RequestSpecificationClass.typeName()
                 )
             )

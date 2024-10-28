@@ -6,11 +6,9 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.InvocationExpression.Companion.invoke
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.rawMethodName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.ArrayValidation
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.CustomConstraintsValidation
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.NumberValidation
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.StringValidation
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.CollectionTypeDefinition
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.ObjectTypeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.PrimitiveTypeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.TypeDefinition
 
@@ -33,6 +31,10 @@ class ValidationStatementEmitter(
 
         if (typeDefinition is CollectionTypeDefinition) {
             resultStatement = emitArrayValidation(resultStatement, validations.filterIsInstance<ArrayValidation>())
+        }
+
+        if (typeDefinition is ObjectTypeDefinition) {
+            resultStatement = emitPropertyValidation(resultStatement, validations.filterIsInstance<PropertiesValidation>())
         }
 
         resultStatement = emitCustomConstraintsValidation(
@@ -100,6 +102,23 @@ class ValidationStatementEmitter(
                 validations.forEach {
                     it.minSize?.let { "it".variableName().invoke("minSize".rawMethodName(), it.literal()).statement() }
                     it.maxSize?.let { "it".variableName().invoke("maxSize".rawMethodName(), it.literal()).statement() }
+                }
+            }
+    }
+
+    private fun emitPropertyValidation(
+        statement: KotlinExpression,
+        validations: List<PropertiesValidation>
+    ): KotlinExpression {
+        if (validations.isEmpty()) {
+            return statement
+        }
+
+        return statement.wrap()
+            .invoke("validateProperties".rawMethodName()) {
+                validations.forEach {
+                    it.minProperties?.let { "it".variableName().invoke("minProperties".rawMethodName(), it.literal()).statement() }
+                    it.maxProperties?.let { "it".variableName().invoke("maxProperties".rawMethodName(), it.literal()).statement() }
                 }
             }
     }

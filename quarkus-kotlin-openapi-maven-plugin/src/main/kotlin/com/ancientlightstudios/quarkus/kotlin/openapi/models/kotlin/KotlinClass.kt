@@ -8,7 +8,7 @@ class KotlinClass(
     private val asDataClass: Boolean = false,
     private val sealed: Boolean = false,
     private val baseClass: KotlinBaseClass? = null,
-    private val interfaces: List<ClassName> = emptyList()
+    private val interfaces: List<ClassName> = listOf()
 ) : KotlinRenderable, AnnotationAware, MethodAware, MemberAware, CompanionAware,
     CommentAware, ClassAware, ConstructorAware {
 
@@ -148,7 +148,7 @@ fun ClassAware.kotlinClass(
     asDataClass: Boolean = false,
     sealed: Boolean = false,
     baseClass: KotlinBaseClass? = null,
-    interfaces: List<ClassName> = emptyList(),
+    interfaces: List<ClassName> = listOf(),
     block: KotlinClass.() -> Unit
 ) {
     val content = KotlinClass(name, constructorAccessModifier, asDataClass, sealed, baseClass, interfaces).apply(block)

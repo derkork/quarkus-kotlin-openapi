@@ -11,7 +11,7 @@ class KotlinMethod(
     private val bodyAsAssignment: Boolean = false,
     private val accessModifier: KotlinAccessModifier? = null,
     private val override: Boolean = false,
-    private val genericParameter: List<TypeName> = emptyList()
+    private val genericParameter: List<TypeName> = listOf()
 ) : KotlinRenderable, AnnotationAware, ParameterAware, StatementAware, CommentAware {
 
     private val annotations = KotlinAnnotationContainer()
@@ -111,7 +111,7 @@ fun MethodAware.kotlinMethod(
     bodyAsAssignment: Boolean = false,
     accessModifier: KotlinAccessModifier? = null,
     override: Boolean = false,
-    genericParameter: List<TypeName> = emptyList(),
+    genericParameter: List<TypeName> = listOf(),
     block: KotlinMethod.() -> Unit = {}
 ) {
     val content = KotlinMethod(

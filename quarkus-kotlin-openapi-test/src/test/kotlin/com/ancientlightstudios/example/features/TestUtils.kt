@@ -18,3 +18,5 @@ fun <SELF : ObjectEnumerableAssert<SELF, String>> ObjectEnumerableAssert<SELF, S
 fun Char.repeat(count: Int) = "".padStart(count, this)
 
 fun <T> T.repeatAsItem(count: Int) = List(count) { this }
+
+fun <T> Pair<String, T>.repeatAsMap(count: Int) = List(count) { "$first:$it" to second }.toMap()

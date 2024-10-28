@@ -78,7 +78,7 @@ fun TypeUsage.buildUnsafeJsonType(outerTypeNullable: Boolean = true): TypeName {
 }
 
 fun TypeUsage.isNullable(): Boolean {
-    if (required && !type.nullable) {
+    if (!nullable) {
         // null values are just not allowed
         return false
     }
@@ -94,5 +94,5 @@ fun TypeUsage.isNullable(): Boolean {
         return false
     }
 
-    return type.nullable || !required
+    return nullable
 }

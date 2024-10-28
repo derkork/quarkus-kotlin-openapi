@@ -38,7 +38,7 @@ sealed interface TypeName {
     }
 
     data class DelegateTypeName(
-        val receiverType: TypeName? = null, val parameterTypes: List<TypeName> = emptyList(),
+        val receiverType: TypeName? = null, val parameterTypes: List<TypeName> = listOf(),
         val returnType: TypeName, val nullable: Boolean = false
     ): TypeName {
 

@@ -8,6 +8,7 @@ class ValidationStage : GeneratorStage {
     override fun process(spec: TransformableSpec) {
         OneOfDiscriminatorCheck().verify(spec)
         OneOfDiscriminatorMappingCheck().verify(spec)
+        GetRequestWithBodyCheck().verify(spec)
     }
 
 }

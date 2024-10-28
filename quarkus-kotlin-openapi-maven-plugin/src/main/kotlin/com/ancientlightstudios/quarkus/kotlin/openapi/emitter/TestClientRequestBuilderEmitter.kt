@@ -17,10 +17,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ContentType
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ParameterKind
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableBody
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.CollectionTypeDefinition
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.ObjectTypeDefinition
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.OneOfTypeDefinition
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.TypeUsage
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.refactoring.AssignContentTypesRefactoring.Companion.getContentTypeForFormPart
 
 class TestClientRequestBuilderEmitter : CodeEmitter {
@@ -118,43 +115,60 @@ class TestClientRequestBuilderEmitter : CodeEmitter {
         }
     }
 
+    private fun specialMapSupport(type: TypeDefinition): Boolean {
+        if (type !is ObjectTypeDefinition) {
+            return false
+        }
+
+        if (!type.isPureMap) {
+            return false
+        }
+
+        val valueType = type.additionalProperties!!
+        return valueType.type is PrimitiveTypeDefinition || valueType.type is EnumTypeDefinition
+    }
+
     private fun TransformableBody.emitJsonBodyMethod(clazz: KotlinClass, requestSpecificationVariable: VariableName) {
-        // generate the default body method
-        clazz.kotlinMethod("body".methodName()) {
-            val nullableType = content.typeUsage.forceNullable()
-            kotlinParameter("value".variableName(), nullableType.buildValidType())
+        val specialMapSupport = specialMapSupport(content.typeUsage.type)
 
-            val bodyStatement = emitterContext.runEmitter(
-                SerializationStatementEmitter(
-                    nullableType,
-                    "value".variableName(),
-                    content.mappedContentType
-                )
-            ).resultStatement
+        if (!specialMapSupport) {
+            // generate the default body method
+            clazz.kotlinMethod("body".methodName()) {
+                val nullableType = content.typeUsage.forceNullable()
+                kotlinParameter("value".variableName(), nullableType.buildValidType())
 
-            // produces
-            //
-            // requestSpecification = requestSpecification.body(<bodyStatement>)
-            requestSpecificationVariable
-                .invoke(
-                    "body".methodName(),
-                    bodyStatement.invoke("asString".methodName(), "objectMapper".variableName())
-                )
-                .assignment(requestSpecificationVariable)
+                val bodyStatement = emitterContext.runEmitter(
+                    SerializationStatementEmitter(
+                        nullableType,
+                        "value".variableName(),
+                        content.mappedContentType
+                    )
+                ).resultStatement
+
+                // produces
+                //
+                // requestSpecification = requestSpecification.body(<bodyStatement>)
+                requestSpecificationVariable
+                    .invoke(
+                        "body".methodName(),
+                        bodyStatement.invoke("asString".methodName(), "objectMapper".variableName())
+                    )
+                    .assignment(requestSpecificationVariable)
+            }
         }
 
         // generate a body method with a UnsafeJson parameter for object and oneOf types
         if (content.typeUsage.type is ObjectTypeDefinition || content.typeUsage.type is OneOfTypeDefinition || content.typeUsage.type is CollectionTypeDefinition) {
             clazz.kotlinMethod("body".methodName()) {
                 kotlinAnnotation(Kotlin.JvmNameClass, "name".variableName() to "bodyWithUnsafe".literal())
-                kotlinParameter("value".variableName(), content.typeUsage.buildUnsafeJsonType(false))
+                kotlinParameter("value".variableName(), content.typeUsage.buildUnsafeJsonType(specialMapSupport))
 
                 val bodyStatement = emitterContext.runEmitter(
                     UnsafeSerializationStatementEmitter(
                         content.typeUsage,
                         "value".variableName(),
                         content.mappedContentType,
-                        true // we only use the statement inside a null check
+                        !specialMapSupport // the normal type is not null here, only for special maps
                     )
                 ).resultStatement
 

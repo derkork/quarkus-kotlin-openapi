@@ -107,6 +107,7 @@ object Library {
     val RequestHandledSignalClass = "RequestHandledSignal".rawClassName("com.ancientlightstudios.quarkus.kotlin.openapi")
     val ResponseWithGenericStatusInterface = "ResponseWithGenericStatus".rawClassName("com.ancientlightstudios.quarkus.kotlin.openapi")
     val RequestContextInterface = "RequestContext".rawClassName("com.ancientlightstudios.quarkus.kotlin.openapi")
+    val PropertiesContainerInterface = "PropertiesContainer".rawClassName("com.ancientlightstudios.quarkus.kotlin.openapi")
     val UnsafeJsonClass = "UnsafeJson".rawClassName("com.ancientlightstudios.quarkus.kotlin.openapi")
     val RequestLoggingFilterClass = "RequestLoggingFilter".rawClassName("com.ancientlightstudios.quarkus.kotlin.openapi.testsupport")
     val ResponseLoggingFilterClass = "ResponseLoggingFilter".rawClassName("com.ancientlightstudios.quarkus.kotlin.openapi.testsupport")

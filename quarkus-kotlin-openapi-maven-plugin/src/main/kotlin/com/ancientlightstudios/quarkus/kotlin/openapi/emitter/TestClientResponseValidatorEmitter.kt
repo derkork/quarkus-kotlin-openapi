@@ -64,7 +64,7 @@ class TestClientResponseValidatorEmitter : CodeEmitter {
                 returnType = tType, genericParameter = listOf(tType)) {
             kotlinParameter(
                 "block".variableName(),
-                TypeName.DelegateTypeName(request.responseContainerClassName.typeName(), emptyList(), tType)
+                TypeName.DelegateTypeName(request.responseContainerClassName.typeName(), listOf(), tType)
             )
 
             // produces
@@ -88,7 +88,7 @@ class TestClientResponseValidatorEmitter : CodeEmitter {
         kotlinMethod("responseSatisfies".methodName(), bodyAsAssignment = true) {
             kotlinParameter(
                 "block".variableName(),
-                TypeName.DelegateTypeName(request.responseContainerClassName.typeName(), emptyList(), Kotlin.UnitType)
+                TypeName.DelegateTypeName(request.responseContainerClassName.typeName(), listOf(), Kotlin.UnitType)
             )
 
             // produces
@@ -104,7 +104,7 @@ class TestClientResponseValidatorEmitter : CodeEmitter {
         kotlinMethod(reason.methodName(prefix = "is", postfix = "Response"), bodyAsAssignment = true) {
             kotlinParameter(
                 "block".variableName(),
-                TypeName.DelegateTypeName(responseClass.typeName(), emptyList(), Kotlin.UnitType)
+                TypeName.DelegateTypeName(responseClass.typeName(), listOf(), Kotlin.UnitType)
             )
 
             // produces

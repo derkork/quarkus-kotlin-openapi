@@ -111,3 +111,40 @@ class ListValidator(context: String) : Validator(context) {
         }
     }
 }
+
+@Suppress("unused")
+class PropertiesValidator(context: String): Validator(context) {
+
+    fun Map<String, *>.minProperties(min: Int) {
+        if (size < min) {
+            reportError("minimum size of $min expected, but is $size")
+        }
+    }
+
+    fun Map<String, *>.maxProperties(max: Int) {
+        if (size > max) {
+            reportError("maximum size of $max expected, but is $size")
+        }
+    }
+
+    fun PropertiesContainer.minProperties(min: Int) {
+        val size = receivedPropertiesCount()
+        if (size < min) {
+            reportError("minimum size of $min expected, but is $size")
+        }
+    }
+
+    fun PropertiesContainer.maxProperties(max: Int) {
+        val size = receivedPropertiesCount()
+        if (size > max) {
+            reportError("maximum size of $max expected, but is $size")
+        }
+    }
+
+}
+
+interface PropertiesContainer {
+
+    fun receivedPropertiesCount(): Int
+
+}

@@ -1,6 +1,9 @@
 package com.ancientlightstudios.example.features
 
 import com.ancientlightstudios.example.features.client.*
+import com.ancientlightstudios.example.features.client.model.PropertiesOnNestedMapValidationBody
+import com.ancientlightstudios.example.features.client.model.PropertiesOnObjectValidationBody
+import com.ancientlightstudios.example.features.client.model.PropertiesOnObjectWithDefaultValidationBody
 import com.ancientlightstudios.example.features.testclient.FeaturesValidationTestClient
 import io.quarkus.test.junit.QuarkusTest
 import jakarta.inject.Inject
@@ -15,6 +18,9 @@ import java.math.BigDecimal
 import java.math.BigInteger
 import kotlin.test.assertTrue
 import com.ancientlightstudios.example.features.testclient.ResponseValidationError as TestResponseValidationError
+import com.ancientlightstudios.example.features.testclient.model.PropertiesOnNestedMapValidationBody as TestPropertiesOnNestedMapValidationBody
+import com.ancientlightstudios.example.features.testclient.model.PropertiesOnObjectValidationBody as TestPropertiesOnObjectValidationBody
+import com.ancientlightstudios.example.features.testclient.model.PropertiesOnObjectWithDefaultValidationBody as TestPropertiesOnObjectWithDefaultValidationBody
 
 @QuarkusTest
 class FeaturesValidationTest : ApiTestBase() {
@@ -310,7 +316,10 @@ class FeaturesValidationTest : ApiTestBase() {
         "5.5,5.51",
         "10.5,10.49"
     )
-    fun `valid big decimal are accepted (Test-Client)`(inclusiveParamValue: BigDecimal, exclusiveParamValue: BigDecimal) {
+    fun `valid big decimal are accepted (Test-Client)`(
+        inclusiveParamValue: BigDecimal,
+        exclusiveParamValue: BigDecimal
+    ) {
         testClient.bigDecimalValidationSafe(inclusiveParamValue, exclusiveParamValue)
             .isNoContentResponse {
             }
@@ -443,7 +452,10 @@ class FeaturesValidationTest : ApiTestBase() {
         "5,6",
         "10,9"
     )
-    fun `valid big integer are accepted (Test-Client)`(inclusiveParamValue: BigInteger, exclusiveParamValue: BigInteger) {
+    fun `valid big integer are accepted (Test-Client)`(
+        inclusiveParamValue: BigInteger,
+        exclusiveParamValue: BigInteger
+    ) {
         testClient.bigIntegerValidationSafe(inclusiveParamValue, exclusiveParamValue)
             .isNoContentResponse {
             }
@@ -963,6 +975,712 @@ class FeaturesValidationTest : ApiTestBase() {
         prepareRequest()
             .queryParam("items", listOf(7, 5, 10))
             .get("/features/validation/array")
+            .execute()
+            .statusCode(204)
+    }
+
+    @Test
+    fun `pure maps below minimum are rejected (Client)`() {
+        runBlocking {
+            val response = client.propertiesOnPureMapValidation(("key" to "value").repeatAsMap(1))
+            if (response is PropertiesOnPureMapValidationHttpResponse.BadRequest) {
+                assertThat(response.safeBody.messages)
+                    .containsExactly(
+                        listOf("request.body", "minimum size")
+                    )
+            } else {
+                fail("unexpected response")
+            }
+        }
+    }
+
+    @Test
+    fun `pure maps below minimum are rejected (Test-Client)`() {
+        testClient.propertiesOnPureMapValidationSafe(("key" to "value").repeatAsMap(1))
+            .isBadRequestResponse {
+                assertThat(safeBody.messages)
+                    .containsExactly(
+                        listOf("request.body", "minimum size")
+                    )
+            }
+    }
+
+    @Test
+    fun `pure maps below minimum are rejected (Raw)`() {
+        val messages = prepareRequest()
+            .contentType("application/json")
+            .body(("key" to "value").repeatAsMap(1))
+            .post("/features/validation/propertiesOnPureMap")
+            .execute()
+            .statusCode(400)
+            .extract()
+            .jsonPath()
+            .getList<String>("messages")
+
+        assertThat(messages)
+            .containsExactly(
+                listOf("request.body", "minimum size")
+            )
+    }
+
+    @Test
+    fun `pure maps above maximum are rejected (Client)`() {
+        runBlocking {
+            val response = client.propertiesOnPureMapValidation(("key" to "value").repeatAsMap(6))
+            if (response is PropertiesOnPureMapValidationHttpResponse.BadRequest) {
+                assertThat(response.safeBody.messages)
+                    .containsExactly(
+                        listOf("request.body", "maximum size")
+                    )
+            } else {
+                fail("unexpected response")
+            }
+        }
+    }
+
+    @Test
+    fun `pure maps above maximum are rejected (Test-Client)`() {
+        testClient.propertiesOnPureMapValidationSafe(("key" to "value").repeatAsMap(6))
+            .isBadRequestResponse {
+                assertThat(safeBody.messages)
+                    .containsExactly(
+                        listOf("request.body", "maximum size")
+                    )
+            }
+    }
+
+    @Test
+    fun `pure maps above maximum are rejected (Raw)`() {
+        val messages = prepareRequest()
+            .contentType("application/json")
+            .body(("key" to "value").repeatAsMap(6))
+            .post("/features/validation/propertiesOnPureMap")
+            .execute()
+            .statusCode(400)
+            .extract()
+            .jsonPath()
+            .getList<String>("messages")
+
+        assertThat(messages)
+            .containsExactly(
+                listOf("request.body", "maximum size")
+            )
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = [2, 5])
+    fun `valid pure maps are accepted (Client)`(length: Int) {
+        runBlocking {
+            val response = client.propertiesOnPureMapValidation(("key" to "value").repeatAsMap(length))
+            if (response !is PropertiesOnPureMapValidationHttpResponse.NoContent) {
+                fail("unexpected response")
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = [2, 5])
+    fun `valid pure maps are accepted (Test-Client)`(length: Int) {
+        testClient.propertiesOnPureMapValidationSafe(("key" to "value").repeatAsMap(length))
+            .isNoContentResponse {
+            }
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = [2, 5])
+    fun `valid pure maps are accepted (Raw)`(length: Int) {
+        prepareRequest()
+            .contentType("application/json")
+            .body(("key" to "value").repeatAsMap(length))
+            .post("/features/validation/propertiesOnPureMap")
+            .execute()
+            .statusCode(204)
+    }
+
+    @Test
+    fun `objects with nested maps below minimum are rejected (Client)`() {
+        runBlocking {
+            val response = client.propertiesOnNestedMapValidation(
+                PropertiesOnNestedMapValidationBody("foo", "bar")
+            )
+            if (response is PropertiesOnNestedMapValidationHttpResponse.BadRequest) {
+                assertThat(response.safeBody.messages)
+                    .containsExactly(
+                        listOf("request.body", "minimum size")
+                    )
+            } else {
+                fail("unexpected response")
+            }
+        }
+    }
+
+    @Test
+    fun `objects with nested maps below minimum are rejected 2 (Client)`() {
+        runBlocking {
+            val response = client.propertiesOnNestedMapValidation(
+                PropertiesOnNestedMapValidationBody("foo", null, ("key" to "value").repeatAsMap(1))
+            )
+            if (response is PropertiesOnNestedMapValidationHttpResponse.BadRequest) {
+                assertThat(response.safeBody.messages)
+                    .containsExactly(
+                        listOf("request.body", "minimum size")
+                    )
+            } else {
+                fail("unexpected response")
+            }
+        }
+    }
+
+    @Test
+    fun `objects with nested maps below minimum are rejected (Test-Client)`() {
+        testClient.propertiesOnNestedMapValidationSafe(
+            TestPropertiesOnNestedMapValidationBody("foo", "bar")
+        )
+            .isBadRequestResponse {
+                assertThat(safeBody.messages)
+                    .containsExactly(
+                        listOf("request.body", "minimum size")
+                    )
+            }
+    }
+
+    @Test
+    fun `objects with nested maps below minimum are rejected 2 (Test-Client)`() {
+        testClient.propertiesOnNestedMapValidationSafe(
+            TestPropertiesOnNestedMapValidationBody("foo", null, ("key" to "value").repeatAsMap(1))
+        )
+            .isBadRequestResponse {
+                assertThat(safeBody.messages)
+                    .containsExactly(
+                        listOf("request.body", "minimum size")
+                    )
+            }
+    }
+
+    @Test
+    fun `objects with nested maps below minimum are rejected (Raw)`() {
+        val messages = prepareRequest()
+            .contentType("application/json")
+            .body(mapOf("foo" to "foo", "bar" to "bar"))
+            .post("/features/validation/propertiesOnNestedMap")
+            .execute()
+            .statusCode(400)
+            .extract()
+            .jsonPath()
+            .getList<String>("messages")
+
+        assertThat(messages)
+            .containsExactly(
+                listOf("request.body", "minimum size")
+            )
+    }
+
+    @Test
+    fun `objects with nested maps below minimum are rejected 2 (Raw)`() {
+        val messages = prepareRequest()
+            .contentType("application/json")
+            .body(mapOf("foo" to "foo").plus(("key" to "value").repeatAsMap(1)))
+            .post("/features/validation/propertiesOnNestedMap")
+            .execute()
+            .statusCode(400)
+            .extract()
+            .jsonPath()
+            .getList<String>("messages")
+
+        assertThat(messages)
+            .containsExactly(
+                listOf("request.body", "minimum size")
+            )
+    }
+
+    @Test
+    fun `objects with nested maps above maximum are rejected (Client)`() {
+        runBlocking {
+            val response = client.propertiesOnNestedMapValidation(
+                PropertiesOnNestedMapValidationBody("foo", "bar", ("key" to "value").repeatAsMap(4))
+            )
+            if (response is PropertiesOnNestedMapValidationHttpResponse.BadRequest) {
+                assertThat(response.safeBody.messages)
+                    .containsExactly(
+                        listOf("request.body", "maximum size")
+                    )
+            } else {
+                fail("unexpected response")
+            }
+        }
+    }
+
+    @Test
+    fun `objects with nested maps above maximum are rejected 2 (Client)`() {
+        runBlocking {
+            val response = client.propertiesOnNestedMapValidation(
+                PropertiesOnNestedMapValidationBody("foo", null, ("key" to "value").repeatAsMap(5))
+            )
+            if (response is PropertiesOnNestedMapValidationHttpResponse.BadRequest) {
+                assertThat(response.safeBody.messages)
+                    .containsExactly(
+                        listOf("request.body", "maximum size")
+                    )
+            } else {
+                fail("unexpected response")
+            }
+        }
+    }
+
+    @Test
+    fun `objects with nested maps above maximum are rejected (Test-Client)`() {
+        testClient.propertiesOnNestedMapValidationSafe(
+            TestPropertiesOnNestedMapValidationBody("foo", "bar", ("key" to "value").repeatAsMap(4))
+        )
+            .isBadRequestResponse {
+                assertThat(safeBody.messages)
+                    .containsExactly(
+                        listOf("request.body", "maximum size")
+                    )
+            }
+    }
+
+    @Test
+    fun `objects with nested maps above maximum are rejected 2 (Test-Client)`() {
+        testClient.propertiesOnNestedMapValidationSafe(
+            TestPropertiesOnNestedMapValidationBody("foo", null, ("key" to "value").repeatAsMap(5))
+        )
+            .isBadRequestResponse {
+                assertThat(safeBody.messages)
+                    .containsExactly(
+                        listOf("request.body", "maximum size")
+                    )
+            }
+    }
+
+    @Test
+    fun `objects with nested maps above maximum are rejected (Raw)`() {
+        val messages = prepareRequest()
+            .contentType("application/json")
+            .body(mapOf("foo" to "foo", "bar" to "bar").plus(("key" to "value").repeatAsMap(4)))
+            .post("/features/validation/propertiesOnNestedMap")
+            .execute()
+            .statusCode(400)
+            .extract()
+            .jsonPath()
+            .getList<String>("messages")
+
+        assertThat(messages)
+            .containsExactly(
+                listOf("request.body", "maximum size")
+            )
+    }
+
+    @Test
+    fun `objects with nested maps above maximum are rejected 2 (Raw)`() {
+        val messages = prepareRequest()
+            .contentType("application/json")
+            .body(mapOf("foo" to "foo").plus(("key" to "value").repeatAsMap(5)))
+            .post("/features/validation/propertiesOnNestedMap")
+            .execute()
+            .statusCode(400)
+            .extract()
+            .jsonPath()
+            .getList<String>("messages")
+
+        assertThat(messages)
+            .containsExactly(
+                listOf("request.body", "maximum size")
+            )
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = [2, 4])
+    fun `valid objects with nested maps are accepted (Client)`(length: Int) {
+        runBlocking {
+            val response = client.propertiesOnNestedMapValidation(
+                PropertiesOnNestedMapValidationBody("foo", null, ("key" to "value").repeatAsMap(length))
+            )
+            if (response !is PropertiesOnNestedMapValidationHttpResponse.NoContent) {
+                fail("unexpected response")
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = [1, 3])
+    fun `valid objects with nested maps are accepted 2 (Client)`(length: Int) {
+        runBlocking {
+            val response = client.propertiesOnNestedMapValidation(
+                PropertiesOnNestedMapValidationBody("foo", "bar", ("key" to "value").repeatAsMap(length))
+            )
+            if (response !is PropertiesOnNestedMapValidationHttpResponse.NoContent) {
+                fail("unexpected response")
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = [2, 4])
+    fun `valid objects with nested maps are accepted (Test-Client)`(length: Int) {
+        testClient.propertiesOnNestedMapValidationSafe(
+            TestPropertiesOnNestedMapValidationBody("foo", null, ("key" to "value").repeatAsMap(length))
+        )
+            .isNoContentResponse {
+            }
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = [1, 3])
+    fun `valid objects with nested maps are accepted 2 (Test-Client)`(length: Int) {
+        testClient.propertiesOnNestedMapValidationSafe(
+            TestPropertiesOnNestedMapValidationBody("foo", "bar", ("key" to "value").repeatAsMap(length))
+        )
+            .isNoContentResponse {
+            }
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = [2, 4])
+    fun `valid objects with nested maps are accepted (Raw)`(length: Int) {
+        prepareRequest()
+            .contentType("application/json")
+            .body(mapOf("foo" to "foo").plus(("key" to "value").repeatAsMap(length)))
+            .post("/features/validation/propertiesOnNestedMap")
+            .execute()
+            .statusCode(204)
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = [1, 3])
+    fun `valid objects with nested maps are accepted 2 (Raw)`(length: Int) {
+        prepareRequest()
+            .contentType("application/json")
+            .body(mapOf("foo" to "foo", "bar" to "bar").plus(("key" to "value").repeatAsMap(length)))
+            .post("/features/validation/propertiesOnNestedMap")
+            .execute()
+            .statusCode(204)
+    }
+
+    @Test
+    fun `objects with properties below minimum are rejected (Client)`() {
+        runBlocking {
+            val response = client.propertiesOnObjectValidation(
+                PropertiesOnObjectValidationBody("foo")
+            )
+            if (response is PropertiesOnObjectValidationHttpResponse.BadRequest) {
+                assertThat(response.safeBody.messages)
+                    .containsExactly(
+                        listOf("request.body", "minimum size")
+                    )
+            } else {
+                fail("unexpected response")
+            }
+        }
+    }
+
+    @Test
+    fun `objects with properties below minimum are rejected (Test-Client)`() {
+        testClient.propertiesOnObjectValidationSafe(
+            TestPropertiesOnObjectValidationBody("foo")
+        )
+            .isBadRequestResponse {
+                assertThat(safeBody.messages)
+                    .containsExactly(
+                        listOf("request.body", "minimum size")
+                    )
+            }
+    }
+
+    @Test
+    fun `objects with properties below minimum are rejected (Raw)`() {
+        val messages = prepareRequest()
+            .contentType("application/json")
+            .body(mapOf("foo" to "foo"))
+            .post("/features/validation/propertiesOnObject")
+            .execute()
+            .statusCode(400)
+            .extract()
+            .jsonPath()
+            .getList<String>("messages")
+
+        assertThat(messages)
+            .containsExactly(
+                listOf("request.body", "minimum size")
+            )
+    }
+
+    @Test
+    fun `objects with properties above maximum are rejected (Client)`() {
+        runBlocking {
+            val response = client.propertiesOnObjectValidation(
+                PropertiesOnObjectValidationBody("foo", "bar", "zort")
+            )
+            if (response is PropertiesOnObjectValidationHttpResponse.BadRequest) {
+                assertThat(response.safeBody.messages)
+                    .containsExactly(
+                        listOf("request.body", "maximum size")
+                    )
+            } else {
+                fail("unexpected response")
+            }
+        }
+    }
+
+    @Test
+    fun `objects with properties above maximum are rejected (Test-Client)`() {
+        testClient.propertiesOnObjectValidationSafe(
+            TestPropertiesOnObjectValidationBody("foo", "bar", "zort")
+        )
+            .isBadRequestResponse {
+                assertThat(safeBody.messages)
+                    .containsExactly(
+                        listOf("request.body", "maximum size")
+                    )
+            }
+    }
+
+    @Test
+    fun `objects with properties above maximum are rejected (Raw)`() {
+        val messages = prepareRequest()
+            .contentType("application/json")
+            .body(mapOf("foo" to "foo", "bar" to "bar", "zort" to "zort"))
+            .post("/features/validation/propertiesOnObject")
+            .execute()
+            .statusCode(400)
+            .extract()
+            .jsonPath()
+            .getList<String>("messages")
+
+        assertThat(messages)
+            .containsExactly(
+                listOf("request.body", "maximum size")
+            )
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+        "bar,",
+        ",zort"
+    )
+    fun `valid objects with properties are accepted (Client)`(bar: String?, zort: String?) {
+        runBlocking {
+            val response = client.propertiesOnObjectValidation(
+                PropertiesOnObjectValidationBody("foo", bar, zort)
+            )
+            if (response !is PropertiesOnObjectValidationHttpResponse.NoContent) {
+                fail("unexpected response")
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+        "bar,",
+        ",zort"
+    )
+    fun `valid objects with properties are accepted (Test-Client)`(bar: String?, zort: String?) {
+        testClient.propertiesOnObjectValidationSafe(
+            TestPropertiesOnObjectValidationBody("foo", bar, zort)
+        )
+            .isNoContentResponse {
+            }
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+        "bar,",
+        ",zort"
+    )
+    fun `valid objects with properties are accepted (Raw)`(bar: String?, zort: String?) {
+        prepareRequest()
+            .contentType("application/json")
+            .body(mapOf("foo" to "foo", "bar" to bar, "zort" to zort).filterValues { it != null })
+            .post("/features/validation/propertiesOnObject")
+            .execute()
+            .statusCode(204)
+    }
+
+    @Test
+    fun `objects with properties and defaults below minimum are rejected (Client)`() {
+        runBlocking {
+            val response = client.propertiesOnObjectWithDefaultValidation(
+                PropertiesOnObjectWithDefaultValidationBody()
+            )
+            if (response is PropertiesOnObjectWithDefaultValidationHttpResponse.BadRequest) {
+                assertThat(response.safeBody.messages)
+                    .containsExactly(
+                        listOf("request.body", "minimum size")
+                    )
+            } else {
+                fail("unexpected response")
+            }
+        }
+    }
+
+    @Test
+    fun `objects with properties and defaults below minimum are rejected (Test-Client)`() {
+        testClient.propertiesOnObjectWithDefaultValidationSafe(
+            TestPropertiesOnObjectWithDefaultValidationBody()
+        )
+            .isBadRequestResponse {
+                assertThat(safeBody.messages)
+                    .containsExactly(
+                        listOf("request.body", "minimum size")
+                    )
+            }
+    }
+
+    @Test
+    fun `objects with properties and defaults below minimum are rejected (Raw)`() {
+        val messages = prepareRequest()
+            .contentType("application/json")
+            .body(mapOf("foo" to "foo"))
+            .post("/features/validation/propertiesOnObjectWithDefault")
+            .execute()
+            .statusCode(400)
+            .extract()
+            .jsonPath()
+            .getList<String>("messages")
+
+        assertThat(messages)
+            .containsExactly(
+                listOf("request.body", "minimum size")
+            )
+    }
+
+    @Test
+    fun `objects with properties and defaults below minimum are rejected 2 (Raw)`() {
+        val messages = prepareRequest()
+            .contentType("application/json")
+            .body(mapOf<String, String>())
+            .post("/features/validation/propertiesOnObjectWithDefault")
+            .execute()
+            .statusCode(400)
+            .extract()
+            .jsonPath()
+            .getList<String>("messages")
+
+        assertThat(messages)
+            .containsExactly(
+                listOf("request.body", "minimum size")
+            )
+    }
+
+    @Test
+    fun `objects with properties and defaults above maximum are rejected (Client)`() {
+        runBlocking {
+            val response = client.propertiesOnObjectWithDefaultValidation(
+                PropertiesOnObjectWithDefaultValidationBody(bar = "bar", zort = "zort")
+            )
+            if (response is PropertiesOnObjectWithDefaultValidationHttpResponse.BadRequest) {
+                assertThat(response.safeBody.messages)
+                    .containsExactly(
+                        listOf("request.body", "maximum size")
+                    )
+            } else {
+                fail("unexpected response")
+            }
+        }
+    }
+
+    @Test
+    fun `objects with properties and defaults above maximum are rejected (Test-Client)`() {
+        testClient.propertiesOnObjectWithDefaultValidationSafe(
+            TestPropertiesOnObjectWithDefaultValidationBody(bar = "bar", zort = "zort")
+        )
+            .isBadRequestResponse {
+                assertThat(safeBody.messages)
+                    .containsExactly(
+                        listOf("request.body", "maximum size")
+                    )
+            }
+    }
+
+    @Test
+    fun `objects with properties and defaults above maximum are rejected (Raw)`() {
+        val messages = prepareRequest()
+            .contentType("application/json")
+            .body(mapOf("bar" to "bar", "zort" to "zort"))
+            .post("/features/validation/propertiesOnObjectWithDefault")
+            .execute()
+            .statusCode(400)
+            .extract()
+            .jsonPath()
+            .getList<String>("messages")
+
+        assertThat(messages)
+            .containsExactly(
+                listOf("request.body", "maximum size")
+            )
+    }
+
+    @Test
+    fun `objects with properties and defaults above maximum are rejected 2 (Raw)`() {
+        val messages = prepareRequest()
+            .contentType("application/json")
+            .body(mapOf("foo" to "foo", "bar" to "bar", "zort" to "zort"))
+            .post("/features/validation/propertiesOnObjectWithDefault")
+            .execute()
+            .statusCode(400)
+            .extract()
+            .jsonPath()
+            .getList<String>("messages")
+
+        assertThat(messages)
+            .containsExactly(
+                listOf("request.body", "maximum size")
+            )
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+        "bar,",
+        ",zort"
+    )
+    fun `valid objects with properties and defaults are accepted (Client)`(bar: String?, zort: String?) {
+        runBlocking {
+            val response = client.propertiesOnObjectWithDefaultValidation(
+                PropertiesOnObjectWithDefaultValidationBody(bar = bar, zort = zort)
+            )
+            if (response !is PropertiesOnObjectWithDefaultValidationHttpResponse.NoContent) {
+                fail("unexpected response")
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+        "bar,",
+        ",zort"
+    )
+    fun `valid objects with properties and defaults are accepted (Test-Client)`(bar: String?, zort: String?) {
+        testClient.propertiesOnObjectWithDefaultValidationSafe(
+            TestPropertiesOnObjectWithDefaultValidationBody(bar = bar, zort = zort)
+        )
+            .isNoContentResponse {
+            }
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+        "bar,",
+        ",zort"
+    )
+    fun `valid objects with properties and defaults are accepted (Raw)`(bar: String?, zort: String?) {
+        prepareRequest()
+            .contentType("application/json")
+            .body(mapOf("bar" to bar, "zort" to zort).filterValues { it != null })
+            .post("/features/validation/propertiesOnObjectWithDefault")
+            .execute()
+            .statusCode(204)
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+        "bar,",
+        ",zort"
+    )
+    fun `valid objects with properties and defaults are accepted 2 (Raw)`(bar: String?, zort: String?) {
+        prepareRequest()
+            .contentType("application/json")
+            .body(mapOf("foo" to "foo", "bar" to bar, "zort" to zort).filterValues { it != null })
+            .post("/features/validation/propertiesOnObjectWithDefault")
             .execute()
             .statusCode(204)
     }

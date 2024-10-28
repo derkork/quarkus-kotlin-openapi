@@ -60,7 +60,7 @@ class Config(
      * - /openapi/subscription/{SearchTerm}:get -> matches only the GET method of this endpoint
      * - /openapi/subscription/{SearchTerm}:get,post -> matches only the GET and POST method of this endpoint
      */
-    val endpoints: List<String> = emptyList(),
+    val endpoints: List<String> = listOf(),
 
     val splitByTags: Boolean = false,
 

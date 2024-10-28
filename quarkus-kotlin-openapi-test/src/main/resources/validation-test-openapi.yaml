@@ -191,6 +191,110 @@ paths:
         '400':
           $ref: '#/components/responses/OperationError400'
 
+  /features/validation/propertiesOnPureMap:
+    post:
+      tags:
+        - validation
+      operationId: propertiesOnPureMapValidation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties:
+                type: string
+              minProperties: 2
+              maxProperties: 5
+      responses:
+        '204':
+          description: No content
+        '400':
+          $ref: '#/components/responses/OperationError400'
+
+  /features/validation/propertiesOnNestedMap:
+    post:
+      tags:
+        - validation
+      operationId: propertiesOnNestedMapValidation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                foo:
+                  type: string
+                bar:
+                  type: string
+              required:
+                - foo
+              additionalProperties:
+                type: string
+              minProperties: 3
+              maxProperties: 5
+      responses:
+        '204':
+          description: No content
+        '400':
+          $ref: '#/components/responses/OperationError400'
+
+  /features/validation/propertiesOnObject:
+    post:
+      tags:
+        - validation
+      operationId: propertiesOnObjectValidation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                foo:
+                  type: string
+                bar:
+                  type: string
+                zort:
+                  type: string
+              required:
+                - foo
+              minProperties: 2
+              maxProperties: 2
+      responses:
+        '204':
+          description: No content
+        '400':
+          $ref: '#/components/responses/OperationError400'
+
+  /features/validation/propertiesOnObjectWithDefault:
+    post:
+      tags:
+        - validation
+      operationId: propertiesOnObjectWithDefaultValidation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                foo:
+                  type: string
+                  default: "foo"
+                bar:
+                  type: string
+                zort:
+                  type: string
+              minProperties: 2
+              maxProperties: 2
+      responses:
+        '204':
+          description: No content
+        '400':
+          $ref: '#/components/responses/OperationError400'
+
   /features/validation/constraints:
     get:
       # custom validation rules in combination with other rules

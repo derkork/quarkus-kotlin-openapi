@@ -145,6 +145,37 @@ fun <I> Maybe<List<I>?>.validateList(block: ListValidator.(List<I>) -> Unit): Ma
     }
 
 @Suppress("unused")
+fun <I> Maybe<Map<String, I>?>.validateProperties(block: PropertiesValidator.(Map<String, I>) -> Unit): Maybe<Map<String, I>?> =
+    onNotNull {
+        try {
+            val errors = PropertiesValidator(context).apply { this.block(value) }.validationErrors
+            if (errors.isEmpty()) {
+                this@validateProperties
+            } else {
+                failure(errors)
+            }
+        } catch (_: Exception) {
+            failure(ValidationError("is not a valid value", context))
+        }
+    }
+
+@Suppress("unused")
+@JvmName("validateObjectWithPropertiesContainer")
+fun <I : PropertiesContainer> Maybe<I?>.validateProperties(block: PropertiesValidator.(I) -> Unit): Maybe<I?> =
+    onNotNull {
+        try {
+            val errors = PropertiesValidator(context).apply { this.block(value) }.validationErrors
+            if (errors.isEmpty()) {
+                this@validateProperties
+            } else {
+                failure(errors)
+            }
+        } catch (_: Exception) {
+            failure(ValidationError("is not a valid value", context))
+        }
+    }
+
+@Suppress("unused")
 fun <I, O> Maybe<List<I?>?>.mapItems(block: (Maybe.Success<I?>) -> Maybe<O>): Maybe<List<O>?> =
     onNotNull {
         try {

@@ -9,7 +9,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.TypeDefinitio
 object ModelTypesHint : Hint<List<TypeDefinition>> {
 
     var TransformableSpec.modelTypes: List<TypeDefinition>
-        get() = get(ModelTypesHint) ?: emptyList()
+        get() = get(ModelTypesHint) ?: listOf()
         set(value) = set(ModelTypesHint, value)
 
 }

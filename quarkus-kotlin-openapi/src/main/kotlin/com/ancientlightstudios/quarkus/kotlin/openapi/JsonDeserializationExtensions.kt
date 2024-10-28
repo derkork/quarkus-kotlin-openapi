@@ -30,6 +30,24 @@ fun Maybe<out JsonNode?>.asObject(): Maybe<JsonNode?> = onNotNull {
 @Suppress("unused")
 fun JsonNode?.findProperty(name: String, context: String): Maybe<JsonNode?> = Maybe.Success(context, this?.get(name))
 
+// returns the amount of properties in the json node. only properties from the known list will be considered.
+// if a property has a default value but is not declared in the node it will still affect the counter
+fun JsonNode.countKnownProperties(knownProperties: List<String>, propertiesWithDefault: List<String>): Int {
+    // fieldNames() just return an iterator which requires an extra step to convert it into a set or list
+    val declaredPropertyNames = properties().map { it.key }.toMutableSet()
+    declaredPropertyNames.addAll(propertiesWithDefault)
+    return knownProperties.count { it in declaredPropertyNames }
+}
+
+// returns the amount of properties in the json node. if a property has a default value but is not declared in the
+// node it will still affect the counter
+fun JsonNode.countAllProperties(propertiesWithDefault: List<String>): Int {
+    val declaredPropertyNames = properties().map { it.key }.toMutableSet()
+    declaredPropertyNames.addAll(propertiesWithDefault)
+    return declaredPropertyNames.size
+}
+
+
 @Suppress("unused")
 fun Maybe<out JsonNode?>.asList(): Maybe<List<JsonNode?>?> = onNotNull {
     when (this.value) {

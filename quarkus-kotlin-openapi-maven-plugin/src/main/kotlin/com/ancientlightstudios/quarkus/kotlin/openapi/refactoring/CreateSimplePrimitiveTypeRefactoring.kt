@@ -89,7 +89,7 @@ class CreateSimplePrimitiveTypeRefactoring(
         enumComponent: EnumValidationComponent,
         validations: List<SchemaValidation>
     ): TypeDefinition {
-        val enumNames = schema.enumItemNamesComponent()?.values ?: emptyMap()
+        val enumNames = schema.enumItemNamesComponent()?.values ?: mapOf()
 
         val items = enumComponent.values.map {
             // use the given name as it is otherwise try to create a name out of the item value
@@ -126,7 +126,7 @@ class CreateSimplePrimitiveTypeRefactoring(
         }
 
         // we have to build an enum type out of it
-        val enumNames = schema.enumItemNamesComponent()?.values ?: emptyMap()
+        val enumNames = schema.enumItemNamesComponent()?.values ?: mapOf()
 
         val items = enumItems.map {
             // use the given name as it is otherwise try to create a name out of the item value
@@ -172,7 +172,7 @@ class CreateSimplePrimitiveTypeRefactoring(
         }
 
         // create a new list of items. The order is: everything defined/redefined here and then the stuff only defined at the parent
-        val enumNames = schema.enumItemNamesComponent()?.values ?: emptyMap()
+        val enumNames = schema.enumItemNamesComponent()?.values ?: mapOf()
         val newItems = enumItems.map { item ->
             if (newEnumItems.contains(item)) {
                 // it's new. we support custom names for this

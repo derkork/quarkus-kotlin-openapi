@@ -65,7 +65,7 @@ class CreateSimpleOneOfTypeRefactoring(
             val additionalAliases = discriminator.additionalMappings.filter { it.value == originPath }.keys
             listOf(defaultAlias, *additionalAliases.toTypedArray())
         } else {
-            emptyList()
+            listOf()
         }
     }
 
