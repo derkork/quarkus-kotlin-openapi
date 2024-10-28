@@ -8,6 +8,12 @@
     <packaging>jar</packaging>
     <name>Quarkus Kotlin OpenAPI - Kotlin Test</name>
     <description>An example application using the Kotlin OpenAPI generator.</description>
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
 
     <parent>
         <groupId>com.ancientlightstudios</groupId>
@@ -15,6 +21,7 @@
         <version>0.4.13</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
+
 
     <dependencyManagement>
         <dependencies>

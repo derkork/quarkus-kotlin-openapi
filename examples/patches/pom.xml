@@ -1,14 +1,14 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.ancientlightstudios</groupId>
-    <artifactId>quarkus-kotlin-openapi-example-getting-started</artifactId>
+    <artifactId>quarkus-kotlin-openapi-example-patches</artifactId>
     <version>1.0.0</version>
     <packaging>jar</packaging>
-    <name>Quarkus Kotlin OpenAPI - Getting Started</name>
-    <description>An example application using the Kotlin OpenAPI generator.</description>
+    <name>Quarkus Kotlin OpenAPI - Patches</name>
+    <description>An example application showing various ways to patch an OpenAPI specification and customizer the generator's output.</description>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -19,7 +19,7 @@
         <maven.compiler.target>17</maven.compiler.target>
         <maven.compiler.source>17</maven.compiler.source>
         <quarkus.version>3.11.3</quarkus.version>
-        <quarkus.kotlin.openapi.version>0.4.13</quarkus.kotlin.openapi.version>
+        <quarkus.kotlin.openapi.version>0.4.10</quarkus.kotlin.openapi.version>
     </properties>
 
     <dependencyManagement>
@@ -135,10 +135,7 @@
                 <artifactId>quarkus-kotlin-openapi-maven-plugin</artifactId>
                 <version>${quarkus.kotlin.openapi.version}</version>
                 <executions>
-                    <!-- Like many maven plugins, this plugin supports
-                     multiple executions, so you can generate servers,
-                     clients, test clients or any combination of these
-                     for one or multiple OpenAPI specs. -->
+                    <!-- Generate our server -->
                     <execution>
                         <id>generate-server</id>
                         <phase>generate-sources</phase>
@@ -146,18 +143,23 @@
                             <goal>generate</goal>
                         </goals>
                         <configuration>
-                            <!-- This tells the plugin where to find the OpenAPI spec. -->
                             <sources>
-                                <source>${project.basedir}/src/main/resources/hello-world-openapi.json</source>
+                                <source>${project.basedir}/src/main/resources/server-openapi.yaml</source>
+                                <!-- Apply an overlay -->
+                                <source>${project.basedir}/src/main/resources/server-openapi-overlay.yaml</source>
                             </sources>
-                            <!-- This tells the plugin the name of the interface that
-                            should be generated for the given OpenAPI spec. -->
-                            <interfaceName>HelloWorldApi</interfaceName>
-                            <!-- This tells the plugin what kind of code to generate.
-                            In this case, we want to generate a server. -->
+                            <patches>
+                                <!-- Apply a json patch (this is technically not needed because the following
+                                JSONata patch will do the same but still here to show the configuration -->
+                                <patch>jsonpatch://${project.basedir}/src/main/resources/server-openapi-jsonpatch.yaml</patch>
+                                <!-- Apply a JSONata patch -->
+                                <patch>jsonata://${project.basedir}/src/main/resources/server-openapi-patch.jsonata</patch>
+                            </patches>
+                            <interfaceName>MyApi</interfaceName>
                             <interfaceType>SERVER</interfaceType>
-                            <!-- This tells the plugin in which package the generated code should be placed. -->
-                            <packageName>com.ancientlightstudios.example.getting.started.server</packageName>
+                            <packageName>com.ancientlightstudios.example.patches.server</packageName>
+                            <!-- Write the patched OpenAPI spec to a file, for debugging -->
+                            <debugOutputFile>${project.build.directory}/debug.output.json</debugOutputFile>
                         </configuration>
                     </execution>
                 </executions>

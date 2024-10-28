@@ -1,14 +1,14 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.ancientlightstudios</groupId>
-    <artifactId>quarkus-kotlin-openapi-example-getting-started</artifactId>
+    <artifactId>quarkus-kotlin-openapi-example-clients</artifactId>
     <version>1.0.0</version>
     <packaging>jar</packaging>
-    <name>Quarkus Kotlin OpenAPI - Getting Started</name>
-    <description>An example application using the Kotlin OpenAPI generator.</description>
+    <name>Quarkus Kotlin OpenAPI - Clients</name>
+    <description>An example application using the Kotlin OpenAPI to generate OpenAPI clients.</description>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -19,7 +19,7 @@
         <maven.compiler.target>17</maven.compiler.target>
         <maven.compiler.source>17</maven.compiler.source>
         <quarkus.version>3.11.3</quarkus.version>
-        <quarkus.kotlin.openapi.version>0.4.13</quarkus.kotlin.openapi.version>
+        <quarkus.kotlin.openapi.version>0.4.10</quarkus.kotlin.openapi.version>
     </properties>
 
     <dependencyManagement>
@@ -135,10 +135,7 @@
                 <artifactId>quarkus-kotlin-openapi-maven-plugin</artifactId>
                 <version>${quarkus.kotlin.openapi.version}</version>
                 <executions>
-                    <!-- Like many maven plugins, this plugin supports
-                     multiple executions, so you can generate servers,
-                     clients, test clients or any combination of these
-                     for one or multiple OpenAPI specs. -->
+                    <!-- Generate our server -->
                     <execution>
                         <id>generate-server</id>
                         <phase>generate-sources</phase>
@@ -146,18 +143,28 @@
                             <goal>generate</goal>
                         </goals>
                         <configuration>
-                            <!-- This tells the plugin where to find the OpenAPI spec. -->
                             <sources>
-                                <source>${project.basedir}/src/main/resources/hello-world-openapi.json</source>
+                                <source>${project.basedir}/src/main/resources/server-openapi.yaml</source>
                             </sources>
-                            <!-- This tells the plugin the name of the interface that
-                            should be generated for the given OpenAPI spec. -->
-                            <interfaceName>HelloWorldApi</interfaceName>
-                            <!-- This tells the plugin what kind of code to generate.
-                            In this case, we want to generate a server. -->
+                            <interfaceName>MyPetStoreApi</interfaceName>
                             <interfaceType>SERVER</interfaceType>
-                            <!-- This tells the plugin in which package the generated code should be placed. -->
-                            <packageName>com.ancientlightstudios.example.getting.started.server</packageName>
+                            <packageName>com.ancientlightstudios.example.clients.server</packageName>
+                        </configuration>
+                    </execution>
+                    <!-- Generate the client to talk to the upstream server. -->
+                    <execution>
+                        <id>generate-client</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${project.basedir}/src/main/resources/pet-store-openapi.yaml</source>
+                            </sources>
+                            <interfaceName>UpstreamPetStoreApi</interfaceName>
+                            <interfaceType>CLIENT</interfaceType>
+                            <packageName>com.ancientlightstudios.example.clients.client</packageName>
                         </configuration>
                     </execution>
                 </executions>

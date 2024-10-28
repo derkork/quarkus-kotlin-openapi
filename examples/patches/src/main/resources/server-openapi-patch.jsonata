@@ -1,0 +1,2 @@
+/* Find all strings with a UUID pattern and replace it with format: uuid */
+$ ~> | **[type='string' & pattern='^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$'] | {"format" : "uuid"},["pattern"] |
