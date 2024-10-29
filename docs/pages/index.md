@@ -2,7 +2,7 @@
 layout: page
 title: Home
 permalink: /
-description: "Godot State Charts is a plugin for Godot Engine that allows you to use state charts in your game."
+description: "Quarkus Kotlin OpenAPI is a code generator that generates server and client Kotlin code from an OpenAPI specification"
 ---
 
 # {{ site.title }}
