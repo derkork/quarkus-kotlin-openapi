@@ -11,3 +11,10 @@ Quarkus Kotlin OpenAPI is a code generator that generates server and client Kotl
 - Customizable validation, type mapping and error handling.
 - Generated code does not rely on reflection which improves performance and allows the use of native image compilation with GraalVM without any additional configuration.
 
+## Getting started
+
+Please visit the [documentation](https://derkork.github.io/quarkus-kotlin-openapi/) website for more information on how to get started.
+
+
+
+&copy; 2024 Ancient Light Studios GbR
