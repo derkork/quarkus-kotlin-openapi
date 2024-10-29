@@ -5,5 +5,6 @@ permalink: /faq
 description: "Below you can find some common questions and answers."
 ---
 
+# {{ page.title }}
 
-TODO
+None at this time.

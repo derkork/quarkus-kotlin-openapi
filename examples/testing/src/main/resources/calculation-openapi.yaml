@@ -1,0 +1,59 @@
+openapi: 3.0.2
+info:
+  title: Example API
+  version: 1.0.0
+  description: A sample API for demonstrating how to use the test client.
+
+paths:
+  /sum:
+    post:
+      operationId: sum
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                a:
+                  type: integer
+                  format: int32
+                  example: 1
+                b:
+                  type: integer
+                  format: int32
+                  example: 2
+              required:
+                - a
+                - b
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '400':
+          description: bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorInfo"
+
+components:
+  schemas:
+    Result:
+      type: object
+      properties:
+        result:
+          type: integer
+          format: int32
+          example: 3
+      required:
+        - result
+    ErrorInfo:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Some error occurred."
