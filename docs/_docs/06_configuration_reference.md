@@ -17,7 +17,7 @@ Sometimes you may receive a huge OpenAPI specification file and you are only int
         ...
         <!-- If this is specified, only the listed endpoints will be included -->
         <endpoints>
-            <!-- Include all methods of the /foo endpoint -->
+            <!-- Include all methods of the /sum endpoint -->
             <endpoint>/sum</endpoint>
             <!-- Include only the GET method of the /user/{id} endpoint -->
             <endpoint>/user/{id}:get</endpoint>
