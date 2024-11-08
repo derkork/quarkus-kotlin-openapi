@@ -16,11 +16,9 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.NullCheckExp
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.PropertyExpression.Companion.property
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.GenericTypeName.Companion.of
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.SimpleTypeName.Companion.typeName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.rawVariableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ContentType
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ResponseCode
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableBody
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableParameter
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.*
 
 class ServerRequestContextEmitter : CodeEmitter {
 
@@ -78,6 +76,8 @@ class ServerRequestContextEmitter : CodeEmitter {
             }
 
             emitRawHeaderMethods()
+
+            emitInterfaceMembers(request)
         }
     }
 
@@ -230,6 +230,22 @@ class ServerRequestContextEmitter : CodeEmitter {
                 .nullFallback(invoke("listOf".methodName()))
                 .statement()
         }
+    }
 
+    private fun KotlinClass.emitInterfaceMembers(request: TransformableRequest) {
+        // produces:
+        //
+        // override val requestMethod = "<request-method>"
+        // override val requestPath = "<request-path>"
+
+        kotlinMember(
+            "requestMethod".rawVariableName(), type = Kotlin.StringClass.typeName(), accessModifier = null,
+            override = true, initializedInConstructor = false, default = request.method.value.literal()
+        )
+
+        kotlinMember(
+            "requestPath".rawVariableName(), type = Kotlin.StringClass.typeName(), accessModifier = null,
+            override = true, initializedInConstructor = false, default = request.path.literal()
+        )
     }
 }
