@@ -24,7 +24,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.Gen
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.SimpleTypeName.Companion.typeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.rawVariableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.*
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.CollectionTypeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.EnumTypeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.PrimitiveTypeDefinition
@@ -244,7 +244,7 @@ class TestClientRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitt
     }
 
     private fun StatementAware.emitResponseConversion(
-        request: TransformableRequest,
+        request: OpenApiRequest,
         validatableResponse: VariableName
     ) {
         val successClass = request.clientHttpResponseClassName
@@ -317,8 +317,8 @@ class TestClientRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitt
     }
 
     private fun WhenOptionAware.generateKnownResponseOption(
-        responseClass: ClassName, statusCode: ResponseCode.HttpStatusCode, body: TransformableBody?,
-        headers: List<TransformableParameter>
+        responseClass: ClassName, statusCode: ResponseCode.HttpStatusCode, body: OpenApiBody?,
+        headers: List<OpenApiParameter>
     ) {
         val optionValue = statusCode.value.literal()
         generateResponseOption(
@@ -327,7 +327,7 @@ class TestClientRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitt
     }
 
     private fun WhenOptionAware.generateDefaultResponseOption(
-        responseClass: ClassName, body: TransformableBody?, headers: List<TransformableParameter>
+        responseClass: ClassName, body: OpenApiBody?, headers: List<OpenApiParameter>
     ) {
         generateResponseOption(
             responseClass.rawNested("Default"), "else".variableName(), true, body, headers
@@ -346,8 +346,8 @@ class TestClientRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitt
     //
     // RestResponse.Status.<ResponseName> -> Maybe.Success("response.body", <ResponseObject>)
     private fun WhenOptionAware.generateResponseOption(
-        responseClass: ClassName, optionValue: KotlinExpression, withStatusCode: Boolean, body: TransformableBody?,
-        headers: List<TransformableParameter>
+        responseClass: ClassName, optionValue: KotlinExpression, withStatusCode: Boolean, body: OpenApiBody?,
+        headers: List<OpenApiParameter>
     ) {
         val additionalParameter = when (withStatusCode) {
             true -> listOf("statusCode".variableName())
@@ -401,7 +401,7 @@ class TestClientRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitt
         }
     }
 
-    private fun WhenOption.emitHeaderParameter(header: TransformableParameter): VariableName {
+    private fun WhenOption.emitHeaderParameter(header: OpenApiParameter): VariableName {
         // produces
         //
         // validatableResponse.headers().getValues("<headerName>"[firstOrNull()])

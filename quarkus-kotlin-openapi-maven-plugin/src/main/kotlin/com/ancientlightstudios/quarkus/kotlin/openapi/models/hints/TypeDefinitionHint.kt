@@ -1,7 +1,7 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.hints
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.OriginPathHint.originPath
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchema
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiSchema
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.TypeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
 
@@ -10,13 +10,13 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
 // properties or refer to such types)
 object TypeDefinitionHint : Hint<TypeDefinition> {
 
-    var TransformableSchema.typeDefinition: TypeDefinition
+    var OpenApiSchema.typeDefinition: TypeDefinition
         get() = get(TypeDefinitionHint) ?: ProbableBug("No type assigned to schema ${this.originPath}")
         set(value) = set(TypeDefinitionHint, value)
 
-    val TransformableSchema.hasTypeDefinition: Boolean
+    val OpenApiSchema.hasTypeDefinition: Boolean
         get() = get(TypeDefinitionHint) != null
 
-    fun TransformableSchema.clearTypeDefinition() = clear(TypeDefinitionHint)
+    fun OpenApiSchema.clearTypeDefinition() = clear(TypeDefinitionHint)
 
 }

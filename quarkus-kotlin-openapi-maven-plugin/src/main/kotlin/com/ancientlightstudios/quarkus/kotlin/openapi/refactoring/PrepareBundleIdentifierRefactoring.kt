@@ -6,7 +6,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ClientRestInt
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ServerDelegateClassNameHint.serverDelegateClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ServerRestInterfaceClassNameHint.serverRestInterfaceClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName.Companion.className
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableRequestBundle
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiRequestBundle
 
 class PrepareBundleIdentifierRefactoring(private val interfaceName: String) : SpecRefactoring {
 
@@ -26,7 +26,7 @@ class PrepareBundleIdentifierRefactoring(private val interfaceName: String) : Sp
         }
     }
 
-    private fun generateName(bundle: TransformableRequestBundle): String {
+    private fun generateName(bundle: OpenApiRequestBundle): String {
         val tag = bundle.tag?.trim() ?: ""
         return "$interfaceName $tag"
     }

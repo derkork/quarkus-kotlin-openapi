@@ -8,10 +8,10 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.methodName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.SimpleTypeName.Companion.typeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ResponseCode
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableBody
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableParameter
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableResponse
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ResponseCode
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiBody
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiParameter
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiResponse
 
 class ServerResponseInterfaceEmitter : CodeEmitter {
 
@@ -19,7 +19,7 @@ class ServerResponseInterfaceEmitter : CodeEmitter {
 
     override fun EmitterContext.emit() {
         emitterContext = this
-        val responseInterfaces = mutableMapOf<ClassName, TransformableResponse>()
+        val responseInterfaces = mutableMapOf<ClassName, OpenApiResponse>()
 
         spec.inspect {
             bundles {
@@ -39,7 +39,7 @@ class ServerResponseInterfaceEmitter : CodeEmitter {
         }
     }
 
-    private fun TransformableResponse.emitInterfaceFile(className: ClassName) = kotlinFile(className) {
+    private fun OpenApiResponse.emitInterfaceFile(className: ClassName) = kotlinFile(className) {
         registerImports(Library.AllClasses)
         registerImports(emitterContext.getAdditionalImports())
 
@@ -55,8 +55,8 @@ class ServerResponseInterfaceEmitter : CodeEmitter {
 
     private fun KotlinInterface.emitStatusMethod(
         statusCode: ResponseCode.HttpStatusCode,
-        body: TransformableBody?,
-        headers: List<TransformableParameter>
+        body: OpenApiBody?,
+        headers: List<OpenApiParameter>
     ) {
         kotlinMethod(statusCode.statusCodeReason().methodName(), returnType = Kotlin.NothingType) {
             emitMethodBody(body, headers)
@@ -64,8 +64,8 @@ class ServerResponseInterfaceEmitter : CodeEmitter {
     }
 
     private fun KotlinInterface.emitDefaultStatusMethod(
-        body: TransformableBody?,
-        headers: List<TransformableParameter>
+        body: OpenApiBody?,
+        headers: List<OpenApiParameter>
     ) {
         kotlinMethod("defaultStatus".methodName(), returnType = Kotlin.NothingType) {
             kotlinParameter("status".variableName(), Kotlin.IntClass.typeName())
@@ -75,8 +75,8 @@ class ServerResponseInterfaceEmitter : CodeEmitter {
     }
 
     private fun KotlinMethod.emitMethodBody(
-        body: TransformableBody?,
-        headers: List<TransformableParameter>
+        body: OpenApiBody?,
+        headers: List<OpenApiParameter>
     ) {
         if (body != null) {
             val typeUsage = body.content.typeUsage

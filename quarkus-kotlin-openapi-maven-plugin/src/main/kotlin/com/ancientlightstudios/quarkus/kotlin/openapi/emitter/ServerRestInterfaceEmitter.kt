@@ -22,10 +22,10 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.Gen
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.SimpleTypeName.Companion.typeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.rawVariableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ContentType
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableBody
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableParameter
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableRequest
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ContentType
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiBody
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiParameter
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiRequest
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.ObjectTypeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.TypeUsage
 import com.ancientlightstudios.quarkus.kotlin.openapi.refactoring.AssignContentTypesRefactoring.Companion.getContentTypeForFormPart
@@ -119,7 +119,7 @@ class ServerRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitter {
     }
 
     // generates parameters and conversion code for path, query, header and cookie parameters
-    private fun KotlinMethod.emitParameter(parameter: TransformableParameter): VariableName {
+    private fun KotlinMethod.emitParameter(parameter: OpenApiParameter): VariableName {
         val parameterKind = parameter.kind
 
         return emitMethodParameter(
@@ -133,7 +133,7 @@ class ServerRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitter {
     }
 
     // generates parameters and conversion for the request body depending on the media type
-    private fun KotlinMethod.emitBody(body: TransformableBody): VariableName {
+    private fun KotlinMethod.emitBody(body: OpenApiBody): VariableName {
         addConsumesAnnotation(body.content.rawContentType)
         return when (body.content.mappedContentType) {
             ContentType.ApplicationJson -> emitJsonBody(body)
@@ -144,7 +144,7 @@ class ServerRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitter {
         }
     }
 
-    private fun KotlinMethod.emitJsonBody(body: TransformableBody): VariableName {
+    private fun KotlinMethod.emitJsonBody(body: OpenApiBody): VariableName {
         return emitMethodParameter(
             body.parameterVariableName,
             Kotlin.StringClass.typeName(true),
@@ -155,7 +155,7 @@ class ServerRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitter {
         )
     }
 
-    private fun KotlinMethod.emitPlainBody(body: TransformableBody): VariableName {
+    private fun KotlinMethod.emitPlainBody(body: OpenApiBody): VariableName {
         return emitMethodParameter(
             body.parameterVariableName,
             body.content.typeUsage.getDeserializationSourceType(),
@@ -166,11 +166,11 @@ class ServerRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitter {
         )
     }
 
-    private fun KotlinMethod.emitMultipartBody(body: TransformableBody): VariableName {
+    private fun KotlinMethod.emitMultipartBody(body: OpenApiBody): VariableName {
         return "multi".variableName()
     }
 
-    private fun KotlinMethod.emitFormBody(body: TransformableBody): VariableName {
+    private fun KotlinMethod.emitFormBody(body: OpenApiBody): VariableName {
         val typeUsage = body.content.typeUsage
         val safeType = typeUsage.type
 
@@ -209,7 +209,7 @@ class ServerRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitter {
         }
     }
 
-    private fun KotlinMethod.emitOctetBody(body: TransformableBody): VariableName {
+    private fun KotlinMethod.emitOctetBody(body: OpenApiBody): VariableName {
         return emitMethodParameter(
             body.parameterVariableName,
             Kotlin.ByteArrayClass.typeName(true),
@@ -222,7 +222,7 @@ class ServerRestInterfaceEmitter(private val pathPrefix: String) : CodeEmitter {
 
     // generates the call to the delegate
     private fun StatementAware.emitDelegateInvocation(
-        request: TransformableRequest,
+        request: OpenApiRequest,
         requestContainerName: VariableName?,
         requestContextClassName: ClassName
     ) {

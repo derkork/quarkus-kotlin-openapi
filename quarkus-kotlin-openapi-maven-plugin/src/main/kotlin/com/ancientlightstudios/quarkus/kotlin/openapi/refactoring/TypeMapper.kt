@@ -3,7 +3,7 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.refactoring
 import com.ancientlightstudios.quarkus.kotlin.openapi.Config
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.Kotlin
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.SchemaTypes
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.SchemaTypes
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
 
 class TypeMapper(private val config: Config) {

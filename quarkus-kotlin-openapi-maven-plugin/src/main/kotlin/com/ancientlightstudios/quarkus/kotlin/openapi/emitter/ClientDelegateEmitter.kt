@@ -12,9 +12,9 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.GenericTypeName.Companion.of
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.SimpleTypeName.Companion.typeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ContentType
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableBody
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableParameter
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ContentType
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiBody
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiParameter
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.ObjectTypeDefinition
 
 class ClientDelegateEmitter(
@@ -68,7 +68,7 @@ class ClientDelegateEmitter(
         }
     }
 
-    private fun KotlinMethod.emitParameter(parameter: TransformableParameter) {
+    private fun KotlinMethod.emitParameter(parameter: OpenApiParameter) {
         val parameterKind = parameter.kind
         val parameterName = parameter.parameterVariableName
 
@@ -77,7 +77,7 @@ class ClientDelegateEmitter(
         }
     }
 
-    private fun KotlinMethod.emitBody(body: TransformableBody) {
+    private fun KotlinMethod.emitBody(body: OpenApiBody) {
         val content = body.content
         val typeUsage = content.typeUsage
         addConsumesAnnotation(content.rawContentType)

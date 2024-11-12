@@ -1,16 +1,16 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.parser
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.OriginPathHint.originPath
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchema
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiSchema
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.pop
 
 class SchemaCollector {
 
-    private val collectedReferences = mutableMapOf<String, TransformableSchema>()
-    private val unresolvedSchema = mutableSetOf<TransformableSchema>()
+    private val collectedReferences = mutableMapOf<String, OpenApiSchema>()
+    private val unresolvedSchema = mutableSetOf<OpenApiSchema>()
 
     fun registerSchema(contextPath: String) = collectedReferences.getOrPut(contextPath) {
-        TransformableSchema("")
+        OpenApiSchema("")
             .apply {
                 originPath = contextPath
             }.also {
@@ -18,7 +18,7 @@ class SchemaCollector {
             }
     }
 
-    val nextUnresolvedSchema: TransformableSchema?
+    val nextUnresolvedSchema: OpenApiSchema?
         get() = unresolvedSchema.pop()
 
 }

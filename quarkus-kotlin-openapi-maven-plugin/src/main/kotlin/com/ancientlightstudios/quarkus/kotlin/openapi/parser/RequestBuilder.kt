@@ -1,18 +1,18 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.parser
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.OriginPathHint.originPath
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.RequestMethod
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ResponseCode
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableParameter
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableRequest
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.RequestMethod
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ResponseCode
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiParameter
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiRequest
 import com.fasterxml.jackson.databind.node.ObjectNode
 
 class RequestBuilder(
     private val path: String, private val method: RequestMethod,
-    private val defaultParameter: () -> List<TransformableParameter>, private val node: ObjectNode
+    private val defaultParameter: () -> List<OpenApiParameter>, private val node: ObjectNode
 ) {
 
-    fun ParseContext.build() = TransformableRequest(
+    fun ParseContext.build() = OpenApiRequest(
         path, method,
         node.getTextOrNull("operationId"),
         node.withArray("tags").map { it.asText() },
@@ -23,7 +23,7 @@ class RequestBuilder(
         originPath = contextPath
     }
 
-    private fun ParseContext.extractParameters(): List<TransformableParameter> {
+    private fun ParseContext.extractParameters(): List<OpenApiParameter> {
         val localParameter = node
             .withArray("parameters")
             .mapIndexed { index, itemNode ->
@@ -49,7 +49,7 @@ class RequestBuilder(
 fun ParseContext.parseAsRequest(
     path: String,
     method: RequestMethod,
-    defaultParameter: () -> List<TransformableParameter>
+    defaultParameter: () -> List<OpenApiParameter>
 ) =
     contextNode.asObjectNode { "Json object expected for $contextPath" }
         .let {

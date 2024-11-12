@@ -3,14 +3,14 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 import com.ancientlightstudios.quarkus.kotlin.openapi.Config
 import com.ancientlightstudios.quarkus.kotlin.openapi.GeneratorStage
 import com.ancientlightstudios.quarkus.kotlin.openapi.InterfaceType
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSpec
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiSpec
 import org.slf4j.LoggerFactory
 
 class EmitterStage(private val config: Config) : GeneratorStage {
 
     private val log = LoggerFactory.getLogger(EmitterStage::class.java)
 
-    override fun process(spec: TransformableSpec) {
+    override fun process(spec: OpenApiSpec) {
 
         val context = EmitterContext(spec, config)
 

@@ -14,8 +14,8 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TryCatchExpr
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.SimpleTypeName.Companion.typeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.WhenExpression.Companion.whenExpression
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ResponseCode
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableRequest
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ResponseCode
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiRequest
 
 class TestClientResponseValidatorEmitter : CodeEmitter {
 
@@ -58,7 +58,7 @@ class TestClientResponseValidatorEmitter : CodeEmitter {
         }
     }
 
-    private fun KotlinClass.emitVerifyResponseMethod(request: TransformableRequest) {
+    private fun KotlinClass.emitVerifyResponseMethod(request: OpenApiRequest) {
         val tType = "T".rawClassName("", true).typeName()
         kotlinMethod("verifyResponse".methodName(), accessModifier = KotlinAccessModifier.Private, bodyAsAssignment = true,
                 returnType = tType, genericParameter = listOf(tType)) {
@@ -84,7 +84,7 @@ class TestClientResponseValidatorEmitter : CodeEmitter {
         }
     }
 
-    private fun KotlinClass.emitGenericValidationMethod(request: TransformableRequest) {
+    private fun KotlinClass.emitGenericValidationMethod(request: OpenApiRequest) {
         kotlinMethod("responseSatisfies".methodName(), bodyAsAssignment = true) {
             kotlinParameter(
                 "block".variableName(),
@@ -98,7 +98,7 @@ class TestClientResponseValidatorEmitter : CodeEmitter {
         }
     }
 
-    private fun KotlinClass.emitResponseValidationMethod(request: TransformableRequest, reason: String) {
+    private fun KotlinClass.emitResponseValidationMethod(request: OpenApiRequest, reason: String) {
         val responseClass = request.clientHttpResponseClassName.nested(reason)
 
         kotlinMethod(reason.methodName(prefix = "is", postfix = "Response"), bodyAsAssignment = true) {

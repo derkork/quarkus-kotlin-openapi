@@ -2,9 +2,9 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.refactoring
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.Config
 import com.ancientlightstudios.quarkus.kotlin.openapi.InterfaceType
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSpec
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiSpec
 
-class RefactoringContext(val spec: TransformableSpec, val config: Config) {
+class RefactoringContext(val spec: OpenApiSpec, val config: Config) {
 
     val interfaceType = config.interfaceType
 

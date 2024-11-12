@@ -1,10 +1,10 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.parser
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.DefaultSchemaUsage
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.SchemaModifier
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.SchemaTypes
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchema
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.*
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.DefaultSchemaUsage
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.SchemaModifier
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.SchemaTypes
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiSchema
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.SpecIssue
 import com.fasterxml.jackson.databind.node.BooleanNode
 import com.fasterxml.jackson.databind.node.ObjectNode
@@ -12,7 +12,7 @@ import com.fasterxml.jackson.databind.node.TextNode
 import java.util.*
 
 class SchemaBuilder(
-    private val schema: TransformableSchema,
+    private val schema: OpenApiSchema,
     private val node: ObjectNode
 ) {
 
@@ -288,7 +288,7 @@ fun ParseContext.parseAsSchema() =
     contextNode.asObjectNode { "Json object expected for $contextPath" }
         .let { schemaCollector.registerSchema(contextPath) }
 
-fun ParseContext.parseAsSchemaInto(schema: TransformableSchema) {
+fun ParseContext.parseAsSchemaInto(schema: OpenApiSchema) {
     contextNode.asObjectNode { "Json object expected for $contextPath" }
         .let {
             SchemaBuilder(schema, it).run { this@parseAsSchemaInto.build() }

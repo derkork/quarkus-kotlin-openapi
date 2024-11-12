@@ -14,9 +14,9 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.C
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.PropertyExpression.Companion.property
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.SimpleTypeName.Companion.typeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ContentType
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ParameterKind
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableBody
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ContentType
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ParameterKind
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiBody
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.refactoring.AssignContentTypesRefactoring.Companion.getContentTypeForFormPart
 
@@ -105,7 +105,7 @@ class TestClientRequestBuilderEmitter : CodeEmitter {
         }
     }
 
-    private fun TransformableBody.emitBodyMethods(clazz: KotlinClass, requestSpecificationVariable: VariableName) {
+    private fun OpenApiBody.emitBodyMethods(clazz: KotlinClass, requestSpecificationVariable: VariableName) {
         when (content.mappedContentType) {
             ContentType.ApplicationJson -> emitJsonBodyMethod(clazz, requestSpecificationVariable)
             ContentType.TextPlain -> emitPlainBodyMethod(clazz, requestSpecificationVariable)
@@ -128,7 +128,7 @@ class TestClientRequestBuilderEmitter : CodeEmitter {
         return valueType.type is PrimitiveTypeDefinition || valueType.type is EnumTypeDefinition
     }
 
-    private fun TransformableBody.emitJsonBodyMethod(clazz: KotlinClass, requestSpecificationVariable: VariableName) {
+    private fun OpenApiBody.emitJsonBodyMethod(clazz: KotlinClass, requestSpecificationVariable: VariableName) {
         val specialMapSupport = specialMapSupport(content.typeUsage.type)
 
         if (!specialMapSupport) {
@@ -185,7 +185,7 @@ class TestClientRequestBuilderEmitter : CodeEmitter {
         }
     }
 
-    private fun TransformableBody.emitPlainBodyMethod(clazz: KotlinClass, requestSpecificationVariable: VariableName) {
+    private fun OpenApiBody.emitPlainBodyMethod(clazz: KotlinClass, requestSpecificationVariable: VariableName) {
         clazz.kotlinMethod("body".methodName()) {
             val nullableType = content.typeUsage.forceNullable()
             kotlinParameter("value".variableName(), nullableType.buildValidType())
@@ -212,7 +212,7 @@ class TestClientRequestBuilderEmitter : CodeEmitter {
         }
     }
 
-    private fun TransformableBody.emitFormBodyMethod(clazz: KotlinClass, requestSpecificationVariable: VariableName) {
+    private fun OpenApiBody.emitFormBodyMethod(clazz: KotlinClass, requestSpecificationVariable: VariableName) {
         clazz.kotlinMethod("body".methodName()) {
             val nullableType = content.typeUsage.forceNullable()
             kotlinParameter("value".variableName(), nullableType.buildValidType())

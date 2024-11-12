@@ -1,5 +1,5 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.inspection
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableParameter
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiParameter
 
-class ResponseHeaderInspection(val header: TransformableParameter)
+class ResponseHeaderInspection(val header: OpenApiParameter)

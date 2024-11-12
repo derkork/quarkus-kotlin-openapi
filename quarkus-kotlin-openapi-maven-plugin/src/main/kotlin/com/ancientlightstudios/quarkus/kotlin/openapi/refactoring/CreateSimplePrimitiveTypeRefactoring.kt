@@ -7,25 +7,25 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName.Co
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ConstantName.Companion.constantName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ConstantName.Companion.rawConstantName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.literalFor
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.SchemaModifier
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.SchemaTypes
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchema
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.*
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.DefaultComponent.Companion.defaultComponent
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.EnumItemNamesComponent.Companion.enumItemNamesComponent
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.EnumValidationComponent.Companion.enumValidationComponent
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.FormatComponent.Companion.formatComponent
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.NullableComponent.Companion.nullableComponent
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.SchemaModifierComponent.Companion.schemaModifierComponent
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.TypeComponent.Companion.typeComponent
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.ValidationComponent.Companion.validationComponents
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.SchemaModifier
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.SchemaTypes
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiSchema
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.*
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.DefaultComponent.Companion.defaultComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.EnumItemNamesComponent.Companion.enumItemNamesComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.EnumValidationComponent.Companion.enumValidationComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.FormatComponent.Companion.formatComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.NullableComponent.Companion.nullableComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.SchemaModifierComponent.Companion.schemaModifierComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.TypeComponent.Companion.typeComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.ValidationComponent.Companion.validationComponents
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
 
 // knows how to create or extend a simple primitive type (without any *Of stuff)
 class CreateSimplePrimitiveTypeRefactoring(
     private val typeMapper: TypeMapper,
-    private val schema: TransformableSchema,
+    private val schema: OpenApiSchema,
     private val parentType: TypeDefinition? = null,
 ) : SpecRefactoring {
 

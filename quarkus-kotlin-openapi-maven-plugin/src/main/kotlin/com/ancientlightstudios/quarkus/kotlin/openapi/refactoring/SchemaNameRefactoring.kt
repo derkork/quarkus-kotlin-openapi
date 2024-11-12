@@ -2,11 +2,11 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.refactoring
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.inspect
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.NameSuggestionHint.nameSuggestion
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchema
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.ArrayItemsComponent
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.MapComponent
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.ObjectComponent
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.SomeOfComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiSchema
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.ArrayItemsComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.MapComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.ObjectComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.SomeOfComponent
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.pop
 
@@ -53,7 +53,7 @@ class SchemaNameRefactoring : SpecRefactoring {
         val definitionsWithNames = spec.schemas.filterNot { it.name.isBlank() }.toMutableSet()
 
         // helper function to avoid code duplication
-        val assignAndSchedule: (TransformableSchema, fallback: String) -> Unit = { schema, name ->
+        val assignAndSchedule: (OpenApiSchema, fallback: String) -> Unit = { schema, name ->
             if (assignName(schema, null, name)) {
                 // if a name was given to the schema, add it to the set to check its sub schemas too
                 definitionsWithNames.add(schema)
@@ -86,7 +86,7 @@ class SchemaNameRefactoring : SpecRefactoring {
         }
     }
 
-    private fun assignName(schema: TransformableSchema, suggestion: String?, fallback: String): Boolean {
+    private fun assignName(schema: OpenApiSchema, suggestion: String?, fallback: String): Boolean {
         if (schema.name.isNotBlank()) {
             // already a name assigned
             return false

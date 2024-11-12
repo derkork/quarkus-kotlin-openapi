@@ -1,7 +1,7 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.EmitterStage
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSpec
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiSpec
 import com.ancientlightstudios.quarkus.kotlin.openapi.parser.ParserStage
 import com.ancientlightstudios.quarkus.kotlin.openapi.patching.PatchingStage
 import com.ancientlightstudios.quarkus.kotlin.openapi.refactoring.RefactoringStage
@@ -18,7 +18,7 @@ class Generator(private val config: Config) {
         val start = Instant.now()
 
         val json = PatchingStage(config).process()
-        val spec = TransformableSpec()
+        val spec = OpenApiSpec()
         ParserStage(config, json).process(spec)
         ValidationStage().process(spec)
         RefactoringStage(config).process(spec)

@@ -1,13 +1,13 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.refactoring
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchema
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.BaseSchemaComponent
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.OneOfComponent
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.OneOfComponent.Companion.oneOfComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiSchema
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.BaseSchemaComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.OneOfComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.OneOfComponent.Companion.oneOfComponent
 
 // converts schema without any referencing components but a *of component
 class AssignTypesToSomeOfSchemasRefactoring(
-    private val tasks: MutableSet<TransformableSchema>,
+    private val tasks: MutableSet<OpenApiSchema>,
     private val typeResolver: TypeResolver
 ) : SpecRefactoring {
 

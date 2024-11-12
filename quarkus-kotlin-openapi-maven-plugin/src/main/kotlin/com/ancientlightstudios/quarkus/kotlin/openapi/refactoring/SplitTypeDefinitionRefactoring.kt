@@ -4,8 +4,8 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.DownTypeDefin
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeDefinitionHint.clearTypeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeDefinitionHint.typeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.UpTypeDefinitionHint.upTypeDefinition
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.SchemaModifier
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchema
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.SchemaModifier
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiSchema
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.pop
@@ -14,7 +14,7 @@ class SplitTypeDefinitionRefactoring : SpecRefactoring {
 
     override fun RefactoringContext.perform() {
         // used to have a quick way of finding our where a type definition is coming from
-        val schemaLookup = mutableMapOf<TypeDefinition, TransformableSchema>()
+        val schemaLookup = mutableMapOf<TypeDefinition, OpenApiSchema>()
 
         // all types which are candidates for a split
         val potentialCandidates = spec.schemas

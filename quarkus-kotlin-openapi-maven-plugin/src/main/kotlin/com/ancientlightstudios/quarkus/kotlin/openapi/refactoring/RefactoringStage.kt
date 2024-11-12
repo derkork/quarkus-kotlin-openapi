@@ -2,11 +2,11 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.refactoring
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.Config
 import com.ancientlightstudios.quarkus.kotlin.openapi.GeneratorStage
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSpec
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiSpec
 
 class RefactoringStage(private val config: Config) : GeneratorStage {
 
-    override fun process(spec: TransformableSpec) {
+    override fun process(spec: OpenApiSpec) {
         val context = RefactoringContext(spec, config)
 
         // specify which is the direction for serialization and which for deserialization

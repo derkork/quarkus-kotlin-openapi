@@ -1,6 +1,6 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.hints
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSpec
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiSpec
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.TypeDefinition
 
 // specifies the real type definitions which are the base for this spec. Schemas contains bidirectional or unidirectional
@@ -8,7 +8,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.TypeDefinitio
 // of another object).
 object ModelTypesHint : Hint<List<TypeDefinition>> {
 
-    var TransformableSpec.modelTypes: List<TypeDefinition>
+    var OpenApiSpec.modelTypes: List<TypeDefinition>
         get() = get(ModelTypesHint) ?: listOf()
         set(value) = set(ModelTypesHint, value)
 

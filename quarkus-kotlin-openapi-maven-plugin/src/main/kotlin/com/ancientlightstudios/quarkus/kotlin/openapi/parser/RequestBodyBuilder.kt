@@ -1,19 +1,19 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.parser
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.NameSuggestionHint.nameSuggestion
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableBody
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiBody
 import com.fasterxml.jackson.databind.node.ObjectNode
 
 class RequestBodyBuilder(private val node: ObjectNode) {
 
-    fun ParseContext.build(): TransformableBody {
+    fun ParseContext.build(): OpenApiBody {
         return when (val ref = node.getTextOrNull("\$ref")) {
             null -> extractBodyDefinition()
             else -> extractBodyReference(ref)
         }
     }
 
-    private fun ParseContext.extractBodyDefinition() = TransformableBody(
+    private fun ParseContext.extractBodyDefinition() = OpenApiBody(
         node.getBooleanOrNull("required") ?: false, contextFor("content").parseAsContent()
     )
 

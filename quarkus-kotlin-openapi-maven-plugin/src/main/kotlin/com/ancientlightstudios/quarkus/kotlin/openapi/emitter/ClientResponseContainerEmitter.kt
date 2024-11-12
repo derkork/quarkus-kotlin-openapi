@@ -11,9 +11,9 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName.Companion.className
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.SimpleTypeName.Companion.typeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ResponseCode
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableBody
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableParameter
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ResponseCode
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiBody
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiParameter
 
 class ClientResponseContainerEmitter(private val withTestSupport: Boolean) : CodeEmitter {
 
@@ -69,8 +69,8 @@ class ClientResponseContainerEmitter(private val withTestSupport: Boolean) : Cod
 
     private fun ClassAware.emitDefaultResponseClass(
         parentClass: ClassName,
-        body: TransformableBody?,
-        headers: List<TransformableParameter>
+        body: OpenApiBody?,
+        headers: List<OpenApiParameter>
     ) {
         val bodyExpression: KotlinExpression = when (body) {
             null -> nullLiteral()
@@ -100,8 +100,8 @@ class ClientResponseContainerEmitter(private val withTestSupport: Boolean) : Cod
     private fun ClassAware.emitResponseClass(
         parentClass: ClassName,
         responseCode: ResponseCode.HttpStatusCode,
-        body: TransformableBody?,
-        headers: List<TransformableParameter>
+        body: OpenApiBody?,
+        headers: List<OpenApiParameter>
     ) {
         val bodyExpression: KotlinExpression = when (body) {
             null -> nullLiteral()

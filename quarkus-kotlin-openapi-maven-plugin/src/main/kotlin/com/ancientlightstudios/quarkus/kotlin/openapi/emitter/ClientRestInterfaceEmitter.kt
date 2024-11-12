@@ -26,10 +26,10 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.Sim
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.rawVariableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.WhenExpression.Companion.whenExpression
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ContentType
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ResponseCode
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableBody
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableParameter
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ContentType
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ResponseCode
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiBody
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiParameter
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.refactoring.AssignContentTypesRefactoring.Companion.getContentTypeForFormPart
 
@@ -182,7 +182,7 @@ class ClientRestInterfaceEmitter : CodeEmitter {
 
     private fun TryCatchExpression.emitParameter(
         method: KotlinMethod,
-        parameter: TransformableParameter
+        parameter: OpenApiParameter
     ): VariableName {
         val parameterName = parameter.parameterVariableName
         val typeUsage = parameter.content.typeUsage
@@ -202,7 +202,7 @@ class ClientRestInterfaceEmitter : CodeEmitter {
     }
 
     // generates parameters and conversion for the request body depending on the media type
-    private fun TryCatchExpression.emitBody(method: KotlinMethod, body: TransformableBody): List<VariableName> {
+    private fun TryCatchExpression.emitBody(method: KotlinMethod, body: OpenApiBody): List<VariableName> {
         return when (body.content.mappedContentType) {
             ContentType.ApplicationJson -> listOf(emitJsonBody(method, body))
             ContentType.TextPlain -> listOf(emitPlainBody(method, body))
@@ -212,7 +212,7 @@ class ClientRestInterfaceEmitter : CodeEmitter {
         }
     }
 
-    private fun TryCatchExpression.emitJsonBody(method: KotlinMethod, body: TransformableBody): VariableName {
+    private fun TryCatchExpression.emitJsonBody(method: KotlinMethod, body: OpenApiBody): VariableName {
         val parameterName = body.parameterVariableName
         val typeUsage = body.content.typeUsage
         val default = defaultParameterExpression(typeUsage)
@@ -227,7 +227,7 @@ class ClientRestInterfaceEmitter : CodeEmitter {
             .declaration(parameterName.extend(postfix = "Payload"))
     }
 
-    private fun TryCatchExpression.emitPlainBody(method: KotlinMethod, body: TransformableBody): VariableName {
+    private fun TryCatchExpression.emitPlainBody(method: KotlinMethod, body: OpenApiBody): VariableName {
         val parameterName = body.parameterVariableName
         val typeUsage = body.content.typeUsage
         val default = defaultParameterExpression(typeUsage)
@@ -240,13 +240,13 @@ class ClientRestInterfaceEmitter : CodeEmitter {
 
     private fun TryCatchExpression.emitMultipartBody(
         method: KotlinMethod,
-        body: TransformableBody
+        body: OpenApiBody
     ): List<VariableName> {
         val default = defaultParameterExpression(body.content.typeUsage)
         return listOf("multi".variableName())
     }
 
-    private fun TryCatchExpression.emitFormBody(method: KotlinMethod, body: TransformableBody): List<VariableName> {
+    private fun TryCatchExpression.emitFormBody(method: KotlinMethod, body: OpenApiBody): List<VariableName> {
         val parameterName = body.parameterVariableName
         val typeUsage = body.content.typeUsage
         val safeType = typeUsage.type
@@ -280,7 +280,7 @@ class ClientRestInterfaceEmitter : CodeEmitter {
         }
     }
 
-    private fun TryCatchExpression.emitOctetBody(method: KotlinMethod, body: TransformableBody): VariableName {
+    private fun TryCatchExpression.emitOctetBody(method: KotlinMethod, body: OpenApiBody): VariableName {
         val parameterName = body.parameterVariableName
         val default = defaultParameterExpression(body.content.typeUsage)
         method.kotlinParameter(
@@ -292,8 +292,8 @@ class ClientRestInterfaceEmitter : CodeEmitter {
     }
 
     private fun WhenOptionAware.generateKnownResponseOption(
-        responseClass: ClassName, statusCode: ResponseCode.HttpStatusCode, body: TransformableBody?,
-        headers: List<TransformableParameter>
+        responseClass: ClassName, statusCode: ResponseCode.HttpStatusCode, body: OpenApiBody?,
+        headers: List<OpenApiParameter>
     ) {
         val optionValue = statusCode.value.literal()
         generateResponseOption(
@@ -302,7 +302,7 @@ class ClientRestInterfaceEmitter : CodeEmitter {
     }
 
     private fun WhenOptionAware.generateDefaultResponseOption(
-        responseClass: ClassName, body: TransformableBody?, headers: List<TransformableParameter>
+        responseClass: ClassName, body: OpenApiBody?, headers: List<OpenApiParameter>
     ) {
         generateResponseOption(
             responseClass.rawNested("Default"), "else".variableName(), true, body, headers
@@ -321,8 +321,8 @@ class ClientRestInterfaceEmitter : CodeEmitter {
     //
     // RestResponse.Status.<ResponseName> -> Maybe.Success("response.body", <ResponseObject>)
     private fun WhenOptionAware.generateResponseOption(
-        responseClass: ClassName, optionValue: KotlinExpression, withStatusCode: Boolean, body: TransformableBody?,
-        headers: List<TransformableParameter>
+        responseClass: ClassName, optionValue: KotlinExpression, withStatusCode: Boolean, body: OpenApiBody?,
+        headers: List<OpenApiParameter>
     ) {
         val additionalParameter = when (withStatusCode) {
             true -> listOf("statusCode".variableName())
@@ -388,7 +388,7 @@ class ClientRestInterfaceEmitter : CodeEmitter {
         }
     }
 
-    private fun WhenOption.emitHeaderParameter(header: TransformableParameter): VariableName {
+    private fun WhenOption.emitHeaderParameter(header: OpenApiParameter): VariableName {
         // produces
         //
         // response.stringHeaders.get[First)("<headerName>")

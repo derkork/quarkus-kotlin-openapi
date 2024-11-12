@@ -2,22 +2,21 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.refactoring
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.OriginPathHint.originPath
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeDefinitionHint.typeDefinition
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName.Companion.className
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.SchemaModifier
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.SchemaTypes
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchema
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.*
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.ArrayItemsComponent.Companion.arrayItemsComponent
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.NullableComponent.Companion.nullableComponent
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.SchemaModifierComponent.Companion.schemaModifierComponent
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.TypeComponent.Companion.typeComponent
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.ValidationComponent.Companion.validationComponents
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.SchemaModifier
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.SchemaTypes
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiSchema
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.*
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.ArrayItemsComponent.Companion.arrayItemsComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.NullableComponent.Companion.nullableComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.SchemaModifierComponent.Companion.schemaModifierComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.TypeComponent.Companion.typeComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.ValidationComponent.Companion.validationComponents
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
 
 // knows how to create or extend a simple collection type (without any *Of stuff)
 class CreateSimpleCollectionTypeRefactoring(
-    private val schema: TransformableSchema,
+    private val schema: OpenApiSchema,
     private val typeResolver: TypeResolver,
     private val parentType: CollectionTypeDefinition? = null
 ) : SpecRefactoring {

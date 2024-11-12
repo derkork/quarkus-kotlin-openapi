@@ -1,11 +1,11 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.validation
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.GeneratorStage
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSpec
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiSpec
 
 class ValidationStage : GeneratorStage {
 
-    override fun process(spec: TransformableSpec) {
+    override fun process(spec: OpenApiSpec) {
         OneOfDiscriminatorCheck().verify(spec)
         OneOfDiscriminatorMappingCheck().verify(spec)
         GetRequestWithBodyCheck().verify(spec)

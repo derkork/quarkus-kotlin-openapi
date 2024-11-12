@@ -1,9 +1,9 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.types
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ContentType
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.SchemaModifier
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.SchemaValidation
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ContentType
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.SchemaModifier
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.SchemaValidation
 
 interface OneOfTypeDefinition : TypeDefinition {
 

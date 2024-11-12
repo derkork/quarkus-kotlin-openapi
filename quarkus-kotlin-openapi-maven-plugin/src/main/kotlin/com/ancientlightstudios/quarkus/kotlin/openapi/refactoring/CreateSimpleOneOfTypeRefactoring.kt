@@ -4,17 +4,17 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.OriginPathHin
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeDefinitionHint.typeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName.Companion.className
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchema
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.*
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.BaseSchemaComponent.Companion.baseSchemaComponent
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.ContainerModelNameComponent.Companion.containerModelNameComponent
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.NullableComponent.Companion.nullableComponent
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.SchemaModifierComponent.Companion.schemaModifierComponent
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.ValidationComponent.Companion.validationComponents
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiSchema
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.*
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.BaseSchemaComponent.Companion.baseSchemaComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.ContainerModelNameComponent.Companion.containerModelNameComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.NullableComponent.Companion.nullableComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.SchemaModifierComponent.Companion.schemaModifierComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.ValidationComponent.Companion.validationComponents
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.*
 
 class CreateSimpleOneOfTypeRefactoring(
-    private val schema: TransformableSchema,
+    private val schema: OpenApiSchema,
     private val oneOf: OneOfComponent,
     private val typeResolver: TypeResolver
 ) : SpecRefactoring {
@@ -54,7 +54,7 @@ class CreateSimpleOneOfTypeRefactoring(
         )
     }
 
-    private fun getAliases(optionSchema: TransformableSchema, discriminator: OneOfDiscriminator?) : List<String> {
+    private fun getAliases(optionSchema: OpenApiSchema, discriminator: OneOfDiscriminator?) : List<String> {
         // TODO: little hack for now
         return if (discriminator != null) {
             val originPath = when(val baseSchema = optionSchema.baseSchemaComponent()) {

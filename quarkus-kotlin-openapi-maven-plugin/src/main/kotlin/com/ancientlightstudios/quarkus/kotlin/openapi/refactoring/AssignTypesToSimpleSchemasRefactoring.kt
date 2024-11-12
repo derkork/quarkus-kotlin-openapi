@@ -1,14 +1,14 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.refactoring
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.SchemaTypes
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchema
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.ReferencingComponent
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.TypeComponent.Companion.typeComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.SchemaTypes
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiSchema
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.ReferencingComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.TypeComponent.Companion.typeComponent
 
 // converts the most basic form of a schema into a type. Is responsible for schemas without any base ref or *Of component.
 // Because these schemas don't have other dependencies they will always receive a real type and never an overlay
 class AssignTypesToSimpleSchemasRefactoring(
-    private val tasks: MutableSet<TransformableSchema>,
+    private val tasks: MutableSet<OpenApiSchema>,
     private val typeMapper: TypeMapper,
     private val typeResolver: TypeResolver
 ) :

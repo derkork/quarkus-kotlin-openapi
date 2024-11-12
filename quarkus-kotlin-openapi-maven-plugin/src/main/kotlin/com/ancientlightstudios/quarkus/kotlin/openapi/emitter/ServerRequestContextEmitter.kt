@@ -18,7 +18,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.Gen
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.SimpleTypeName.Companion.typeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.rawVariableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.*
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.*
 
 class ServerRequestContextEmitter : CodeEmitter {
 
@@ -131,8 +131,8 @@ class ServerRequestContextEmitter : CodeEmitter {
 
     private fun KotlinClass.emitStatusMethod(
         statusCode: ResponseCode.HttpStatusCode,
-        body: TransformableBody?,
-        headers: List<TransformableParameter>,
+        body: OpenApiBody?,
+        headers: List<OpenApiParameter>,
         responseInterfaceName: ClassName?
     ) {
         kotlinMethod(
@@ -144,8 +144,8 @@ class ServerRequestContextEmitter : CodeEmitter {
     }
 
     private fun KotlinClass.emitDefaultStatusMethod(
-        body: TransformableBody?,
-        headers: List<TransformableParameter>,
+        body: OpenApiBody?,
+        headers: List<OpenApiParameter>,
         responseInterfaceName: ClassName?
     ) {
         kotlinMethod(
@@ -160,8 +160,8 @@ class ServerRequestContextEmitter : CodeEmitter {
 
     private fun KotlinMethod.emitMethodBody(
         status: KotlinExpression,
-        body: TransformableBody?,
-        headers: List<TransformableParameter>
+        body: OpenApiBody?,
+        headers: List<OpenApiParameter>
     ) {
         var bodyExpression: KotlinExpression = nullLiteral()
         var mediaTypeExpression: KotlinExpression = nullLiteral()
@@ -232,7 +232,7 @@ class ServerRequestContextEmitter : CodeEmitter {
         }
     }
 
-    private fun KotlinClass.emitInterfaceMembers(request: TransformableRequest) {
+    private fun KotlinClass.emitInterfaceMembers(request: OpenApiRequest) {
         // produces:
         //
         // override val requestMethod = "<request-method>"

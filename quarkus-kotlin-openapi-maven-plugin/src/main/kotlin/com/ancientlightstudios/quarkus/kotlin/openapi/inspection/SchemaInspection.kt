@@ -1,9 +1,9 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.inspection
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchema
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.SchemaComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiSchema
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.SchemaComponent
 
-class SchemaInspection(val schema: TransformableSchema) {
+class SchemaInspection(val schema: OpenApiSchema) {
 
     inline fun <reified T : SchemaComponent> components(block: ComponentInspection<T>.() -> Unit) {
         schema.components.filterIsInstance<T>().forEach { ComponentInspection(it).block() }
@@ -11,5 +11,5 @@ class SchemaInspection(val schema: TransformableSchema) {
 
 }
 
-fun TransformableSchema.inspect(block: SchemaInspection.() -> Unit) =
+fun OpenApiSchema.inspect(block: SchemaInspection.() -> Unit) =
     SchemaInspection(this).block()

@@ -2,17 +2,17 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.refactoring
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeDefinitionHint.hasTypeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeDefinitionHint.typeDefinition
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchema
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.BaseSchemaComponent
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.BaseSchemaComponent.Companion.baseSchemaComponent
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.SomeOfComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiSchema
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.BaseSchemaComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.BaseSchemaComponent.Companion.baseSchemaComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.SomeOfComponent
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
 
 // converts schema with a base ref but no *Of component into a type. This can lead to new real types or just
 // overlays.
 class AssignTypesToSimpleExtendedSchemasRefactoring(
-    private val tasks: MutableSet<TransformableSchema>,
+    private val tasks: MutableSet<OpenApiSchema>,
     private val typeMapper: TypeMapper,
     private val typeResolver: TypeResolver
 ) : SpecRefactoring {
@@ -26,7 +26,7 @@ class AssignTypesToSimpleExtendedSchemasRefactoring(
             .map { it to it.baseSchemaComponent() }
             .filter { it.second != null }
             .filter { it.second!!.schema.hasTypeDefinition }
-                as List<Pair<TransformableSchema, BaseSchemaComponent>>
+                as List<Pair<OpenApiSchema, BaseSchemaComponent>>
 
         // remove them from the tasks list, because nobody has to handle them anymore
         tasks.removeAll(candidates.map { it.first }.toSet())

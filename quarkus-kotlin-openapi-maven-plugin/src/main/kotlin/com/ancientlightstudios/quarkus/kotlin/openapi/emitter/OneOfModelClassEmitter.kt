@@ -16,7 +16,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.Sim
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.rawVariableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.WhenExpression.Companion.whenExpression
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ContentType
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ContentType
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.Direction
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.OneOfOption
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.OneOfTypeDefinition

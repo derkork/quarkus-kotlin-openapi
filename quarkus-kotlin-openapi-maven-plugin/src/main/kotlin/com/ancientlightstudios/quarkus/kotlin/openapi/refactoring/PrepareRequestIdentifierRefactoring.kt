@@ -14,7 +14,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ResponseValid
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName.Companion.className
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.methodName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableRequest
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiRequest
 
 class PrepareRequestIdentifierRefactoring : SpecRefactoring {
 
@@ -57,7 +57,7 @@ class PrepareRequestIdentifierRefactoring : SpecRefactoring {
         }
     }
 
-    private fun generateName(request: TransformableRequest): String {
+    private fun generateName(request: OpenApiRequest): String {
         val operationId = request.operationId
         return if (operationId.isNullOrBlank()) {
             "${request.method.name} ${request.path}"

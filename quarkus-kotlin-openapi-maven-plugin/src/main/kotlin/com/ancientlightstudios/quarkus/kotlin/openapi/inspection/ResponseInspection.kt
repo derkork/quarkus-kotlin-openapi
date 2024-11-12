@@ -1,8 +1,8 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.inspection
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableResponse
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiResponse
 
-class ResponseInspection(val response: TransformableResponse) {
+class ResponseInspection(val response: OpenApiResponse) {
 
     fun headers(block: ResponseHeaderInspection.() -> Unit) =
         response.headers.forEach { ResponseHeaderInspection(it).block() }

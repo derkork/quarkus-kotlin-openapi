@@ -1,8 +1,8 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.refactoring
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.inspect
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableRequest
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableRequestBundle
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiRequest
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiRequestBundle
 
 // creates new request bundles if requests should be separated by tags
 class SplitByTagsRefactoring(private val apply: Boolean) : SpecRefactoring {
@@ -12,7 +12,7 @@ class SplitByTagsRefactoring(private val apply: Boolean) : SpecRefactoring {
             return
         }
 
-        val requests = mutableListOf<Pair<String?, TransformableRequest>>()
+        val requests = mutableListOf<Pair<String?, OpenApiRequest>>()
 
         // get all requests associated with their main tag
         spec.inspect {
@@ -30,7 +30,7 @@ class SplitByTagsRefactoring(private val apply: Boolean) : SpecRefactoring {
         }
 
         spec.bundles = tagGroups.map { (tag, requests) ->
-            TransformableRequestBundle(tag, requests)
+            OpenApiRequestBundle(tag, requests)
         }
     }
 

@@ -1,12 +1,12 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.hints
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableResponse
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiResponse
 
 // specifies the class name of a response
 object ResponseInterfaceNameHint : Hint<ClassName> {
 
-    var TransformableResponse.responseInterfaceName: ClassName?
+    var OpenApiResponse.responseInterfaceName: ClassName?
         get() = get(ResponseInterfaceNameHint)
         set(value) {
             if (value == null) {

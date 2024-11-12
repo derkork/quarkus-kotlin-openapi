@@ -2,11 +2,11 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.Config
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinFile
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSpec
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiSpec
 import java.io.File
 import kotlin.io.path.Path
 
-class EmitterContext(val spec: TransformableSpec, val config: Config) {
+class EmitterContext(val spec: OpenApiSpec, val config: Config) {
 
     // get the last modified time of all input files
     private val inputLastModifiedDate: Long = config.sourceFiles

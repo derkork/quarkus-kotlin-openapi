@@ -1,13 +1,13 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.refactoring
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.inspect
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.SchemaUsage
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchema
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.*
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.SchemaUsage
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiSchema
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.*
 
 class SwapSchemaRefactoring(
-    private val current: TransformableSchema,
-    private val replacement: TransformableSchema
+    private val current: OpenApiSchema,
+    private val replacement: OpenApiSchema
 ) : SpecRefactoring {
 
     override fun RefactoringContext.perform() {

@@ -4,23 +4,23 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.OriginPathHin
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeDefinitionHint.typeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName.Companion.className
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.SchemaModifier
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.SchemaTypes
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSchema
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.MapComponent.Companion.mapComponent
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.NullableComponent.Companion.nullableComponent
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.ObjectComponent.Companion.objectComponent
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.ObjectValidationComponent.Companion.objectValidationComponent
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.SchemaModifierComponent.Companion.schemaModifierComponent
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.SchemaValidation
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.TypeComponent.Companion.typeComponent
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.ValidationComponent.Companion.validationComponents
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.SchemaModifier
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.SchemaTypes
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiSchema
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.MapComponent.Companion.mapComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.NullableComponent.Companion.nullableComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.ObjectComponent.Companion.objectComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.ObjectValidationComponent.Companion.objectValidationComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.SchemaModifierComponent.Companion.schemaModifierComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.SchemaValidation
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.TypeComponent.Companion.typeComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.ValidationComponent.Companion.validationComponents
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
 
 // knows how to create or extend a simple object type (without any *Of stuff)
 class CreateSimpleObjectTypeRefactoring(
-    private val schema: TransformableSchema,
+    private val schema: OpenApiSchema,
     private val typeResolver: TypeResolver,
     private val parentType: ObjectTypeDefinition? = null
 ) : SpecRefactoring {

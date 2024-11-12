@@ -1,7 +1,7 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.refactoring
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.AllOfComponent.Companion.allOfComponent
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.SomeOfComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.AllOfComponent.Companion.allOfComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.SomeOfComponent
 
 class ReplaceSimpleAllOfRefactoring : SpecRefactoring {
 

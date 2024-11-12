@@ -1,13 +1,13 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.parser
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.OriginPathHint.originPath
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.*
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.SpecIssue
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ObjectNode
 
 class ApiSpecBuilder(
-    private val spec: TransformableSpec,
+    private val spec: OpenApiSpec,
     private val requestFilter: RequestFilter,
     private val contentTypeMapper: ContentTypeMapper,
     private val node: ObjectNode
@@ -24,7 +24,7 @@ class ApiSpecBuilder(
         val schemas = extractSchemas()
 
         // just create a default bundle with all the available requests
-        spec.bundles = listOf(TransformableRequestBundle(null, requests))
+        spec.bundles = listOf(OpenApiRequestBundle(null, requests))
         spec.schemas = schemas
         spec.version = node.with("info").getTextOrNull("version")
     }
@@ -40,7 +40,7 @@ class ApiSpecBuilder(
         }
         .flatten()
 
-    private fun ObjectNode.extractPathRequests(path: String, requestFilter: RequestFilter): List<TransformableRequest> {
+    private fun ObjectNode.extractPathRequests(path: String, requestFilter: RequestFilter): List<OpenApiRequest> {
         val context = parseContext.contextFor(node, "paths", path)
 
         // now extract all defined operations in this path
@@ -61,8 +61,8 @@ class ApiSpecBuilder(
             }
     }
 
-    private fun extractSchemas(): List<TransformableSchema> {
-        val result = mutableListOf<TransformableSchema>()
+    private fun extractSchemas(): List<OpenApiSchema> {
+        val result = mutableListOf<OpenApiSchema>()
         var current = schemaCollector.nextUnresolvedSchema
         while (current != null) {
             parseContext.contextFor(JsonPointer.fromPath(current.originPath))
@@ -76,7 +76,7 @@ class ApiSpecBuilder(
 
 }
 
-fun JsonNode.parseInto(spec: TransformableSpec, requestFilter: RequestFilter, contentTypeMapper: ContentTypeMapper) {
+fun JsonNode.parseInto(spec: OpenApiSpec, requestFilter: RequestFilter, contentTypeMapper: ContentTypeMapper) {
     asObjectNode { "Json object expected" }.let { ApiSpecBuilder(spec, requestFilter, contentTypeMapper, it).build() }
 }
 
