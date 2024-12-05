@@ -6,40 +6,39 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ParameterVari
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.RequestContainerClassNameHint.requestContainerClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeUsageHint.typeUsage
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.kotlinClass
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.kotlinFile
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.kotlinMember
 
-class ServerRequestContainerEmitter : CodeEmitter {
-
-    override fun EmitterContext.emit() {
-        spec.inspect {
-            bundles {
-                requests {
-                    if (request.hasInputParameter()) {
-                        emitContainerFile().writeFile()
-                    }
-                }
-            }
-        }
-    }
-
-    private fun RequestInspection.emitContainerFile() = kotlinFile(request.requestContainerClassName) {
-        kotlinClass(fileName) {
-            parameters {
-                val typeUsage = parameter.content.typeUsage
-                kotlinMember(
-                    parameter.parameterVariableName, typeUsage.buildValidType(),
-                    accessModifier = null
-                )
-            }
-
-            body {
-                val typeUsage = body.content.typeUsage
-                kotlinMember(
-                    body.parameterVariableName, typeUsage.buildValidType(), accessModifier = null
-                )
-            }
-        }
-    }
-
-}
+//class ServerRequestContainerEmitter : CodeEmitter {
+//
+//    override fun EmitterContext.emit() {
+//        spec.inspect {
+//            bundles {
+//                requests {
+//                    if (request.hasInputParameter()) {
+//                        emitContainerFile().writeFile()
+//                    }
+//                }
+//            }
+//        }
+//    }
+//
+//    private fun RequestInspection.emitContainerFile() = kotlinFile(request.requestContainerClassName) {
+//        kotlinClass(fileName) {
+//            parameters {
+//                val typeUsage = parameter.content.typeUsage
+//                kotlinMember(
+//                    parameter.parameterVariableName, typeUsage.buildValidType(),
+//                    accessModifier = null
+//                )
+//            }
+//
+//            body {
+//                val typeUsage = body.content.typeUsage
+//                kotlinMember(
+//                    body.parameterVariableName, typeUsage.buildValidType(), accessModifier = null
+//                )
+//            }
+//        }
+//    }
+//
+//}

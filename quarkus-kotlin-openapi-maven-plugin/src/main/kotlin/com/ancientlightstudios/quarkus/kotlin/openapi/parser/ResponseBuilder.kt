@@ -35,7 +35,7 @@ class ResponseBuilder(private val code: ResponseCode, private val node: ObjectNo
 
     private fun ParseContext.extractResponseReference(ref: String) = rootContext.contextFor(JsonPointer.fromPath(ref))
         .parseAsResponse(code)
-        .apply { nameSuggestion = ref.nameSuggestion() }
+        .apply { nameSuggestion = ref.referencedComponentName() }
 
 }
 

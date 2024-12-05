@@ -15,178 +15,178 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ResponseCod
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiBody
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiParameter
 
-class ClientResponseContainerEmitter(private val withTestSupport: Boolean) : CodeEmitter {
-
-    private lateinit var emitterContext: EmitterContext
-
-    override fun EmitterContext.emit() {
-        emitterContext = this
-
-        spec.inspect {
-            bundles {
-                requests {
-                    emitContainerFile().writeFile()
-                }
-            }
-        }
-    }
-
-    private fun RequestInspection.emitContainerFile() = kotlinFile(request.responseContainerClassName) {
-        registerImports(Library.AllClasses)
-        registerImports(emitterContext.getAdditionalImports())
-
-        kotlinInterface(fileName, sealed = true) {}
-
-        generateHttpResponseClass(this)
-
-        generateErrorResponseInterface(this)
-    }
-
-    private fun RequestInspection.generateHttpResponseClass(container: KotlinFile) =
-        with(container) {
-            val me = request.clientHttpResponseClassName
-            kotlinClass(me, sealed = true, interfaces = listOf(fileName)) {
-                kotlinMember(
-                    "status".variableName(), Kotlin.IntClass.typeName(), accessModifier = null, open = true
-                )
-                kotlinMember(
-                    "unsafeBody".variableName(), Kotlin.AnyClass.typeName(true), accessModifier = null, open = true
-                )
-
-                request.responses.forEach { response ->
-                    when (val responseCode = response.responseCode) {
-                        is ResponseCode.Default -> emitDefaultResponseClass(me, response.body, response.headers)
-                        is ResponseCode.HttpStatusCode -> emitResponseClass(
-                            me,
-                            responseCode,
-                            response.body,
-                            response.headers
-                        )
-                    }
-                }
-            }
-        }
-
-    private fun ClassAware.emitDefaultResponseClass(
-        parentClass: ClassName,
-        body: OpenApiBody?,
-        headers: List<OpenApiParameter>
-    ) {
-        val bodyExpression: KotlinExpression = when (body) {
-            null -> nullLiteral()
-            else -> "safeBody".variableName()
-        }
-
-        val baseClass = KotlinBaseClass(parentClass, "status".variableName(), bodyExpression)
-
-        kotlinClass("Default".className(""), baseClass = baseClass) {
-            kotlinMember(
-                "status".variableName(), Kotlin.IntClass.typeName(), accessModifier = null, override = true
-            )
-
-            headers.forEach {
-                kotlinMember(
-                    it.parameterVariableName, it.content.typeUsage.buildValidType(), accessModifier = null
-                )
-            }
-
-            body?.let {
-                val type = it.content.typeUsage.buildValidType()
-                kotlinMember("safeBody".variableName(), type, accessModifier = null)
-            }
-        }
-    }
-
-    private fun ClassAware.emitResponseClass(
-        parentClass: ClassName,
-        responseCode: ResponseCode.HttpStatusCode,
-        body: OpenApiBody?,
-        headers: List<OpenApiParameter>
-    ) {
-        val bodyExpression: KotlinExpression = when (body) {
-            null -> nullLiteral()
-            else -> "safeBody".variableName()
-        }
-
-        val status = responseCode.value.literal()
-        val baseClass = KotlinBaseClass(parentClass, status, bodyExpression)
-
-        kotlinClass(
-            responseCode.statusCodeReason().className(""), baseClass = baseClass
-        ) {
-
-            headers.forEach {
-                kotlinMember(
-                    it.parameterVariableName, it.content.typeUsage.buildValidType(), accessModifier = null
-                )
-            }
-
-            body?.let {
-                val type = it.content.typeUsage.buildValidType()
-                kotlinMember("safeBody".variableName(), type, accessModifier = null)
-            }
-        }
-    }
-
-
-    private fun RequestInspection.generateErrorResponseInterface(container: KotlinFile) =
-        with(container) {
-            val me = request.clientErrorResponseClassName
-            kotlinInterface(
-                me, sealed = true, interfaces = listOf(fileName, Library.IsErrorClass)
-            ) {
-                generateErrorClass(
-                    "RequestErrorTimeout", me, Library.IsTimeoutErrorClass,  "A timeout occurred when communicating with the server.".literal()
-                )
-                generateErrorClass("RequestErrorUnreachable", me,  Library.IsUnreachableErrorClass, "The server could not be reached.".literal())
-                generateErrorClass(
-                    "RequestErrorConnectionReset",
-                    me,
-                    Library.IsConnectionResetErrorClass,
-                    "The connection was reset while communicating with the server.".literal()
-                )
-                generateErrorClass(
-                    "RequestErrorUnknown",
-                    me,
-                    Library.IsUnknownErrorClass,
-                    "An unknown error occurred when communicating with the server.".literal()
-                ) {
-                    kotlinMember("cause".variableName(), Kotlin.ExceptionClass.typeName(), accessModifier = null, override = true)
-                }
-
-                val responseClass = when(withTestSupport) {
-                    true -> RestAssured.ResponseClass
-                    false -> Jakarta.ResponseClass
-                }
-
-                generateErrorClass(
-                    "ResponseError",
-                    me,
-                    Library.IsResponseErrorClass,
-                    "reason".variableName()
-                ) {
-                    kotlinMember("reason".variableName(), Kotlin.StringClass.typeName(), accessModifier = null)
-                    kotlinMember("response".variableName(), responseClass.typeName(), accessModifier = null)
-                }
-            }
-
-        }
-
-    private fun KotlinInterface.generateErrorClass(
-        name: String, parent: ClassName, errorInterface:ClassName, message: KotlinExpression, block: KotlinClass.() -> Unit = {}
-    ) {
-        kotlinClass(name.className(""), baseClass = KotlinBaseClass(parent), interfaces = listOf(errorInterface)) {
-
-            kotlinMember(
-                "errorMessage".variableName(),
-                Kotlin.StringClass.typeName(),
-                override = true,
-                initializedInConstructor = false,
-                accessModifier = null,
-                default = message
-            )
-
-            block()
-        }
-    }
-}
+//class ClientResponseContainerEmitter(private val withTestSupport: Boolean) : CodeEmitter {
+//
+//    private lateinit var emitterContext: EmitterContext
+//
+//    override fun EmitterContext.emit() {
+//        emitterContext = this
+//
+//        spec.inspect {
+//            bundles {
+//                requests {
+//                    emitContainerFile().writeFile()
+//                }
+//            }
+//        }
+//    }
+//
+//    private fun RequestInspection.emitContainerFile() = kotlinFile(request.responseContainerClassName) {
+//        registerImports(Library.AllClasses)
+//        registerImports(emitterContext.getAdditionalImports())
+//
+//        kotlinInterface(fileName, sealed = true) {}
+//
+//        generateHttpResponseClass(this)
+//
+//        generateErrorResponseInterface(this)
+//    }
+//
+//    private fun RequestInspection.generateHttpResponseClass(container: KotlinFile) =
+//        with(container) {
+//            val me = request.clientHttpResponseClassName
+//            kotlinClass(me, sealed = true, interfaces = listOf(fileName)) {
+//                kotlinMember(
+//                    "status".variableName(), Kotlin.IntClass.typeName(), accessModifier = null, open = true
+//                )
+//                kotlinMember(
+//                    "unsafeBody".variableName(), Kotlin.AnyClass.typeName(true), accessModifier = null, open = true
+//                )
+//
+//                request.responses.forEach { response ->
+//                    when (val responseCode = response.responseCode) {
+//                        is ResponseCode.Default -> emitDefaultResponseClass(me, response.body, response.headers)
+//                        is ResponseCode.HttpStatusCode -> emitResponseClass(
+//                            me,
+//                            responseCode,
+//                            response.body,
+//                            response.headers
+//                        )
+//                    }
+//                }
+//            }
+//        }
+//
+//    private fun ClassAware.emitDefaultResponseClass(
+//        parentClass: ClassName,
+//        body: OpenApiBody?,
+//        headers: List<OpenApiParameter>
+//    ) {
+//        val bodyExpression: KotlinExpression = when (body) {
+//            null -> nullLiteral()
+//            else -> "safeBody".variableName()
+//        }
+//
+//        val baseClass = KotlinBaseClass(parentClass, "status".variableName(), bodyExpression)
+//
+//        kotlinClass("Default".className(""), baseClass = baseClass) {
+//            kotlinMember(
+//                "status".variableName(), Kotlin.IntClass.typeName(), accessModifier = null, override = true
+//            )
+//
+//            headers.forEach {
+//                kotlinMember(
+//                    it.parameterVariableName, it.content.typeUsage.buildValidType(), accessModifier = null
+//                )
+//            }
+//
+//            body?.let {
+//                val type = it.content.typeUsage.buildValidType()
+//                kotlinMember("safeBody".variableName(), type, accessModifier = null)
+//            }
+//        }
+//    }
+//
+//    private fun ClassAware.emitResponseClass(
+//        parentClass: ClassName,
+//        responseCode: ResponseCode.HttpStatusCode,
+//        body: OpenApiBody?,
+//        headers: List<OpenApiParameter>
+//    ) {
+//        val bodyExpression: KotlinExpression = when (body) {
+//            null -> nullLiteral()
+//            else -> "safeBody".variableName()
+//        }
+//
+//        val status = responseCode.value.literal()
+//        val baseClass = KotlinBaseClass(parentClass, status, bodyExpression)
+//
+//        kotlinClass(
+//            responseCode.statusCodeReason().className(""), baseClass = baseClass
+//        ) {
+//
+//            headers.forEach {
+//                kotlinMember(
+//                    it.parameterVariableName, it.content.typeUsage.buildValidType(), accessModifier = null
+//                )
+//            }
+//
+//            body?.let {
+//                val type = it.content.typeUsage.buildValidType()
+//                kotlinMember("safeBody".variableName(), type, accessModifier = null)
+//            }
+//        }
+//    }
+//
+//
+//    private fun RequestInspection.generateErrorResponseInterface(container: KotlinFile) =
+//        with(container) {
+//            val me = request.clientErrorResponseClassName
+//            kotlinInterface(
+//                me, sealed = true, interfaces = listOf(fileName, Library.IsErrorClass)
+//            ) {
+//                generateErrorClass(
+//                    "RequestErrorTimeout", me, Library.IsTimeoutErrorClass,  "A timeout occurred when communicating with the server.".literal()
+//                )
+//                generateErrorClass("RequestErrorUnreachable", me,  Library.IsUnreachableErrorClass, "The server could not be reached.".literal())
+//                generateErrorClass(
+//                    "RequestErrorConnectionReset",
+//                    me,
+//                    Library.IsConnectionResetErrorClass,
+//                    "The connection was reset while communicating with the server.".literal()
+//                )
+//                generateErrorClass(
+//                    "RequestErrorUnknown",
+//                    me,
+//                    Library.IsUnknownErrorClass,
+//                    "An unknown error occurred when communicating with the server.".literal()
+//                ) {
+//                    kotlinMember("cause".variableName(), Kotlin.ExceptionClass.typeName(), accessModifier = null, override = true)
+//                }
+//
+//                val responseClass = when(withTestSupport) {
+//                    true -> RestAssured.ResponseClass
+//                    false -> Jakarta.ResponseClass
+//                }
+//
+//                generateErrorClass(
+//                    "ResponseError",
+//                    me,
+//                    Library.IsResponseErrorClass,
+//                    "reason".variableName()
+//                ) {
+//                    kotlinMember("reason".variableName(), Kotlin.StringClass.typeName(), accessModifier = null)
+//                    kotlinMember("response".variableName(), responseClass.typeName(), accessModifier = null)
+//                }
+//            }
+//
+//        }
+//
+//    private fun KotlinInterface.generateErrorClass(
+//        name: String, parent: ClassName, errorInterface:ClassName, message: KotlinExpression, block: KotlinClass.() -> Unit = {}
+//    ) {
+//        kotlinClass(name.className(""), baseClass = KotlinBaseClass(parent), interfaces = listOf(errorInterface)) {
+//
+//            kotlinMember(
+//                "errorMessage".variableName(),
+//                Kotlin.StringClass.typeName(),
+//                override = true,
+//                initializedInConstructor = false,
+//                accessModifier = null,
+//                default = message
+//            )
+//
+//            block()
+//        }
+//    }
+//}

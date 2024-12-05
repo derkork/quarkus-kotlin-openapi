@@ -12,8 +12,6 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.RequestContex
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ResponseContainerClassNameHint.responseContainerClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ResponseInterfaceNameHint.responseInterfaceName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ResponseValidatorClassNameHint.responseValidatorClassName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ServerDelegateClassNameHint.serverDelegateClassName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ServerRestInterfaceClassNameHint.serverRestInterfaceClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.*
 
@@ -25,8 +23,8 @@ class EnsureUniqueNamesRefactoring : SpecRefactoring {
             bundles {
                 bundle.clientDelegateClassName = registry.uniqueNameFor(bundle.clientDelegateClassName)
                 bundle.clientRestInterfaceClassName = registry.uniqueNameFor(bundle.clientRestInterfaceClassName)
-                bundle.serverDelegateClassName = registry.uniqueNameFor(bundle.serverDelegateClassName)
-                bundle.serverRestInterfaceClassName = registry.uniqueNameFor(bundle.serverRestInterfaceClassName)
+//                bundle.serverDelegateClassName = registry.uniqueNameFor(bundle.serverDelegateClassName)
+//                bundle.serverRestInterfaceClassName = registry.uniqueNameFor(bundle.serverRestInterfaceClassName)
 
                 requests {
                     request.clientErrorResponseClassName = registry.uniqueNameFor(request.clientErrorResponseClassName)

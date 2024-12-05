@@ -4,10 +4,10 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
 
 // TODO: replace suspend, private and other stuff with a bit flag .e.g. Suspend | Private to avoid 5 more members for internal etc
 class KotlinMethod(
-    private val name: MethodName,
+    private val name: String,
     private val suspend: Boolean = false,
-    private val returnType: TypeName? = null,
-    private val receiverType: TypeName? = null,
+    private val returnType: KotlinTypeReference? = null,
+    private val receiverType: KotlinTypeReference? = null,
     private val bodyAsAssignment: Boolean = false,
     private val accessModifier: KotlinAccessModifier? = null,
     private val override: Boolean = false,
@@ -36,8 +36,8 @@ class KotlinMethod(
     }
 
     override fun ImportCollector.registerImports() {
-        returnType?.let { register(it) }
-        receiverType?.let { register(it) }
+//        returnType?.let { register(it) }
+//        receiverType?.let { register(it) }
         registerFrom(annotations)
         registerFrom(parameters)
         registerFrom(statements)
@@ -68,14 +68,14 @@ class KotlinMethod(
         }
 
         if (receiverType != null) {
-            write("${receiverType.value}.")
+            write("${receiverType.name}.")
         }
-        write("${name.value}(")
+        write("${name}(")
         parameters.render(this)
         write(")")
 
         if (returnType != null) {
-            write(": ${returnType.value}")
+            write(": ${returnType.name}")
         }
 
         if (statements.isNotEmpty) {
@@ -104,10 +104,10 @@ interface MethodAware {
 }
 
 fun MethodAware.kotlinMethod(
-    name: MethodName,
+    name: String,
     suspend: Boolean = false,
-    returnType: TypeName? = null,
-    receiverType: TypeName? = null,
+    returnType: KotlinTypeReference? = null,
+    receiverType: KotlinTypeReference? = null,
     bodyAsAssignment: Boolean = false,
     accessModifier: KotlinAccessModifier? = null,
     override: Boolean = false,

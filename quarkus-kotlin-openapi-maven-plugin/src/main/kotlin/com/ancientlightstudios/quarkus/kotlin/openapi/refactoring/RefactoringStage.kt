@@ -7,44 +7,54 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiSpec
 class RefactoringStage(private val config: Config) : GeneratorStage {
 
     override fun process(spec: OpenApiSpec) {
-        val context = RefactoringContext(spec, config)
+        listOf(
+            SplitRequestBundlesByTagsRefactoring(),
+            SetRequestBundleIdentifierRefactoring(),
+            SetRequestIdentifierRefactoring(),
 
-        // specify which is the direction for serialization and which for deserialization
-        context.performRefactoring(PrepareSpecDirectionsRefactoring())
+            // TODO: old legacy
 
-        context.performRefactoring(SplitByTagsRefactoring(config.splitByTags))
+            // specify which is the direction for serialization and which for deserialization
+            PrepareSpecDirectionsRefactoring(),
 
-        // apply names to schemas if they don't have one yet
-        context.performRefactoring(SchemaNameRefactoring())
+            // apply names to schemas if they don't have one yet
+            SchemaNameRefactoring(),
 
-        // first apply a few modifications
-        context.performRefactoring(OptimizeSchemeRefactoring())
+            // first apply a few modifications
+            OptimizeSchemeRefactoring(),
 
-        // adds type information to schemas
-        context.performRefactoring(AssignTypesToSchemasRefactoring(TypeMapper(config)))
+            // adds type information to schemas
+            AssignTypesToSchemasRefactoring(TypeMapper(config)),
 
-        // apply flow information (content-types, so we know which methods are required for each model)
-        // we need the generated types for this to know what to assign to nested types within a multipart
-        context.performRefactoring(AssignContentTypesRefactoring())
+            // apply flow information (content-types, so we know which methods are required for each model)
+            // we need the generated types for this to know what to assign to nested types within a multipart
+            AssignContentTypesRefactoring(),
 
-        // split types if necessary, the direction for each type from the previous step is necessary for this
-        context.performRefactoring(SplitTypeDefinitionRefactoring())
+            // split types if necessary, the direction for each type from the previous step is necessary for this
+            SplitTypeDefinitionRefactoring(),
 
-        // after types ready, we can assign them to the request and response objects
-        context.performRefactoring(AssignTypesToRequestsRefactoring())
+            // after types ready, we can assign them to the request and response objects
+            AssignTypesToRequestsRefactoring(),
 
-        // schemas have bidirectional or unidirectional type definitions. some of them are just overlays on top
-        // of real types which must be exported. This refactoring adds these models as a list to the spec.
-        context.performRefactoring(IdentifyRealTypeDefinitionsRefactoring())
+            // schemas have bidirectional or unidirectional type definitions. some of them are just overlays on top
+            // of real types which must be exported. This refactoring adds these models as a list to the spec.
+            IdentifyRealTypeDefinitionsRefactoring(),
 
-        context.performRefactoring(PrepareBundleIdentifierRefactoring(config.interfaceName))
-        context.performRefactoring(PrepareRequestIdentifierRefactoring())
+            PrepareBundleIdentifierRefactoring(config.interfaceName),
+            PrepareRequestIdentifierRefactoring(),
 
-        context.performRefactoring(ModelNameRefactoring())
-        
-        // type definitions which needs to be exported are identified, make sure their names don't collide with other
-        // stuff
-        context.performRefactoring(EnsureUniqueNamesRefactoring())
+            ModelNameRefactoring(),
+
+            // type definitions which needs to be exported are identified, make sure their names don't collide with other
+            // stuff
+            EnsureUniqueNamesRefactoring()
+        ).runRefactorings(RefactoringContext(spec, config))
+    }
+
+    private fun List<SpecRefactoring>.runRefactorings(context: RefactoringContext) {
+        forEach {
+            it.apply { context.perform() }
+        }
     }
 
 }

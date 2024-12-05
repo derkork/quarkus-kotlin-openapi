@@ -3,7 +3,7 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
 
 class KotlinClass(
-    private val name: ClassName,
+    private val name: KotlinTypeName,
     private val constructorAccessModifier: KotlinAccessModifier? = null,
     private val asDataClass: Boolean = false,
     private val sealed: Boolean = false,
@@ -79,7 +79,7 @@ class KotlinClass(
             write("data ")
         }
 
-        write("class ${name.value}")
+        write("class ${name.name}")
 
         constructorAccessModifier?.let { write(" ${it.value} constructor") }
 
@@ -143,7 +143,7 @@ interface ClassAware {
 }
 
 fun ClassAware.kotlinClass(
-    name: ClassName,
+    name: KotlinTypeName,
     constructorAccessModifier: KotlinAccessModifier? = null,
     asDataClass: Boolean = false,
     sealed: Boolean = false,

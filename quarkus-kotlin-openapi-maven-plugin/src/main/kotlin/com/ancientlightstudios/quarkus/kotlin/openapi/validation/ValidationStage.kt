@@ -6,9 +6,18 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiSpec
 class ValidationStage : GeneratorStage {
 
     override fun process(spec: OpenApiSpec) {
-        OneOfDiscriminatorCheck().verify(spec)
-        OneOfDiscriminatorMappingCheck().verify(spec)
-        GetRequestWithBodyCheck().verify(spec)
+        listOf(
+            OneOfDiscriminatorCheck(),
+            OneOfDiscriminatorMappingCheck(),
+            GetRequestWithBodyCheck()
+            // TODO: check that the enum-default value is a valid item
+        ).runChecks(spec)
+    }
+
+    private fun List<Check>.runChecks(spec: OpenApiSpec) {
+        forEach {
+            it.verify(spec)
+        }
     }
 
 }

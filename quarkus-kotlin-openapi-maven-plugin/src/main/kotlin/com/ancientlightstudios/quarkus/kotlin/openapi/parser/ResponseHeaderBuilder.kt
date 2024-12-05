@@ -28,7 +28,7 @@ class ResponseHeaderBuilder(private val name: String, private val node: ObjectNo
 
     private fun ParseContext.extractHeaderReference(ref: String)= rootContext.contextFor(JsonPointer.fromPath(ref))
         .parseAsResponseHeader(name)
-        .apply { nameSuggestion = ref.nameSuggestion() }
+        .apply { nameSuggestion = ref.referencedComponentName() }
 }
 
 fun ParseContext.parseAsResponseHeader(name: String) =

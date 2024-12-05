@@ -14,6 +14,7 @@ class RefactoringContext(val spec: OpenApiSpec, val config: Config) {
 
     val withTestSupport = config.interfaceType == InterfaceType.TEST_CLIENT
 
+    // TODO: remove?
     fun performRefactoring(refactoring: SpecRefactoring) {
         refactoring.apply { perform() }
     }

@@ -2,14 +2,22 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
 
-class KotlinFile(val fileName: ClassName) : ClassAware, MethodAware, EnumAware, InterfaceAware {
+class KotlinFile(val name: KotlinTypeName) : ClassAware, MethodAware, EnumAware, InterfaceAware {
 
     private val imports = mutableSetOf<ClassName>()
     private val content = KotlinRenderableBlockContainer<KotlinRenderable>()
 
-    fun registerImports(vararg imports: ClassName) = this.imports.addAll(imports)
+    fun registerImports(vararg imports: KotlinTypeReference) {
+        // this.imports.addAll(imports)
+    }
 
-    fun registerImports(imports: List<ClassName>) = this.imports.addAll(imports)
+    fun registerImports(vararg imports: ClassName) {
+        this.imports.addAll(imports)
+    }
+
+    fun registerImports(imports: List<ClassName>) {
+        this.imports.addAll(imports)
+    }
 
     override fun addClass(clazz: KotlinClass) {
         content.addItem(clazz)
@@ -31,7 +39,7 @@ class KotlinFile(val fileName: ClassName) : ClassAware, MethodAware, EnumAware, 
         val allImports = collectImports()
 
         writeln("// THIS IS A GENERATED FILE. DO NOT EDIT!")
-        writeln("package ${fileName.packageName}")
+        writeln("package ${name.packageName}")
 
         if (allImports.isNotEmpty()) {
             writeln()
@@ -47,12 +55,10 @@ class KotlinFile(val fileName: ClassName) : ClassAware, MethodAware, EnumAware, 
     }
 
     private fun collectImports(): List<String> {
-        val collector = ImportCollector(fileName.packageName)
+        val collector = ImportCollector(name.packageName)
         imports.forEach { collector.register(it) }
         collector.registerFrom(content)
 
         return collector.getImports()
     }
 }
-
-fun kotlinFile(fileName: ClassName, block: KotlinFile.() -> Unit) = KotlinFile(fileName).apply(block)

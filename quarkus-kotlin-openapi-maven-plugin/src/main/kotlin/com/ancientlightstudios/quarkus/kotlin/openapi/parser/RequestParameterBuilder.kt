@@ -36,7 +36,7 @@ class RequestParameterBuilder(private val node: ObjectNode) {
 
     private fun ParseContext.extractParameterReference(ref: String) = rootContext.contextFor(JsonPointer.fromPath(ref))
         .parseAsRequestParameter()
-        .apply { nameSuggestion = ref.nameSuggestion() }
+        .apply { nameSuggestion = ref.referencedComponentName() }
 
 }
 

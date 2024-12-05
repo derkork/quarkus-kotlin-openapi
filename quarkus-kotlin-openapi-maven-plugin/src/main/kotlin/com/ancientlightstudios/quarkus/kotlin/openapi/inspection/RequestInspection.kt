@@ -12,3 +12,5 @@ class RequestInspection(val request: OpenApiRequest) {
     fun responses(block: ResponseInspection.() -> Unit) = request.responses.forEach { ResponseInspection(it).block() }
 
 }
+
+fun OpenApiRequest.inspect(block: RequestInspection.() -> Unit) = RequestInspection(this).block()

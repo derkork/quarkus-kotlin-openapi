@@ -19,7 +19,7 @@ class RequestBodyBuilder(private val node: ObjectNode) {
 
     private fun ParseContext.extractBodyReference(ref: String) = rootContext.contextFor(JsonPointer.fromPath(ref))
         .parseAsRequestBody()
-        .apply { nameSuggestion = ref.nameSuggestion() }
+        .apply { nameSuggestion = ref.referencedComponentName() }
 }
 
 fun ParseContext.parseAsRequestBody() =

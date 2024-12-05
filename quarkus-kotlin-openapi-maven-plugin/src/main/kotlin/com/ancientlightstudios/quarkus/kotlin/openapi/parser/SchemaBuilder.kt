@@ -47,7 +47,7 @@ class SchemaBuilder(
         }
 
         schema.components = components
-        schema.name = node.getTextOrNull("x-model-name") ?: contextPath.nameSuggestion() ?: ""
+        schema.name = node.getTextOrNull("x-model-name") ?: contextPath.referencedComponentName() ?: ""
     }
 
     private fun ParseContext.addBaseDefinitionComponent(components: MutableList<SchemaComponent>): Boolean {
