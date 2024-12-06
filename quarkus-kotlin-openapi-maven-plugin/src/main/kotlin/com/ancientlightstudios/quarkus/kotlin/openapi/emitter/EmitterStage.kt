@@ -18,6 +18,7 @@ class EmitterStage(private val config: Config) : GeneratorStage {
         // TODO: get list via ServiceLoader to support plugins
         listOf(
             ServerDelegateInterfaceEmitter(),
+            ServerResponseInterfaceEmitter(),
             ServerRestControllerEmitter(),
             ServerRequestContextEmitter()
         ).runEmitters(context)

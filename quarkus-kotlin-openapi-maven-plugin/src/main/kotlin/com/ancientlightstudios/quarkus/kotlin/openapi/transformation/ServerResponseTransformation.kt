@@ -13,13 +13,14 @@ class ServerResponseTransformation : SpecTransformation {
             .forEach {
                 it.source.inspect {
                     responses {
-                        it.methods.add(
-                            ServerRequestContextResponseMethod(
-                                response.responseCode,
-                                response.responseCode,
-                                response
-                            )
-                        )
+//                        it.methods.add(
+//                            ServerRequestContextResponseMethod(
+//                                "asdfasdf",
+//                                response.responseCode,
+//                                response.responseCode,
+//                                response
+//                            )
+//                        )
                     }
                 }
             }

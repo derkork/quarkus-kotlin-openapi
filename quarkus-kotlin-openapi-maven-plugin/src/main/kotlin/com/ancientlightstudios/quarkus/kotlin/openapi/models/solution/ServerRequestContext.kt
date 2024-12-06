@@ -11,6 +11,8 @@ class ServerRequestContext(name: FileName, val source: OpenApiRequest) : Solutio
 }
 
 class ServerRequestContextResponseMethod(
+    val name: String,
     val responseCode: ResponseCode,
+    val responseInterface: ServerResponseInterface,
     val source: OpenApiResponse
 )

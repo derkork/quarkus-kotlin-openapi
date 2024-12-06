@@ -2,6 +2,7 @@ package com.ancientlightstudios.quarkus.kotlin.openapi
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName.Companion.rawClassName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinTypeReference
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ConfigIssue
 
 enum class InterfaceType {
@@ -110,7 +111,7 @@ class Config(
     val exceptProfile: String = ""
 ) {
 
-    fun additionalImports() = additionalImports.map { it.toRawClassName("Illegal value for additional import $it") }
+    fun additionalImports() = additionalImports.map { it.toTypeReference("Illegal value for additional import $it") }
 
     fun typeNameFor(type: String, format: String): ClassName? {
         val mapping = typeMappings.firstOrNull { it.startsWith("$type:$format=") }?.substringAfter("=") ?: return null
@@ -123,6 +124,14 @@ class Config(
 
     fun additionalProviders() =
         additionalProviders.map { it.toRawClassName("Illegal value for additional provider $it") }
+
+    private fun String.toTypeReference(errorMessage: String): KotlinTypeReference {
+        val parts = split(':', limit = 2)
+        if (parts.size != 2) {
+            ConfigIssue(errorMessage)
+        }
+        return KotlinTypeReference(parts[1], parts[0])
+    }
 
     private fun String.toRawClassName(errorMessage: String): ClassName {
         val parts = split(':', limit = 2)

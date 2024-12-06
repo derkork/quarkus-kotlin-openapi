@@ -3,7 +3,7 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
 
 class KotlinParameter(
-    private val name: VariableName, private val type: TypeName,
+    private val name: String, private val type: KotlinTypeReference,
     private val expression: KotlinExpression? = null,
     private val asParameterList : Boolean = false
 ) : KotlinRenderable, AnnotationAware {
@@ -15,7 +15,7 @@ class KotlinParameter(
     }
 
     override fun ImportCollector.registerImports() {
-        register(type)
+//        register(type)
         expression?.let { registerFrom(expression) }
         registerFrom(annotations)
     }
@@ -25,7 +25,7 @@ class KotlinParameter(
         if (asParameterList) {
             write("vararg ")
         }
-        write("${name.value}: ${type.value}")
+        write("$name: ${type.name}")
         if (expression != null) {
             write(" = ")
             expression.render(this)
@@ -41,8 +41,8 @@ interface ParameterAware {
 }
 
 fun ParameterAware.kotlinParameter(
-    name: VariableName,
-    type: TypeName,
+    name: String,
+    type: KotlinTypeReference,
     expression: KotlinExpression? = null,
     asParameterList : Boolean = false,
     block: KotlinParameter.() -> Unit = {}

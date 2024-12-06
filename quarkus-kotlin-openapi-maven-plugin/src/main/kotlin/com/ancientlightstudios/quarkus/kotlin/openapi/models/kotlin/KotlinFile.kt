@@ -15,8 +15,13 @@ class KotlinFile(val name: KotlinTypeName) : ClassAware, MethodAware, EnumAware,
         this.imports.addAll(imports)
     }
 
+    @JvmName("foooo")
     fun registerImports(imports: List<ClassName>) {
         this.imports.addAll(imports)
+    }
+
+    fun registerImports(imports: List<KotlinTypeReference>) {
+//        this.imports.addAll(imports)
     }
 
     override fun addClass(clazz: KotlinClass) {

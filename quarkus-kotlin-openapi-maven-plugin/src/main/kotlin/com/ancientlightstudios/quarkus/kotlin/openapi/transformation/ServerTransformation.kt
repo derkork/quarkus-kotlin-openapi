@@ -1,5 +1,6 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.transformation
 
+import com.ancientlightstudios.quarkus.kotlin.openapi.InterfaceType
 import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.inspect
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.RequestBundleIdentifierHint.requestBundleIdentifier
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.SolutionHint.solution
@@ -13,6 +14,10 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ServerRest
 class ServerTransformation : SpecTransformation {
 
     override fun TransformationContext.perform() {
+        if (config.interfaceType != InterfaceType.SERVER) {
+            return
+        }
+
         spec.inspect {
             bundles {
                 // the delegate interface which must be implemented with the business logic

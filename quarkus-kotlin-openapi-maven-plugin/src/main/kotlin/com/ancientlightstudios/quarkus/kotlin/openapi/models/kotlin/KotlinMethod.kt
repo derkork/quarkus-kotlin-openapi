@@ -70,7 +70,7 @@ class KotlinMethod(
         if (receiverType != null) {
             write("${receiverType.name}.")
         }
-        write("${name}(")
+        write("$name(")
         parameters.render(this)
         write(")")
 

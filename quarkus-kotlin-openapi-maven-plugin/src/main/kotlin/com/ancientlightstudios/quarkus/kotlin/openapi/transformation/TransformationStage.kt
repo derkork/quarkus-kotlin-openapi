@@ -10,6 +10,7 @@ class TransformationStage(private val config: Config) : GeneratorStage {
         // TODO: get list via ServiceLoader to support plugins
         listOf(
             ServerTransformation(),
+            ServerResponseInterfaceTransformation(),
             ServerResponseTransformation(),
             ServerRequestTransformation()
         ).runTransformations(TransformationContext(spec, config))

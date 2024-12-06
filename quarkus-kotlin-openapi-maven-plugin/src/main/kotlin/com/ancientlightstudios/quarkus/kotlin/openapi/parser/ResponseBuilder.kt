@@ -28,7 +28,7 @@ class ResponseBuilder(private val code: ResponseCode, private val node: ObjectNo
 
         val interfaceName = node.getTextOrNull("x-generic-response-name")
 
-        return OpenApiResponse(code, body, headers, interfaceName).apply {
+        return OpenApiResponse(code, body, headers, interfaceName?.trim()).apply {
             originPath = contextPath
         }
     }
