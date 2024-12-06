@@ -93,6 +93,7 @@ object Quarkus {
 object Library {
 
     val AllClasses = "*".rawClassName("com.ancientlightstudios.quarkus.kotlin.openapi")
+    val ErrorKindClass = "ErrorKind".rawClassName("com.ancientlightstudios.quarkus.kotlin.openapi")
     val MaybeClass = "Maybe".rawClassName("com.ancientlightstudios.quarkus.kotlin.openapi")
     val MaybeSuccessClass = MaybeClass.rawNested("Success")
     val MaybeFailureClass = MaybeClass.rawNested("Failure")

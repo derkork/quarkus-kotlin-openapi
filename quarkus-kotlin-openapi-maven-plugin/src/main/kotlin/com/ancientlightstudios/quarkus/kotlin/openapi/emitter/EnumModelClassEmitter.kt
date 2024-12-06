@@ -3,6 +3,7 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.DeserializationDirectionHint.deserializationDirection
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.SerializationDirectionHint.serializationDirection
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ConstantName.Companion.constantName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.InvocationExpression.Companion.invoke
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.methodName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.rawMethodName
@@ -94,7 +95,7 @@ class EnumModelClassEmitter(private val typeDefinition: EnumTypeDefinition) : Co
     // fun Maybe<String?>.as<ModelName>(): Maybe<<ModelName>?> = onNotNull {
     //     when(value) {
     //         <itemValue> -> success(<ModelName>(<itemValue>))
-    //         else -> failure(ValidationError("is not a valid value", context))
+    //         else -> failure(ValidationError("is not a valid value", context, ErrorKind.Invalid))
     //     }
     // }
     //
@@ -120,12 +121,13 @@ class EnumModelClassEmitter(private val typeDefinition: EnumTypeDefinition) : Co
                     }
 
                     // build something like
-                    // else -> failure(ValidationError("is not a valid value", context))
+                    // else -> failure(ValidationError("is not a valid value", context, ErrorKind.Invalid))
                     optionBlock("else".variableName()) {
                         val validationError = InvocationExpression.invoke(
                             Library.ValidationErrorClass.constructorName,
                             "is not a valid value".literal(),
-                            "context".variableName()
+                            "context".variableName(),
+                            Library.ErrorKindClass.companionObject().property("Invalid".constantName())
                         )
                         InvocationExpression.invoke("failure".rawMethodName(), validationError).statement()
                     }

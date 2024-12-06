@@ -6,6 +6,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.serialization.Unsa
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.DeserializationDirectionHint.deserializationDirection
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.SerializationDirectionHint.serializationDirection
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ConstantName.Companion.constantName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.InvocationExpression.Companion.invoke
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.methodName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.rawMethodName
@@ -188,13 +189,14 @@ class OneOfModelClassEmitter(private val typeDefinition: OneOfTypeDefinition, pr
                 optionBlock(nullLiteral()) {
                     // renders
                     //
-                    // failure(ValidationError("discriminator field '<discriminatorName>' is missing", context))
+                    // failure(ValidationError("discriminator field '<discriminatorName>' is missing", context, ErrorKind.Invalid))
                     InvocationExpression.invoke(
                         "failure".methodName(),
                         InvocationExpression.invoke(
                             Library.ValidationErrorClass.constructorName,
                             "discriminator field '$discriminatorProperty' is missing".literal(),
-                            "context".variableName()
+                            "context".variableName(),
+                            Library.ErrorKindClass.companionObject().property("Invalid".constantName())
                         )
                     ).statement()
                 }
@@ -225,13 +227,14 @@ class OneOfModelClassEmitter(private val typeDefinition: OneOfTypeDefinition, pr
                 optionBlock("else".variableName()) {
                     // renders
                     //
-                    // failure(ValidationError("discriminator field '<discriminatorName>' has invalid value '$discriminator'", context))
+                    // failure(ValidationError("discriminator field '<discriminatorName>' has invalid value '$discriminator'", context, ErrorKind.Invalid))
                     InvocationExpression.invoke(
                         "failure".methodName(),
                         InvocationExpression.invoke(
                             Library.ValidationErrorClass.constructorName,
                             "discriminator field '$discriminatorProperty' has invalid value '\$discriminator'".literal(),
-                            "context".variableName()
+                            "context".variableName(),
+                            Library.ErrorKindClass.companionObject().property("Invalid".constantName())
                         )
                     ).statement()
                 }
