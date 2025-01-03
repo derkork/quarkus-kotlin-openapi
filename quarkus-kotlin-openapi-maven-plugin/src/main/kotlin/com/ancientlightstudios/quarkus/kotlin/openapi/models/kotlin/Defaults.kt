@@ -1,91 +1,91 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinTypeName.Companion.nestedTypeName
+
 object Kotlin {
 
-    val Star = KotlinTypeReference("*", "")
-    val Any = KotlinTypeReference("Any", "kotlin")
-    val Unit = KotlinTypeReference("Unit", "kotlin")
-    val Nothing = KotlinTypeReference("Nothing", "kotlin")
-    val ByteArray = KotlinTypeReference("ByteArray", "kotlin")
-    val String = KotlinTypeReference("String", "kotlin")
-    val Boolean = KotlinTypeReference("Boolean", "kotlin")
-    val Float = KotlinTypeReference("Float", "kotlin")
-    val Double = KotlinTypeReference("Double", "kotlin")
-    val BigDecimal = KotlinTypeReference("BigDecimal", "java.math")
-    val Int = KotlinTypeReference("Int", "kotlin")
-    val Long = KotlinTypeReference("Long", "kotlin")
-    val UInt = KotlinTypeReference("UInt", "kotlin")
-    val ULong = KotlinTypeReference("ULong", "kotlin")
-    val BigInteger = KotlinTypeReference("BigInteger", "java.math")
-    val List = KotlinTypeReference("List", "kotlin.collections")
-    val Map = KotlinTypeReference("Map", "kotlin.collections")
-    val Exception = KotlinTypeReference("Exception", "kotlin")
-    val Throwable = KotlinTypeReference("Throwable", "kotlin")
-    val JvmName = KotlinTypeReference("JvmName", "kotlin.jvm")
-    val Pair = KotlinTypeReference("Pair", "kotlin")
-    val IllegalStateException = KotlinTypeReference("IllegalStateException", "kotlin")
-    val ByteArrayOutputStream = KotlinTypeReference("ByteArrayOutputStream", "java.io")
-    val PrintStream = KotlinTypeReference("PrintStream", "java.io")
+    val Star = KotlinTypeName("*", "")
+    val Any = KotlinTypeName("Any", "kotlin")
+    val Unit = KotlinTypeName("Unit", "kotlin")
+    val Nothing = KotlinTypeName("Nothing", "kotlin")
+    val ByteArray = KotlinTypeName("ByteArray", "kotlin")
+    val String = KotlinTypeName("String", "kotlin")
+    val Boolean = KotlinTypeName("Boolean", "kotlin")
+    val Float = KotlinTypeName("Float", "kotlin")
+    val Double = KotlinTypeName("Double", "kotlin")
+    val BigDecimal = KotlinTypeName("BigDecimal", "java.math")
+    val Int = KotlinTypeName("Int", "kotlin")
+    val Long = KotlinTypeName("Long", "kotlin")
+    val UInt = KotlinTypeName("UInt", "kotlin")
+    val ULong = KotlinTypeName("ULong", "kotlin")
+    val BigInteger = KotlinTypeName("BigInteger", "java.math")
+    val List = KotlinTypeName("List", "kotlin.collections")
+    val Map = KotlinTypeName("Map", "kotlin.collections")
+    val Exception = KotlinTypeName("Exception", "kotlin")
+    val Throwable = KotlinTypeName("Throwable", "kotlin")
+    val JvmName = KotlinTypeName("JvmName", "kotlin.jvm")
+    val Pair = KotlinTypeName("Pair", "kotlin")
+    val IllegalStateException = KotlinTypeName("IllegalStateException", "kotlin")
+    val ByteArrayOutputStream = KotlinTypeName("ByteArrayOutputStream", "java.io")
+    val PrintStream = KotlinTypeName("PrintStream", "java.io")
 
 }
 
 object Jakarta {
 
-    val PathAnnotation = KotlinTypeReference("Path", "jakarta.ws.rs")
-    val GetAnnotation = KotlinTypeReference("GET", "jakarta.ws.rs")
-    val PutAnnotation = KotlinTypeReference("PUT", "jakarta.ws.rs")
-    val PostAnnotation = KotlinTypeReference("POST", "jakarta.ws.rs")
-    val DeleteAnnotation = KotlinTypeReference("DELETE", "jakarta.ws.rs")
-    val OptionsAnnotation = KotlinTypeReference("OPTIONS", "jakarta.ws.rs")
-    val HeadAnnotation = KotlinTypeReference("HEAD", "jakarta.ws.rs")
-    val PatchAnnotation = KotlinTypeReference("PATCH", "jakarta.ws.rs")
-    val TraceAnnotation = KotlinTypeReference("TRACE", "jakarta.ws.rs")
-    val ConsumesAnnotation = KotlinTypeReference("Consumes", "jakarta.ws.rs")
-    val PathParamAnnotation = KotlinTypeReference("PathParam", "jakarta.ws.rs")
-    val QueryParamAnnotation = KotlinTypeReference("QueryParam", "jakarta.ws.rs")
-    val HeaderParamAnnotation = KotlinTypeReference("HeaderParam", "jakarta.ws.rs")
-    val CookieParamAnnotation = KotlinTypeReference("CookieParam", "jakarta.ws.rs")
-    val FormParamAnnotation = KotlinTypeReference("FormParam", "jakarta.ws.rs")
-    val WebApplicationException = KotlinTypeReference("WebApplicationException", "jakarta.ws.rs")
-    val Response = KotlinTypeReference("Response", "jakarta.ws.rs.core")
-    val ApplicationScoped = KotlinTypeReference("ApplicationScoped", "jakarta.enterprise.context")
-    val HttpHeaders = KotlinTypeReference("HttpHeaders", "jakarta.ws.rs.core")
-    val ContextAnnotation = KotlinTypeReference("Context", "jakarta.ws.rs.core")
+    val PathAnnotation = KotlinTypeName("Path", "jakarta.ws.rs")
+    val GetAnnotation = KotlinTypeName("GET", "jakarta.ws.rs")
+    val PutAnnotation = KotlinTypeName("PUT", "jakarta.ws.rs")
+    val PostAnnotation = KotlinTypeName("POST", "jakarta.ws.rs")
+    val DeleteAnnotation = KotlinTypeName("DELETE", "jakarta.ws.rs")
+    val OptionsAnnotation = KotlinTypeName("OPTIONS", "jakarta.ws.rs")
+    val HeadAnnotation = KotlinTypeName("HEAD", "jakarta.ws.rs")
+    val PatchAnnotation = KotlinTypeName("PATCH", "jakarta.ws.rs")
+    val TraceAnnotation = KotlinTypeName("TRACE", "jakarta.ws.rs")
+    val ConsumesAnnotation = KotlinTypeName("Consumes", "jakarta.ws.rs")
+    val PathParamAnnotation = KotlinTypeName("PathParam", "jakarta.ws.rs")
+    val QueryParamAnnotation = KotlinTypeName("QueryParam", "jakarta.ws.rs")
+    val HeaderParamAnnotation = KotlinTypeName("HeaderParam", "jakarta.ws.rs")
+    val CookieParamAnnotation = KotlinTypeName("CookieParam", "jakarta.ws.rs")
+    val FormParamAnnotation = KotlinTypeName("FormParam", "jakarta.ws.rs")
+    val WebApplicationException = KotlinTypeName("WebApplicationException", "jakarta.ws.rs")
+    val Response = KotlinTypeName("Response", "jakarta.ws.rs.core")
+    val ApplicationScoped = KotlinTypeName("ApplicationScoped", "jakarta.enterprise.context")
+    val HttpHeaders = KotlinTypeName("HttpHeaders", "jakarta.ws.rs.core")
+    val ContextAnnotation = KotlinTypeName("Context", "jakarta.ws.rs.core")
 
 }
 
 object RestAssured {
 
-    val Response = KotlinTypeReference("Response", "io.restassured.response")
-    val RequestSpecification = KotlinTypeReference("RequestSpecification", "io.restassured.specification")
+    val Response = KotlinTypeName("Response", "io.restassured.response")
+    val RequestSpecification = KotlinTypeName("RequestSpecification", "io.restassured.specification")
 
 }
 
 object Misc {
 
-    val ObjectMapper = KotlinTypeReference("ObjectMapper", "com.fasterxml.jackson.databind")
-    val NullNode = KotlinTypeReference("NullNode", "com.fasterxml.jackson.databind.node")
-    val RestResponse = KotlinTypeReference("RestResponse", "org.jboss.resteasy.reactive")
-
-    //    val ResponseBuilder = RestResponse.rawNested("ResponseBuilder")
-
-    val JsonNode = KotlinTypeReference("JsonNode", "com.fasterxml.jackson.databind")
-    val RegisterRestClient = KotlinTypeReference("RegisterRestClient", "org.eclipse.microprofile.rest.client.inject")
-    val RestClient = KotlinTypeReference("RestClient", "org.eclipse.microprofile.rest.client.inject")
-    val RegisterProvider = KotlinTypeReference("RegisterProvider", "org.eclipse.microprofile.rest.client.annotation")
-    val TimeoutException = KotlinTypeReference("TimeoutException", "java.util.concurrent")
-    val AssertionFailedError = KotlinTypeReference("AssertionFailedError", "org.opentest4j")
-    val LoggerFactory = KotlinTypeReference("LoggerFactory", "org.slf4j")
-    val Logger = KotlinTypeReference("Logger", "org.slf4j")
-    val MDC = KotlinTypeReference("MDC", "org.slf4j")
-    val MDCContext = KotlinTypeReference("MDCContext", "kotlinx.coroutines.slf4j")
+    val ObjectMapper = KotlinTypeName("ObjectMapper", "com.fasterxml.jackson.databind")
+    val NullNode = KotlinTypeName("NullNode", "com.fasterxml.jackson.databind.node")
+    val RestResponse = KotlinTypeName("RestResponse", "org.jboss.resteasy.reactive")
+    val ResponseBuilder = RestResponse.nestedTypeName("ResponseBuilder")
+    val JsonNode = KotlinTypeName("JsonNode", "com.fasterxml.jackson.databind")
+    val RegisterRestClient = KotlinTypeName("RegisterRestClient", "org.eclipse.microprofile.rest.client.inject")
+    val RestClient = KotlinTypeName("RestClient", "org.eclipse.microprofile.rest.client.inject")
+    val RegisterProvider = KotlinTypeName("RegisterProvider", "org.eclipse.microprofile.rest.client.annotation")
+    val TimeoutException = KotlinTypeName("TimeoutException", "java.util.concurrent")
+    val AssertionFailedError = KotlinTypeName("AssertionFailedError", "org.opentest4j")
+    val LoggerFactory = KotlinTypeName("LoggerFactory", "org.slf4j")
+    val Logger = KotlinTypeName("Logger", "org.slf4j")
+    val MDC = KotlinTypeName("MDC", "org.slf4j")
+    val MDCContext = KotlinTypeName("MDCContext", "kotlinx.coroutines.slf4j")
 
 }
 
 object Quarkus {
 
-    val IfBuildProfileAnnotation = KotlinTypeReference("IfBuildProfile", "io.quarkus.arc.profile")
-    val UnlessBuildProfileAnnotation = KotlinTypeReference("UnlessBuildProfile", "io.quarkus.arc.profile")
+    val IfBuildProfileAnnotation = KotlinTypeName("IfBuildProfile", "io.quarkus.arc.profile")
+    val UnlessBuildProfileAnnotation = KotlinTypeName("UnlessBuildProfile", "io.quarkus.arc.profile")
 
 }
 
@@ -93,26 +93,24 @@ object Library {
 
     private val packageName = "com.ancientlightstudios.quarkus.kotlin.openapi"
 
-    val All = KotlinTypeReference("*", packageName)
-    val Maybe = KotlinTypeReference("Maybe", packageName)
-
-    //    val MaybeSuccessClass = MaybeClass.rawNested("Success")
-    //    val MaybeFailureClass = MaybeClass.rawNested("Failure")
-
-    val ValidationError = KotlinTypeReference("ValidationError", packageName)
-    val IsError = KotlinTypeReference("IsError", packageName)
-    val IsTimeoutError = KotlinTypeReference("IsTimeoutError", packageName)
-    val IsUnreachableError = KotlinTypeReference("IsUnreachableError", packageName)
-    val IsConnectionResetError = KotlinTypeReference("IsConnectionResetError", packageName)
-    val IsUnknownError = KotlinTypeReference("IsUnknownError", packageName)
-    val IsResponseError = KotlinTypeReference("IsResponseError", packageName)
-    val DefaultValidator = KotlinTypeReference("DefaultValidator", packageName)
-    val RequestHandledSignal = KotlinTypeReference("RequestHandledSignal", packageName)
-    val ResponseWithGenericStatus = KotlinTypeReference("ResponseWithGenericStatus", packageName)
-    val RequestContext = KotlinTypeReference("RequestContext", packageName)
-    val PropertiesContainer = KotlinTypeReference("PropertiesContainer", packageName)
-    val UnsafeJson = KotlinTypeReference("UnsafeJson", packageName)
-    val RequestLoggingFilter = KotlinTypeReference("RequestLoggingFilter", "$packageName.testsupport")
-    val ResponseLoggingFilter = KotlinTypeReference("ResponseLoggingFilter", "$packageName.testsupport")
+    val All = KotlinTypeName("*", packageName)
+    val Maybe = KotlinTypeName("Maybe", packageName)
+    val MaybeSuccessClass = Maybe.nestedTypeName("Success")
+    val MaybeFailureClass = Maybe.nestedTypeName("Failure")
+    val ValidationError = KotlinTypeName("ValidationError", packageName)
+    val IsError = KotlinTypeName("IsError", packageName)
+    val IsTimeoutError = KotlinTypeName("IsTimeoutError", packageName)
+    val IsUnreachableError = KotlinTypeName("IsUnreachableError", packageName)
+    val IsConnectionResetError = KotlinTypeName("IsConnectionResetError", packageName)
+    val IsUnknownError = KotlinTypeName("IsUnknownError", packageName)
+    val IsResponseError = KotlinTypeName("IsResponseError", packageName)
+    val DefaultValidator = KotlinTypeName("DefaultValidator", packageName)
+    val RequestHandledSignal = KotlinTypeName("RequestHandledSignal", packageName)
+    val ResponseWithGenericStatus = KotlinTypeName("ResponseWithGenericStatus", packageName)
+    val RequestContext = KotlinTypeName("RequestContext", packageName)
+    val PropertiesContainer = KotlinTypeName("PropertiesContainer", packageName)
+    val UnsafeJson = KotlinTypeName("UnsafeJson", packageName)
+    val RequestLoggingFilter = KotlinTypeName("RequestLoggingFilter", "$packageName.testsupport")
+    val ResponseLoggingFilter = KotlinTypeName("ResponseLoggingFilter", "$packageName.testsupport")
 
 }

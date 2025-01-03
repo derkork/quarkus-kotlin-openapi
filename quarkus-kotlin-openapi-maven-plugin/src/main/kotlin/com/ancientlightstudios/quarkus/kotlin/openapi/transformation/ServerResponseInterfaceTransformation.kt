@@ -4,7 +4,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.InterfaceType
 import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.inspect
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.SolutionHint.solution
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ConflictResolution
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.FileName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ComponentName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ServerResponseInterface
 
 // generates the response interfaces for a server implementation
@@ -30,7 +30,7 @@ class ServerResponseInterfaceTransformation : SpecTransformation {
                             // issues in the generator pipeline
                             if (uniqueNames.add(it)) {
                                 val responseInterface = ServerResponseInterface(
-                                    FileName(it, config.packageName, ConflictResolution.Requested),
+                                    ComponentName(it, config.packageName, ConflictResolution.Requested),
                                     response.responseCode.asMethodName(),
                                     response.responseCode,
                                     response

@@ -1,7 +1,6 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.refactoring
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.OriginPathHint.originPath
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeDefinitionHint.hasTypeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.TypeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.TypeUsage
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
@@ -12,6 +11,7 @@ class AssignTypesToSchemasRefactoring(private val typeMapper: TypeMapper) : Spec
     private val log = LoggerFactory.getLogger(AssignTypesToSchemasRefactoring::class.java)
 
     override fun RefactoringContext.perform() {
+/*
         // this can be used by the nested type creators to finalize the type usages once all types are created
         val typeResolver = TypeResolver()
 
@@ -44,6 +44,7 @@ class AssignTypesToSchemasRefactoring(private val typeMapper: TypeMapper) : Spec
 
         // now all types are available, and we can initialize the remaining usages
         typeResolver.resolve()
+        */
     }
 
 }

@@ -1,9 +1,11 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.SchemaUsage
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiSchema
 
-interface SomeOfComponent : SchemaComponent, ReferencingComponent {
+interface SomeOfComponent : SchemaComponent, StructuralComponent {
 
-    val schemas: List<SchemaUsage>
+    val options: List<SomeOfOption>
 
 }
+
+class SomeOfOption(override var schema: OpenApiSchema) : SchemaContainer

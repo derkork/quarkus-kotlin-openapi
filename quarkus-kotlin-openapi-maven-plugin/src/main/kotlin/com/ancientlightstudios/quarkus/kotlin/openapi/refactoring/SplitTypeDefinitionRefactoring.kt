@@ -1,9 +1,5 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.refactoring
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.DownTypeDefinitionHint.downTypeDefinition
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeDefinitionHint.clearTypeDefinition
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeDefinitionHint.typeDefinition
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.UpTypeDefinitionHint.upTypeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.SchemaModifier
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiSchema
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.*
@@ -13,6 +9,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.utils.pop
 class SplitTypeDefinitionRefactoring : SpecRefactoring {
 
     override fun RefactoringContext.perform() {
+        /*
         // used to have a quick way of finding our where a type definition is coming from
         val schemaLookup = mutableMapOf<TypeDefinition, OpenApiSchema>()
 
@@ -81,6 +78,8 @@ class SplitTypeDefinitionRefactoring : SpecRefactoring {
                 typesToCheck.splitBidirectionalTypes(originalType, upType, downType, scheduleHandler)
             }
         }
+
+         */
     }
 
     private fun filterObjectProperties(typeDefinition: RealObjectTypeDefinition, acceptedDirection: Direction) {

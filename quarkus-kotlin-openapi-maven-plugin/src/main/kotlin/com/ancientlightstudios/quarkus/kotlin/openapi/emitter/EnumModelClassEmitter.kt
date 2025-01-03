@@ -1,22 +1,42 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.DeserializationDirectionHint.deserializationDirection
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.SerializationDirectionHint.serializationDirection
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.InvocationExpression.Companion.invoke
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.methodName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.rawMethodName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.PropertyExpression.Companion.property
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.GenericTypeName.Companion.of
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.SimpleTypeName.Companion.typeName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ContentType
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.Direction
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.EnumTypeDefinition
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.SolutionHint.solution
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinTypeName.Companion.asTypeName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.Library
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.kotlinEnum
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.kotlinEnumItem
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.kotlinMember
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.EnumModelClass
 
-//class EnumModelClassEmitter(private val typeDefinition: EnumTypeDefinition) : CodeEmitter {
-//
-//    private lateinit var emitterContext: EmitterContext
+class EnumModelClassEmitter : CodeEmitter {
+
+    override fun EmitterContext.emit() {
+        spec.solution.files
+            .filterIsInstance<EnumModelClass>()
+            .forEach { emitFile(it) }
+    }
+
+    private fun EmitterContext.emitFile(model: EnumModelClass) {
+        kotlinFile(model.name.asTypeName()) {
+            registerImports(Library.All)
+            registerImports(config.additionalImports())
+
+            kotlinEnum(name) {
+                kotlinMember(
+                    "value",
+                    model.itemType.asTypeReference(),
+                    accessModifier = null
+                )
+
+                model.items.forEach {
+                    kotlinEnumItem(it.name, model.itemType.literalFor(it.value))
+                }
+            }
+        }
+    }
+
+}
+
 //
 //    override fun EmitterContext.emit() {
 //        emitterContext = this

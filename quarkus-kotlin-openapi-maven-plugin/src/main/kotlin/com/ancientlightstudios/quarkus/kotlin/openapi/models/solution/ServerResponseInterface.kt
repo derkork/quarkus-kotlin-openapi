@@ -5,7 +5,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ResponseCod
 
 // TODO: Headers, Body
 class ServerResponseInterface(
-    name: FileName,
+    name: ComponentName,
     val methodName: String,
     val responseCode: ResponseCode,
     val source: OpenApiResponse

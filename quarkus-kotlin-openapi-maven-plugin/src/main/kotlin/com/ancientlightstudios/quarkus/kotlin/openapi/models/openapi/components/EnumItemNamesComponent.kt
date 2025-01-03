@@ -1,14 +1,14 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiSchema
+class EnumItemNamesComponent(val values: Map<String, String>) : SchemaComponent, StructuralComponent {
 
-class EnumItemNamesComponent(val values: Map<String, String>) : SchemaComponent, MetaComponent {
+    override fun merge(other: List<SchemaComponent>, origin: String): Pair<SchemaComponent, List<SchemaComponent>> {
+        val (otherMergeComponents, remainingComponents) = other.partitionIsInstance<EnumItemNamesComponent>()
 
-    companion object {
-
-        fun OpenApiSchema.enumItemNamesComponent() =
-            components.filterIsInstance<EnumItemNamesComponent>().firstOrNull()
-
+        val result = values.toMutableMap()
+        // we just merge them together
+        otherMergeComponents.forEach { result.putAll(it.values) }
+        return EnumItemNamesComponent(result) to remainingComponents
     }
 
 }

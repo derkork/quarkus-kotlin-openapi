@@ -5,7 +5,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiRequ
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.RequestMethod
 
 class ServerRestController(
-    name: FileName,
+    name: ComponentName,
     val path: String,
     val delegate: ServerDelegateInterface,
     val source: OpenApiRequestBundle

@@ -1,9 +1,8 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.parser
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.DefaultSchemaUsage
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.SchemaModifier
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.SchemaTypes
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiSchema
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.SchemaModifier
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.SchemaType
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.SpecIssue
 import com.fasterxml.jackson.databind.node.BooleanNode
@@ -35,19 +34,15 @@ class SchemaBuilder(
             addAllOfComponent(components)
             addAnyOfComponent(components)
             addOneOfComponent(components)
+            addModelNameComponent(components)
             addContainerModelNameComponent(components)
             addEnumItemNamesComponent(components)
-            addCustomConstraintsValidationComponent(components)
-            addArrayValidationComponent(components)
+            addValidationComponent(components)
             addObjectValidationComponent(components)
             addEnumValidationComponent(components)
-            addStringValidationComponent(components)
-            addNumberValidationComponent(components)
-            addPropertiesValidationComponent(components)
         }
 
         schema.components = components
-        schema.name = node.getTextOrNull("x-model-name") ?: contextPath.referencedComponentName() ?: ""
     }
 
     private fun ParseContext.addBaseDefinitionComponent(components: MutableList<SchemaComponent>): Boolean {
@@ -62,7 +57,7 @@ class SchemaBuilder(
         val types = when (openApiVersion) {
             ApiVersion.V3_0 -> node.getTextOrNull("type")?.let { listOf(it) }
             ApiVersion.V3_1 -> node.getMultiValue("type")?.map { it.asText() }?.filterNot { it == "null" }
-        }?.map(SchemaTypes::fromString)
+        }?.map(SchemaType::fromString)
 
         if (types.isNullOrEmpty()) {
             return
@@ -107,9 +102,23 @@ class SchemaBuilder(
         direction?.let { components.add(SchemaModifierComponent(direction)) }
     }
 
-    private fun addCustomConstraintsValidationComponent(components: MutableList<SchemaComponent>) {
+    private fun ParseContext.addValidationComponent(components: MutableList<SchemaComponent>) {
+        val validations = mutableListOf<SchemaValidation>()
+
+        addCustomConstraintsValidation(validations)
+        addArrayValidation(validations)
+        addStringValidation(validations)
+        addNumberValidation(validations)
+        addPropertiesValidation(validations)
+
+        if (validations.isNotEmpty()) {
+            components.add(ValidationComponent(validations))
+        }
+    }
+
+    private fun addCustomConstraintsValidation(validations: MutableList<SchemaValidation>) {
         node.getMultiValue("x-constraints")?.map { it.asText() }
-            ?.let { components.add(ValidationComponent(CustomConstraintsValidation(it))) }
+            ?.let { validations.add(CustomConstraintsValidation(it)) }
     }
 
     private fun ParseContext.addArrayComponent(components: MutableList<SchemaComponent>) {
@@ -119,11 +128,11 @@ class SchemaBuilder(
         }
     }
 
-    private fun addArrayValidationComponent(components: MutableList<SchemaComponent>) {
+    private fun addArrayValidation(validations: MutableList<SchemaValidation>) {
         val minItems = node.getTextOrNull("minItems")?.toInt()
         val maxItems = node.getTextOrNull("maxItems")?.toInt()
         if (minItems != null || maxItems != null) {
-            components.add(ValidationComponent(ArrayValidation(minItems, maxItems)))
+            validations.add(ArrayValidation(minItems, maxItems))
         }
     }
 
@@ -134,28 +143,28 @@ class SchemaBuilder(
         }
     }
 
-    private fun addStringValidationComponent(components: MutableList<SchemaComponent>) {
+    private fun addStringValidation(validations: MutableList<SchemaValidation>) {
         val minLength = node.getTextOrNull("minLength")?.toInt()
         val maxLength = node.getTextOrNull("maxLength")?.toInt()
         val pattern = node.getTextOrNull("pattern")
         if (minLength != null || maxLength != null || pattern != null) {
-            components.add(ValidationComponent(StringValidation(minLength, maxLength, pattern)))
+            validations.add(StringValidation(minLength, maxLength, pattern))
         }
     }
 
-    private fun ParseContext.addNumberValidationComponent(components: MutableList<SchemaComponent>) {
+    private fun ParseContext.addNumberValidation(validations: MutableList<SchemaValidation>) {
         val minimum = extractComparableNumber("minimum")
         val maximum = extractComparableNumber("maximum")
         if (minimum != null || maximum != null) {
-            components.add(ValidationComponent(NumberValidation(minimum, maximum)))
+            validations.add(NumberValidation(minimum, maximum))
         }
     }
 
-    private fun addPropertiesValidationComponent(components: MutableList<SchemaComponent>) {
+    private fun addPropertiesValidation(validations: MutableList<SchemaValidation>) {
         val minProperties = node.getTextOrNull("minProperties")?.toInt()
         val maxProperties = node.getTextOrNull("maxProperties")?.toInt()
         if (minProperties != null || maxProperties != null) {
-            components.add(ValidationComponent(PropertiesValidation(minProperties, maxProperties)))
+            validations.add(PropertiesValidation(minProperties, maxProperties))
         }
     }
 
@@ -182,34 +191,37 @@ class SchemaBuilder(
     }
 
     private fun ParseContext.addAllOfComponent(components: MutableList<SchemaComponent>) {
-        val schemas = node.withArray("allOf")
+        val options = node.withArray("allOf")
             .mapIndexed { idx, it ->
                 contextFor(it, "allOf", "$idx").parseAsSchema()
-            }.map { DefaultSchemaUsage(it) }
+            }
+            .map { SomeOfOption(it) }
 
-        if (schemas.isNotEmpty()) {
-            components.add(AllOfComponent(schemas))
+        if (options.isNotEmpty()) {
+            components.add(AllOfComponent(options))
         }
     }
 
     private fun ParseContext.addAnyOfComponent(components: MutableList<SchemaComponent>) {
-        val schemas = node.withArray("anyOf")
+        val options = node.withArray("anyOf")
             .mapIndexed { idx, it ->
                 contextFor(it, "anyOf", "$idx").parseAsSchema()
-            }.map { DefaultSchemaUsage(it) }
+            }
+            .map { SomeOfOption(it) }
 
-        if (schemas.isNotEmpty()) {
-            components.add(AnyOfComponent(schemas))
+        if (options.isNotEmpty()) {
+            components.add(AnyOfComponent(options))
         }
     }
 
     private fun ParseContext.addOneOfComponent(components: MutableList<SchemaComponent>) {
-        val schemas = node.withArray("oneOf")
+        val options = node.withArray("oneOf")
             .mapIndexed { idx, it ->
                 contextFor(it, "oneOf", "$idx").parseAsSchema()
-            }.map { DefaultSchemaUsage(it) }
+            }
+            .map { SomeOfOption(it) }
 
-        if (schemas.isNotEmpty()) {
+        if (options.isNotEmpty()) {
             val discriminatorNode = node.get("discriminator")
                 ?.asObjectNode { "Json object expected for discriminator at $contextPath" }
             var discriminator: OneOfDiscriminator? = null
@@ -225,7 +237,7 @@ class SchemaBuilder(
                 discriminator = OneOfDiscriminator(propertyName, mappings)
             }
 
-            components.add(OneOfComponent(schemas, discriminator))
+            components.add(OneOfComponent(options, discriminator))
         }
     }
 
@@ -266,6 +278,10 @@ class SchemaBuilder(
         if (required.isNotEmpty()) {
             components.add(ObjectValidationComponent(required))
         }
+    }
+
+    private fun addModelNameComponent(components: MutableList<SchemaComponent>) {
+        node.getTextOrNull("x-model-name")?.let { components.add(ModelNameComponent(it)) }
     }
 
     private fun addContainerModelNameComponent(components: MutableList<SchemaComponent>) {

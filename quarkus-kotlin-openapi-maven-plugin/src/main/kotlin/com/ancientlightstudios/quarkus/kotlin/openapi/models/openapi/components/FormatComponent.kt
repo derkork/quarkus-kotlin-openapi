@@ -1,33 +1,18 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.OriginPathHint.originPath
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiSchema
-import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
+import com.ancientlightstudios.quarkus.kotlin.openapi.utils.SpecIssue
 
 class FormatComponent(val format: String) : SchemaComponent, StructuralComponent {
 
-    companion object {
+    override fun merge(other: List<SchemaComponent>, origin: String): Pair<SchemaComponent, List<SchemaComponent>> {
+        val (otherMergeComponents, remainingComponents) = other.partitionIsInstance<FormatComponent>()
 
-        fun OpenApiSchema.formatComponent(): FormatComponent? {
-            val components = components.filterIsInstance<FormatComponent>()
-
-            if (components.isEmpty()) {
-                return null
-            }
-
-            if (components.size == 1) {
-                return components.first()
-            }
-
-            // all components must have the same format
-            val formats = components.mapTo(mutableSetOf()) { it.format }
-            if (formats.size == 1) {
-                return components.first()
-            }
-
-            ProbableBug("multiple format components found at schema $originPath")
+        val hasIncompatibleItems = otherMergeComponents.any { it.format != format }
+        if (hasIncompatibleItems) {
+            SpecIssue("different format values detected. Found in schema $origin")
         }
 
+        return this to remainingComponents
     }
 
 }

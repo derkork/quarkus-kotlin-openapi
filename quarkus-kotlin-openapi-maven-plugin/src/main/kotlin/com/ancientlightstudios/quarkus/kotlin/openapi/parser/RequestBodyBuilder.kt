@@ -1,6 +1,7 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.parser
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.NameSuggestionHint.nameSuggestion
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.OriginPathHint.originPath
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiBody
 import com.fasterxml.jackson.databind.node.ObjectNode
 
@@ -15,7 +16,9 @@ class RequestBodyBuilder(private val node: ObjectNode) {
 
     private fun ParseContext.extractBodyDefinition() = OpenApiBody(
         node.getBooleanOrNull("required") ?: false, contextFor("content").parseAsContent()
-    )
+    ).apply {
+        originPath = contextPath
+    }
 
     private fun ParseContext.extractBodyReference(ref: String) = rootContext.contextFor(JsonPointer.fromPath(ref))
         .parseAsRequestBody()

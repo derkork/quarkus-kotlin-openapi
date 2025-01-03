@@ -40,17 +40,21 @@ fun String.toUpperCamelCase() = toLowerCamelCase()
 private fun String.capitalize() =
     replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.ENGLISH) else it.toString() }
 
+private fun String.verifyValidIdentifier() = if (this[0].isLetter()) this else "_$this"
+
 // ---------------------------------------------------------------------------
 // high level functions to create various identifiers
 // ---------------------------------------------------------------------------
-fun classNameOf(first: String, vararg additional: String): String {
-    val result = listOf(first, *additional).joinToString(" ").toUpperCamelCase()
-    // if it does not start with a letter, prepend an underscore
-    return if (result[0].isLetter()) result else "_$result"
-}
+fun classNameOf(first: String, vararg additional: String) = listOf(first, *additional).joinToString(" ")
+    .toUpperCamelCase()
+    .verifyValidIdentifier()
 
-fun methodNameOf(first: String, vararg additional: String): String {
-    val result = listOf(first, *additional).joinToString(" ").toLowerCamelCase()
-    // if it does not start with a letter, prepend an underscore
-    return if (result[0].isLetter()) result else "_$result"
-}
+// same as for a class name right now
+fun constantNameOf(first: String, vararg additional: String) = classNameOf(first, *additional)
+
+fun methodNameOf(first: String, vararg additional: String) = listOf(first, *additional).joinToString(" ")
+    .toLowerCamelCase()
+    .verifyValidIdentifier()
+
+// same as for a method name right now
+fun variableNameOf(first: String, vararg additional: String) = methodNameOf(first, *additional)

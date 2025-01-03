@@ -55,8 +55,7 @@ class KotlinInterface(
         write("interface ${name.name}")
 
         if (interfaces.isNotEmpty()) {
-            // TODO
-            write(interfaces.joinToString(prefix = " : ") { it.name })
+            write(interfaces.joinToString(prefix = " : ") { it.render() })
         }
 
         if (methods.isNotEmpty || items.isNotEmpty || companion != null) {

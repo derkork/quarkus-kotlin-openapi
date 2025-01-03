@@ -1,4 +1,5 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.solution
 
-class ServerRequestContainer {
-}
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiRequest
+
+class ServerRequestContainer(name: ComponentName, val source: OpenApiRequest) : SolutionFile(name)

@@ -1,25 +1,36 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.DeserializationDirectionHint.deserializationDirection
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.SerializationDirectionHint.serializationDirection
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.SolutionHint.solution
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.InvocationExpression.Companion.invoke
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.methodName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.rawMethodName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.NullCheckExpression.Companion.nullCheck
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.PropertyExpression.Companion.property
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.GenericTypeName.Companion.of
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.SimpleTypeName.Companion.typeName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.rawVariableName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.WhenExpression.Companion.whenExpression
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ContentType
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.Direction
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.OneOfOption
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.OneOfTypeDefinition
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinTypeName.Companion.asTypeName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.OneOfModelClass
 
-//class OneOfModelClassEmitter(private val typeDefinition: OneOfTypeDefinition, private val withTestSupport: Boolean) :
-//    CodeEmitter {
+class OneOfModelClassEmitter : CodeEmitter {
+
+    override fun EmitterContext.emit() {
+        spec.solution.files
+            .filterIsInstance<OneOfModelClass>()
+            .forEach { emitFile(it) }
+    }
+
+    private fun EmitterContext.emitFile(model: OneOfModelClass) {
+        kotlinFile(model.name.asTypeName()) {
+            registerImports(Library.All)
+            registerImports(config.additionalImports())
+
+            kotlinInterface(name, sealed = true) {
+
+            }
+
+            model.options.forEach {
+                kotlinClass(it.name.asTypeName(), asDataClass = true, baseClass = KotlinBaseClass(name)) {
+                    kotlinMember("value", it.model.asTypeReference(), accessModifier = null)
+                }
+            }
+        }
+    }
+
+}
 //
 //    private lateinit var emitterContext: EmitterContext
 //

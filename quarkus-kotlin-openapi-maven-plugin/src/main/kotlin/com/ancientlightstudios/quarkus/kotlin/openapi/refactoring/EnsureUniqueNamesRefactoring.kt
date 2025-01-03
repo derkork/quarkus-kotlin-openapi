@@ -1,48 +1,14 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.refactoring
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.inspect
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ClientDelegateClassNameHint.clientDelegateClassName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ClientErrorResponseClassNameHint.clientErrorResponseClassName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ClientHttpResponseClassNameHint.clientHttpResponseClassName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ClientRestInterfaceClassNameHint.clientRestInterfaceClassName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ModelTypesHint.modelTypes
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.RequestBuilderClassNameHint.requestBuilderClassName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.RequestContainerClassNameHint.requestContainerClassName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.RequestContextClassNameHint.requestContextClassName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ResponseContainerClassNameHint.responseContainerClassName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ResponseInterfaceNameHint.responseInterfaceName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ResponseValidatorClassNameHint.responseValidatorClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.*
 
+@Deprecated(message = "")
 class EnsureUniqueNamesRefactoring : SpecRefactoring {
 
     override fun RefactoringContext.perform() {
+/*
         val registry = NameRegistry()
-        spec.inspect {
-            bundles {
-                bundle.clientDelegateClassName = registry.uniqueNameFor(bundle.clientDelegateClassName)
-                bundle.clientRestInterfaceClassName = registry.uniqueNameFor(bundle.clientRestInterfaceClassName)
-//                bundle.serverDelegateClassName = registry.uniqueNameFor(bundle.serverDelegateClassName)
-//                bundle.serverRestInterfaceClassName = registry.uniqueNameFor(bundle.serverRestInterfaceClassName)
-
-                requests {
-                    request.clientErrorResponseClassName = registry.uniqueNameFor(request.clientErrorResponseClassName)
-                    request.clientHttpResponseClassName = registry.uniqueNameFor(request.clientHttpResponseClassName)
-                    request.requestContainerClassName = registry.uniqueNameFor(request.requestContainerClassName)
-                    request.requestContextClassName = registry.uniqueNameFor(request.requestContextClassName)
-                    request.requestBuilderClassName = registry.uniqueNameFor(request.requestBuilderClassName)
-                    request.responseContainerClassName = registry.uniqueNameFor(request.responseContainerClassName)
-                    request.responseValidatorClassName = registry.uniqueNameFor(request.responseValidatorClassName)
-
-                    responses {
-                        response.responseInterfaceName?.let {
-                            response.responseInterfaceName = registry.uniqueNameFor(it, true)
-                        }
-                    }
-                }
-            }
-        }
 
         spec.modelTypes
             .filterNot { it is TypeDefinitionOverlay }
@@ -70,6 +36,8 @@ class EnsureUniqueNamesRefactoring : SpecRefactoring {
                     }
                 }
             }
+
+ */
     }
 
 }

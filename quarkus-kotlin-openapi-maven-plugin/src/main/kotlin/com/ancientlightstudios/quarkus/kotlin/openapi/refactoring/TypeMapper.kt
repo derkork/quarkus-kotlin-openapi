@@ -3,13 +3,11 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.refactoring
 import com.ancientlightstudios.quarkus.kotlin.openapi.Config
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName.Companion.className
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.Kotlin
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.SchemaTypes
-import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.SchemaType
 
 class TypeMapper(private val config: Config) {
 
-    fun mapToPrimitiveType(type: SchemaTypes, format: String?) = "String".className("")
+    fun mapToPrimitiveType(type: SchemaType, format: String?) = "String".className("")
 //        when (type) {
 //        SchemaTypes.String -> mapStringType(format)
 //        SchemaTypes.Number -> mapNumberType(format)
@@ -18,13 +16,14 @@ class TypeMapper(private val config: Config) {
 //        else -> ProbableBug("unsupported primitive type mapping '$type' with format '$format'")
 //    }
 
-    private fun mapCustomType(type: SchemaTypes, format: String?, fallback: ClassName): ClassName {
-        if (format.isNullOrEmpty()) {
-            return fallback
-        }
-
-        return config.typeNameFor(type.value, format) ?: fallback
-    }
+//    private fun mapCustomType(type: SchemaType, format: String?, fallback: ClassName): ClassName {
+//        if (format.isNullOrEmpty()) {
+//            return fallback
+//        }
+//
+//        // TODO: support generic types
+//        return config.typeNameFor(type.value, format) ?: fallback
+//    }
 
 //    private fun mapStringType(format: String?) = when (format) {
 //        "byte",

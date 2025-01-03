@@ -1,27 +1,30 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.RequestInspection
-import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.inspect
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ParameterVariableNameHint.parameterVariableName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.RequestContainerClassNameHint.requestContainerClassName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeUsageHint.typeUsage
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.SolutionHint.solution
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinTypeName.Companion.asTypeName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.Library
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.kotlinClass
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.kotlinMember
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ServerRequestContainer
 
-//class ServerRequestContainerEmitter : CodeEmitter {
-//
-//    override fun EmitterContext.emit() {
-//        spec.inspect {
-//            bundles {
-//                requests {
-//                    if (request.hasInputParameter()) {
-//                        emitContainerFile().writeFile()
-//                    }
-//                }
-//            }
-//        }
-//    }
-//
+class ServerRequestContainerEmitter : CodeEmitter {
+
+    override fun EmitterContext.emit() {
+        spec.solution.files
+            .filterIsInstance<ServerRequestContainer>()
+            .forEach { emitFile(it) }
+    }
+
+    private fun EmitterContext.emitFile(container: ServerRequestContainer) {
+        kotlinFile(container.name.asTypeName()) {
+            registerImports(Library.All)
+            registerImports(config.additionalImports())
+
+            kotlinClass(name) {
+            }
+        }
+    }
+}
+
 //    private fun RequestInspection.emitContainerFile() = kotlinFile(request.requestContainerClassName) {
 //        kotlinClass(fileName) {
 //            parameters {

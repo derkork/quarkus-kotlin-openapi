@@ -1,27 +1,14 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiSchema
-
 class ObjectValidationComponent(val required: List<String> = listOf()) : SchemaComponent, StructuralComponent {
 
-    companion object {
+    override fun merge(other: List<SchemaComponent>, origin: String): Pair<SchemaComponent, List<SchemaComponent>> {
+        val (otherMergeComponents, remainingComponents) = other.partitionIsInstance<ObjectValidationComponent>()
 
-        fun OpenApiSchema.objectValidationComponent(): ObjectValidationComponent? {
-            val components = components.filterIsInstance<ObjectValidationComponent>()
-
-            if (components.isEmpty()) {
-                return null
-            }
-
-            if (components.size == 1) {
-                return components.first()
-            }
-
-            return ObjectValidationComponent(
-                components.flatMapTo(mutableListOf()) { it.required }
-            )
-        }
-
+        // just append everything into a single list
+        val result = required.toMutableList()
+        otherMergeComponents.flatMapTo(result) { it.required }
+        return ObjectValidationComponent(result) to remainingComponents
     }
 
 }

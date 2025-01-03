@@ -1,34 +1,20 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.OriginPathHint.originPath
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.SchemaTypes
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiSchema
-import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.SchemaType
+import com.ancientlightstudios.quarkus.kotlin.openapi.utils.SpecIssue
 
-class TypeComponent(val type: SchemaTypes) : SchemaComponent, StructuralComponent {
+class TypeComponent(val type: SchemaType) : SchemaComponent, StructuralComponent {
 
-    companion object {
+    override fun merge(other: List<SchemaComponent>, origin: String): Pair<SchemaComponent, List<SchemaComponent>> {
+        val (otherMergeComponents, remainingComponents) = other.partitionIsInstance<TypeComponent>()
 
-        fun OpenApiSchema.typeComponent(): TypeComponent? {
-            val components = components.filterIsInstance<TypeComponent>()
-
-            if (components.isEmpty()) {
-                return null
-            }
-
-            if (components.size == 1) {
-                return components.first()
-            }
-
-            // all components must have the same type
-            val types = components.mapTo(mutableSetOf()) { it.type }
-            if (types.size == 1) {
-                return components.first()
-            }
-
-            ProbableBug("multiple type components found at schema $originPath")
+        val hasIncompatibleValues = otherMergeComponents.any { it.type != type }
+        if (hasIncompatibleValues) {
+            SpecIssue("different types detected. Found in schema $origin")
         }
 
+        return this to remainingComponents
     }
+
 
 }

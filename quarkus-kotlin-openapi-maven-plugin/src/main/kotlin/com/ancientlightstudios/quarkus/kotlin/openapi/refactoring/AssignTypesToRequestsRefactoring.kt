@@ -1,15 +1,12 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.refactoring
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.inspect
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.DownTypeDefinitionHint.downTypeDefinition
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeUsageHint.typeUsage
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.UpTypeDefinitionHint.upTypeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.TypeUsage
 
 class AssignTypesToRequestsRefactoring : SpecRefactoring {
 
     override fun RefactoringContext.perform() {
-        spec.inspect {
+/*        spec.inspect {
             bundles {
                 requests {
                     parameters {
@@ -32,5 +29,6 @@ class AssignTypesToRequestsRefactoring : SpecRefactoring {
                 }
             }
         }
+        */
     }
 }

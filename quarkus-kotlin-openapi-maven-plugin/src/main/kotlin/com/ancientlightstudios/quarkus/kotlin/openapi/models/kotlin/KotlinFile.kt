@@ -4,24 +4,15 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
 
 class KotlinFile(val name: KotlinTypeName) : ClassAware, MethodAware, EnumAware, InterfaceAware {
 
-    private val imports = mutableSetOf<ClassName>()
+    private val imports = mutableSetOf<KotlinTypeName>()
     private val content = KotlinRenderableBlockContainer<KotlinRenderable>()
 
-    fun registerImports(vararg imports: KotlinTypeReference) {
-        // this.imports.addAll(imports)
-    }
-
-    fun registerImports(vararg imports: ClassName) {
+    fun registerImports(vararg imports: KotlinTypeName) {
         this.imports.addAll(imports)
     }
 
-    @JvmName("foooo")
-    fun registerImports(imports: List<ClassName>) {
+    fun registerImports(imports: List<KotlinTypeName>) {
         this.imports.addAll(imports)
-    }
-
-    fun registerImports(imports: List<KotlinTypeReference>) {
-//        this.imports.addAll(imports)
     }
 
     override fun addClass(clazz: KotlinClass) {
@@ -60,7 +51,13 @@ class KotlinFile(val name: KotlinTypeName) : ClassAware, MethodAware, EnumAware,
     }
 
     private fun collectImports(): List<String> {
-        val collector = ImportCollector(name.packageName)
+        val collector = ImportCollector(
+            name.packageName, listOf(
+                "kotlin",
+                "kotlin.collections",
+                "kotlin.jvm"
+            )
+        )
         imports.forEach { collector.register(it) }
         collector.registerFrom(content)
 

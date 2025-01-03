@@ -3,7 +3,6 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.SolutionHint.solution
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinTypeName.Companion.asTypeName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinTypeReference.Companion.asTypeReference
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ResponseCode
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ServerResponseInterface
 
@@ -21,9 +20,9 @@ class ServerResponseInterfaceEmitter : CodeEmitter {
             registerImports(config.additionalImports())
 
             kotlinInterface(name) {
-                kotlinMethod(responseInterface.methodName, returnType = Kotlin.Nothing) {
+                kotlinMethod(responseInterface.methodName, returnType = Kotlin.Nothing.asTypeReference()) {
                     if (responseInterface.responseCode == ResponseCode.Default) {
-                        kotlinParameter("status", Kotlin.Int)
+                        kotlinParameter("status", Kotlin.Int.asTypeReference())
                     }
 //                    emitMethodBody(body, headers)
                 }

@@ -6,9 +6,13 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
 
 class OpenApiSchema(
-    var name: String,
     var components: List<SchemaComponent> = listOf()
 ) : HintsAware() {
+
+    inline fun <reified T : SchemaComponent> hasComponent(): Boolean = components.any { it is T }
+
+    @JvmName("getComponentsOfType")
+    inline fun <reified T : SchemaComponent> getComponents(): List<T> = components.filterIsInstance<T>()
 
     inline fun <reified T : SchemaComponent> getComponent(): T? {
         val result = components.filterIsInstance<T>()
@@ -18,7 +22,6 @@ class OpenApiSchema(
             else -> result.first()
         }
     }
-
 }
 
 

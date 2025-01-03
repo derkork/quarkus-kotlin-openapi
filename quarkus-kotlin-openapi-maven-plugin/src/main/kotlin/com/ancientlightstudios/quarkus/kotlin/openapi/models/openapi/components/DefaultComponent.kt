@@ -1,23 +1,18 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.OriginPathHint.originPath
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiSchema
-import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
+import com.ancientlightstudios.quarkus.kotlin.openapi.utils.SpecIssue
 
 class DefaultComponent(val default: String) : SchemaComponent, MetaComponent {
 
-    companion object {
+    override fun merge(other: List<SchemaComponent>, origin: String): Pair<SchemaComponent, List<SchemaComponent>> {
+        val (otherMergeComponents, remainingComponents) = other.partitionIsInstance<DefaultComponent>()
 
-        fun OpenApiSchema.defaultComponent(): DefaultComponent? {
-            val components = components.filterIsInstance<DefaultComponent>()
-            return when {
-                components.isEmpty() -> null
-                components.size > 1 -> ProbableBug("Multiple instances of default component found at schema $originPath")
-                else -> components.first()
-            }
+        val hasIncompatibleValues = otherMergeComponents.any { it.default != default }
+        if (hasIncompatibleValues) {
+            SpecIssue("different default values detected. Found in schema $origin")
         }
 
+        return this to remainingComponents
     }
-
 
 }

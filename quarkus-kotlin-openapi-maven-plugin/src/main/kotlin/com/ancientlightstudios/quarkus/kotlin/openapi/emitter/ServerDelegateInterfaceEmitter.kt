@@ -1,12 +1,8 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.SolutionHint.solution
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.Kotlin
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinTypeName.Companion.asTypeName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinTypeReference.Companion.asTypeReference
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.Library
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.kotlinInterface
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.kotlinMethod
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ServerDelegateInterface
 
 class ServerDelegateInterfaceEmitter : CodeEmitter {
@@ -24,11 +20,12 @@ class ServerDelegateInterfaceEmitter : CodeEmitter {
             kotlinInterface(name) {
                 delegateInterface.methods.forEach { interfaceMethod ->
                     kotlinMethod(
-                        interfaceMethod.name, true, Kotlin.Nothing,
+                        interfaceMethod.name, true, Kotlin.Nothing.asTypeReference(),
                         interfaceMethod.receiver.name.asTypeReference()
                     )
                 }
             }
         }
     }
+
 }

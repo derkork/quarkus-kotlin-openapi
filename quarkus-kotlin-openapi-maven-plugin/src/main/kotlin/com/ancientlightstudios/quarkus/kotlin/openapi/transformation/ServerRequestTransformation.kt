@@ -3,6 +3,7 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.transformation
 import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.inspect
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.RequestIdentifierHint.requestIdentifier
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.SolutionHint.solution
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiRequest
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.*
 
 class ServerRequestTransformation : SpecTransformation {
@@ -13,14 +14,12 @@ class ServerRequestTransformation : SpecTransformation {
             .forEach {
                 it.source.inspect {
                     requests {
-                        // the context class for this request
-                        val contextClassName = classNameOf(request.requestIdentifier, "Context")
-                        val context = ServerRequestContext(
-                            FileName(contextClassName, config.packageName, ConflictResolution.Pinned),
-                            request
-                        )
-                        spec.solution.files.add(context)
+                        // the container class which contains all the input data of this request
+                        val container = buildRequestContainer(request)
 
+                        // the context class for this request
+                        val context = buildRequestContext(request, container)
+                        
                         val requestMethodName = methodNameOf(request.requestIdentifier)
                         // the method for this request in the delegate interface
                         val delegateMethod = ServerDelegateInterfaceMethod(
@@ -36,6 +35,37 @@ class ServerRequestTransformation : SpecTransformation {
                     }
                 }
             }
+    }
+
+    private fun TransformationContext.buildRequestContainer(request: OpenApiRequest): ServerRequestContainer? {
+        if (!request.hasInputParameter()) {
+            return null
+        }
+
+        val containerClassName = classNameOf(request.requestIdentifier, config.operationRequestPostfix)
+        val container = ServerRequestContainer(
+            ComponentName(containerClassName, config.packageName, ConflictResolution.Pinned),
+            request
+        )
+
+        spec.solution.files.add(container)
+        return container
+    }
+
+    private fun TransformationContext.buildRequestContext(
+        request: OpenApiRequest, container: ServerRequestContainer?
+    ): ServerRequestContext {
+        val contextClassName = classNameOf(request.requestIdentifier, config.operationContextPostfix)
+        val context = ServerRequestContext(
+            ComponentName(contextClassName, config.packageName, ConflictResolution.Pinned),
+            request.path,
+            request.method,
+            container,
+            request
+        )
+
+        spec.solution.files.add(context)
+        return context
     }
 
 }

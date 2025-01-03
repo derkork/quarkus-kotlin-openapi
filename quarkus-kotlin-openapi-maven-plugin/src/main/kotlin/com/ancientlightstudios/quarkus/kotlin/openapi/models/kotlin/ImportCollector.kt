@@ -1,41 +1,25 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
-class ImportCollector(private val basePackage: String) {
+class ImportCollector(private val basePackage: String, private val providedPackages: List<String>) {
 
     private val imports = mutableSetOf<ImportData>()
 
-    fun register(className: ClassName) {
-        imports.add(ImportData(className.packageName, className.value, className.provided))
+    fun register(name: String, packageName: String) {
+        imports.add(ImportData(packageName, name))
+    }
+    
+    fun register(typeName: KotlinTypeName) {
+        imports.add(ImportData(typeName.packageName, typeName.name))
     }
 
-    fun register(methodName: MethodName) {
-        imports.add(ImportData(methodName.packageName, methodName.value, methodName.provided))
-    }
-
-    @JvmName("registerClasses")
-    fun register(className: List<ClassName>) {
-        className.forEach { register(it) }
-    }
-
-    fun register(typeName: TypeName) {
-        when (typeName) {
-            is TypeName.SimpleTypeName -> register(typeName.name)
-            is TypeName.GenericTypeName -> {
-                register(typeName.outerType)
-                register(typeName.innerType)
-            }
-
-            is TypeName.DelegateTypeName -> {
-                typeName.receiverType?.let { register(it) }
-                register(typeName.parameterTypes)
-                register(typeName.returnType)
+    fun register(typeReference: KotlinTypeReference) {
+        when (typeReference) {
+            is KotlinSimpleTypeReference -> imports.add(ImportData(typeReference.packageName, typeReference.name))
+            is KotlinParameterizedTypeReference -> {
+                imports.add(ImportData(typeReference.outerType.packageName, typeReference.outerType.name))
+                typeReference.innerTypes.forEach { register(it) }
             }
         }
-    }
-
-    @JvmName("registerTypes")
-    fun register(typeName: List<TypeName>) {
-        typeName.forEach { register(it) }
     }
 
     fun registerFrom(renderable: KotlinRenderable) {
@@ -51,12 +35,12 @@ class ImportCollector(private val basePackage: String) {
         val wildcardImports = imports.filter { it.objectName == "*" }.map { it.packageName }.toSet()
 
         return imports.asSequence()
-            // skip everything provided by the runtime
-            .filterNot { it.provided }
-            // everything with an invalid package. most likely methods
+            // everything with a missing package. most likely methods
             .filterNot { it.packageName.isBlank() }
             // skip everything located in the current package
             .filterNot { it.packageName == basePackage }
+            // skip everything provided by the runtime
+            .filterNot { it.packageName in providedPackages }
             // skip everything covered by a wildcard package, unless it's the wildcard itself
             .filterNot { it.packageName in wildcardImports && it.objectName != "*" }
             // create the import statement. in case of a subclass, use the base class for the import
@@ -65,5 +49,5 @@ class ImportCollector(private val basePackage: String) {
             .toList()
     }
 
-    private data class ImportData(val packageName: String, val objectName: String, val provided: Boolean)
+    private data class ImportData(val packageName: String, val objectName: String)
 }

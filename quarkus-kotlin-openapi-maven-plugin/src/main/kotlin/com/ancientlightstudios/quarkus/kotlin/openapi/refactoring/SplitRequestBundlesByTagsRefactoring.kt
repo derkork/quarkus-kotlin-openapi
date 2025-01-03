@@ -5,7 +5,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiRequ
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiRequestBundle
 
 // creates new request bundles if requests should be separated by tags
-class SplitRequestBundlesByTagsRefactoring() : SpecRefactoring {
+class SplitRequestBundlesByTagsRefactoring : SpecRefactoring {
 
     override fun RefactoringContext.perform() {
         if (!config.splitByTags) {

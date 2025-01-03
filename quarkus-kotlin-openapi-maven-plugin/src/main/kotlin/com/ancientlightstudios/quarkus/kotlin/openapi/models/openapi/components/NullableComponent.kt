@@ -1,24 +1,14 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiSchema
-
 class NullableComponent(val nullable: Boolean) : SchemaComponent, MetaComponent {
 
-    companion object {
+    override fun merge(other: List<SchemaComponent>, origin: String): Pair<SchemaComponent, List<SchemaComponent>> {
+        val (otherMergeComponents, remainingComponents) = other.partitionIsInstance<NullableComponent>()
 
-        fun OpenApiSchema.nullableComponent(): NullableComponent? {
-            val components = components.filterIsInstance<NullableComponent>()
+        // if there is any component where nullable is set to true, it wins
+        val isNullable = nullable || otherMergeComponents.any { it.nullable }
 
-            if (components.isEmpty()) {
-                return null
-            }
-
-            // if there is a nullable component with the value true, it wins
-            return NullableComponent(
-                components.map { it.nullable }
-                    .reduce { acc, cur -> acc && cur }
-            )
-        }
+        return NullableComponent(isNullable) to remainingComponents
     }
-
+    
 }

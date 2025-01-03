@@ -1,12 +1,56 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.BaseType
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.GenericTypeName.Companion.of
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.SimpleTypeName.Companion.typeName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ParameterKind
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.RequestMethod
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.*
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.*
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.PrimitiveTypeDefinition
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.TypeUsage
+import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
+
+fun BaseType.asTypeReference() = when (this) {
+    BaseType.BigDecimal -> Kotlin.BigDecimal.asTypeReference()
+    BaseType.BigInteger -> Kotlin.BigInteger.asTypeReference()
+    BaseType.Boolean -> Kotlin.Boolean.asTypeReference()
+    BaseType.ByteArray -> Kotlin.ByteArray.asTypeReference()
+    is BaseType.Custom -> KotlinSimpleTypeReference(name, packageName)
+    BaseType.Double -> Kotlin.Double.asTypeReference()
+    BaseType.Float -> Kotlin.Float.asTypeReference()
+    BaseType.Int -> Kotlin.Int.asTypeReference()
+    BaseType.Long -> Kotlin.Long.asTypeReference()
+    BaseType.String -> Kotlin.String.asTypeReference()
+    BaseType.UInt -> Kotlin.UInt.asTypeReference()
+    BaseType.ULong -> Kotlin.ULong.asTypeReference()
+}
+
+fun BaseType.literalFor(value: String): KotlinExpression = when (this) {
+    BaseType.BigDecimal -> value.bigDecimalLiteral()
+    BaseType.BigInteger -> value.bigIntegerLiteral()
+    BaseType.Boolean -> value.booleanLiteral()
+    BaseType.Double -> value.doubleLiteral()
+    BaseType.Float -> value.floatLiteral()
+    BaseType.Int -> value.intLiteral()
+    BaseType.Long -> value.longLiteral()
+    BaseType.String -> value.literal()
+    BaseType.UInt -> value.uintLiteral()
+    BaseType.ULong -> value.ulongLiteral()
+    else -> ProbableBug("Unable to create literal expression for base type ${this::class.java}")
+}
+
+fun ModelUsage.asTypeReference(withDefault: Boolean = false): KotlinTypeReference = when (this) {
+    is CollectionModelUsage -> Kotlin.List.asTypeReference(items.asTypeReference())
+    is EnumModelUsage -> ref.name.asTypeReference()
+    is MapModelUsage -> Kotlin.Map.asTypeReference(Kotlin.String.asTypeReference(), items.asTypeReference())
+    is ObjectModelUsage -> ref.name.asTypeReference()
+    is OneOfModelUsage -> ref.name.asTypeReference()
+    is PrimitiveTypeModelUsage -> itemType.asTypeReference()
+}.run {
+    val nullable = !withDefault && isNullable()
+
+    when(nullable) {
+        true -> this.nullable()
+        else -> this
+    }
+}
 
 //fun AnnotationAware.addPathAnnotation(path: String) {
 //    kotlinAnnotation(Jakarta.PathAnnotationClass, "value".variableName() to path.literal())
@@ -85,7 +129,7 @@ fun TypeUsage.isNullable(): Boolean {
 
     val hasDefault = when (val safeType = type) {
         is PrimitiveTypeDefinition -> safeType.defaultValue != null
-        is EnumTypeDefinition -> safeType.defaultValue != null
+//        is EnumTypeDefinition -> safeType.defaultValue != null
         else -> false
     }
 

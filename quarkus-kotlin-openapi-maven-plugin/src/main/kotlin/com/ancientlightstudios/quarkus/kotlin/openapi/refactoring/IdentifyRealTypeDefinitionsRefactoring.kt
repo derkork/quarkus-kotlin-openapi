@@ -1,14 +1,13 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.refactoring
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.inspect
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ModelTypesHint.modelTypes
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeUsageHint.typeUsage
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.pop
 
 class IdentifyRealTypeDefinitionsRefactoring : SpecRefactoring {
 
     override fun RefactoringContext.perform() {
+        /*
         val models = mutableSetOf<TypeDefinition>()
 
         val tasks = mutableSetOf<TypeDefinition>()
@@ -50,6 +49,8 @@ class IdentifyRealTypeDefinitionsRefactoring : SpecRefactoring {
         }
 
         spec.modelTypes = models.toList()
+
+         */
     }
 
     private fun unwrapOverlay(typeUsage: TypeUsage): TypeDefinition {

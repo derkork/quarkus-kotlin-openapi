@@ -2,32 +2,38 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.refactoring
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.inspect
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.NameSuggestionHint.nameSuggestion
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.RequestIdentifierHint.requestIdentifier
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.SchemaName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.SchemaNameHint.hasSchemaName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.SchemaNameHint.schemaName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TransformationStrategy
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiSchema
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.ArrayItemsComponent
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.MapComponent
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.ObjectComponent
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.SomeOfComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.pop
 
 class SchemaNameRefactoring : SpecRefactoring {
 
     override fun RefactoringContext.perform() {
-        // first step: name every schema used directly by a request or response if no name is set yet
+        // first step: preparation phase. If a schema has a model name (specified by the developer via 'x-model-name'
+        // or a name suggestion (because its available as a component via $ref) use this
+        spec.schemas.forEach { assignPredefinedName(it) }
+
+        // second step: name every schema used directly by a request or response if no name is set yet
         spec.inspect {
             bundles {
                 requests {
-                    val requestPrefix = request.operationId
+                    val requestPrefix = request.requestIdentifier
                     parameters {
                         assignName(
                             parameter.content.schema,
                             parameter.nameSuggestion,
-                            "$requestPrefix ${parameter.name} parameter"
+                            SchemaName("$requestPrefix ${parameter.name} parameter")
                         )
                     }
 
                     body {
-                        assignName(body.content.schema, body.nameSuggestion, "$requestPrefix body")
+                        assignName(body.content.schema, body.nameSuggestion, SchemaName("$requestPrefix body"))
                     }
 
                     responses {
@@ -36,63 +42,88 @@ class SchemaNameRefactoring : SpecRefactoring {
                             assignName(
                                 header.content.schema,
                                 header.nameSuggestion,
-                                "$responsePrefix ${header.name} header"
+                                SchemaName("$responsePrefix ${header.name} header")
                             )
                         }
 
                         body {
-                            assignName(body.content.schema, body.nameSuggestion, "$responsePrefix response")
+                            // the nameSuggestion hint is available at the response and not the body. This is
+                            // a different behaviour as for the body of a request, because a request body can be
+                            // referenced, but the body of a response can't. Only the response including its body
+                            // can be referenced
+                            assignName(
+                                body.content.schema,
+                                response.nameSuggestion,
+                                SchemaName("$responsePrefix response")
+                            )
                         }
                     }
                 }
             }
         }
 
-        // second step: assign names to every schema used within other schema if no name is yet set
+        // third step: assign names to every schema used within other schema if no name is yet set
         // we start with already named schemas
-        val definitionsWithNames = spec.schemas.filterNot { it.name.isBlank() }.toMutableSet()
+        val definitionsWithNames = spec.schemas.filterNot { !it.hasSchemaName() }.toMutableSet()
 
         // helper function to avoid code duplication
-        val assignAndSchedule: (OpenApiSchema, fallback: String) -> Unit = { schema, name ->
+        val assignAndSchedule: (OpenApiSchema, fallback: SchemaName) -> Unit = { schema, name ->
             if (assignName(schema, null, name)) {
                 // if a name was given to the schema, add it to the set to check its sub schemas too
                 definitionsWithNames.add(schema)
             }
         }
 
-        // we can ignore BaseDefinitionComponents here, because these schemas should already have a name based on the reference
+        // we can ignore BaseDefinitionComponents here, because these schemas should already have been assigned a name
+        // in the first step
         while (definitionsWithNames.isNotEmpty()) {
             definitionsWithNames.pop { current ->
                 current.inspect {
-                    val prefix = schema.name
-                    components<ArrayItemsComponent> { assignAndSchedule(component.schema, "$prefix items") }
+                    val name = schema.schemaName
+                    components<ArrayItemsComponent> { assignAndSchedule(component.schema, name.postfix("items")) }
                     components<ObjectComponent> {
-                        component.properties.forEach {
-                            assignAndSchedule(it.schema, "$prefix ${it.name}")
-                        }
+                        component.properties.forEach { assignAndSchedule(it.schema, name.postfix(it.name)) }
                     }
-                    components<MapComponent> { assignAndSchedule(component.schema, "$prefix value") }
+                    components<MapComponent> { assignAndSchedule(component.schema, name.postfix("value")) }
                     components<SomeOfComponent> {
-                        component.schemas.forEachIndexed { index, schema ->
-                            assignAndSchedule(schema.schema, "$prefix option ${index + 1}")
+                        component.options.forEachIndexed { index, option ->
+                            assignAndSchedule(option.schema, name.postfix("option").postfix("${index + 1}"))
                         }
                     }
                 }
             }
         }
 
-        if (spec.schemas.any { it.name.isBlank() }) {
+        if (spec.schemas.any { !it.hasSchemaName() }) {
             ProbableBug("Could not assign names to some schemas")
         }
     }
 
-    private fun assignName(schema: OpenApiSchema, suggestion: String?, fallback: String): Boolean {
-        if (schema.name.isNotBlank()) {
+    private fun assignPredefinedName(schema: OpenApiSchema) {
+        if (schema.hasSchemaName()) {
+            // already a name assigned
+            return
+        }
+
+        val modelName = schema.getComponent<ModelNameComponent>()?.value
+        val schemaNameSuggestion = schema.nameSuggestion
+
+        when {
+            !modelName.isNullOrBlank() -> schema.schemaName = SchemaName(modelName, TransformationStrategy.Requested)
+            !schemaNameSuggestion.isNullOrBlank() -> schema.schemaName = SchemaName(schemaNameSuggestion)
+        }
+    }
+
+    private fun assignName(schema: OpenApiSchema, componentNameSuggestion: String?, fallback: SchemaName): Boolean {
+        if (schema.hasSchemaName()) {
             // already a name assigned
             return false
         }
+        schema.schemaName = when (componentNameSuggestion) {
+            null -> fallback
+            else -> SchemaName(componentNameSuggestion)
+        }
 
-        schema.name = suggestion ?: fallback
         return true
     }
 }

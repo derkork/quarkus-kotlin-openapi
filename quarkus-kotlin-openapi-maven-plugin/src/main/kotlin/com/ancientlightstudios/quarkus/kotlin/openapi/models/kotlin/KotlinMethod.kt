@@ -68,14 +68,14 @@ class KotlinMethod(
         }
 
         if (receiverType != null) {
-            write("${receiverType.name}.")
+            write("${receiverType.render()}.")
         }
         write("$name(")
         parameters.render(this)
         write(")")
 
         if (returnType != null) {
-            write(": ${returnType.name}")
+            write(": ${returnType.render()}")
         }
 
         if (statements.isNotEmpty) {

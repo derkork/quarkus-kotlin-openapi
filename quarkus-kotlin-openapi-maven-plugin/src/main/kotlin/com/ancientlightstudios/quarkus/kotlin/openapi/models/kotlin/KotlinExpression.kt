@@ -1,7 +1,6 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
-import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.forEachWithStats
 
 interface KotlinExpression : KotlinStatement
@@ -54,7 +53,7 @@ fun KotlinExpression.nullFallback(fallback: KotlinExpression) = object : KotlinE
 
 }
 
-fun KotlinExpression.cast(target: TypeName, safe: Boolean = true) = object : KotlinExpression {
+fun KotlinExpression.cast(target: KotlinTypeReference, safe: Boolean = true) = object : KotlinExpression {
 
     override fun ImportCollector.registerImports() {
         registerFrom(this@cast)
@@ -69,7 +68,7 @@ fun KotlinExpression.cast(target: TypeName, safe: Boolean = true) = object : Kot
         } else {
             write(" as? ")
         }
-        write(target.value)
+        write(target.render())
         write(")")
     }
 
@@ -88,52 +87,15 @@ fun KotlinExpression.wrap() = object : KotlinExpression {
 
 }
 
-fun ClassName.javaClass() = object : KotlinExpression {
+fun KotlinExpression.functionReference(methodName: String) = object : KotlinExpression {
 
     override fun ImportCollector.registerImports() {
-        register(this@javaClass)
+        registerFrom(this@functionReference)
     }
 
     override fun render(writer: CodeWriter) = with(writer) {
-        write("${this@javaClass.value}::class.java")
-    }
-
-}
-
-fun ClassName.classExpression() = object : KotlinExpression {
-
-    override fun ImportCollector.registerImports() {
-        register(this@classExpression)
-    }
-
-    override fun render(writer: CodeWriter) = with(writer) {
-        write("${this@classExpression.value}::class")
-    }
-
-}
-
-fun ClassName.companionObject() = object : KotlinExpression {
-
-    override fun ImportCollector.registerImports() {
-        register(this@companionObject)
-    }
-
-    override fun render(writer: CodeWriter) = with(writer) {
-        write(this@companionObject.value)
-    }
-
-}
-
-fun functionReference(className: ClassName?, methodName: MethodName) = object : KotlinExpression {
-
-    override fun ImportCollector.registerImports() {
-        className?.let { register(it) }
-        register(methodName)
-    }
-
-    override fun render(writer: CodeWriter) = with(writer) {
-        className?.let { write(it.value) }
-        write("::${methodName.value}")
+        this@functionReference.render(this)
+        write("::$methodName")
     }
 
 }

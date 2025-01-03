@@ -20,7 +20,11 @@ class EmitterStage(private val config: Config) : GeneratorStage {
             ServerDelegateInterfaceEmitter(),
             ServerResponseInterfaceEmitter(),
             ServerRestControllerEmitter(),
-            ServerRequestContextEmitter()
+            ServerRequestContextEmitter(),
+            ServerRequestContainerEmitter(),
+            EnumModelClassEmitter(),
+            ObjectModelClassEmitter(),
+            OneOfModelClassEmitter(),
         ).runEmitters(context)
 
         context.kotlinFiles.writeFiles()

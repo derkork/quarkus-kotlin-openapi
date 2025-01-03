@@ -1,11 +1,12 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.refactoring
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ModelTypesHint.modelTypes
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.*
 
+@Deprecated(message = "")
 class ModelNameRefactoring : SpecRefactoring {
 
     override fun RefactoringContext.perform() {
+        /*
         val prefix = config.modelNamePrefix.trim()
         val postfix = config.modelNamePostfix.trim()
         if (prefix.isBlank() && postfix.isBlank()) {
@@ -38,6 +39,8 @@ class ModelNameRefactoring : SpecRefactoring {
                     }
                 }
             }
+
+         */
     }
 
 }

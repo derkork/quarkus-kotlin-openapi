@@ -29,7 +29,6 @@ class RequestBuilder(
             .mapIndexed { index, itemNode ->
                 contextFor(itemNode, "parameters", "$index").parseAsRequestParameter()
             }
-
         val localParameterNames = localParameter.map { it.name }.toSet()
         // overwrite parameters in the default list if they are redefined here
         return defaultParameter().filterNot { localParameterNames.contains(it.name) } + localParameter

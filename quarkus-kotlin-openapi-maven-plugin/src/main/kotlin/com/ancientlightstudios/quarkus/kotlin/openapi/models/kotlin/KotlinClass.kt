@@ -8,7 +8,7 @@ class KotlinClass(
     private val asDataClass: Boolean = false,
     private val sealed: Boolean = false,
     private val baseClass: KotlinBaseClass? = null,
-    private val interfaces: List<ClassName> = listOf()
+    var interfaces: List<KotlinTypeReference> = listOf()
 ) : KotlinRenderable, AnnotationAware, MethodAware, MemberAware, CompanionAware,
     CommentAware, ClassAware, ConstructorAware {
 
@@ -54,7 +54,7 @@ class KotlinClass(
 
     override fun ImportCollector.registerImports() {
         baseClass?.let { registerFrom(it) }
-        register(interfaces)
+//        register(interfaces)
         registerFrom(annotations)
         registerFrom(items)
         registerFrom(constructorMembers)
@@ -98,7 +98,7 @@ class KotlinClass(
             }
 
             if (interfaces.isNotEmpty()) {
-                write(interfaces.joinToString { it.value })
+                write(interfaces.joinToString { it.render() })
             }
         }
 
@@ -148,7 +148,7 @@ fun ClassAware.kotlinClass(
     asDataClass: Boolean = false,
     sealed: Boolean = false,
     baseClass: KotlinBaseClass? = null,
-    interfaces: List<ClassName> = listOf(),
+    interfaces: List<KotlinTypeReference> = listOf(),
     block: KotlinClass.() -> Unit
 ) {
     val content = KotlinClass(name, constructorAccessModifier, asDataClass, sealed, baseClass, interfaces).apply(block)

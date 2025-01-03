@@ -4,7 +4,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ResponseCod
 import jakarta.ws.rs.core.Response
 
 fun ResponseCode.asMethodName(): String {
-    val httpCode = this as? ResponseCode.HttpStatusCode ?: return "default"
+    val httpCode = this as? ResponseCode.HttpStatusCode ?: return "defaultStatus"
 
     val reason = Response.Status.fromStatusCode(httpCode.value)?.reasonPhrase ?: "status${httpCode.value}"
     return methodNameOf(reason)

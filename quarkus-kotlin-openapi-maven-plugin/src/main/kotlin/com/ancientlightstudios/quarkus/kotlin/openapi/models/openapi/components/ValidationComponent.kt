@@ -1,13 +1,14 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiSchema
+class ValidationComponent(val validations: List<SchemaValidation>) : SchemaComponent, MetaComponent {
 
-class ValidationComponent(val validation: SchemaValidation) : SchemaComponent, MetaComponent {
+    override fun merge(other: List<SchemaComponent>, origin: String): Pair<SchemaComponent, List<SchemaComponent>> {
+        val (otherMergeComponents, remainingComponents) = other.partitionIsInstance<ValidationComponent>()
 
-    companion object {
-
-        fun OpenApiSchema.validationComponents() = components.filterIsInstance<ValidationComponent>()
-
+        // just append everything into a single list
+        val result = validations.toMutableList()
+        otherMergeComponents.flatMapTo(result) { it.validations }
+        return ValidationComponent(result) to remainingComponents
     }
 
 }

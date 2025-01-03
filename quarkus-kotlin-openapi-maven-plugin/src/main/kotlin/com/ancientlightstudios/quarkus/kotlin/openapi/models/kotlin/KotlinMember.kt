@@ -3,8 +3,8 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
 
 class KotlinMember(
-    private val name: VariableName,
-    private val type: TypeName,
+    private val name: String,
+    private val type: KotlinTypeReference,
     private val mutable: Boolean = false,
     private val accessModifier: KotlinAccessModifier? = KotlinAccessModifier.Private,
     private val open: Boolean = false,
@@ -38,7 +38,7 @@ class KotlinMember(
         }
 
         write(if (mutable) "var" else "val")
-        write(" ${name.value}: ${type.value}")
+        write(" $name: ${type.render()}")
         default?.let {
             write(" = ")
             it.render(this)
@@ -54,8 +54,8 @@ interface MemberAware {
 }
 
 fun MemberAware.kotlinMember(
-    name: VariableName,
-    type: TypeName,
+    name: String,
+    type: KotlinTypeReference,
     mutable: Boolean = false,
     accessModifier: KotlinAccessModifier? = KotlinAccessModifier.Private,
     open: Boolean = false,

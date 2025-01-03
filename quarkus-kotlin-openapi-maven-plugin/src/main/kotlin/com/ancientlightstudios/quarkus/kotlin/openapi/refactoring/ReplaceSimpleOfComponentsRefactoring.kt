@@ -23,14 +23,13 @@ class ReplaceSimpleOfComponentsRefactoring : SpecRefactoring {
                 }
 
                 // can't replace it, without changing the meaning
-                if (someOfComponent.schemas.size > 1) {
+                if (someOfComponent.options.size > 1) {
                     return@schemas
                 }
 
-                val newComponents = schema.components.toMutableList()
-                newComponents.remove(someOfComponent)
-                newComponents.add(AllOfComponent(someOfComponent.schemas))
-                schema.components = newComponents
+                // remove old component and add the new one instead
+                schema.components -= someOfComponent
+                schema.components += AllOfComponent(someOfComponent.options)
             }
         }
     }

@@ -1,24 +1,20 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.OriginPathHint.originPath
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.SchemaUsage
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiSchema
-import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
+import com.ancientlightstudios.quarkus.kotlin.openapi.utils.SpecIssue
 
-class MapComponent(override var schema: OpenApiSchema) : SchemaUsage, SchemaComponent,
-    StructuralComponent {
+class MapComponent(override var schema: OpenApiSchema) : SchemaComponent, SchemaContainer, StructuralComponent {
 
-    companion object {
+    override fun merge(other: List<SchemaComponent>, origin: String): Pair<SchemaComponent, List<SchemaComponent>> {
+        val (otherMergeComponents, remainingComponents) = other.partitionIsInstance<MapComponent>()
 
-        fun OpenApiSchema.mapComponent(): MapComponent? {
-            val components = components.filterIsInstance<MapComponent>()
-            return when {
-                components.isEmpty() -> null
-                components.size > 1 -> ProbableBug("Multiple instances of map component found at schema $originPath")
-                else -> components.first()
-            }
+        val hasIncompatibleItems = otherMergeComponents.any { it.schema.originPath != schema.originPath }
+        if (hasIncompatibleItems) {
+            SpecIssue("different map items detected. Found in schema $origin")
         }
 
+        return this to remainingComponents
     }
 
 }

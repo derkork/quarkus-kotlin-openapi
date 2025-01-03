@@ -1,20 +1,49 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.DeserializationDirectionHint.deserializationDirection
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.SerializationDirectionHint.serializationDirection
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.SolutionHint.solution
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.InvocationExpression.Companion.invoke
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.methodName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.rawMethodName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.GenericTypeName.Companion.of
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.SimpleTypeName.Companion.typeName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ContentType
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.PropertiesValidation
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.*
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinTypeName.Companion.asTypeName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ObjectModelClass
 
-//class ObjectModelClassEmitter(private val typeDefinition: ObjectTypeDefinition, private val withTestSupport: Boolean) :
-//    CodeEmitter {
+class ObjectModelClassEmitter : CodeEmitter {
+
+    override fun EmitterContext.emit() {
+        spec.solution.files
+            .filterIsInstance<ObjectModelClass>()
+            .forEach { emitFile(it) }
+    }
+
+    private fun EmitterContext.emitFile(model: ObjectModelClass) {
+        kotlinFile(model.name.asTypeName()) {
+            registerImports(Library.All)
+            registerImports(config.additionalImports())
+
+            kotlinClass(name) {
+
+                model.properties.forEach {
+                    val defaultValue = nullLiteral()
+                    kotlinMember(
+                        it.name,
+                        it.model.asTypeReference(),
+                        accessModifier = null,
+                        default = defaultValue
+                    )
+                }
+
+                model.additionalProperties?.let {
+                    kotlinMember(
+                        "additionalProperties",
+                        Kotlin.Map.asTypeReference(Kotlin.String.asTypeReference(), it.asTypeReference()),
+                        accessModifier = null,
+                        default = invoke("mapOf")
+                    )
+                }
+            }
+        }
+    }
+
+}
 //
 //    private lateinit var emitterContext: EmitterContext
 //

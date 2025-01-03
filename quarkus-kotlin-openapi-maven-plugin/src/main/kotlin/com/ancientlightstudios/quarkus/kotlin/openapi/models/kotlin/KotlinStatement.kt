@@ -1,7 +1,6 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
 
 interface KotlinStatement : KotlinRenderable
 
@@ -14,36 +13,27 @@ interface StatementAware {
     }
 
     fun KotlinExpression.declaration(
-        variableName: String, typeName: TypeName? = null, modifiable: Boolean = false
-    ): VariableName = declaration(variableName.variableName(), typeName, modifiable)
-
-    fun KotlinExpression.declaration(
-        variableName: VariableName, typeName: TypeName? = null, modifiable: Boolean = false
-    ): VariableName {
-
+        variableName: String, type: KotlinTypeReference? = null, modifiable: Boolean = false
+    ) {
         addStatement(object : KotlinStatement {
 
             override fun ImportCollector.registerImports() {
                 registerFrom(this@declaration)
-                typeName?.let { register(typeName) }
+                type?.let { register(type) }
             }
 
             override fun render(writer: CodeWriter) = with(writer) {
-                val modifier = if (modifiable) {
-                    "var "
+                if (modifiable) {
+                    write("var $variableName")
                 } else {
-                    "val "
+                    write("val $variableName")
                 }
 
-                write(modifier)
-                write(variableName.value)
-                typeName?.let { write(": ${it.value}") }
+                type?.let { write(": ${it.render()}") }
                 write(" = ")
                 this@declaration.render(this)
             }
         })
-
-        return variableName
     }
 
     fun KotlinExpression.assignment(variableName: VariableName): VariableName {

@@ -1,6 +1,5 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ModelTypesHint.modelTypes
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.*
 
 //class ModelClassEmitter(private val withTestSupport: Boolean) : CodeEmitter {

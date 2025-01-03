@@ -4,8 +4,8 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.forEachWithStats
 
 class KotlinAnnotation(
-    private val name: ClassName,
-    private vararg val parameters: Pair<VariableName?, KotlinExpression>
+    private val name: KotlinTypeName,
+    private vararg val parameters: Pair<String?, KotlinExpression>
 ) : KotlinRenderable {
 
     override fun ImportCollector.registerImports() {
@@ -14,12 +14,12 @@ class KotlinAnnotation(
     }
 
     override fun render(writer: CodeWriter) = with(writer) {
-        write("@${name.value}")
+        write("@${name.name}")
 
         if (parameters.isNotEmpty()) {
             write("(")
             parameters.forEachWithStats { status, (name, value) ->
-                name?.let { write("${it.value} = ") }
+                name?.let { write("$it = ") }
                 value.render(this)
                 if (!status.last) {
                     write(", ")
@@ -36,10 +36,10 @@ interface AnnotationAware {
 
 }
 
-fun AnnotationAware.kotlinAnnotation(name: ClassName, vararg parameters: Pair<VariableName, KotlinExpression>) {
+fun AnnotationAware.kotlinAnnotation(name: KotlinTypeName, vararg parameters: Pair<String, KotlinExpression>) {
     addAnnotation(KotlinAnnotation(name, *parameters))
 }
 
-fun AnnotationAware.kotlinAnnotation(name: ClassName, parameter: KotlinExpression) {
+fun AnnotationAware.kotlinAnnotation(name: KotlinTypeName, parameter: KotlinExpression) {
     addAnnotation(KotlinAnnotation(name, null to parameter))
 }

@@ -9,10 +9,12 @@ class TransformationStage(private val config: Config) : GeneratorStage {
     override fun process(spec: OpenApiSpec) {
         // TODO: get list via ServiceLoader to support plugins
         listOf(
+            ModelTransformation(),
+
             ServerTransformation(),
             ServerResponseInterfaceTransformation(),
-            ServerResponseTransformation(),
-            ServerRequestTransformation()
+            ServerRequestTransformation(),
+            ServerResponseTransformation()
         ).runTransformations(TransformationContext(spec, config))
     }
 
