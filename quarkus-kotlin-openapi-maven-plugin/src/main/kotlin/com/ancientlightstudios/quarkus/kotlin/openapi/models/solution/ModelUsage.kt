@@ -1,17 +1,14 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.solution
 
-sealed interface ModelUsage {
+data class ModelUsage(val instance: ModelInstance, val overrideNullableWith: Boolean? = null) {
 
-    val required: Boolean
-    val nullable: Boolean
+    fun acceptNull() = ModelUsage(instance, true)
 
-    // validations
+    fun rejectNull() = ModelUsage(instance, false)
 
-    // nullable | required -> isNullable
-    // true     | true     -> true
-    // true     | false    -> true
-    // false    | true     -> false
-    // false    | false    -> true
-    fun isNullable() = nullable || !required
+    fun isNullable() = when (overrideNullableWith) {
+        null -> instance.isNullable()
+        else -> overrideNullableWith
+    }
 
 }

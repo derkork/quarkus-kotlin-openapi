@@ -5,10 +5,16 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.RequestIdenti
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.SolutionHint.solution
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiRequest
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.*
+import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
 
 class ServerRequestTransformation : SpecTransformation {
 
     override fun TransformationContext.perform() {
+        // the global dependency container
+        val dependencyVogel = spec.solution.files
+            .filterIsInstance<DependencyVogel>()
+            .firstOrNull() ?: ProbableBug("solution dependency 'DependencyVogel' not found")
+
         spec.solution.files
             .filterIsInstance<ServerRestController>()
             .forEach {
@@ -18,8 +24,8 @@ class ServerRequestTransformation : SpecTransformation {
                         val container = buildRequestContainer(request)
 
                         // the context class for this request
-                        val context = buildRequestContext(request, container)
-                        
+                        val context = buildRequestContext(request, container, dependencyVogel)
+
                         val requestMethodName = methodNameOf(request.requestIdentifier)
                         // the method for this request in the delegate interface
                         val delegateMethod = ServerDelegateInterfaceMethod(
@@ -48,12 +54,30 @@ class ServerRequestTransformation : SpecTransformation {
             request
         )
 
+        request.inspect {
+            parameters {
+                container.parameters += ServerRequestContainerParameter(
+                    variableNameOf(parameter.name),
+                    contentModelFor(parameter.content, Direction.Up, parameter.required),
+                    parameter
+                )
+            }
+
+            body {
+                container.body = ServerRequestContainerBody(
+                    "body",
+                    contentModelFor(body.content, Direction.Up, body.required),
+                    body
+                )
+            }
+        }
+
         spec.solution.files.add(container)
         return container
     }
 
     private fun TransformationContext.buildRequestContext(
-        request: OpenApiRequest, container: ServerRequestContainer?
+        request: OpenApiRequest, container: ServerRequestContainer?, dependencyVogel: DependencyVogel
     ): ServerRequestContext {
         val contextClassName = classNameOf(request.requestIdentifier, config.operationContextPostfix)
         val context = ServerRequestContext(
@@ -61,6 +85,7 @@ class ServerRequestTransformation : SpecTransformation {
             request.path,
             request.method,
             container,
+            dependencyVogel,
             request
         )
 

@@ -1,10 +1,16 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
+import com.ancientlightstudios.quarkus.kotlin.openapi.handler.ContentTypeHandler
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.SolutionHint.solution
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinClass
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinTypeName.Companion.asTypeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.Library
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.kotlinClass
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.kotlinMember
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ModelUsage
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ServerRequestContainer
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ServerRequestContainerBody
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ServerRequestContainerParameter
 
 class ServerRequestContainerEmitter : CodeEmitter {
 
@@ -17,31 +23,38 @@ class ServerRequestContainerEmitter : CodeEmitter {
     private fun EmitterContext.emitFile(container: ServerRequestContainer) {
         kotlinFile(container.name.asTypeName()) {
             registerImports(Library.All)
-            registerImports(config.additionalImports())
 
             kotlinClass(name) {
+                container.parameters.forEach { parameter ->
+                    getHandler<ServerRequestContainerHandler>(parameter.content.contentType).run {
+                        emitRequestContainerParameter(parameter)
+                    }
+                }
+
+                container.body?.let { body ->
+                    getHandler<ServerRequestContainerHandler>(body.content.contentType).run {
+                        emitRequestContainerBody(body)
+                    }
+                }
             }
         }
     }
+
+    companion object {
+
+        fun KotlinClass.emitDefaultRequestContainerParameter(name: String, model: ModelUsage) =
+            kotlinMember(name, model.asTypeReference(), accessModifier = null)
+
+        fun KotlinClass.emitDefaultRequestContainerBody(name: String, model: ModelUsage) =
+            kotlinMember(name, model.asTypeReference(), accessModifier = null)
+
+    }
 }
 
-//    private fun RequestInspection.emitContainerFile() = kotlinFile(request.requestContainerClassName) {
-//        kotlinClass(fileName) {
-//            parameters {
-//                val typeUsage = parameter.content.typeUsage
-//                kotlinMember(
-//                    parameter.parameterVariableName, typeUsage.buildValidType(),
-//                    accessModifier = null
-//                )
-//            }
-//
-//            body {
-//                val typeUsage = body.content.typeUsage
-//                kotlinMember(
-//                    body.parameterVariableName, typeUsage.buildValidType(), accessModifier = null
-//                )
-//            }
-//        }
-//    }
-//
-//}
+interface ServerRequestContainerHandler : ContentTypeHandler {
+
+    fun KotlinClass.emitRequestContainerParameter(parameter: ServerRequestContainerParameter)
+
+    fun KotlinClass.emitRequestContainerBody(body: ServerRequestContainerBody)
+
+}

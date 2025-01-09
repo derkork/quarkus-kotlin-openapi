@@ -6,6 +6,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.literalFor
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ContentType
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.SchemaModifier
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.SchemaValidation
+import com.ancientlightstudios.quarkus.kotlin.openapi.transformation.Direction
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
 
 interface PrimitiveTypeDefinition : TypeDefinition {

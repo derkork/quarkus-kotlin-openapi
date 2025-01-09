@@ -7,7 +7,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.SchemaMode
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.SchemaModeHint.hasSchemaMode
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiSchema
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.*
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.Direction
+import com.ancientlightstudios.quarkus.kotlin.openapi.transformation.Direction
 
 class AssignSchemaDirectionRefactoring : SpecRefactoring {
 

@@ -2,21 +2,22 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.Config
 import com.ancientlightstudios.quarkus.kotlin.openapi.GeneratorStage
+import com.ancientlightstudios.quarkus.kotlin.openapi.handler.HandlerRegistry
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinFile
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiSpec
 import org.slf4j.LoggerFactory
 import java.io.File
 import kotlin.io.path.Path
 
-class EmitterStage(private val config: Config) : GeneratorStage {
+class EmitterStage(private val config: Config, private val handlerRegistry: HandlerRegistry) : GeneratorStage {
 
     private val log = LoggerFactory.getLogger(EmitterStage::class.java)
 
     override fun process(spec: OpenApiSpec) {
-        val context = EmitterContext(spec, config)
+        val context = EmitterContext(spec, config, handlerRegistry)
 
-        // TODO: get list via ServiceLoader to support plugins
         listOf(
+            DependencyVogelEmitter(),
             ServerDelegateInterfaceEmitter(),
             ServerResponseInterfaceEmitter(),
             ServerRestControllerEmitter(),

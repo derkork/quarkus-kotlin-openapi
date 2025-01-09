@@ -10,6 +10,7 @@ class ServerRequestContext(
     val restPath: String,
     val restMethod: RequestMethod,
     val container: ServerRequestContainer?,
+    val dependencyVogel: DependencyVogel,
     val source: OpenApiRequest
 ) : SolutionFile(name) {
 
@@ -20,6 +21,8 @@ class ServerRequestContext(
 class ServerRequestContextResponseMethod(
     val name: String,
     val responseCode: ResponseCode,
+    val headers: List<ServerResponseHeader>,
+    var body: ServerResponseBody?,
     val responseInterface: ServerResponseInterface?,
     val source: OpenApiResponse
 )

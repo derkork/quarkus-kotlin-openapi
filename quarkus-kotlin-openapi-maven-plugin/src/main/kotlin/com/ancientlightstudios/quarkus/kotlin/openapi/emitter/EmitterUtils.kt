@@ -2,6 +2,9 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.BaseType
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.InvocationExpression.Companion.invoke
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.PropertyExpression.Companion.property
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.StaticContextExpression.Companion.staticContext
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.PrimitiveTypeDefinition
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.TypeUsage
@@ -36,20 +39,47 @@ fun BaseType.literalFor(value: String): KotlinExpression = when (this) {
     else -> ProbableBug("Unable to create literal expression for base type ${this::class.java}")
 }
 
-fun ModelUsage.asTypeReference(withDefault: Boolean = false): KotlinTypeReference = when (this) {
-    is CollectionModelUsage -> Kotlin.List.asTypeReference(items.asTypeReference())
-    is EnumModelUsage -> ref.name.asTypeReference()
-    is MapModelUsage -> Kotlin.Map.asTypeReference(Kotlin.String.asTypeReference(), items.asTypeReference())
-    is ObjectModelUsage -> ref.name.asTypeReference()
-    is OneOfModelUsage -> ref.name.asTypeReference()
-    is PrimitiveTypeModelUsage -> itemType.asTypeReference()
-}.run {
-    val nullable = !withDefault && isNullable()
+fun ModelUsage.adjustToDefault(defaultValue: DefaultValue) = when (defaultValue) {
+    DefaultValue.None,
+    DefaultValue.Null -> this
 
-    when(nullable) {
+    else -> this.rejectNull()
+}
+
+fun ModelUsage.asTypeReference(valueProvided: Boolean = false): KotlinTypeReference =
+    instance.asTypeReference(overrideNullableWith)
+
+fun ModelInstance.asTypeReference(overrideNullableWith: Boolean? = null): KotlinTypeReference = when (this) {
+    is CollectionModelInstance -> Kotlin.List.asTypeReference(items.asTypeReference())
+    is EnumModelInstance -> ref.name.asTypeReference()
+    is MapModelInstance -> Kotlin.Map.asTypeReference(Kotlin.String.asTypeReference(), items.asTypeReference())
+    is ObjectModelInstance -> ref.name.asTypeReference()
+    is OneOfModelInstance -> ref.name.asTypeReference()
+    is PrimitiveTypeModelInstance -> itemType.asTypeReference()
+}.run {
+    val nullable = when (overrideNullableWith) {
+        null -> isNullable()
+        else -> overrideNullableWith
+    }
+
+    when (nullable) {
         true -> this.nullable()
         else -> this
     }
+}
+
+fun DefaultValue.toKotlinExpression(): KotlinExpression? = when (val value = this) {
+    DefaultValue.EmptyByteArray -> invoke("byteArrayOf")
+    DefaultValue.EmptyList -> invoke("listOf")
+    DefaultValue.EmptyMap -> invoke("mapOf")
+    is DefaultValue.EnumValue -> {
+        val enum = value.model
+        enum.name.staticContext().property(enum.items.first { it.value == value.value }.name)
+    }
+
+    DefaultValue.None -> null
+    DefaultValue.Null -> nullLiteral()
+    is DefaultValue.StaticValue -> value.type.literalFor(value.value)
 }
 
 //fun AnnotationAware.addPathAnnotation(path: String) {

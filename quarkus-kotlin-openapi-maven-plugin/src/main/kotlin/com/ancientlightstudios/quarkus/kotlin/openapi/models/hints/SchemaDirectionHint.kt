@@ -1,7 +1,7 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.hints
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiSchema
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.Direction
+import com.ancientlightstudios.quarkus.kotlin.openapi.transformation.Direction
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
 
 // specifies in which direction a schema is used. Only in the request from client to server (UnidirectionalUp), only

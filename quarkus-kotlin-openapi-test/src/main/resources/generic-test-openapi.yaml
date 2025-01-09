@@ -56,6 +56,30 @@ paths:
         default:
           description: default
 
+  /features/generic/responseWithInterface:
+    get:
+      # Check that interfaces can be generated for common responses
+      tags:
+        - generic
+      operationId: responseWithInterface
+      responses:
+        200:
+          description: Ok
+        400:
+          # don't use the OperationError here
+          description: Bad request
+          x-generic-response-name: Shared400Response
+          headers:
+            X-TEST:
+              schema:
+                type: string
+                default: "test"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationError'
+
+
   /features/generic/echo:
     post:
       tags:

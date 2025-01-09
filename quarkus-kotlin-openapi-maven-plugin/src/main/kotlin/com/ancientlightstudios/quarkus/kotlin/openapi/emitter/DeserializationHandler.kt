@@ -1,0 +1,3 @@
+package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
+
+interface DeserializationHandler

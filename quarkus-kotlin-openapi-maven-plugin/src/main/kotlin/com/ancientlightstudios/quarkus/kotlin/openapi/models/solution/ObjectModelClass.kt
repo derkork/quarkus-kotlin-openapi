@@ -10,10 +10,10 @@ class ObjectModelClass(
 ) : SolutionFile(name), ModelClass {
 
     val properties = mutableListOf<ObjectModelProperties>()
-    var additionalProperties: ModelUsage? = null
+    var additionalProperties: ModelInstance? = null
 
     // features
 
 }
 
-class ObjectModelProperties(val name: String, val sourceName: String, val model: ModelUsage)
+class ObjectModelProperties(val name: String, val sourceName: String, val model: ModelInstance)

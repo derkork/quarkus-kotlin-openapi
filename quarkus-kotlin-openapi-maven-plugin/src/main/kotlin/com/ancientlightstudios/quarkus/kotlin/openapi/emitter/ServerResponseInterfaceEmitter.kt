@@ -1,9 +1,13 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
+import com.ancientlightstudios.quarkus.kotlin.openapi.handler.ContentTypeHandler
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.SolutionHint.solution
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinTypeName.Companion.asTypeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ResponseCode
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ModelUsage
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ServerResponseBody
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ServerResponseHeader
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ServerResponseInterface
 
 class ServerResponseInterfaceEmitter : CodeEmitter {
@@ -24,25 +28,41 @@ class ServerResponseInterfaceEmitter : CodeEmitter {
                     if (responseInterface.responseCode == ResponseCode.Default) {
                         kotlinParameter("status", Kotlin.Int.asTypeReference())
                     }
-//                    emitMethodBody(body, headers)
+
+                    responseInterface.body?.let { body ->
+                        getHandler<ServerResponseInterfaceHandler>(body.content.contentType).run {
+                            emitResponseInterfaceBody(body)
+                        }
+                    }
+
+                    responseInterface.headers.forEach { header ->
+                        getHandler<ServerResponseInterfaceHandler>(header.content.contentType).run {
+                            emitResponseInterfaceHeader(header)
+                        }
+                    }
                 }
             }
         }
     }
+
+    companion object {
+        fun KotlinMethod.emitDefaultResponseInterfaceHeader(
+            name: String, model: ModelUsage, defaultValue: DefaultValue
+        ) {
+            kotlinParameter(name, model.asTypeReference(), defaultValue.toKotlinExpression())
+        }
+
+        fun KotlinMethod.emitDefaultResponseInterfaceBody(name: String, model: ModelUsage, defaultValue: DefaultValue) {
+            kotlinParameter(name, model.asTypeReference(), defaultValue.toKotlinExpression())
+        }
+
+    }
 }
 
-//
-//    private fun KotlinMethod.emitMethodBody(
-//        body: OpenApiBody?,
-//        headers: List<OpenApiParameter>
-//    ) {
-//        if (body != null) {
-//            val typeUsage = body.content.typeUsage
-//            kotlinParameter("body".variableName(), typeUsage.buildValidType())
-//        }
-//
-//        headers.forEach {
-//            kotlinParameter(it.parameterVariableName, it.content.typeUsage.buildValidType())
-//        }
-//    }
-//}
+interface ServerResponseInterfaceHandler : ContentTypeHandler {
+
+    fun KotlinMethod.emitResponseInterfaceHeader(header: ServerResponseHeader)
+
+    fun KotlinMethod.emitResponseInterfaceBody(body: ServerResponseBody)
+
+}

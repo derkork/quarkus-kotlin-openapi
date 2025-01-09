@@ -3,9 +3,7 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.transformation
 import com.ancientlightstudios.quarkus.kotlin.openapi.InterfaceType
 import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.inspect
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.SolutionHint.solution
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ConflictResolution
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ComponentName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ServerResponseInterface
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.*
 
 // generates the response interfaces for a server implementation
 class ServerResponseInterfaceTransformation : SpecTransformation {
@@ -35,6 +33,24 @@ class ServerResponseInterfaceTransformation : SpecTransformation {
                                     response.responseCode,
                                     response
                                 )
+
+                                headers {
+                                    responseInterface.headers += ServerResponseHeader(
+                                        variableNameOf(header.name),
+                                        header.name,
+                                        contentModelFor(header.content, Direction.Down, header.required),
+                                        header
+                                    )
+                                }
+
+                                body {
+                                    responseInterface.body = ServerResponseBody(
+                                        variableNameOf("body"),
+                                        contentModelFor(body.content, Direction.Down, body.required),
+                                        body
+                                    )
+                                }
+
                                 spec.solution.files.add(responseInterface)
                             }
                         }

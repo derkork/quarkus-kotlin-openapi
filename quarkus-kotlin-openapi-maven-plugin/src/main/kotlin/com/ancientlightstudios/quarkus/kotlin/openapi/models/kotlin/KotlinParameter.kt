@@ -3,7 +3,8 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
 
 class KotlinParameter(
-    private val name: String, private val type: KotlinTypeReference,
+    private val name: String,
+    private val type: KotlinTypeReference,
     private val expression: KotlinExpression? = null,
     private val asParameterList: Boolean = false
 ) : KotlinRenderable, AnnotationAware {
@@ -15,7 +16,7 @@ class KotlinParameter(
     }
 
     override fun ImportCollector.registerImports() {
-//        register(type)
+        register(type)
         expression?.let { registerFrom(expression) }
         registerFrom(annotations)
     }

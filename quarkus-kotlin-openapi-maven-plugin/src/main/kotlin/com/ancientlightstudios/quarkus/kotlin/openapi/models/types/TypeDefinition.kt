@@ -3,6 +3,7 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.models.types
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ContentType
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.SchemaModifier
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.SchemaValidation
+import com.ancientlightstudios.quarkus.kotlin.openapi.transformation.Direction
 
 sealed interface TypeDefinition {
 
@@ -33,10 +34,3 @@ sealed interface TypeDefinitionOverlay {
 
 }
 
-enum class Direction {
-    // data from client to server
-    Up,
-
-    // data from server to client
-    Down
-}

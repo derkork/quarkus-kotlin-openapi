@@ -3,7 +3,9 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.SolutionHint.solution
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinTypeName.Companion.asTypeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.Library
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.asTypeReference
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.kotlinClass
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.kotlinMember
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ServerRestController
 
 class ServerRestControllerEmitter : CodeEmitter {
@@ -19,6 +21,8 @@ class ServerRestControllerEmitter : CodeEmitter {
             registerImports(Library.All)
 
             kotlinClass(name) {
+                kotlinMember("delegate", restController.delegate.name.asTypeReference())
+                kotlinMember("dependencyVogel", restController.dependencyVogel.name.asTypeReference())
             }
         }
     }

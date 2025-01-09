@@ -16,6 +16,6 @@ class OneOfModelClass(
 
 }
 
-class OneOfModelOption(var name: ComponentName, val model: ModelUsage, val aliases: List<String>)
+class OneOfModelOption(var name: ComponentName, val model: ModelInstance, val aliases: List<String>)
 
 class OneOfModelDiscriminator(val name: String, val sourceName: String)

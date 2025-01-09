@@ -31,6 +31,10 @@ class FeaturesGenericServerDelegateImpl : FeaturesGenericServerDelegate {
         }
     }
 
+    override suspend fun ResponseWithInterfaceContext.responseWithInterface(): Nothing {
+        ok()
+    }
+
     override suspend fun EchoContext.echo(): Nothing {
         val validRequest = request.validOrElse { badRequest(it.toOperationError()) }
 

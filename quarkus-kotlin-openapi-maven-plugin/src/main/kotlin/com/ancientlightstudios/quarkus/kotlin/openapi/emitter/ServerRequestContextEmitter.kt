@@ -1,5 +1,6 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
+import com.ancientlightstudios.quarkus.kotlin.openapi.handler.ContentTypeHandler
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.SolutionHint.solution
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.IdentifierExpression.Companion.identifier
@@ -8,8 +9,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinTypeNa
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.NullCheckExpression.Companion.nullCheck
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.PropertyExpression.Companion.property
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ResponseCode
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ServerRequestContext
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ServerRequestContextResponseMethod
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.*
 
 class ServerRequestContextEmitter : CodeEmitter {
 
@@ -36,8 +36,7 @@ class ServerRequestContextEmitter : CodeEmitter {
                 }
 
                 kotlinMember("headers", Jakarta.HttpHeaders.asTypeReference())
-                // TODO
-//            kotlinMember("objectMapper".variableName(), Misc.ObjectMapperClass.typeName())
+                kotlinMember("dependencyVogel", context.dependencyVogel.name.asTypeReference())
 
                 emitInterfaceMembers(context)
                 emitRawHeaderMethods()
@@ -103,15 +102,22 @@ class ServerRequestContextEmitter : CodeEmitter {
         }
     }
 
+    context(EmitterContext)
     private fun KotlinClass.emitStatusMethod(method: ServerRequestContextResponseMethod) {
-        method.responseInterface?.let { interfaces += it.name.asTypeReference() }
+        val fromInterface = when (val responseInterface = method.responseInterface) {
+            null -> false
+            else -> {
+                interfaces += responseInterface.name.asTypeReference()
+                true
+            }
+        }
 
         // produces:
         //
         // [override] fun <name>([status: Int]): Nothing = ...
         kotlinMethod(
             method.name, bodyAsAssignment = true,
-            returnType = Kotlin.Nothing.asTypeReference(), override = method.responseInterface != null
+            returnType = Kotlin.Nothing.asTypeReference(), override = fromInterface
         ) {
             val codeExpression = when (val code = method.responseCode) {
                 is ResponseCode.HttpStatusCode -> code.value.literal()
@@ -121,11 +127,33 @@ class ServerRequestContextEmitter : CodeEmitter {
                 }
             }
 
-            // TODO: proper body serialization
-            codeExpression.statement()
+            var mediaTypeExpression: KotlinExpression = nullLiteral()
+            var bodyExpression: KotlinExpression = nullLiteral()
+
+            method.body?.let { body ->
+                mediaTypeExpression = body.content.rawContentType.literal()
+                bodyExpression = getHandler<ServerRequestContextHandler>(body.content.contentType).run {
+                    emitResponseMethodBody(body, fromInterface)
+                }
+            }
+
+            val headerExpressions = method.headers.map { header ->
+                val serializationExpression =
+                    getHandler<ServerRequestContextHandler>(header.content.contentType).run {
+                        emitResponseMethodHeader(header, fromInterface)
+                    }
+                invoke(Kotlin.Pair, header.sourceName.literal(), serializationExpression)
+            }
+
+            invoke(
+                "status",
+                codeExpression,
+                mediaTypeExpression,
+                bodyExpression,
+                *headerExpressions.toTypedArray()
+            ).statement()
         }
     }
-
 
     private fun KotlinClass.emitInterfaceMembers(context: ServerRequestContext) {
         // produces:
@@ -172,51 +200,38 @@ class ServerRequestContextEmitter : CodeEmitter {
         }
     }
 
-//
-//    private fun KotlinMethod.emitMethodBody(
-//        status: KotlinExpression,
-//        body: OpenApiBody?,
-//        headers: List<OpenApiParameter>
-//    ) {
-//        var bodyExpression: KotlinExpression = nullLiteral()
-//        var mediaTypeExpression: KotlinExpression = nullLiteral()
-//
-//        if (body != null) {
-//            val bodyVariable = "body".variableName()
-//            val typeUsage = body.content.typeUsage
-//            kotlinParameter(bodyVariable, typeUsage.buildValidType())
-//
-//            bodyExpression = emitterContext.runEmitter(
-//                SerializationStatementEmitter(typeUsage, bodyVariable, body.content.mappedContentType)
-//            ).resultStatement
-//
-//            if (body.content.mappedContentType == ContentType.ApplicationJson) {
-//                bodyExpression = bodyExpression.invoke("asString".methodName(), "objectMapper".variableName())
-//            }
-//
-//            mediaTypeExpression = body.content.rawContentType.literal()
-//        }
-//
-//        val headerExpressions = headers.map {
-//            kotlinParameter(it.parameterVariableName, it.content.typeUsage.buildValidType())
-//            val serializationExpression = emitterContext.runEmitter(
-//                SerializationStatementEmitter(
-//                    it.content.typeUsage,
-//                    it.parameterVariableName,
-//                    it.content.mappedContentType
-//                )
-//            ).resultStatement
-//            invoke(Kotlin.PairClass.constructorName, it.name.literal(), serializationExpression)
-//        }
-//
-//        invoke(
-//            "status".rawMethodName(),
-//            status,
-//            mediaTypeExpression,
-//            bodyExpression,
-//            *headerExpressions.toTypedArray()
-//        ).statement()
-//    }
-//
+    companion object {
+        fun KotlinMethod.emitDefaultResponseMethodHeader(
+            name: String, model: ModelUsage, defaultValue: DefaultValue, interfaceMethod: Boolean
+        ) {
+            // if the method is from a response interface don't repeat the default value here
+            kotlinParameter(
+                name, model.asTypeReference(), when (interfaceMethod) {
+                    true -> null
+                    false -> defaultValue.toKotlinExpression()
+                }
+            )
+        }
+
+        fun KotlinMethod.emitDefaultResponseMethodBody(
+            name: String, model: ModelUsage, defaultValue: DefaultValue, interfaceMethod: Boolean
+        ) {
+            // if the method is from a response interface don't repeat the default value here
+            kotlinParameter(
+                name, model.asTypeReference(), when (interfaceMethod) {
+                    true -> null
+                    false -> defaultValue.toKotlinExpression()
+                }
+            )
+        }
+
+    }
+}
+
+interface ServerRequestContextHandler : ContentTypeHandler {
+
+    fun KotlinMethod.emitResponseMethodHeader(header: ServerResponseHeader, fromInterface: Boolean): KotlinExpression
+
+    fun KotlinMethod.emitResponseMethodBody(body: ServerResponseBody, fromInterface: Boolean): KotlinExpression
 
 }

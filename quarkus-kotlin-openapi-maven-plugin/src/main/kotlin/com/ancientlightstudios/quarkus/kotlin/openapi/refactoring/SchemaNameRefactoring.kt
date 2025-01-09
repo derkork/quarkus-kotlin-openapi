@@ -8,6 +8,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.SchemaNameHin
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.SchemaNameHint.schemaName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TransformationStrategy
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiSchema
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ResponseCode
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.pop
@@ -37,7 +38,7 @@ class SchemaNameRefactoring : SpecRefactoring {
                     }
 
                     responses {
-                        val responsePrefix = "$requestPrefix ${response.responseCode}"
+                        val responsePrefix = "$requestPrefix ${response.responseCode.asLabel()}"
                         headers {
                             assignName(
                                 header.content.schema,
@@ -126,4 +127,10 @@ class SchemaNameRefactoring : SpecRefactoring {
 
         return true
     }
+
+    private fun ResponseCode.asLabel() = when (this) {
+        ResponseCode.Default -> "Default"
+        is ResponseCode.HttpStatusCode -> "$value"
+    }
+
 }

@@ -1,10 +1,8 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.refactoring
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.SchemaModifier
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiSchema
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.*
-import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
-import com.ancientlightstudios.quarkus.kotlin.openapi.utils.pop
+import com.ancientlightstudios.quarkus.kotlin.openapi.transformation.Direction
 
 class SplitTypeDefinitionRefactoring : SpecRefactoring {
 
