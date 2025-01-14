@@ -1,5 +1,6 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.solution
 
+import com.ancientlightstudios.quarkus.kotlin.openapi.handler.Feature
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.SchemaDirection
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiSchema
 
@@ -9,11 +10,13 @@ class ObjectModelClass(
     override val source: OpenApiSchema
 ) : SolutionFile(name), ModelClass {
 
-    val properties = mutableListOf<ObjectModelProperties>()
-    var additionalProperties: ModelInstance? = null
+    override val features = mutableSetOf<Feature>()
 
-    // features
+    val properties = mutableListOf<ObjectModelProperties>()
+    var additionalProperties: ModelUsage? = null
+
+    var needsPropertiesCount: Boolean = false
 
 }
 
-class ObjectModelProperties(val name: String, val sourceName: String, val model: ModelInstance)
+class ObjectModelProperties(val name: String, val sourceName: String, val model: ModelUsage)

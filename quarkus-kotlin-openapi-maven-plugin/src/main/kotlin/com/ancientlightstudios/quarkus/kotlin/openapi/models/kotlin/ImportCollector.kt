@@ -7,10 +7,12 @@ class ImportCollector(private val basePackage: String, private val providedPacka
     fun register(name: String, packageName: String) {
         imports.add(ImportData(packageName, name))
     }
-    
+
     fun register(typeName: KotlinTypeName) {
         imports.add(ImportData(typeName.packageName, typeName.name))
     }
+
+    fun register(typeReferences: List<KotlinTypeReference>) = typeReferences.forEach(::register)
 
     fun register(typeReference: KotlinTypeReference) {
         when (typeReference) {

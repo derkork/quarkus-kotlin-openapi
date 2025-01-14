@@ -95,8 +95,8 @@ object Library {
 
     val All = KotlinTypeName("*", packageName)
     val Maybe = KotlinTypeName("Maybe", packageName)
-    val MaybeSuccessClass = Maybe.nestedTypeName("Success")
-    val MaybeFailureClass = Maybe.nestedTypeName("Failure")
+    val MaybeSuccess = Maybe.nestedTypeName("Success")
+    val MaybeFailure = Maybe.nestedTypeName("Failure")
     val ValidationError = KotlinTypeName("ValidationError", packageName)
     val IsError = KotlinTypeName("IsError", packageName)
     val IsTimeoutError = KotlinTypeName("IsTimeoutError", packageName)

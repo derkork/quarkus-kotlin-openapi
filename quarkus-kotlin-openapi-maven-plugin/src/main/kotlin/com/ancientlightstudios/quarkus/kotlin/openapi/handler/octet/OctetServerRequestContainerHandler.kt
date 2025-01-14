@@ -5,6 +5,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.ServerRequestConta
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.ServerRequestContainerEmitter.Companion.emitDefaultRequestContainerParameter
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.ServerRequestContainerHandler
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.adjustToDefault
+import com.ancientlightstudios.quarkus.kotlin.openapi.handler.matches
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.BaseType
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinClass
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ContentType
@@ -12,15 +13,17 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.*
 
 class OctetServerRequestContainerHandler : ServerRequestContainerHandler {
 
-    override val supportedContentType = ContentType.ApplicationOctetStream
-
-    override fun KotlinClass.emitRequestContainerParameter(parameter: ServerRequestContainerParameter) {
+    override fun KotlinClass.emitRequestContainerParameter(
+        parameter: ServerRequestContainerParameter, contentType: ContentType
+    ) = contentType.matches(ContentType.ApplicationOctetStream) {
         val model = parameter.content.model
         val defaultValue = model.instance.getDefaultValue()
         emitDefaultRequestContainerParameter(parameter.name, model.adjustToDefault(defaultValue))
     }
 
-    override fun KotlinClass.emitRequestContainerBody(body: ServerRequestContainerBody) {
+    override fun KotlinClass.emitRequestContainerBody(
+        body: ServerRequestContainerBody, contentType: ContentType
+    ) = contentType.matches(ContentType.ApplicationOctetStream) {
         val model = body.content.model
         val defaultValue = model.instance.getDefaultValue()
         emitDefaultRequestContainerBody(body.name, model.adjustToDefault(defaultValue))

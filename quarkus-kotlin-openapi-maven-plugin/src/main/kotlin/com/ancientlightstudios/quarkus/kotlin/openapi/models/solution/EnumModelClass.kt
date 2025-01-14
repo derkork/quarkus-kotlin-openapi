@@ -1,5 +1,6 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.solution
 
+import com.ancientlightstudios.quarkus.kotlin.openapi.handler.Feature
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.BaseType
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.SchemaDirection
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiSchema
@@ -11,9 +12,9 @@ class EnumModelClass(
     override val source: OpenApiSchema
 ) : SolutionFile(name), ModelClass {
 
-    val items = mutableListOf<EnumModelItem>()
+    override val features = mutableSetOf<Feature>()
 
-    // features
+    val items = mutableListOf<EnumModelItem>()
 
 }
 

@@ -1,6 +1,5 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.emitter.serialization
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.isNullable
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.Kotlin
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.GenericTypeName.Companion.of

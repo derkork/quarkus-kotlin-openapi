@@ -2,14 +2,12 @@ package com.ancientlightstudios.quarkus.kotlin.openapi
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.EmitterStage
 import com.ancientlightstudios.quarkus.kotlin.openapi.handler.HandlerRegistry
+import com.ancientlightstudios.quarkus.kotlin.openapi.handler.form.FormDependenciesHandler
+import com.ancientlightstudios.quarkus.kotlin.openapi.handler.form.FormModelHandler
 import com.ancientlightstudios.quarkus.kotlin.openapi.handler.form.FormServerRequestContainerHandler
 import com.ancientlightstudios.quarkus.kotlin.openapi.handler.json.*
-import com.ancientlightstudios.quarkus.kotlin.openapi.handler.octet.OctetSerializationHandler
-import com.ancientlightstudios.quarkus.kotlin.openapi.handler.octet.OctetServerRequestContainerHandler
-import com.ancientlightstudios.quarkus.kotlin.openapi.handler.octet.OctetServerResponseHandler
-import com.ancientlightstudios.quarkus.kotlin.openapi.handler.plain.PlainSerializationHandler
-import com.ancientlightstudios.quarkus.kotlin.openapi.handler.plain.PlainServerRequestContainerHandler
-import com.ancientlightstudios.quarkus.kotlin.openapi.handler.plain.PlainServerResponseHandler
+import com.ancientlightstudios.quarkus.kotlin.openapi.handler.octet.*
+import com.ancientlightstudios.quarkus.kotlin.openapi.handler.plain.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiSpec
 import com.ancientlightstudios.quarkus.kotlin.openapi.parser.ParserStage
 import com.ancientlightstudios.quarkus.kotlin.openapi.patching.PatchingStage
@@ -32,19 +30,30 @@ class Generator(private val config: Config) {
             listOf(
                 FormServerRequestContainerHandler(),
                 // there is no FormServerResponseHandler, because this content type only makes sense in requests
+                FormModelHandler(),
+                FormDependenciesHandler(),
 
                 JsonServerRequestContainerHandler(),
                 JsonServerResponseHandler(),
+                JsonDeserializationHandler(),
                 JsonSerializationHandler(),
+                JsonModelHandler(),
                 ObjectMapperHandler(),
+                JsonDependenciesHandler(),
 
                 OctetServerRequestContainerHandler(),
                 OctetServerResponseHandler(),
+                OctetDeserializationHandler(),
                 OctetSerializationHandler(),
+                OctetModelHandler(),
+                OctetDependenciesHandler(),
 
                 PlainServerRequestContainerHandler(),
                 PlainServerResponseHandler(),
-                PlainSerializationHandler()
+                PlainDeserializationHandler(),
+                PlainSerializationHandler(),
+                PlainModelHandler(),
+                PlainDependenciesHandler(),
             )
         )
 

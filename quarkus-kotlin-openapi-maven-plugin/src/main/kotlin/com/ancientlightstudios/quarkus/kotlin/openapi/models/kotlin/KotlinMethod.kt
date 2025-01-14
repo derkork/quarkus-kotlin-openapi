@@ -36,8 +36,8 @@ class KotlinMethod(
     }
 
     override fun ImportCollector.registerImports() {
-//        returnType?.let { register(it) }
-//        receiverType?.let { register(it) }
+        returnType?.let { register(it) }
+        receiverType?.let { register(it) }
         registerFrom(annotations)
         registerFrom(parameters)
         registerFrom(statements)

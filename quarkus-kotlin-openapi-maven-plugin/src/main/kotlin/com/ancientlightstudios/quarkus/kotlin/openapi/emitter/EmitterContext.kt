@@ -1,13 +1,11 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.Config
-import com.ancientlightstudios.quarkus.kotlin.openapi.handler.ContentTypeHandler
-import com.ancientlightstudios.quarkus.kotlin.openapi.handler.Feature
-import com.ancientlightstudios.quarkus.kotlin.openapi.handler.FeatureHandler
+import com.ancientlightstudios.quarkus.kotlin.openapi.handler.Handler
 import com.ancientlightstudios.quarkus.kotlin.openapi.handler.HandlerRegistry
+import com.ancientlightstudios.quarkus.kotlin.openapi.handler.HandlerResult
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinFile
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinTypeName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ContentType
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiSpec
 
 class EmitterContext(val spec: OpenApiSpec, val config: Config, val handlerRegistry: HandlerRegistry) {
@@ -22,10 +20,7 @@ class EmitterContext(val spec: OpenApiSpec, val config: Config, val handlerRegis
         return result
     }
 
-    inline fun <reified T : ContentTypeHandler> getHandler(contentType: ContentType) =
-        handlerRegistry.getHandler<T>(contentType)
-
-    inline fun <reified T : FeatureHandler> getHandler(feature: Feature) =
-        handlerRegistry.getHandler<T>(feature)
+    inline fun <reified H : Handler, R> getHandler(block: H.() -> HandlerResult<R>): R =
+        handlerRegistry.getHandler<H, R>(block)
 
 }

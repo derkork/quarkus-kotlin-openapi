@@ -1,7 +1,8 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.handler.Feature
-import com.ancientlightstudios.quarkus.kotlin.openapi.handler.FeatureHandler
+import com.ancientlightstudios.quarkus.kotlin.openapi.handler.Handler
+import com.ancientlightstudios.quarkus.kotlin.openapi.handler.HandlerResult
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.SolutionHint.solution
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinTypeName.Companion.asTypeName
@@ -22,7 +23,7 @@ class DependencyVogelEmitter : CodeEmitter {
             kotlinClass(name) {
                 kotlinAnnotation(Jakarta.ApplicationScoped)
                 dependencyVogel.features.forEach { feature ->
-                    getHandler<DependencyVogelFeatureHandler>(feature).run {
+                    getHandler<DependencyVogelFeatureHandler, Unit> {
                         installFeature(feature)
                     }
                 }
@@ -39,8 +40,8 @@ class DependencyVogelEmitter : CodeEmitter {
     }
 }
 
-interface DependencyVogelFeatureHandler : FeatureHandler {
+interface DependencyVogelFeatureHandler : Handler {
 
-    fun KotlinClass.installFeature(feature: Feature)
+    fun KotlinClass.installFeature(feature: Feature): HandlerResult<Unit>
 
 }

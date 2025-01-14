@@ -11,12 +11,14 @@ class IdentifierExpression(val value: String, val packageName: String = "") : Ko
 
     override fun render(writer: CodeWriter) = with(writer) {
         write(value)
-        
+
     }
 
     companion object {
 
-        fun String.identifier() = IdentifierExpression(this)
+        fun KotlinTypeName.identifier() = name.identifier(packageName)
+
+        fun String.identifier(packageName: String = "") = IdentifierExpression(this, packageName)
 
     }
 

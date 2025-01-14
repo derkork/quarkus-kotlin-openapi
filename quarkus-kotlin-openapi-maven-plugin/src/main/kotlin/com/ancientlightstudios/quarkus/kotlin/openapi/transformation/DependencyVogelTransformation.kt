@@ -1,8 +1,10 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.transformation
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.handler.ContentTypeHandler
+import com.ancientlightstudios.quarkus.kotlin.openapi.handler.Handler
+import com.ancientlightstudios.quarkus.kotlin.openapi.handler.HandlerResult
 import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.inspect
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.SolutionHint.solution
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ContentType
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ComponentName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ConflictResolution
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.DependencyVogel
@@ -22,27 +24,27 @@ class DependencyVogelTransformation : SpecTransformation {
             bundles {
                 requests {
                     parameters {
-                        getHandler<DependencyVogelHandler>(parameter.content.mappedContentType).run {
-                            installFeatureFor(dependencyVogel)
+                        getHandler<DependencyVogelHandler, Unit> {
+                            installFeatureFor(dependencyVogel, parameter.content.mappedContentType)
                         }
                     }
 
                     body {
-                        getHandler<DependencyVogelHandler>(body.content.mappedContentType).run {
-                            installFeatureFor(dependencyVogel)
+                        getHandler<DependencyVogelHandler, Unit> {
+                            installFeatureFor(dependencyVogel, body.content.mappedContentType)
                         }
                     }
 
                     responses {
                         headers {
-                            getHandler<DependencyVogelHandler>(header.content.mappedContentType).run {
-                                installFeatureFor(dependencyVogel)
+                            getHandler<DependencyVogelHandler, Unit> {
+                                installFeatureFor(dependencyVogel, header.content.mappedContentType)
                             }
                         }
 
                         body {
-                            getHandler<DependencyVogelHandler>(body.content.mappedContentType).run {
-                                installFeatureFor(dependencyVogel)
+                            getHandler<DependencyVogelHandler, Unit> {
+                                installFeatureFor(dependencyVogel, body.content.mappedContentType)
                             }
                         }
                     }
@@ -53,8 +55,11 @@ class DependencyVogelTransformation : SpecTransformation {
 
 }
 
-interface DependencyVogelHandler : ContentTypeHandler {
+/**
+ * handler of this type can install features for the `DependencyVogel` component to register additional dependencies
+ */
+interface DependencyVogelHandler : Handler {
 
-    fun installFeatureFor(dependencyVogel: DependencyVogel)
+    fun installFeatureFor(dependencyVogel: DependencyVogel, contentType: ContentType): HandlerResult<Unit>
 
 }

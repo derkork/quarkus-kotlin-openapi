@@ -2,11 +2,11 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.transformation
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.Config
 import com.ancientlightstudios.quarkus.kotlin.openapi.InterfaceType
-import com.ancientlightstudios.quarkus.kotlin.openapi.handler.ContentTypeHandler
+import com.ancientlightstudios.quarkus.kotlin.openapi.handler.Handler
 import com.ancientlightstudios.quarkus.kotlin.openapi.handler.HandlerRegistry
+import com.ancientlightstudios.quarkus.kotlin.openapi.handler.HandlerResult
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.OriginPathHint.originPath
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.SchemaDirection
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ContentType
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiSchema
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiSpec
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ModelClass
@@ -53,7 +53,7 @@ class TransformationContext(val spec: OpenApiSpec, val config: Config, val handl
         return (result as? T) ?: ProbableBug("incompatible model class found")
     }
 
-    inline fun <reified T : ContentTypeHandler> getHandler(contentType: ContentType) =
-        handlerRegistry.getHandler<T>(contentType)
+    inline fun <reified H : Handler, R> getHandler(block: H.() -> HandlerResult<R>): R =
+        handlerRegistry.getHandler<H, R>(block)
 
 }

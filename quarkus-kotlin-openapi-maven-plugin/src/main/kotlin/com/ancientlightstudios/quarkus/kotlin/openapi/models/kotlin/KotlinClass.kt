@@ -4,7 +4,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
 
 class KotlinClass(
     private val name: KotlinTypeName,
-    private val constructorAccessModifier: KotlinAccessModifier? = null,
+    var constructorAccessModifier: KotlinAccessModifier? = null,
     private val asDataClass: Boolean = false,
     private val sealed: Boolean = false,
     private val baseClass: KotlinBaseClass? = null,

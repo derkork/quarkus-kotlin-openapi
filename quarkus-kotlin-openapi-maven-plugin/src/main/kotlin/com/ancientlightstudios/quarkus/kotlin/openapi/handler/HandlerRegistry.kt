@@ -1,6 +1,5 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.handler
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ContentType
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
 
 class HandlerRegistry(val handlers: List<Handler>) {
@@ -9,23 +8,16 @@ class HandlerRegistry(val handlers: List<Handler>) {
         handlers.forEach { it.initializeContext(this) }
     }
 
-    inline fun <reified T : ContentTypeHandler> getHandler(contentType: ContentType): T {
-        val result = handlers.filterIsInstance<T>().filter { it.supportedContentType == contentType }
+    inline fun <reified H : Handler, R> getHandler(block: H.() -> HandlerResult<R>): R {
+        val results = handlers.filterIsInstance<H>()
+            .map(block)
+            .filterIsInstance<HandlerResult.Handled<R>>()
+
         return when {
-            result.isEmpty() -> ProbableBug("No handler found for interface ${T::class.simpleName} and content type ${contentType.value}")
-            result.size > 1 -> ProbableBug("Multiple handler found for interface ${T::class.simpleName} and content type ${contentType.value}")
-            else -> result.first()
+            results.isEmpty() -> ProbableBug("No handler found for interface ${H::class.simpleName}")
+            results.size > 1 -> ProbableBug("Multiple active handler found for interface ${H::class.simpleName}")
+            else -> results.first().result
         }
     }
-
-    inline fun <reified T : FeatureHandler> getHandler(feature: Feature): T {
-        val result = handlers.filterIsInstance<T>().filter { it.canHandleFeature(feature) }
-        return when {
-            result.isEmpty() -> ProbableBug("No handler found for interface ${T::class.simpleName} and feature ${feature::class.simpleName}")
-            result.size > 1 -> ProbableBug("Multiple handler found for interface ${T::class.simpleName} and feature ${feature::class.simpleName}")
-            else -> result.first()
-        }
-    }
-
 
 }

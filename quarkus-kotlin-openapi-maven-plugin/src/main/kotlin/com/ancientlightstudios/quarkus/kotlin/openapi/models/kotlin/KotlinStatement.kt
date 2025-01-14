@@ -14,7 +14,7 @@ interface StatementAware {
 
     fun KotlinExpression.declaration(
         variableName: String, type: KotlinTypeReference? = null, modifiable: Boolean = false
-    ) {
+    ) : String {
         addStatement(object : KotlinStatement {
 
             override fun ImportCollector.registerImports() {
@@ -34,9 +34,11 @@ interface StatementAware {
                 this@declaration.render(this)
             }
         })
+
+        return variableName
     }
 
-    fun KotlinExpression.assignment(variableName: VariableName): VariableName {
+    fun KotlinExpression.assignment(variableName: String): String {
 
         addStatement(object : KotlinStatement {
 
@@ -45,7 +47,7 @@ interface StatementAware {
             }
 
             override fun render(writer: CodeWriter) = with(writer) {
-                write("${variableName.value} = ")
+                write("$variableName = ")
                 this@assignment.render(this)
             }
         })

@@ -1,6 +1,7 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.handler.ContentTypeHandler
+import com.ancientlightstudios.quarkus.kotlin.openapi.handler.Handler
+import com.ancientlightstudios.quarkus.kotlin.openapi.handler.HandlerResult
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.SolutionHint.solution
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.IdentifierExpression.Companion.identifier
@@ -8,6 +9,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.InvocationEx
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinTypeName.Companion.asTypeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.NullCheckExpression.Companion.nullCheck
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.PropertyExpression.Companion.property
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ContentType
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ResponseCode
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.*
 
@@ -132,16 +134,15 @@ class ServerRequestContextEmitter : CodeEmitter {
 
             method.body?.let { body ->
                 mediaTypeExpression = body.content.rawContentType.literal()
-                bodyExpression = getHandler<ServerRequestContextHandler>(body.content.contentType).run {
-                    emitResponseMethodBody(body, fromInterface)
+                bodyExpression = getHandler<ServerRequestContextHandler, KotlinExpression> {
+                    emitResponseMethodBody(body, fromInterface, body.content.contentType)
                 }
             }
 
             val headerExpressions = method.headers.map { header ->
-                val serializationExpression =
-                    getHandler<ServerRequestContextHandler>(header.content.contentType).run {
-                        emitResponseMethodHeader(header, fromInterface)
-                    }
+                val serializationExpression = getHandler<ServerRequestContextHandler, KotlinExpression> {
+                    emitResponseMethodHeader(header, fromInterface, header.content.contentType)
+                }
                 invoke(Kotlin.Pair, header.sourceName.literal(), serializationExpression)
             }
 
@@ -228,10 +229,14 @@ class ServerRequestContextEmitter : CodeEmitter {
     }
 }
 
-interface ServerRequestContextHandler : ContentTypeHandler {
+interface ServerRequestContextHandler : Handler {
 
-    fun KotlinMethod.emitResponseMethodHeader(header: ServerResponseHeader, fromInterface: Boolean): KotlinExpression
+    fun KotlinMethod.emitResponseMethodHeader(
+        header: ServerResponseHeader, fromInterface: Boolean, contentType: ContentType
+    ): HandlerResult<KotlinExpression>
 
-    fun KotlinMethod.emitResponseMethodBody(body: ServerResponseBody, fromInterface: Boolean): KotlinExpression
+    fun KotlinMethod.emitResponseMethodBody(
+        body: ServerResponseBody, fromInterface: Boolean, contentType: ContentType
+    ): HandlerResult<KotlinExpression>
 
 }

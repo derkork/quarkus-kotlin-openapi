@@ -51,7 +51,11 @@ private fun TransformationContext.arrayModelInstanceFor(
     val itemsSchema = modelSchema.getComponent<ArrayItemsComponent>()
         ?: ProbableBug("Array schema without items definition. Found in ${modelSchema.originPath}")
     val nullable = schema.getComponent<NullableComponent>()?.nullable ?: false
-    return CollectionModelInstance(modelInstanceFor(itemsSchema.schema, direction, true), required, nullable)
+    return CollectionModelInstance(
+        ModelUsage(modelInstanceFor(itemsSchema.schema, direction, true)),
+        required,
+        nullable
+    )
 }
 
 private fun TransformationContext.enumModelInstanceFor(
@@ -69,7 +73,11 @@ private fun TransformationContext.mapModelInstanceFor(
     val itemsSchema = modelSchema.getComponent<MapComponent>()
         ?: ProbableBug("Map schema without items definition. Found in ${modelSchema.originPath}")
     val nullable = schema.getComponent<NullableComponent>()?.nullable ?: false
-    return MapModelInstance(modelInstanceFor(itemsSchema.schema, direction, true), required, nullable)
+    return MapModelInstance(
+        ModelUsage(modelInstanceFor(itemsSchema.schema, direction, true)),
+        required,
+        nullable
+    )
 }
 
 private fun TransformationContext.objectModelInstanceFor(

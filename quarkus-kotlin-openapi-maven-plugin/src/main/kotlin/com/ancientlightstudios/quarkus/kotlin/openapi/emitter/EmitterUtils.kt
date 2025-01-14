@@ -10,20 +10,22 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.PrimitiveType
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.TypeUsage
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
 
-fun BaseType.asTypeReference() = when (this) {
-    BaseType.BigDecimal -> Kotlin.BigDecimal.asTypeReference()
-    BaseType.BigInteger -> Kotlin.BigInteger.asTypeReference()
-    BaseType.Boolean -> Kotlin.Boolean.asTypeReference()
-    BaseType.ByteArray -> Kotlin.ByteArray.asTypeReference()
-    is BaseType.Custom -> KotlinSimpleTypeReference(name, packageName)
-    BaseType.Double -> Kotlin.Double.asTypeReference()
-    BaseType.Float -> Kotlin.Float.asTypeReference()
-    BaseType.Int -> Kotlin.Int.asTypeReference()
-    BaseType.Long -> Kotlin.Long.asTypeReference()
-    BaseType.String -> Kotlin.String.asTypeReference()
-    BaseType.UInt -> Kotlin.UInt.asTypeReference()
-    BaseType.ULong -> Kotlin.ULong.asTypeReference()
+fun BaseType.asTypeName() = when (this) {
+    BaseType.BigDecimal -> Kotlin.BigDecimal
+    BaseType.BigInteger -> Kotlin.BigInteger
+    BaseType.Boolean -> Kotlin.Boolean
+    BaseType.ByteArray -> Kotlin.ByteArray
+    is BaseType.Custom -> KotlinTypeName(name, packageName)
+    BaseType.Double -> Kotlin.Double
+    BaseType.Float -> Kotlin.Float
+    BaseType.Int -> Kotlin.Int
+    BaseType.Long -> Kotlin.Long
+    BaseType.String -> Kotlin.String
+    BaseType.UInt -> Kotlin.UInt
+    BaseType.ULong -> Kotlin.ULong
 }
+
+fun BaseType.asTypeReference() = asTypeName().asTypeReference()
 
 fun BaseType.literalFor(value: String): KotlinExpression = when (this) {
     BaseType.BigDecimal -> value.bigDecimalLiteral()
@@ -40,14 +42,12 @@ fun BaseType.literalFor(value: String): KotlinExpression = when (this) {
 }
 
 fun ModelUsage.adjustToDefault(defaultValue: DefaultValue) = when (defaultValue) {
-    DefaultValue.None,
-    DefaultValue.Null -> this
-
+    DefaultValue.None -> this
+    DefaultValue.Null -> this.acceptNull()
     else -> this.rejectNull()
 }
 
-fun ModelUsage.asTypeReference(valueProvided: Boolean = false): KotlinTypeReference =
-    instance.asTypeReference(overrideNullableWith)
+fun ModelUsage.asTypeReference(): KotlinTypeReference = instance.asTypeReference(overrideNullableWith)
 
 fun ModelInstance.asTypeReference(overrideNullableWith: Boolean? = null): KotlinTypeReference = when (this) {
     is CollectionModelInstance -> Kotlin.List.asTypeReference(items.asTypeReference())
@@ -150,23 +150,3 @@ fun DefaultValue.toKotlinExpression(): KotlinExpression? = when (val value = thi
 //            .of(safeType.items.buildUnsafeJsonType(true))
 //    }
 //}
-
-fun TypeUsage.isNullable(): Boolean {
-    if (!nullable) {
-        // null values are just not allowed
-        return false
-    }
-
-    val hasDefault = when (val safeType = type) {
-        is PrimitiveTypeDefinition -> safeType.defaultValue != null
-//        is EnumTypeDefinition -> safeType.defaultValue != null
-        else -> false
-    }
-
-    if (hasDefault) {
-        // if there is a default value set, this type never accepts null values
-        return false
-    }
-
-    return nullable
-}

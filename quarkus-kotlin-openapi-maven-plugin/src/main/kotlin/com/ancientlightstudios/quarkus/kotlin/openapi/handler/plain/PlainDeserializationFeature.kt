@@ -1,0 +1,5 @@
+package com.ancientlightstudios.quarkus.kotlin.openapi.handler.plain
+
+import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.ModelDeserializationFeature
+
+object PlainDeserializationFeature : ModelDeserializationFeature

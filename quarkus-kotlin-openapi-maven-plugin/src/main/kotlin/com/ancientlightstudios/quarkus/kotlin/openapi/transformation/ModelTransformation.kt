@@ -109,11 +109,11 @@ class ModelTransformation : SpecTransformation {
 
         validProperties.forEach {
             val modelInstance = modelInstanceFor(it.schema, model.direction, required.contains(it.name))
-            model.properties += ObjectModelProperties(methodNameOf(it.name), it.name, modelInstance)
+            model.properties += ObjectModelProperties(methodNameOf(it.name), it.name, ModelUsage(modelInstance))
         }
 
         if (itemsSchema != null) {
-            model.additionalProperties = modelInstanceFor(itemsSchema, model.direction, true)
+            model.additionalProperties = ModelUsage(modelInstanceFor(itemsSchema, model.direction, true))
         }
     }
 
@@ -135,7 +135,7 @@ class ModelTransformation : SpecTransformation {
 
             model.options += OneOfModelOption(
                 containerName,
-                modelInstanceFor(it.schema, model.direction, true),
+                ModelUsage(modelInstanceFor(it.schema, model.direction, true)),
                 oneOf.discriminator?.getAliasesFor(it.schema) ?: listOf()
             )
         }

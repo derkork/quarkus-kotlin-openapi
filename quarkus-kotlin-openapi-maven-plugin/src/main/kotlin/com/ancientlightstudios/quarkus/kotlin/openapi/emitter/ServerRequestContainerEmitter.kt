@@ -1,12 +1,14 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.handler.ContentTypeHandler
+import com.ancientlightstudios.quarkus.kotlin.openapi.handler.Handler
+import com.ancientlightstudios.quarkus.kotlin.openapi.handler.HandlerResult
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.SolutionHint.solution
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinClass
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinTypeName.Companion.asTypeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.Library
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.kotlinClass
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.kotlinMember
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ContentType
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ModelUsage
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ServerRequestContainer
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ServerRequestContainerBody
@@ -26,14 +28,14 @@ class ServerRequestContainerEmitter : CodeEmitter {
 
             kotlinClass(name) {
                 container.parameters.forEach { parameter ->
-                    getHandler<ServerRequestContainerHandler>(parameter.content.contentType).run {
-                        emitRequestContainerParameter(parameter)
+                    getHandler<ServerRequestContainerHandler, Unit> {
+                        emitRequestContainerParameter(parameter, parameter.content.contentType)
                     }
                 }
 
                 container.body?.let { body ->
-                    getHandler<ServerRequestContainerHandler>(body.content.contentType).run {
-                        emitRequestContainerBody(body)
+                    getHandler<ServerRequestContainerHandler, Unit> {
+                        emitRequestContainerBody(body, body.content.contentType)
                     }
                 }
             }
@@ -51,10 +53,17 @@ class ServerRequestContainerEmitter : CodeEmitter {
     }
 }
 
-interface ServerRequestContainerHandler : ContentTypeHandler {
+/**
+ * handler of this type are responsible to generate class members for a request container
+ */
+interface ServerRequestContainerHandler : Handler {
 
-    fun KotlinClass.emitRequestContainerParameter(parameter: ServerRequestContainerParameter)
+    fun KotlinClass.emitRequestContainerParameter(
+        parameter: ServerRequestContainerParameter, contentType: ContentType
+    ): HandlerResult<Unit>
 
-    fun KotlinClass.emitRequestContainerBody(body: ServerRequestContainerBody)
+    fun KotlinClass.emitRequestContainerBody(
+        body: ServerRequestContainerBody, contentType: ContentType
+    ): HandlerResult<Unit>
 
 }

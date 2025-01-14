@@ -1,9 +1,11 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.handler.ContentTypeHandler
+import com.ancientlightstudios.quarkus.kotlin.openapi.handler.Handler
+import com.ancientlightstudios.quarkus.kotlin.openapi.handler.HandlerResult
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.SolutionHint.solution
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinTypeName.Companion.asTypeName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ContentType
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ResponseCode
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ModelUsage
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ServerResponseBody
@@ -30,14 +32,14 @@ class ServerResponseInterfaceEmitter : CodeEmitter {
                     }
 
                     responseInterface.body?.let { body ->
-                        getHandler<ServerResponseInterfaceHandler>(body.content.contentType).run {
-                            emitResponseInterfaceBody(body)
+                        getHandler<ServerResponseInterfaceHandler, Unit> {
+                            emitResponseInterfaceBody(body, body.content.contentType)
                         }
                     }
 
                     responseInterface.headers.forEach { header ->
-                        getHandler<ServerResponseInterfaceHandler>(header.content.contentType).run {
-                            emitResponseInterfaceHeader(header)
+                        getHandler<ServerResponseInterfaceHandler, Unit> {
+                            emitResponseInterfaceHeader(header, header.content.contentType)
                         }
                     }
                 }
@@ -59,10 +61,12 @@ class ServerResponseInterfaceEmitter : CodeEmitter {
     }
 }
 
-interface ServerResponseInterfaceHandler : ContentTypeHandler {
+interface ServerResponseInterfaceHandler : Handler {
 
-    fun KotlinMethod.emitResponseInterfaceHeader(header: ServerResponseHeader)
+    fun KotlinMethod.emitResponseInterfaceHeader(
+        header: ServerResponseHeader, contentType: ContentType
+    ): HandlerResult<Unit>
 
-    fun KotlinMethod.emitResponseInterfaceBody(body: ServerResponseBody)
+    fun KotlinMethod.emitResponseInterfaceBody(body: ServerResponseBody, contentType: ContentType): HandlerResult<Unit>
 
 }

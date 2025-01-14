@@ -1,9 +1,12 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
+import com.ancientlightstudios.quarkus.kotlin.openapi.handler.Handler
+import com.ancientlightstudios.quarkus.kotlin.openapi.handler.HandlerResult
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.SolutionHint.solution
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinTypeName.Companion.asTypeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.OneOfModelClass
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.OneOfModelOption
 
 class OneOfModelClassEmitter : CodeEmitter {
 
@@ -20,17 +23,68 @@ class OneOfModelClassEmitter : CodeEmitter {
 
             kotlinInterface(name, sealed = true) {
 
+                model.features.filterIsInstance<ModelSerializationFeature>().forEach { feature ->
+                    getHandler<OneOfModelSerializationHandler, Unit> {
+                        installSerializationFeature(model, feature)
+                    }
+                }
+
+                // TODO
+//                if (withTestSupport) {
+//                    generateTestMethods()
+//                }
+
+                kotlinCompanion {
+                    // TODO: generator method
+
+                    model.features.filterIsInstance<ModelDeserializationFeature>().forEach { feature ->
+                        getHandler<OneOfModelDeserializationHandler, Unit> {
+                            installDeserializationFeature(model, feature)
+                        }
+                    }
+                }
             }
 
             model.options.forEach {
                 kotlinClass(it.name.asTypeName(), asDataClass = true, baseClass = KotlinBaseClass(name)) {
                     kotlinMember("value", it.model.asTypeReference(), accessModifier = null)
+
+                    model.features.filterIsInstance<ModelSerializationFeature>().forEach { feature ->
+                        getHandler<OneOfModelSerializationHandler, Unit> {
+                            installSerializationFeature(it, model.discriminator?.name, feature)
+                        }
+                    }
+
+                    kotlinCompanion {
+                        // TODO
+//                    if (withTestSupport) {
+//                        generateUnsafeMethods(spec.serializationDirection)
+//                    }
+                    }
                 }
             }
         }
     }
+}
+
+interface OneOfModelSerializationHandler : Handler {
+
+    fun KotlinInterface.installSerializationFeature(model: OneOfModelClass, feature: ModelSerializationFeature):
+            HandlerResult<Unit>
+
+    fun KotlinClass.installSerializationFeature(
+        model: OneOfModelOption, discriminatorProperty: String?, feature: ModelSerializationFeature
+    ): HandlerResult<Unit>
 
 }
+
+interface OneOfModelDeserializationHandler : Handler {
+
+    fun KotlinCompanion.installDeserializationFeature(model: OneOfModelClass, feature: ModelDeserializationFeature):
+            HandlerResult<Unit>
+
+}
+
 //
 //    private lateinit var emitterContext: EmitterContext
 //
@@ -78,61 +132,7 @@ class OneOfModelClassEmitter : CodeEmitter {
 //
 //    }
 //
-//    private fun KotlinInterface.generateSerializeMethods(serializationDirection: Direction) {
-//        val types = typeDefinition.getContentTypes(serializationDirection)
-//        if (types.contains(ContentType.ApplicationJson)) {
-//            kotlinMethod("asJson".rawMethodName(), returnType = Misc.JsonNodeClass.typeName())
-//        }
-//    }
 //
-//    private fun KotlinCompanion.generateDeserializeMethods(deserializationDirection: Direction) {
-//        val types = typeDefinition.getContentTypes(deserializationDirection)
-//            .intersect(listOf(ContentType.ApplicationJson))
-//
-//        if (types.isNotEmpty()) {
-//            if (types.contains(ContentType.ApplicationJson)) {
-//                generateJsonDeserializeMethod()
-//            }
-//        }
-//    }
-//
-//    private fun KotlinClass.generateSerializeMethods(option: OneOfOption, serializationDirection: Direction) {
-//        val types = typeDefinition.getContentTypes(serializationDirection)
-//        if (types.contains(ContentType.ApplicationJson)) {
-//            generateJsonSerializeMethod(option, typeDefinition.discriminatorProperty?.name)
-//        }
-//    }
-//
-//    // generates a method like this
-//    //
-//    // fun asJson(): JsonNode = value?.asJson() ?: NullNode.instance
-//    //
-//    // or
-//    //
-//    // fun asJson(): JsonNode = value.asJson()
-//    private fun MethodAware.generateJsonSerializeMethod(option: OneOfOption, discriminatorProperty: VariableName?) {
-//        kotlinMethod(
-//            "asJson".rawMethodName(), returnType = Misc.JsonNodeClass.typeName(),
-//            bodyAsAssignment = true, override = true
-//        ) {
-//            var serialization: KotlinExpression = when (discriminatorProperty) {
-//                null -> "value".variableName()
-//                else -> "value".variableName()
-//                    .invoke("copy".methodName(), discriminatorProperty to option.aliases.first().literal())
-//            }
-//
-//            serialization = emitterContext.runEmitter(
-//                SerializationStatementEmitter(option.typeUsage, serialization, ContentType.ApplicationJson)
-//            ).resultStatement
-//
-//            if (option.typeUsage.isNullable()) {
-//                serialization =
-//                    serialization.nullFallback(Misc.NullNodeClass.companionObject().property("instance".variableName()))
-//            }
-//
-//            serialization.statement()
-//        }
-//    }
 //
 //    // generates a method like this
 //    //

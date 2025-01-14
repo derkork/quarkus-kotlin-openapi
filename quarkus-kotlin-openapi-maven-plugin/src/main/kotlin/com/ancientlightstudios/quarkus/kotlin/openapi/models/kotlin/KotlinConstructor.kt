@@ -71,9 +71,5 @@ interface ConstructorAware {
 }
 
 fun ConstructorAware.kotlinConstructor(
-    accessModifier: KotlinAccessModifier? = null,
-    block: KotlinConstructor.() -> Unit = {}
-) {
-    val content = KotlinConstructor(accessModifier).apply(block)
-    addConstructor(content)
-}
+    accessModifier: KotlinAccessModifier? = null, block: KotlinConstructor.() -> Unit = {}
+) = KotlinConstructor(accessModifier).apply(block).also { addConstructor(it) }
