@@ -1,0 +1,5 @@
+package com.ancientlightstudios.quarkus.kotlin.openapi.handler.json
+
+import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.ModelSerializationFeature
+
+object JsonSerializationFeature : ModelSerializationFeature
