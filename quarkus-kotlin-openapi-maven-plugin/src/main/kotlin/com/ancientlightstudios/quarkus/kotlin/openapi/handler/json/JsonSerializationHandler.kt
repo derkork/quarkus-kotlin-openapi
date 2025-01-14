@@ -104,7 +104,7 @@ class JsonSerializationHandler : SerializationHandler, EnumModelSerializationHan
                 ) {
                     registry.getHandler<SerializationHandler, KotlinExpression> {
                         serializationExpression("it".identifier(), it, ContentType.ApplicationJson)
-                    }
+                    }.statement()
                 }
             }
 

@@ -20,6 +20,7 @@ fun Maybe<String?>.asJson(objectMapper: ObjectMapper): Maybe<JsonNode?> = onNotN
 
 @Suppress("unused")
 fun Maybe<out JsonNode?>.asObject(): Maybe<JsonNode?> = onNotNull {
+    @Suppress("UNCHECKED_CAST")
     when (this.value) {
         is NullNode -> success(null)
         is ObjectNode -> this@asObject as Maybe<JsonNode?>

@@ -51,7 +51,7 @@ fun Maybe<String?>.asBigDecimal(): Maybe<BigDecimal?> = this.mapNotNull("is not 
 @Suppress("unused")
 fun Maybe<String?>.asBoolean(): Maybe<Boolean?> = this.mapNotNull("is not a boolean") {
     it.toBooleanStrict()
-    when (val value = it.lowercase()) {
+    when (it.lowercase()) {
         "true" -> true
         "false" -> false
         else -> throw IllegalArgumentException()

@@ -45,7 +45,7 @@ class PlainServerResponseHandler : ServerResponseInterfaceHandler, ServerRequest
         emitDefaultResponseMethodHeader(header.name, finalModel, defaultValue, fromInterface)
 
         registry.getHandler<SerializationHandler, KotlinExpression> {
-            serializationExpression(header.name.identifier(), finalModel, ContentType.ApplicationJson)
+            serializationExpression(header.name.identifier(), finalModel, ContentType.TextPlain)
         }
     }
 
@@ -58,7 +58,7 @@ class PlainServerResponseHandler : ServerResponseInterfaceHandler, ServerRequest
         emitDefaultResponseMethodBody(body.name, finalModel, defaultValue, fromInterface)
 
         registry.getHandler<SerializationHandler, KotlinExpression> {
-            serializationExpression(body.name.identifier(), finalModel, ContentType.ApplicationJson)
+            serializationExpression(body.name.identifier(), finalModel, ContentType.TextPlain)
         }
     }
 

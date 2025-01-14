@@ -9,10 +9,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.SchemaTargetM
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.SchemaTargetModelHint.schemaTargetModel
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiContentMapping
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiSchema
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.ArrayItemsComponent
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.DefaultComponent
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.MapComponent
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.NullableComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
 
@@ -51,10 +48,12 @@ private fun TransformationContext.arrayModelInstanceFor(
     val itemsSchema = modelSchema.getComponent<ArrayItemsComponent>()
         ?: ProbableBug("Array schema without items definition. Found in ${modelSchema.originPath}")
     val nullable = schema.getComponent<NullableComponent>()?.nullable ?: false
+    val validations = schema.getComponent<ValidationComponent>()?.validations ?: listOf()
     return CollectionModelInstance(
         ModelUsage(modelInstanceFor(itemsSchema.schema, direction, true)),
         required,
-        nullable
+        nullable,
+        validations
     )
 }
 
@@ -64,7 +63,8 @@ private fun TransformationContext.enumModelInstanceFor(
     val modelClass = getRegisteredModelClass<EnumModelClass>(modelSchema, direction)
     val nullable = schema.getComponent<NullableComponent>()?.nullable ?: false
     val defaultValue = schema.getComponent<DefaultComponent>()?.default
-    return EnumModelInstance(modelClass, defaultValue, required, nullable)
+    val validations = schema.getComponent<ValidationComponent>()?.validations ?: listOf()
+    return EnumModelInstance(modelClass, defaultValue, required, nullable, validations)
 }
 
 private fun TransformationContext.mapModelInstanceFor(
@@ -73,10 +73,12 @@ private fun TransformationContext.mapModelInstanceFor(
     val itemsSchema = modelSchema.getComponent<MapComponent>()
         ?: ProbableBug("Map schema without items definition. Found in ${modelSchema.originPath}")
     val nullable = schema.getComponent<NullableComponent>()?.nullable ?: false
+    val validations = schema.getComponent<ValidationComponent>()?.validations ?: listOf()
     return MapModelInstance(
         ModelUsage(modelInstanceFor(itemsSchema.schema, direction, true)),
         required,
-        nullable
+        nullable,
+        validations
     )
 }
 
@@ -85,7 +87,8 @@ private fun TransformationContext.objectModelInstanceFor(
 ): ModelInstance {
     val modelClass = getRegisteredModelClass<ObjectModelClass>(modelSchema, direction)
     val nullable = schema.getComponent<NullableComponent>()?.nullable ?: false
-    return ObjectModelInstance(modelClass, required, nullable)
+    val validations = schema.getComponent<ValidationComponent>()?.validations ?: listOf()
+    return ObjectModelInstance(modelClass, required, nullable, validations)
 }
 
 private fun TransformationContext.oneOfModelInstanceFor(
@@ -93,7 +96,8 @@ private fun TransformationContext.oneOfModelInstanceFor(
 ): ModelInstance {
     val modelClass = getRegisteredModelClass<OneOfModelClass>(modelSchema, direction)
     val nullable = schema.getComponent<NullableComponent>()?.nullable ?: false
-    return OneOfModelInstance(modelClass, required, nullable)
+    val validations = schema.getComponent<ValidationComponent>()?.validations ?: listOf()
+    return OneOfModelInstance(modelClass, required, nullable, validations)
 }
 
 private fun primitiveTypeModelInstanceFor(
@@ -103,5 +107,6 @@ private fun primitiveTypeModelInstanceFor(
 ): ModelInstance {
     val nullable = schema.getComponent<NullableComponent>()?.nullable ?: false
     val defaultValue = schema.getComponent<DefaultComponent>()?.default
-    return PrimitiveTypeModelInstance(targetModel.base, defaultValue, required, nullable)
+    val validations = schema.getComponent<ValidationComponent>()?.validations ?: listOf()
+    return PrimitiveTypeModelInstance(targetModel.base, defaultValue, required, nullable, validations)
 }

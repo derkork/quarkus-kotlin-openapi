@@ -4,6 +4,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.handler.HandlerRegistry
 import com.ancientlightstudios.quarkus.kotlin.openapi.handler.matches
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.IdentifierExpression.Companion.companionMethod
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.IdentifierExpression.Companion.identifier
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.InvocationExpression.Companion.invoke
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinTypeName.Companion.asTypeName
@@ -61,7 +62,7 @@ class JsonDeserializationHandler : DeserializationHandler, EnumModelDeserializat
     //     [ValidationStatements]
     private fun enumDeserialization(source: KotlinExpression, model: EnumModelInstance): KotlinExpression {
         val methodName = methodNameOf("as", model.ref.name.name)
-        var result = source.invoke(methodName)
+        var result = source.invoke(model.ref.name.companionMethod(methodName))
         result = withValidation(result, model)
         result = withDefault(result, model)
         return result
@@ -87,7 +88,7 @@ class JsonDeserializationHandler : DeserializationHandler, EnumModelDeserializat
     //     [ValidationStatements]
     private fun objectDeserialization(source: KotlinExpression, model: ObjectModelInstance): KotlinExpression {
         val methodName = methodNameOf("as", model.ref.name.name)
-        var result = source.invoke("asObject").wrap().invoke(methodName)
+        var result = source.invoke("asObject").wrap().invoke(model.ref.name.companionMethod(methodName))
         result = withValidation(result, model)
         return result
     }
@@ -98,7 +99,7 @@ class JsonDeserializationHandler : DeserializationHandler, EnumModelDeserializat
     //     [ValidationStatements]
     private fun oneOfDeserialization(source: KotlinExpression, model: OneOfModelInstance): KotlinExpression {
         val methodName = methodNameOf("as", model.ref.name.name)
-        var result = source.invoke("asObject").wrap().invoke(methodName)
+        var result = source.invoke("asObject").wrap().invoke(model.ref.name.companionMethod(methodName))
         result = withValidation(result, model)
         return result
     }
@@ -109,7 +110,8 @@ class JsonDeserializationHandler : DeserializationHandler, EnumModelDeserializat
     private fun primitiveDeserialization(
         source: KotlinExpression, model: PrimitiveTypeModelInstance
     ): KotlinExpression {
-        val methodName = methodNameOf("as", model.itemType.asTypeName().name)
+        // don't use methodNameOf here as it would try to beautify the name
+        val methodName = "as${model.itemType.asTypeName().name}"
         var result = source.invoke(methodName)
         result = withValidation(result, model)
         result = withDefault(result, model)

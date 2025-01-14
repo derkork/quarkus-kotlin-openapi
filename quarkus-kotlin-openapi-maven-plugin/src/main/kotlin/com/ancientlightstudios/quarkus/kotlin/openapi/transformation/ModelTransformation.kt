@@ -99,6 +99,8 @@ class ModelTransformation : SpecTransformation {
             ?: ProbableBug("Object component not found at object schema")
         val required = schema.getComponent<ObjectValidationComponent>()?.required ?: listOf()
         val itemsSchema = schema.getComponent<MapComponent>()?.schema
+        val hasPropertyValidation =
+            schema.getComponent<ValidationComponent>()?.validations?.any { it is PropertiesValidation } ?: false
 
         // remove any property which has a modifier set and this modifier is not compatible with the models direction
         val validProperties = when (model.direction) {
@@ -115,6 +117,8 @@ class ModelTransformation : SpecTransformation {
         if (itemsSchema != null) {
             model.additionalProperties = ModelUsage(modelInstanceFor(itemsSchema, model.direction, true))
         }
+
+        model.needsPropertiesCount = hasPropertyValidation
     }
 
     private fun List<OpenApiSchemaProperty>.discardWhen(modifier: SchemaModifier) = filterNot {

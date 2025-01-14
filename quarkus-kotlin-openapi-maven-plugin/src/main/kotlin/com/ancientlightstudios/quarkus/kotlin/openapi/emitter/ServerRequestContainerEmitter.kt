@@ -24,8 +24,6 @@ class ServerRequestContainerEmitter : CodeEmitter {
 
     private fun EmitterContext.emitFile(container: ServerRequestContainer) {
         kotlinFile(container.name.asTypeName()) {
-            registerImports(Library.All)
-
             kotlinClass(name) {
                 container.parameters.forEach { parameter ->
                     getHandler<ServerRequestContainerHandler, Unit> {

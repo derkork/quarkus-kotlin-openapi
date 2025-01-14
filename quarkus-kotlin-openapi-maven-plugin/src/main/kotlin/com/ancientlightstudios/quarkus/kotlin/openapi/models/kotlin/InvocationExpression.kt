@@ -67,15 +67,6 @@ class InvocationExpression(
 
     companion object {
 
-        fun invoke(type: KotlinTypeName, genericTypes: List<KotlinTypeReference> = listOf(), trailingLambda: StatementAware.() -> Unit = {}): KotlinExpression =
-            InvocationExpression(null, type.identifier(), genericTypes = genericTypes, trailingLambda = trailingLambda)
-
-        fun invoke(type: KotlinTypeName, vararg parameters: KotlinExpression, genericTypes: List<KotlinTypeReference> = listOf(), trailingLambda: StatementAware.() -> Unit = {}): KotlinExpression =
-            InvocationExpression(null, type.identifier(), *parameters.map { null to it }.toTypedArray(), genericTypes = genericTypes, trailingLambda = trailingLambda)
-
-        fun invoke(type: KotlinTypeName, vararg parameters: Pair<String, KotlinExpression>, genericTypes: List<KotlinTypeReference> = listOf(), trailingLambda: StatementAware.() -> Unit = {}): KotlinExpression =
-            InvocationExpression(null, type.identifier(), *parameters, genericTypes = genericTypes, trailingLambda = trailingLambda)
-
         fun invoke(method: String, genericTypes: List<KotlinTypeReference> = listOf(), trailingLambda: StatementAware.() -> Unit = {}): KotlinExpression =
             InvocationExpression(null, method.identifier(), genericTypes = genericTypes, trailingLambda = trailingLambda)
 
@@ -84,6 +75,15 @@ class InvocationExpression(
 
         fun invoke(method: String, vararg parameters: Pair<String, KotlinExpression>, genericTypes: List<KotlinTypeReference> = listOf(), trailingLambda: StatementAware.() -> Unit = {}): KotlinExpression =
             InvocationExpression(null, method.identifier(), *parameters, genericTypes = genericTypes, trailingLambda = trailingLambda)
+
+        fun invoke(identifier: IdentifierExpression, genericTypes: List<KotlinTypeReference> = listOf(), trailingLambda: StatementAware.() -> Unit = {}): KotlinExpression =
+            InvocationExpression(null, identifier, genericTypes = genericTypes, trailingLambda = trailingLambda)
+
+        fun invoke(identifier: IdentifierExpression, vararg parameters: KotlinExpression, genericTypes: List<KotlinTypeReference> = listOf(), trailingLambda: StatementAware.() -> Unit = {}): KotlinExpression =
+            InvocationExpression(null, identifier, *parameters.map { null to it }.toTypedArray(), genericTypes = genericTypes, trailingLambda = trailingLambda)
+
+        fun invoke(identifier: IdentifierExpression, vararg parameters: Pair<String, KotlinExpression>, genericTypes: List<KotlinTypeReference> = listOf(), trailingLambda: StatementAware.() -> Unit = {}): KotlinExpression =
+            InvocationExpression(null, identifier, *parameters, genericTypes = genericTypes, trailingLambda = trailingLambda)
 
         fun KotlinExpression.invoke(method: String, genericTypes: List<KotlinTypeReference> = listOf(), trailingLambda: StatementAware.() -> Unit = {}): KotlinExpression =
             InvocationExpression(this, method.identifier(), genericTypes = genericTypes, trailingLambda = trailingLambda)
@@ -94,14 +94,14 @@ class InvocationExpression(
         fun KotlinExpression.invoke(method: String, vararg parameters: Pair<String, KotlinExpression>, genericTypes: List<KotlinTypeReference> = listOf(), trailingLambda: StatementAware.() -> Unit = {}): KotlinExpression =
             InvocationExpression(this, method.identifier(), *parameters, genericTypes = genericTypes, trailingLambda = trailingLambda)
 
-        fun KotlinTypeName.invoke(method: String, genericTypes: List<KotlinTypeReference> = listOf(), trailingLambda: StatementAware.() -> Unit = {}): KotlinExpression =
-            InvocationExpression(identifier(), method.identifier(), genericTypes = genericTypes, trailingLambda = trailingLambda)
+        fun KotlinExpression.invoke(identifier: IdentifierExpression, genericTypes: List<KotlinTypeReference> = listOf(), trailingLambda: StatementAware.() -> Unit = {}): KotlinExpression =
+            InvocationExpression(this, identifier, genericTypes = genericTypes, trailingLambda = trailingLambda)
 
-        fun KotlinTypeName.invoke(method: String, vararg parameters: KotlinExpression, genericTypes: List<KotlinTypeReference> = listOf(), trailingLambda: StatementAware.() -> Unit = {}): KotlinExpression =
-            InvocationExpression(identifier(), method.identifier(), *parameters.map { null to it }.toTypedArray(), genericTypes = genericTypes, trailingLambda = trailingLambda)
+        fun KotlinExpression.invoke(identifier: IdentifierExpression, vararg parameters: KotlinExpression, genericTypes: List<KotlinTypeReference> = listOf(), trailingLambda: StatementAware.() -> Unit = {}): KotlinExpression =
+            InvocationExpression(this, identifier, *parameters.map { null to it }.toTypedArray(), genericTypes = genericTypes, trailingLambda = trailingLambda)
 
-        fun KotlinTypeName.invoke(method: String, vararg parameters: Pair<String, KotlinExpression>, genericTypes: List<KotlinTypeReference> = listOf(), trailingLambda: StatementAware.() -> Unit = {}): KotlinExpression =
-            InvocationExpression(identifier(), method.identifier(), *parameters, genericTypes = genericTypes, trailingLambda = trailingLambda)
+        fun KotlinExpression.invoke(identifier: IdentifierExpression, vararg parameters: Pair<String, KotlinExpression>, genericTypes: List<KotlinTypeReference> = listOf(), trailingLambda: StatementAware.() -> Unit = {}): KotlinExpression =
+            InvocationExpression(this, identifier, *parameters, genericTypes = genericTypes, trailingLambda = trailingLambda)
 
     }
 

@@ -41,9 +41,9 @@ class ServerRequestContextEmitter : CodeEmitter {
                 kotlinMember("dependencyVogel", context.dependencyVogel.name.asTypeReference())
 
                 emitInterfaceMembers(context)
-                emitRawHeaderMethods()
                 emitStatusMethod(defaultResponseExists)
                 context.methods.forEach { emitStatusMethod(it) }
+                emitRawHeaderMethods()
             }
         }
     }
@@ -83,7 +83,7 @@ class ServerRequestContextEmitter : CodeEmitter {
             //     .apply {
             //         headers.forEach { headers(it.first, it.second) }
             //     }.build())
-            val statement = Misc.ResponseBuilder
+            val statement = Misc.ResponseBuilder.identifier()
                 .invoke("create", "status".identifier(), genericTypes = listOf(Kotlin.Any.asTypeReference().nullable()))
                 .wrap()
                 .invoke("entity", "body".identifier())
@@ -100,7 +100,7 @@ class ServerRequestContextEmitter : CodeEmitter {
                     }.statement()
                 }
                 .invoke("build")
-            invoke(Library.RequestHandledSignal, statement).throwStatement()
+            invoke(Library.RequestHandledSignal.identifier(), statement).throwStatement()
         }
     }
 
@@ -143,7 +143,7 @@ class ServerRequestContextEmitter : CodeEmitter {
                 val serializationExpression = getHandler<ServerRequestContextHandler, KotlinExpression> {
                     emitResponseMethodHeader(header, fromInterface, header.content.contentType)
                 }
-                invoke(Kotlin.Pair, header.sourceName.literal(), serializationExpression)
+                invoke(Kotlin.Pair.identifier(), header.sourceName.literal(), serializationExpression)
             }
 
             invoke(

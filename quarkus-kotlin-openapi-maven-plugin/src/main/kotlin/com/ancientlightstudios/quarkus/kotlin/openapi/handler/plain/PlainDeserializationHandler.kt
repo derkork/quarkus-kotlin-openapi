@@ -67,7 +67,8 @@ class PlainDeserializationHandler : DeserializationHandler, EnumModelDeserializa
     private fun primitiveDeserialization(
         source: KotlinExpression, model: PrimitiveTypeModelInstance
     ): KotlinExpression {
-        val methodName = methodNameOf("as", model.itemType.asTypeName().name)
+        // don't use methodNameOf here as it would try to beautify the name
+        val methodName = "as${model.itemType.asTypeName().name}"
         var result = source.invoke(methodName)
         result = withValidation(result, model)
         result = withDefault(result, model)
@@ -107,8 +108,10 @@ class PlainDeserializationHandler : DeserializationHandler, EnumModelDeserializa
                     // build something like
                     // else -> failure(ValidationError("is not a valid value", context))
                     optionBlock("else".identifier()) {
-                        val validationError = invoke(
-                            Library.ValidationError, "is not a valid value".literal(), "context".identifier()
+                        val validationError = InvocationExpression.invoke(
+                            Library.ValidationError.identifier(),
+                            "is not a valid value".literal(),
+                            "context".identifier()
                         )
                         InvocationExpression.invoke("failure", validationError).statement()
                     }

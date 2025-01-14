@@ -1,6 +1,7 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.handler.json
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.handler.Feature
+import com.ancientlightstudios.quarkus.kotlin.openapi.handler.HandlerRegistry
 import com.ancientlightstudios.quarkus.kotlin.openapi.handler.matches
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ContentType
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.*
@@ -8,6 +9,12 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.transformation.ModelTransf
 import com.ancientlightstudios.quarkus.kotlin.openapi.transformation.TransformationMode
 
 class JsonModelHandler : ModelTransformationHandler {
+
+    private lateinit var registry: HandlerRegistry
+
+    override fun initializeContext(registry: HandlerRegistry) {
+        this.registry = registry
+    }
 
     override fun installTransformationFeatureFor(
         model: ModelClass, mode: TransformationMode, contentType: ContentType
@@ -27,7 +34,15 @@ class JsonModelHandler : ModelTransformationHandler {
         }
 
         when (model) {
-            is EnumModelClass -> return   // TODO also install the plain feature
+            is EnumModelClass -> {
+                // json deserialization of an enum depends on the plain deserialization, so this feature needs to be added to
+                if (feature == JsonDeserializationFeature) {
+                    registry.getHandler<ModelTransformationHandler, Unit> { 
+                        installTransformationFeatureFor(model, TransformationMode.Deserialization, ContentType.TextPlain)
+                    }
+                }
+                return
+            }
             is ObjectModelClass -> {
                 model.properties.forEach { propagateTransformationFeature(it.model, feature) }
                 model.additionalProperties?.let { propagateTransformationFeature(it, feature) }

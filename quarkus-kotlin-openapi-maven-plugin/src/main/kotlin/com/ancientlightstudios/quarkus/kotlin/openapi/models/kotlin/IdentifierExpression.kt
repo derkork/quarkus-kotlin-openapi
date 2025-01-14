@@ -1,8 +1,8 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ComponentName
 
-// TODO: check if handling packages this way is a good idea, or if we should change the signature where a identifier is used
 class IdentifierExpression(val value: String, val packageName: String = "") : KotlinExpression {
 
     override fun ImportCollector.registerImports() {
@@ -19,6 +19,9 @@ class IdentifierExpression(val value: String, val packageName: String = "") : Ko
         fun KotlinTypeName.identifier() = name.identifier(packageName)
 
         fun String.identifier(packageName: String = "") = IdentifierExpression(this, packageName)
+
+        fun ComponentName.companionMethod(methodName: String) =
+            IdentifierExpression(methodName, "$packageName.$name.Companion")
 
     }
 

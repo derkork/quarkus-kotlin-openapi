@@ -40,7 +40,7 @@ fun allToObject(
     val maybeParameters = parameter.filterIsInstance<MaybeParameter>()
         .map { it.name.identifier() }
 
-    var resultStatement = invoke(containerClassName, *constructorValues.toTypedArray())
+    var resultStatement = invoke(containerClassName.identifier(), *constructorValues.toTypedArray())
     if (maybeParameters.isNotEmpty()) {
         resultStatement = invoke("maybeAllOf", context, *maybeParameters.toTypedArray()) {
             resultStatement.statement()

@@ -32,15 +32,13 @@ fun Maybe<String?>.validateString(block: StringValidator.(String) -> Unit): Mayb
         }
     }
 
-// TODO: name should be validateByteArray, but we can't determine the correct name right now in the ValidationStatementEmitter
 @Suppress("unused")
-@JvmName("validateByteArray")
-fun Maybe<ByteArray?>.validateString(block: ByteArrayValidator.(ByteArray) -> Unit): Maybe<ByteArray?> =
+fun Maybe<ByteArray?>.validateByteArray(block: ByteArrayValidator.(ByteArray) -> Unit): Maybe<ByteArray?> =
     onNotNull {
         try {
             val errors = ByteArrayValidator(context).apply { this.block(value) }.validationErrors
             if (errors.isEmpty()) {
-                this@validateString
+                this@validateByteArray
             } else {
                 failure(errors)
             }
@@ -229,11 +227,11 @@ fun <T> Maybe<JsonNode?>.propertiesAsMap(vararg ignoredProperties: String, block
  * @return the given maybe or a [Maybe.Failure] if the value was null
  */
 @Suppress("unused")
-fun <T> Maybe<T?>.required(): Maybe<T> =
+fun <T> Maybe<T>.required(): Maybe<T & Any> =
     onSuccess {
         if (value != null) {
             @Suppress("UNCHECKED_CAST")
-            this as Maybe<T>
+            this as Maybe<T & Any>
         } else {
             failure(ValidationError("is required", context))
         }
@@ -244,12 +242,13 @@ fun <T> Maybe<T?>.required(): Maybe<T> =
  * @return the given maybe or a new [Maybe.Success] if the value was null
  */
 @Suppress("unused")
-fun <T> Maybe<T?>.default(block: () -> T): Maybe<T?> =
+fun <T> Maybe<T?>.default(block: () -> T): Maybe<T> =
     onSuccess {
         if (value == null) {
             success(block())
         } else {
-            this
+            @Suppress("UNCHECKED_CAST")
+            this as Maybe<T>
         }
     }
 
