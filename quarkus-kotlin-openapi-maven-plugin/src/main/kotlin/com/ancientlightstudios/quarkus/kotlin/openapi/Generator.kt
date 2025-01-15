@@ -2,12 +2,21 @@ package com.ancientlightstudios.quarkus.kotlin.openapi
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.EmitterStage
 import com.ancientlightstudios.quarkus.kotlin.openapi.handler.HandlerRegistry
-import com.ancientlightstudios.quarkus.kotlin.openapi.handler.form.FormDependenciesHandler
-import com.ancientlightstudios.quarkus.kotlin.openapi.handler.form.FormModelHandler
-import com.ancientlightstudios.quarkus.kotlin.openapi.handler.form.FormServerRequestContainerHandler
-import com.ancientlightstudios.quarkus.kotlin.openapi.handler.json.*
-import com.ancientlightstudios.quarkus.kotlin.openapi.handler.octet.*
-import com.ancientlightstudios.quarkus.kotlin.openapi.handler.plain.*
+import com.ancientlightstudios.quarkus.kotlin.openapi.handler.form.FormDependencyHandler
+import com.ancientlightstudios.quarkus.kotlin.openapi.handler.form.FormModelTransformationHandler
+import com.ancientlightstudios.quarkus.kotlin.openapi.handler.form.FormUpstreamHandler
+import com.ancientlightstudios.quarkus.kotlin.openapi.handler.json.JsonDependencyHandler
+import com.ancientlightstudios.quarkus.kotlin.openapi.handler.json.JsonDownstreamHandler
+import com.ancientlightstudios.quarkus.kotlin.openapi.handler.json.JsonModelTransformationHandler
+import com.ancientlightstudios.quarkus.kotlin.openapi.handler.json.JsonUpstreamHandler
+import com.ancientlightstudios.quarkus.kotlin.openapi.handler.octet.OctetDependencyHandler
+import com.ancientlightstudios.quarkus.kotlin.openapi.handler.octet.OctetDownstreamHandler
+import com.ancientlightstudios.quarkus.kotlin.openapi.handler.octet.OctetModelTransformationHandler
+import com.ancientlightstudios.quarkus.kotlin.openapi.handler.octet.OctetUpstreamHandler
+import com.ancientlightstudios.quarkus.kotlin.openapi.handler.plain.PlainDependencyHandler
+import com.ancientlightstudios.quarkus.kotlin.openapi.handler.plain.PlainDownstreamHandler
+import com.ancientlightstudios.quarkus.kotlin.openapi.handler.plain.PlainModelTransformationHandler
+import com.ancientlightstudios.quarkus.kotlin.openapi.handler.plain.PlainUpstreamHandler
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiSpec
 import com.ancientlightstudios.quarkus.kotlin.openapi.parser.ParserStage
 import com.ancientlightstudios.quarkus.kotlin.openapi.patching.PatchingStage
@@ -28,32 +37,25 @@ class Generator(private val config: Config) {
         val handlerRegistry = HandlerRegistry(
             // TODO: get list via ServiceLoader to support plugins
             listOf(
-                FormServerRequestContainerHandler(),
-                // there is no FormServerResponseHandler, because this content type only makes sense in requests
-                FormModelHandler(),
-                FormDependenciesHandler(),
+                FormDependencyHandler(),
+                // there is no FormDownstreamHandler, because this content type only makes sense in requests
+                FormModelTransformationHandler(),
+                FormUpstreamHandler(),
 
-                JsonServerRequestContainerHandler(),
-                JsonServerResponseHandler(),
-                JsonDeserializationHandler(),
-                JsonSerializationHandler(),
-                JsonModelHandler(),
-                ObjectMapperHandler(),
-                JsonDependenciesHandler(),
+                JsonDependencyHandler(),
+                JsonDownstreamHandler(),
+                JsonModelTransformationHandler(),
+                JsonUpstreamHandler(),
 
-                OctetServerRequestContainerHandler(),
-                OctetServerResponseHandler(),
-                OctetDeserializationHandler(),
-                OctetSerializationHandler(),
-                OctetModelHandler(),
-                OctetDependenciesHandler(),
+                OctetDependencyHandler(),
+                OctetDownstreamHandler(),
+                OctetModelTransformationHandler(),
+                OctetUpstreamHandler(),
 
-                PlainServerRequestContainerHandler(),
-                PlainServerResponseHandler(),
-                PlainDeserializationHandler(),
-                PlainSerializationHandler(),
-                PlainModelHandler(),
-                PlainDependenciesHandler(),
+                PlainDependencyHandler(),
+                PlainDownstreamHandler(),
+                PlainModelTransformationHandler(),
+                PlainUpstreamHandler(),
             )
         )
 

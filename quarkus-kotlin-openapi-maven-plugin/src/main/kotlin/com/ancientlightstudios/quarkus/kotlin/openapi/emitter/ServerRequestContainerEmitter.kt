@@ -3,16 +3,11 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 import com.ancientlightstudios.quarkus.kotlin.openapi.handler.Handler
 import com.ancientlightstudios.quarkus.kotlin.openapi.handler.HandlerResult
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.SolutionHint.solution
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinClass
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinTypeName.Companion.asTypeName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.Library
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.kotlinClass
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.kotlinMember
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ContentType
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ModelUsage
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.RequestBody
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.RequestParameter
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ServerRequestContainer
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ServerRequestContainerBody
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ServerRequestContainerParameter
 
 class ServerRequestContainerEmitter : CodeEmitter {
 
@@ -25,43 +20,46 @@ class ServerRequestContainerEmitter : CodeEmitter {
     private fun EmitterContext.emitFile(container: ServerRequestContainer) {
         kotlinFile(container.name.asTypeName()) {
             kotlinClass(name) {
+                val context = object : ServerRequestContainerHandlerContext {
+                    override fun addMember(member: KotlinMember) = this@kotlinClass.addMember(member)
+                }
+
                 container.parameters.forEach { parameter ->
-                    getHandler<ServerRequestContainerHandler, Unit> {
-                        emitRequestContainerParameter(parameter, parameter.content.contentType)
-                    }
+                    getHandler<ServerRequestContainerHandler, Unit> { context.emitParameter(parameter) }
                 }
 
                 container.body?.let { body ->
-                    getHandler<ServerRequestContainerHandler, Unit> {
-                        emitRequestContainerBody(body, body.content.contentType)
-                    }
+                    getHandler<ServerRequestContainerHandler, Unit> { context.emitBody(body) }
                 }
             }
         }
     }
 
-    companion object {
-
-        fun KotlinClass.emitDefaultRequestContainerParameter(name: String, model: ModelUsage) =
-            kotlinMember(name, model.asTypeReference(), accessModifier = null)
-
-        fun KotlinClass.emitDefaultRequestContainerBody(name: String, model: ModelUsage) =
-            kotlinMember(name, model.asTypeReference(), accessModifier = null)
-
-    }
 }
 
-/**
- * handler of this type are responsible to generate class members for a request container
- */
+interface ServerRequestContainerHandlerContext : MemberAware {
+
+    /**
+     * Generates the standard property for a request parameter or request body in the server request container.
+     * The nullability of the type should reflect the modifications done to the value by the deserialization.
+     */
+    fun emitProperty(name: String, type: KotlinTypeReference) = kotlinMember(name, type, accessModifier = null)
+
+}
+
+
 interface ServerRequestContainerHandler : Handler {
 
-    fun KotlinClass.emitRequestContainerParameter(
-        parameter: ServerRequestContainerParameter, contentType: ContentType
-    ): HandlerResult<Unit>
+    /**
+     * Generates the standard property for a request parameter in the server request container. The nullability of
+     * the type of the property should reflect the modifications done to the value by the deserialization.
+     */
+    fun ServerRequestContainerHandlerContext.emitParameter(parameter: RequestParameter): HandlerResult<Unit>
 
-    fun KotlinClass.emitRequestContainerBody(
-        body: ServerRequestContainerBody, contentType: ContentType
-    ): HandlerResult<Unit>
+    /**
+     * Generates the standard property for a request body in the server request container. The nullability of
+     * the type of the property should reflect the modifications done to the value by the deserialization.
+     */
+    fun ServerRequestContainerHandlerContext.emitBody(body: RequestBody): HandlerResult<Unit>
 
 }

@@ -54,7 +54,7 @@ class KotlinClass(
 
     override fun ImportCollector.registerImports() {
         baseClass?.let { registerFrom(it) }
-//        register(interfaces)
+        register(interfaces)
         registerFrom(annotations)
         registerFrom(items)
         registerFrom(constructorMembers)

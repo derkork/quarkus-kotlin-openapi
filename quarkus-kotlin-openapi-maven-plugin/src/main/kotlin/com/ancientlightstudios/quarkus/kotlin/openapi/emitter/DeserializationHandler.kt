@@ -11,8 +11,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ModelUsage
  */
 interface DeserializationHandler : Handler {
 
-    fun deserializationExpression(
-        source: KotlinExpression, model: ModelUsage, contentType: ContentType
-    ): HandlerResult<KotlinExpression>
+    fun deserializationExpression(source: KotlinExpression, model: ModelUsage, contentType: ContentType):
+            HandlerResult<KotlinExpression>
 
 }

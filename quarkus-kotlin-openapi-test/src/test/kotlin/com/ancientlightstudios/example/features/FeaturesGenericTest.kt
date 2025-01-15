@@ -20,7 +20,7 @@ class FeaturesGenericTest : ApiTestBase() {
     lateinit var client: FeaturesGenericClient
 
     val testClient: FeaturesGenericTestClient
-        get() = FeaturesGenericTestClient(objectMapper) { prepareRequest() }
+        get() = FeaturesGenericTestClient(dependencyVogel) { prepareRequest() }
 
     // status code 422 is unknown to jakarta.ws.rs.core.Response.Status
     @Test

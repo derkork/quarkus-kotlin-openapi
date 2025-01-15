@@ -6,6 +6,8 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.SolutionHint.
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinTypeName.Companion.asTypeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.EnumModelClass
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ResponseBody
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ResponseHeader
 
 class EnumModelClassEmitter : CodeEmitter {
 
@@ -52,14 +54,14 @@ class EnumModelClassEmitter : CodeEmitter {
 
 interface EnumModelSerializationHandler : Handler {
 
-    fun KotlinEnum.installSerializationFeature(model: EnumModelClass, feature: ModelSerializationFeature):
+    fun MethodAware.installSerializationFeature(model: EnumModelClass, feature: ModelSerializationFeature):
             HandlerResult<Unit>
 
 }
 
 interface EnumModelDeserializationHandler : Handler {
 
-    fun KotlinCompanion.installDeserializationFeature(model: EnumModelClass, feature: ModelDeserializationFeature):
+    fun MethodAware.installDeserializationFeature(model: EnumModelClass, feature: ModelDeserializationFeature):
             HandlerResult<Unit>
 
 }

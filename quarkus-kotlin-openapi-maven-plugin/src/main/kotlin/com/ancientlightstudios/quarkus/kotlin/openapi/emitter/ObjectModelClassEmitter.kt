@@ -7,7 +7,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.IdentifierExpression.Companion.identifier
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.InvocationExpression.Companion.invoke
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinTypeName.Companion.asTypeName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.*
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ObjectModelClass
 
 class ObjectModelClassEmitter : CodeEmitter {
 
@@ -45,7 +45,7 @@ class ObjectModelClassEmitter : CodeEmitter {
                 }
 
                 model.properties.forEach {
-                    val defaultValue = it.model.getDefaultValue()
+                    val defaultValue = it.model.getDefinedDefaultValue()
                     val finalModel = it.model.adjustToDefault(defaultValue)
                     kotlinMember(
                         it.name,
@@ -95,29 +95,15 @@ class ObjectModelClassEmitter : CodeEmitter {
                         }
                     }
 
-                    // TODO
-//                    if (withTestSupport) {
-//                        generateUnsafeMethods(spec.serializationDirection)
-//                    }
-
+                    if (withTestSupport) {
+                        model.features.filterIsInstance<ModelSerializationFeature>().forEach { feature ->
+                            getHandler<ObjectModelSerializationHandler, Unit> {
+                                installTestSerializationFeature(model, feature)
+                            }
+                        }
+                    }
                 }
             }
-        }
-    }
-
-    private fun ModelUsage.getDefaultValue(): DefaultValue = when (val instance = this.instance) {
-        is CollectionModelInstance -> DefaultValue.nullOrNone(isNullable())
-        is EnumModelInstance -> when (instance.defaultValue) {
-            null -> DefaultValue.nullOrNone(isNullable())
-            else -> DefaultValue.EnumValue(instance.ref, instance.defaultValue)
-        }
-
-        is MapModelInstance -> DefaultValue.nullOrNone(isNullable())
-        is ObjectModelInstance -> DefaultValue.nullOrNone(isNullable())
-        is OneOfModelInstance -> DefaultValue.nullOrNone(isNullable())
-        is PrimitiveTypeModelInstance -> when (instance.defaultValue) {
-            null -> DefaultValue.nullOrNone(isNullable())
-            else -> DefaultValue.StaticValue(instance.itemType, instance.defaultValue)
         }
     }
 
@@ -133,81 +119,17 @@ class ObjectModelClassEmitter : CodeEmitter {
 
 interface ObjectModelSerializationHandler : Handler {
 
-    fun KotlinClass.installSerializationFeature(model: ObjectModelClass, feature: ModelSerializationFeature):
+    fun MethodAware.installSerializationFeature(model: ObjectModelClass, feature: ModelSerializationFeature):
+            HandlerResult<Unit>
+
+    fun MethodAware.installTestSerializationFeature(model: ObjectModelClass, feature: ModelSerializationFeature):
             HandlerResult<Unit>
 
 }
 
 interface ObjectModelDeserializationHandler : Handler {
 
-    fun KotlinCompanion.installDeserializationFeature(model: ObjectModelClass, feature: ModelDeserializationFeature):
+    fun MethodAware.installDeserializationFeature(model: ObjectModelClass, feature: ModelDeserializationFeature):
             HandlerResult<Unit>
 
 }
-
-
-//    private fun KotlinCompanion.generateUnsafeMethods(serializationDirection: Direction) {
-//        val types = typeDefinition.getContentTypes(serializationDirection)
-//        if (types.contains(ContentType.ApplicationJson)) {
-//            generateJsonUnsafeMethod()
-//        }
-//    }
-//
-//    private fun KotlinCompanion.generateJsonUnsafeMethod() {
-//        kotlinMethod(
-//            "unsafeJson".methodName(),
-//            returnType = Library.UnsafeJsonClass.typeName().of(typeDefinition.modelName.typeName()),
-//            bodyAsAssignment = true
-//        ) {
-//            typeDefinition.properties.forEach {
-//                val defaultValue = generateDefaultValueExpression(it.typeUsage, nullLiteral())
-//                kotlinParameter(
-//                    it.name,
-//                    it.typeUsage.buildUnsafeJsonType(),
-//                    expression = defaultValue
-//                )
-//
-//            }
-//
-//            var expression = invoke("objectNode".rawMethodName())
-//
-//            typeDefinition.properties.forEach {
-//                val serialization = emitterContext.runEmitter(
-//                    UnsafeSerializationStatementEmitter(it.typeUsage, it.name, ContentType.ApplicationJson)
-//                ).resultStatement
-//
-//                expression = expression.wrap().invoke(
-//                    "setProperty".rawMethodName(),
-//                    it.sourceName.literal(),
-//                    serialization,
-//                    // only check for required, not !nullable, because we want to include null in the response
-//                    // if the type is nullable but required
-//                    it.typeUsage.required.literal()
-//                )
-//            }
-//
-//            typeDefinition.additionalProperties?.let {
-//                kotlinParameter(
-//                    "additionalProperties".variableName(),
-//                    Kotlin.MapClass.typeName(true).of(Kotlin.StringClass.typeName(), it.buildUnsafeJsonType()),
-//                    expression = nullLiteral()
-//                )
-//
-//                val protectedNames = typeDefinition.properties.map { it.sourceName.literal() }
-//
-//                expression = expression.wrap().invoke(
-//                    "setAdditionalProperties".rawMethodName(),
-//                    "additionalProperties".variableName(),
-//                    *protectedNames.toTypedArray()
-//                ) {
-//                    emitterContext.runEmitter(
-//                        UnsafeSerializationStatementEmitter(it, "it".variableName(), ContentType.ApplicationJson)
-//                    ).resultStatement.statement()
-//                }
-//            }
-//
-//            invoke(Library.UnsafeJsonClass.constructorName, expression).statement()
-//        }
-//    }
-//
-//}

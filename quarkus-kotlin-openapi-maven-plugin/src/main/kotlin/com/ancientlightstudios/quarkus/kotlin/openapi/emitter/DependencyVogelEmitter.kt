@@ -22,26 +22,29 @@ class DependencyVogelEmitter : CodeEmitter {
 
             kotlinClass(name) {
                 kotlinAnnotation(Jakarta.ApplicationScoped)
+
+                val context = object : DependencyVogelFeatureHandlerContext {
+                    override fun addMember(member: KotlinMember) = this@kotlinClass.addMember(member)
+                }
+
                 dependencyVogel.features.forEach { feature ->
-                    getHandler<DependencyVogelFeatureHandler, Unit> {
-                        installFeature(feature)
-                    }
+                    getHandler<DependencyVogelFeatureHandler, Unit> { context.installDependency(feature) }
                 }
             }
         }
     }
 
-    companion object {
+}
 
-        fun KotlinClass.emitDefaultDependencyVogelMember(name: String, type: KotlinTypeReference) {
-            kotlinMember(name, type, accessModifier = null)
-        }
+interface DependencyVogelFeatureHandlerContext : MemberAware {
 
-    }
+    fun installDefaultDependency(name: String, type: KotlinTypeReference) =
+        kotlinMember(name, type, accessModifier = null)
+
 }
 
 interface DependencyVogelFeatureHandler : Handler {
 
-    fun KotlinClass.installFeature(feature: Feature): HandlerResult<Unit>
+    fun DependencyVogelFeatureHandlerContext.installDependency(feature: Feature): HandlerResult<Unit>
 
 }

@@ -1,6 +1,7 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.Config
+import com.ancientlightstudios.quarkus.kotlin.openapi.InterfaceType
 import com.ancientlightstudios.quarkus.kotlin.openapi.handler.Handler
 import com.ancientlightstudios.quarkus.kotlin.openapi.handler.HandlerRegistry
 import com.ancientlightstudios.quarkus.kotlin.openapi.handler.HandlerResult
@@ -13,6 +14,8 @@ class EmitterContext(val spec: OpenApiSpec, val config: Config, val handlerRegis
     private val _kotlinFiles = mutableListOf<KotlinFile>()
     val kotlinFiles: List<KotlinFile>
         get() = _kotlinFiles
+
+    val withTestSupport = config.interfaceType == InterfaceType.TEST_CLIENT
 
     fun kotlinFile(name: KotlinTypeName, block: KotlinFile.() -> Unit): KotlinFile {
         val result = KotlinFile(name).apply(block)

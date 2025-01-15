@@ -5,11 +5,9 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.handler.HandlerResult
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.SolutionHint.solution
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinTypeName.Companion.asTypeName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ContentType
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ResponseCode
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ModelUsage
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ServerResponseBody
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ServerResponseHeader
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ResponseBody
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ResponseHeader
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ServerResponseInterface
 
 class ServerResponseInterfaceEmitter : CodeEmitter {
@@ -31,42 +29,51 @@ class ServerResponseInterfaceEmitter : CodeEmitter {
                         kotlinParameter("status", Kotlin.Int.asTypeReference())
                     }
 
+                    val context = object : ServerResponseInterfaceHandlerContext {
+                        override fun addParameter(parameter: KotlinParameter) =
+                            this@kotlinMethod.addParameter(parameter)
+                    }
+
                     responseInterface.body?.let { body ->
-                        getHandler<ServerResponseInterfaceHandler, Unit> {
-                            emitResponseInterfaceBody(body, body.content.contentType)
-                        }
+                        getHandler<ServerResponseInterfaceHandler, Unit> { context.emitBody(body) }
                     }
 
                     responseInterface.headers.forEach { header ->
-                        getHandler<ServerResponseInterfaceHandler, Unit> {
-                            emitResponseInterfaceHeader(header, header.content.contentType)
-                        }
+                        getHandler<ServerResponseInterfaceHandler, Unit> { context.emitHeader(header) }
                     }
                 }
             }
         }
     }
 
-    companion object {
-        fun KotlinMethod.emitDefaultResponseInterfaceHeader(
-            name: String, model: ModelUsage, defaultValue: DefaultValue
-        ) {
-            kotlinParameter(name, model.asTypeReference(), defaultValue.toKotlinExpression())
-        }
+}
 
-        fun KotlinMethod.emitDefaultResponseInterfaceBody(name: String, model: ModelUsage, defaultValue: DefaultValue) {
-            kotlinParameter(name, model.asTypeReference(), defaultValue.toKotlinExpression())
-        }
+interface ServerResponseInterfaceHandlerContext : ParameterAware {
 
-    }
+    /**
+     * Generates the standard property for a response header or response body in a server response interface.
+     * The type should reflect the nullability of the model even if the value will never be nullable after
+     * serialization. Allows maximum flexibility for the code which is providing values.
+     */
+    fun emitProperty(name: String, type: KotlinTypeReference, defaultValue: DefaultValue) =
+        kotlinParameter(name, type, defaultValue.toKotlinExpression())
+
 }
 
 interface ServerResponseInterfaceHandler : Handler {
 
-    fun KotlinMethod.emitResponseInterfaceHeader(
-        header: ServerResponseHeader, contentType: ContentType
-    ): HandlerResult<Unit>
+    /**
+     * Generates the standard property for a response header in a server response interface. The type of the property
+     * should reflect the nullability of the model even if the value will never be nullable after serialization. Allows
+     * maximum flexibility for the code which is providing values.
+     */
+    fun ServerResponseInterfaceHandlerContext.emitHeader(header: ResponseHeader): HandlerResult<Unit>
 
-    fun KotlinMethod.emitResponseInterfaceBody(body: ServerResponseBody, contentType: ContentType): HandlerResult<Unit>
+    /**
+     * Generates the standard property for a response body in a server response interface. The type of the property
+     * should reflect the nullability of the model even if the value will never be nullable after serialization. Allows
+     * maximum flexibility for the code which is providing values.
+     */
+    fun ServerResponseInterfaceHandlerContext.emitBody(body: ResponseBody): HandlerResult<Unit>
 
 }

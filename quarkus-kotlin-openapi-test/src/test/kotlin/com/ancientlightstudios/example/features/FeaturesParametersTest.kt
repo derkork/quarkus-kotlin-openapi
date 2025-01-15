@@ -18,7 +18,7 @@ class FeaturesParametersTest : ApiTestBase() {
     lateinit var client: FeaturesParametersClient
 
     val testClient: FeaturesParametersTestClient
-        get() = FeaturesParametersTestClient(objectMapper) { prepareRequest() }
+        get() = FeaturesParametersTestClient(dependencyVogel) { prepareRequest() }
 
     @Test
     fun `path parameters work (Client)`() {
@@ -248,7 +248,7 @@ class FeaturesParametersTest : ApiTestBase() {
             val response = client.parametersRequiredNullable()
             if (response is ParametersRequiredNullableHttpResponse.Ok) {
                 assertThat(response.headerSingleValue).isNull()
-                assertThat(response.headerCollectionValue).isNull()
+                assertThat(response.headerCollectionValue).isEmpty()
                 assertThat(response.safeBody.querySingleValue).isNull()
                 assertThat(response.safeBody.queryCollectionValue).isEmpty()
                 assertThat(response.safeBody.headerSingleValue).isNull()
@@ -265,7 +265,7 @@ class FeaturesParametersTest : ApiTestBase() {
         testClient.parametersRequiredNullableSafe(null, null, null, null, null)
             .isOkResponse {
                 assertThat(headerSingleValue).isNull()
-                assertThat(headerCollectionValue).isEmpty() // TODO: this is different
+                assertThat(headerCollectionValue).isEmpty()
                 assertThat(safeBody.querySingleValue).isNull()
                 assertThat(safeBody.queryCollectionValue).isEmpty()
                 assertThat(safeBody.headerSingleValue).isNull()
@@ -368,7 +368,7 @@ class FeaturesParametersTest : ApiTestBase() {
             val response = client.parametersOptionalNotNull()
             if (response is ParametersOptionalNotNullHttpResponse.Ok) {
                 assertThat(response.headerSingleValue).isNull()
-                assertThat(response.headerCollectionValue).isNull()
+                assertThat(response.headerCollectionValue).isEmpty()
                 assertThat(response.safeBody.querySingleValue).isNull()
                 assertThat(response.safeBody.queryCollectionValue).isEmpty()
                 assertThat(response.safeBody.headerSingleValue).isNull()
@@ -385,7 +385,7 @@ class FeaturesParametersTest : ApiTestBase() {
         testClient.parametersOptionalNotNullSafe(null, null, null, null, null)
             .isOkResponse {
                 assertThat(headerSingleValue).isNull()
-                assertThat(headerCollectionValue).isEmpty() // TODO: this is different
+                assertThat(headerCollectionValue).isEmpty()
                 assertThat(safeBody.querySingleValue).isNull()
                 assertThat(safeBody.queryCollectionValue).isEmpty()
                 assertThat(safeBody.headerSingleValue).isNull()
@@ -488,7 +488,7 @@ class FeaturesParametersTest : ApiTestBase() {
             val response = client.parametersOptionalNullable()
             if (response is ParametersOptionalNullableHttpResponse.Ok) {
                 assertThat(response.headerSingleValue).isNull()
-                assertThat(response.headerCollectionValue).isNull()
+                assertThat(response.headerCollectionValue).isEmpty()
                 assertThat(response.safeBody.querySingleValue).isNull()
                 assertThat(response.safeBody.queryCollectionValue).isEmpty()
                 assertThat(response.safeBody.headerSingleValue).isNull()
@@ -505,7 +505,7 @@ class FeaturesParametersTest : ApiTestBase() {
         testClient.parametersOptionalNullableSafe(null, null, null, null, null)
             .isOkResponse {
                 assertThat(headerSingleValue).isNull()
-                assertThat(headerCollectionValue).isEmpty() // TODO: this is different
+                assertThat(headerCollectionValue).isEmpty()
                 assertThat(safeBody.querySingleValue).isNull()
                 assertThat(safeBody.queryCollectionValue).isEmpty()
                 assertThat(safeBody.headerSingleValue).isNull()

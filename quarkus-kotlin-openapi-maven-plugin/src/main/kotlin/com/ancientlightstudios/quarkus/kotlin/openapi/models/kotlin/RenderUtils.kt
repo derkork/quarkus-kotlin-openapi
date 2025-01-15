@@ -11,5 +11,13 @@ fun KotlinTypeReference.render(): String {
         is KotlinParameterizedTypeReference -> innerTypes.joinToString(
             prefix = "${outerType.name}<", postfix = ">$postfix"
         ) { it.render() }
+
+        is KotlinDelegateTypeReference -> {
+            val receiverPart = receiver?.let { "${it.render()}." } ?: ""
+            val parameterPart = parameters.joinToString { it.render() }
+            val resultPart = returnType.render()
+            
+            "$receiverPart($parameterPart) -> $resultPart"
+        }
     }
 }

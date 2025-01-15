@@ -19,4 +19,60 @@ bessere Fehlermeldungen
 - x-model-name
 - x-container-model-name
 - x-enum-item-names
-- x-generic-response-name 
+- x-generic-response-name
+
+
+
+
+
+neue todos:
+- unique names
+- model prefix/postfix
+- test schreiben für den ParameterSchemaPatch, ob er in allen Fällen richtig funktioniert und Fehlermeldung verbessern, wenn parameters unterhalb einer operation kein array ist
+- rekursion und überschreiben von objekt-parametern bei rekursiven und normalen objekten
+- number konvertierung bei double min/max 
+- nicht alle modelle für alle content types zulassen
+- test für responsewithinterface schreiben
+- kotlin-BuildMEthode wie kotlinClass sollten neues objekt liefern
+- contentType.matches durch ContentInfo ersetzen
+- test für umbenennung von objekten/properties (fehlermeldungen etc)
+- default handler implementierungen nehmen mal modelusage und mal typeref
+- context für Maybe prüfen, ob überall richtiger wert verwendet wird
+- context prüfen, ob variableNameOf verwendet wird
+
+class NameRegistry {
+
+    private val nameBuilder = mutableMapOf<String, NameBuilder>()
+
+    fun uniqueNameFor(name: ClassName, shared: Boolean = false): ClassName {
+        val builder = nameBuilder.getOrPut(name.value) { NameBuilder() }
+        return when (shared) {
+            true -> builder.shared(name)
+            false -> builder.next(name)
+        }
+    }
+
+     private class NameBuilder {
+
+        private var nextIndex = -1
+        private var shared = -1
+
+        fun next(name: ClassName) = foo(name, ++nextIndex)
+
+        fun shared(name: ClassName): ClassName {
+            if (shared == -1) {
+                // it's the first time, we need the shared class name. freeze the index and reuse it from now on
+                shared = ++nextIndex
+            }
+            return foo(name, shared)
+        }
+
+        private fun foo(name: ClassName, index: Int): ClassName {
+            if (index == 0) {
+                return name
+            }
+            return name.extend(postfix = "$index")
+        }
+
+    }
+}

@@ -1,6 +1,7 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.handler
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ContentType
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ContentInfo
 
 interface Handler {
 
@@ -9,6 +10,8 @@ interface Handler {
     }
 
 }
+inline fun <R> ContentInfo.matches(contentType: ContentType, block: () -> R): HandlerResult<R> =
+    this.contentType.matches(contentType, block)
 
 inline fun <R> ContentType.matches(contentType: ContentType, block: () -> R): HandlerResult<R> {
     if (this != contentType) {

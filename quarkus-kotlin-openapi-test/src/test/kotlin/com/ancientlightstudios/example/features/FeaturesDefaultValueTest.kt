@@ -23,7 +23,7 @@ class FeaturesDefaultValueTest : ApiTestBase() {
     lateinit var client: FeaturesDefaultValueClient
 
     val testClient: FeaturesDefaultValueTestClient
-        get() = FeaturesDefaultValueTestClient(objectMapper) { prepareRequest() }
+        get() = FeaturesDefaultValueTestClient(dependencyVogel) { prepareRequest() }
 
     @Test
     fun `default parameter values are used if noting else is specified (Client)`() {

@@ -18,8 +18,14 @@ class ImportCollector(private val basePackage: String, private val providedPacka
         when (typeReference) {
             is KotlinSimpleTypeReference -> imports.add(ImportData(typeReference.packageName, typeReference.name))
             is KotlinParameterizedTypeReference -> {
-                imports.add(ImportData(typeReference.outerType.packageName, typeReference.outerType.name))
+                register(typeReference.outerType)
                 typeReference.innerTypes.forEach { register(it) }
+            }
+
+            is KotlinDelegateTypeReference -> {
+                typeReference.receiver?.let { register(it) }
+                register(typeReference.returnType)
+                register(typeReference.parameters)
             }
         }
     }

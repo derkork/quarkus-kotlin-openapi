@@ -12,7 +12,7 @@ fun allToObject(
 /**
  * creates an instantiation expression for the given container class.
  * If the list of parameters is empty or only contains [PlainParameter], generates this
- * `<ContainerClassName>([parameters, ...])`
+ * `Maybe.Success(<context>, <ContainerClassName>([parameters, ...]))`
  *
  * If there is at least one [MaybeParameter] generates this
  * ```
@@ -29,7 +29,7 @@ fun allToObject(
 ): KotlinExpression {
     val constructorValues = parameter.map {
         when (it) {
-            is MaybeParameter -> it.name.identifier()
+            is MaybeParameter -> it.name.identifier() 
                 .cast(Library.MaybeSuccess.asTypeReference())
                 .property("value")
 
@@ -45,6 +45,8 @@ fun allToObject(
         resultStatement = invoke("maybeAllOf", context, *maybeParameters.toTypedArray()) {
             resultStatement.statement()
         }
+    } else {
+        resultStatement = invoke(Library.MaybeSuccess.identifier(), context, resultStatement)
     }
     return resultStatement
 }

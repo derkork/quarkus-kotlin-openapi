@@ -2,7 +2,7 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
 
-class KotlinCompanion(private val identifier: ClassName? = null, private val keepIfEmpty: Boolean = false) :
+class KotlinCompanion(private val identifier: KotlinTypeName? = null, private val keepIfEmpty: Boolean = false) :
     KotlinRenderable, MethodAware, CommentAware {
 
     private val methods = KotlinRenderableBlockContainer<KotlinMethod>()
@@ -32,7 +32,7 @@ class KotlinCompanion(private val identifier: ClassName? = null, private val kee
 
         write("companion object ")
         if (identifier != null) {
-            write("${identifier.value} ")
+            write("${identifier.name} ")
         }
         block {
             writeln()
@@ -50,5 +50,5 @@ interface CompanionAware {
 }
 
 fun CompanionAware.kotlinCompanion(
-    identifier: ClassName? = null, keepIfEmpty: Boolean = false, block: KotlinCompanion.() -> Unit
+    identifier: KotlinTypeName? = null, keepIfEmpty: Boolean = false, block: KotlinCompanion.() -> Unit
 ) = KotlinCompanion(identifier).apply(block).also { setCompanion(it) }

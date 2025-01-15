@@ -23,103 +23,7 @@ class FeaturesPlainTest : ApiTestBase() {
     lateinit var client: FeaturesPlainClient
 
     val testClient: FeaturesPlainTestClient
-        get() = FeaturesPlainTestClient(objectMapper) { prepareRequest() }
-
-    @Test
-    fun `empty parameter and empty response is supported (Client)`() {
-        runBlocking {
-            val response = client.plainEnumParameter()
-            if (response is PlainEnumParameterHttpResponse.Ok) {
-                assertThat(response.safeBody).isNull()
-            } else {
-                fail("unexpected response")
-            }
-        }
-    }
-
-    @Test
-    fun `empty parameter and empty response is supported (Test-Client)`() {
-        testClient.plainEnumParameterSafe(null)
-            .isOkResponse {
-                assertThat(safeBody).isNull()
-            }
-    }
-
-    @Test
-    fun `empty parameter and empty response is supported (Raw)`() {
-        prepareRequest()
-            .get("/features/plain/plainEnumParameter")
-            .execute()
-            .statusCode(200)
-            .body(equalTo(""))
-    }
-
-
-    @Test
-    fun `empty request is supported (Client)`() {
-        runBlocking {
-            val response = client.plainEnumBody()
-            if (response is PlainEnumBodyHttpResponse.Ok) {
-                assertThat(response.safeBody).isNull()
-            } else {
-                fail("unexpected response")
-            }
-        }
-    }
-
-    @Test
-    fun `empty request is supported (Test-Client)`() {
-        testClient.plainEnumBodyUnsafe {
-            body(null)
-        }
-            .isOkResponse {
-                assertThat(safeBody).isNull()
-            }
-    }
-
-    @Test
-    fun `empty request is supported (Raw)`() {
-        prepareRequest()
-            .contentType("text/plain")
-            .post("/features/plain/plainEnumBody")
-            .execute()
-            .statusCode(200)
-            .body(equalTo(""))
-    }
-
-    @ParameterizedTest
-    @EnumSource(value = PlainEnum::class)
-    fun `enum item serialization in response body works (Client)`(value: PlainEnum) {
-        runBlocking {
-            val response = client.plainEnumBody(value)
-            if (response is PlainEnumBodyHttpResponse.Ok) {
-                assertThat(response.safeBody).isEqualTo(value)
-            } else {
-                fail("unexpected response")
-            }
-        }
-    }
-
-    @ParameterizedTest
-    @EnumSource(value = TestPlainEnum::class)
-    fun `enum item serialization in response body works (Test-Client)`(value: TestPlainEnum) {
-        testClient.plainEnumBodySafe(value)
-            .isOkResponse {
-                assertThat(safeBody).isEqualTo(value)
-            }
-    }
-
-    @ParameterizedTest
-    @EnumSource(value = PlainEnum::class)
-    fun `enum item serialization in response body works (Raw)`(value: PlainEnum) {
-        prepareRequest()
-            .contentType("text/plain")
-            .body(value.value)
-            .post("/features/plain/plainEnumBody")
-            .execute()
-            .statusCode(200)
-            .body(equalTo(value.value.toString()))
-    }
+        get() = FeaturesPlainTestClient(dependencyVogel) { prepareRequest() }
 
     @Test
     fun `sending invalid big integer value is rejected (Test-Client)`() {
@@ -151,6 +55,31 @@ class FeaturesPlainTest : ApiTestBase() {
             listOf("request.query.param", "not a valid integer"),
             listOf("request.body", "not a valid integer")
         )
+    }
+
+    @Test
+    fun `sending empty big integer parameter value is rejected (Test-Client)`() {
+        testClient.plainBigIntegerTypeRaw {
+            queryParam("param", "")
+        }
+            .isBadRequestResponse {
+                assertThat(safeBody.messages).containsExactly(listOf("request.query.param", "not a valid integer"))
+            }
+    }
+
+    @Test
+    fun `sending empty big integer parameter value is rejected (Raw)`() {
+        val messages = prepareRequest()
+            .queryParam("param", "")
+            .contentType("text/plain")
+            .post("/features/plain/bigIntegerType")
+            .execute()
+            .statusCode(400)
+            .extract()
+            .jsonPath()
+            .getList<String>("messages")
+
+        assertThat(messages).containsExactly(listOf("request.query.param", "not a valid integer"))
     }
 
     @Test
@@ -189,6 +118,62 @@ class FeaturesPlainTest : ApiTestBase() {
     }
 
     @Test
+    fun `sending no big integer value is accepted (Client)`() {
+        runBlocking {
+            val response = client.plainBigIntegerType(null, null)
+            if (response is PlainBigIntegerTypeHttpResponse.Ok) {
+                assertThat(response.safeBody.parameterValue).isNull()
+                assertThat(response.safeBody.bodyValue).isNull()
+            } else {
+                fail("unexpected response")
+            }
+        }
+    }
+
+    @Test
+    fun `sending no big integer value is accepted (Test-Client)`() {
+        testClient.plainBigIntegerTypeSafe(null, null)
+            .isOkResponse {
+                assertThat(safeBody.parameterValue).isNull()
+                assertThat(safeBody.bodyValue).isNull()
+            }
+    }
+
+    @Test
+    fun `sending no big integer value is accepted (Raw)`() {
+        prepareRequest()
+            .contentType("text/plain")
+            .post("/features/plain/bigIntegerType")
+            .execute()
+            .statusCode(200)
+            .body("parameterValue", equalTo(null))
+            .body("bodyValue", equalTo(null))
+    }
+
+    @Test
+    fun `sending empty big integer body value is accepted (Test-Client)`() {
+        testClient.plainBigIntegerTypeRaw {
+            body("")
+        }
+            .isOkResponse {
+                assertThat(safeBody.parameterValue).isNull()
+                assertThat(safeBody.bodyValue).isNull()
+            }
+    }
+
+    @Test
+    fun `sending empty big integer body value is accepted (Raw)`() {
+        prepareRequest()
+            .contentType("text/plain")
+            .body("")
+            .post("/features/plain/bigIntegerType")
+            .execute()
+            .statusCode(200)
+            .body("parameterValue", equalTo(null))
+            .body("bodyValue", equalTo(null))
+    }
+
+    @Test
     fun `sending invalid integer value is rejected (Test-Client)`() {
         testClient.plainIntegerTypeRaw {
             queryParam("param", "foo")
@@ -218,6 +203,31 @@ class FeaturesPlainTest : ApiTestBase() {
             listOf("request.query.param", "not an int"),
             listOf("request.body", "not an int")
         )
+    }
+
+    @Test
+    fun `sending empty integer parameter value is rejected (Test-Client)`() {
+        testClient.plainIntegerTypeRaw {
+            queryParam("param", "")
+        }
+            .isBadRequestResponse {
+                assertThat(safeBody.messages).containsExactly(listOf("request.query.param", "not an int"))
+            }
+    }
+
+    @Test
+    fun `sending empty integer parameter value is rejected (Raw)`() {
+        val messages = prepareRequest()
+            .queryParam("param", "")
+            .contentType("text/plain")
+            .post("/features/plain/integerType")
+            .execute()
+            .statusCode(400)
+            .extract()
+            .jsonPath()
+            .getList<String>("messages")
+
+        assertThat(messages).containsExactly(listOf("request.query.param", "not an int"))
     }
 
     @Test
@@ -256,6 +266,62 @@ class FeaturesPlainTest : ApiTestBase() {
     }
 
     @Test
+    fun `sending no integer value is accepted (Client)`() {
+        runBlocking {
+            val response = client.plainIntegerType(null, null)
+            if (response is PlainIntegerTypeHttpResponse.Ok) {
+                assertThat(response.safeBody.parameterValue).isNull()
+                assertThat(response.safeBody.bodyValue).isNull()
+            } else {
+                fail("unexpected response")
+            }
+        }
+    }
+
+    @Test
+    fun `sending no integer value is accepted (Test-Client)`() {
+        testClient.plainIntegerTypeSafe(null, null)
+            .isOkResponse {
+                assertThat(safeBody.parameterValue).isNull()
+                assertThat(safeBody.bodyValue).isNull()
+            }
+    }
+
+    @Test
+    fun `sending no integer value is accepted (Raw)`() {
+        prepareRequest()
+            .contentType("text/plain")
+            .post("/features/plain/integerType")
+            .execute()
+            .statusCode(200)
+            .body("parameterValue", equalTo(null))
+            .body("bodyValue", equalTo(null))
+    }
+
+    @Test
+    fun `sending empty integer body value is accepted (Test-Client)`() {
+        testClient.plainIntegerTypeRaw {
+            body("")
+        }
+            .isOkResponse {
+                assertThat(safeBody.parameterValue).isNull()
+                assertThat(safeBody.bodyValue).isNull()
+            }
+    }
+
+    @Test
+    fun `sending empty integer body value is accepted (Raw)`() {
+        prepareRequest()
+            .contentType("text/plain")
+            .body("")
+            .post("/features/plain/integerType")
+            .execute()
+            .statusCode(200)
+            .body("parameterValue", equalTo(null))
+            .body("bodyValue", equalTo(null))
+    }
+
+    @Test
     fun `sending invalid big decimal value is rejected (Test-Client)`() {
         testClient.plainBigDecimalTypeRaw {
             queryParam("param", "foo")
@@ -285,6 +351,31 @@ class FeaturesPlainTest : ApiTestBase() {
             listOf("request.query.param", "not a valid decimal"),
             listOf("request.body", "not a valid decimal")
         )
+    }
+
+    @Test
+    fun `sending empty big decimal parameter value is rejected (Test-Client)`() {
+        testClient.plainBigDecimalTypeRaw {
+            queryParam("param", "")
+        }
+            .isBadRequestResponse {
+                assertThat(safeBody.messages).containsExactly(listOf("request.query.param", "not a valid decimal"))
+            }
+    }
+
+    @Test
+    fun `sending empty big decimal parameter value is rejected (Raw)`() {
+        val messages = prepareRequest()
+            .queryParam("param", "")
+            .contentType("text/plain")
+            .post("/features/plain/bigDecimalType")
+            .execute()
+            .statusCode(400)
+            .extract()
+            .jsonPath()
+            .getList<String>("messages")
+
+        assertThat(messages).containsExactly(listOf("request.query.param", "not a valid decimal"))
     }
 
     @Test
@@ -323,6 +414,62 @@ class FeaturesPlainTest : ApiTestBase() {
     }
 
     @Test
+    fun `sending no big decimal value is accepted (Client)`() {
+        runBlocking {
+            val response = client.plainBigDecimalType(null, null)
+            if (response is PlainBigDecimalTypeHttpResponse.Ok) {
+                assertThat(response.safeBody.parameterValue).isNull()
+                assertThat(response.safeBody.bodyValue).isNull()
+            } else {
+                fail("unexpected response")
+            }
+        }
+    }
+
+    @Test
+    fun `sending no big decimal value is accepted (Test-Client)`() {
+        testClient.plainBigDecimalTypeSafe(null, null)
+            .isOkResponse {
+                assertThat(safeBody.parameterValue).isNull()
+                assertThat(safeBody.bodyValue).isNull()
+            }
+    }
+
+    @Test
+    fun `sending no big decimal value is accepted (Raw)`() {
+        prepareRequest()
+            .contentType("text/plain")
+            .post("/features/plain/bigDecimalType")
+            .execute()
+            .statusCode(200)
+            .body("parameterValue", equalTo(null))
+            .body("bodyValue", equalTo(null))
+    }
+
+    @Test
+    fun `sending empty big decimal body value is accepted (Test-Client)`() {
+        testClient.plainBigDecimalTypeRaw {
+            body("")
+        }
+            .isOkResponse {
+                assertThat(safeBody.parameterValue).isNull()
+                assertThat(safeBody.bodyValue).isNull()
+            }
+    }
+
+    @Test
+    fun `sending empty big decimal body value is accepted (Raw)`() {
+        prepareRequest()
+            .contentType("text/plain")
+            .body("")
+            .post("/features/plain/bigDecimalType")
+            .execute()
+            .statusCode(200)
+            .body("parameterValue", equalTo(null))
+            .body("bodyValue", equalTo(null))
+    }
+
+    @Test
     fun `sending invalid floating value is rejected (Test-Client)`() {
         testClient.plainFloatingTypeRaw {
             queryParam("param", "foo")
@@ -352,6 +499,31 @@ class FeaturesPlainTest : ApiTestBase() {
             listOf("request.query.param", "not a float"),
             listOf("request.body", "not a float")
         )
+    }
+
+    @Test
+    fun `sending empty floating parameter value is rejected (Test-Client)`() {
+        testClient.plainFloatingTypeRaw {
+            queryParam("param", "")
+        }
+            .isBadRequestResponse {
+                assertThat(safeBody.messages).containsExactly(listOf("request.query.param", "not a float"))
+            }
+    }
+
+    @Test
+    fun `sending empty floating parameter value is rejected (Raw)`() {
+        val messages = prepareRequest()
+            .queryParam("param", "")
+            .contentType("text/plain")
+            .post("/features/plain/floatingType")
+            .execute()
+            .statusCode(400)
+            .extract()
+            .jsonPath()
+            .getList<String>("messages")
+
+        assertThat(messages).containsExactly(listOf("request.query.param", "not a float"))
     }
 
     @Test
@@ -390,6 +562,62 @@ class FeaturesPlainTest : ApiTestBase() {
     }
 
     @Test
+    fun `sending no floating value is accepted (Client)`() {
+        runBlocking {
+            val response = client.plainFloatingType(null, null)
+            if (response is PlainFloatingTypeHttpResponse.Ok) {
+                assertThat(response.safeBody.parameterValue).isNull()
+                assertThat(response.safeBody.bodyValue).isNull()
+            } else {
+                fail("unexpected response")
+            }
+        }
+    }
+
+    @Test
+    fun `sending no floating value is accepted (Test-Client)`() {
+        testClient.plainFloatingTypeSafe(null, null)
+            .isOkResponse {
+                assertThat(safeBody.parameterValue).isNull()
+                assertThat(safeBody.bodyValue).isNull()
+            }
+    }
+
+    @Test
+    fun `sending no floating value is accepted (Raw)`() {
+        prepareRequest()
+            .contentType("text/plain")
+            .post("/features/plain/floatingType")
+            .execute()
+            .statusCode(200)
+            .body("parameterValue", equalTo(null))
+            .body("bodyValue", equalTo(null))
+    }
+
+    @Test
+    fun `sending empty floating body value is accepted (Test-Client)`() {
+        testClient.plainFloatingTypeRaw {
+            body("")
+        }
+            .isOkResponse {
+                assertThat(safeBody.parameterValue).isNull()
+                assertThat(safeBody.bodyValue).isNull()
+            }
+    }
+
+    @Test
+    fun `sending empty floating body value is accepted (Raw)`() {
+        prepareRequest()
+            .contentType("text/plain")
+            .body("")
+            .post("/features/plain/floatingType")
+            .execute()
+            .statusCode(200)
+            .body("parameterValue", equalTo(null))
+            .body("bodyValue", equalTo(null))
+    }
+
+    @Test
     fun `sending invalid boolean value is rejected (Test-Client)`() {
         testClient.plainBooleanTypeRaw {
             queryParam("param", "foo")
@@ -419,6 +647,31 @@ class FeaturesPlainTest : ApiTestBase() {
             listOf("request.query.param", "not a boolean"),
             listOf("request.body", "not a boolean")
         )
+    }
+
+    @Test
+    fun `sending empty boolean parameter value is rejected (Test-Client)`() {
+        testClient.plainBooleanTypeRaw {
+            queryParam("param", "")
+        }
+            .isBadRequestResponse {
+                assertThat(safeBody.messages).containsExactly(listOf("request.query.param", "not a boolean"))
+            }
+    }
+
+    @Test
+    fun `sending empty boolean parameter value is rejected (Raw)`() {
+        val messages = prepareRequest()
+            .queryParam("param", "")
+            .contentType("text/plain")
+            .post("/features/plain/booleanType")
+            .execute()
+            .statusCode(400)
+            .extract()
+            .jsonPath()
+            .getList<String>("messages")
+
+        assertThat(messages).containsExactly(listOf("request.query.param", "not a boolean"))
     }
 
     @Test
@@ -457,6 +710,62 @@ class FeaturesPlainTest : ApiTestBase() {
     }
 
     @Test
+    fun `sending no boolean value is accepted (Client)`() {
+        runBlocking {
+            val response = client.plainBooleanType(null, null)
+            if (response is PlainBooleanTypeHttpResponse.Ok) {
+                assertThat(response.safeBody.parameterValue).isNull()
+                assertThat(response.safeBody.bodyValue).isNull()
+            } else {
+                fail("unexpected response")
+            }
+        }
+    }
+
+    @Test
+    fun `sending no boolean value is accepted (Test-Client)`() {
+        testClient.plainBooleanTypeSafe(null, null)
+            .isOkResponse {
+                assertThat(safeBody.parameterValue).isNull()
+                assertThat(safeBody.bodyValue).isNull()
+            }
+    }
+
+    @Test
+    fun `sending no boolean value is accepted (Raw)`() {
+        prepareRequest()
+            .contentType("text/plain")
+            .post("/features/plain/booleanType")
+            .execute()
+            .statusCode(200)
+            .body("parameterValue", equalTo(null))
+            .body("bodyValue", equalTo(null))
+    }
+
+    @Test
+    fun `sending empty boolean body value is accepted (Test-Client)`() {
+        testClient.plainBooleanTypeRaw {
+            body("")
+        }
+            .isOkResponse {
+                assertThat(safeBody.parameterValue).isNull()
+                assertThat(safeBody.bodyValue).isNull()
+            }
+    }
+
+    @Test
+    fun `sending empty boolean body value is accepted (Raw)`() {
+        prepareRequest()
+            .contentType("text/plain")
+            .body("")
+            .post("/features/plain/booleanType")
+            .execute()
+            .statusCode(200)
+            .body("parameterValue", equalTo(null))
+            .body("bodyValue", equalTo(null))
+    }
+
+    @Test
     fun `sending valid string value is accepted (Client)`() {
         runBlocking {
             val response = client.plainStringType("foo", "bar")
@@ -492,6 +801,62 @@ class FeaturesPlainTest : ApiTestBase() {
     }
 
     @Test
+    fun `sending no string value is accepted (Client)`() {
+        runBlocking {
+            val response = client.plainStringType(null, null)
+            if (response is PlainStringTypeHttpResponse.Ok) {
+                assertThat(response.safeBody.parameterValue).isNull()
+                assertThat(response.safeBody.bodyValue).isEmpty()
+            } else {
+                fail("unexpected response")
+            }
+        }
+    }
+
+    @Test
+    fun `sending no string value is accepted (Test-Client)`() {
+        testClient.plainStringTypeSafe(null, null)
+            .isOkResponse {
+                assertThat(safeBody.parameterValue).isNull()
+                assertThat(safeBody.bodyValue).isEmpty()
+            }
+    }
+
+    @Test
+    fun `sending no string value is accepted (Raw)`() {
+        prepareRequest()
+            .contentType("text/plain")
+            .post("/features/plain/stringType")
+            .execute()
+            .statusCode(200)
+            .body("parameterValue", equalTo(null))
+            .body("bodyValue", equalTo(""))
+    }
+
+    @Test
+    fun `sending empty string body value is accepted (Test-Client)`() {
+        testClient.plainStringTypeRaw {
+            body("")
+        }
+            .isOkResponse {
+                assertThat(safeBody.parameterValue).isNull()
+                assertThat(safeBody.bodyValue).isEmpty()
+            }
+    }
+
+    @Test
+    fun `sending empty string body value is accepted (Raw)`() {
+        prepareRequest()
+            .contentType("text/plain")
+            .body("")
+            .post("/features/plain/stringType")
+            .execute()
+            .statusCode(200)
+            .body("parameterValue", equalTo(null))
+            .body("bodyValue", equalTo(""))
+    }
+
+    @Test
     fun `sending invalid enum value is rejected (Test-Client)`() {
         testClient.plainEnumTypeRaw {
             queryParam("param", "foo")
@@ -521,6 +886,31 @@ class FeaturesPlainTest : ApiTestBase() {
             listOf("request.query.param", "not a valid value"),
             listOf("request.body", "not a valid value")
         )
+    }
+
+    @Test
+    fun `sending empty enum parameter value is rejected (Test-Client)`() {
+        testClient.plainEnumTypeRaw {
+            queryParam("param", "")
+        }
+            .isBadRequestResponse {
+                assertThat(safeBody.messages).containsExactly(listOf("request.query.param", "not a valid value"))
+            }
+    }
+
+    @Test
+    fun `sending empty enum parameter value is rejected (Raw)`() {
+        val messages = prepareRequest()
+            .queryParam("param", "")
+            .contentType("text/plain")
+            .post("/features/plain/enumType")
+            .execute()
+            .statusCode(400)
+            .extract()
+            .jsonPath()
+            .getList<String>("messages")
+
+        assertThat(messages).containsExactly(listOf("request.query.param", "not a valid value"))
     }
 
     @ParameterizedTest
@@ -561,4 +951,59 @@ class FeaturesPlainTest : ApiTestBase() {
             .body("bodyValue", equalTo(value.value))
     }
 
+    @Test
+    fun `sending no enum value is accepted (Client)`() {
+        runBlocking {
+            val response = client.plainEnumType(null, null)
+            if (response is PlainEnumTypeHttpResponse.Ok) {
+                assertThat(response.safeBody.parameterValue).isNull()
+                assertThat(response.safeBody.bodyValue).isNull()
+            } else {
+                fail("unexpected response")
+            }
+        }
+    }
+
+    @Test
+    fun `sending no enum value is accepted (Test-Client)`() {
+        testClient.plainEnumTypeSafe(null, null)
+            .isOkResponse {
+                assertThat(safeBody.parameterValue).isNull()
+                assertThat(safeBody.bodyValue).isNull()
+            }
+    }
+
+    @Test
+    fun `sending no enum value is accepted (Raw)`() {
+        prepareRequest()
+            .contentType("text/plain")
+            .post("/features/plain/enumType")
+            .execute()
+            .statusCode(200)
+            .body("parameterValue", equalTo(null))
+            .body("bodyValue", equalTo(null))
+    }
+
+    @Test
+    fun `sending empty enum body value is accepted (Test-Client)`() {
+        testClient.plainEnumTypeRaw {
+            body("")
+        }
+            .isOkResponse {
+                assertThat(safeBody.parameterValue).isNull()
+                assertThat(safeBody.bodyValue).isNull()
+            }
+    }
+
+    @Test
+    fun `sending empty enum body value is accepted (Raw)`() {
+        prepareRequest()
+            .contentType("text/plain")
+            .body("")
+            .post("/features/plain/enumType")
+            .execute()
+            .statusCode(200)
+            .body("parameterValue", equalTo(null))
+            .body("bodyValue", equalTo(null))
+    }
 }

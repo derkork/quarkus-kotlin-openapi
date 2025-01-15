@@ -6,7 +6,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.inspect
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.SchemaDirection
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ContentType
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiContentMapping
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.*
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ModelClass
 
 class ModelFeatureTransformation : SpecTransformation {
 
@@ -41,20 +41,11 @@ class ModelFeatureTransformation : SpecTransformation {
 
         // the required flag is not important here, because we are only interested in the final model class
         val modelInstance = modelInstanceFor(content.schema, schemaDirection)
-        val modelClass = unwrapModelClass(modelInstance) ?: return
+        val modelClass = modelInstance.unwrapModelClass() ?: return
 
         getHandler<ModelTransformationHandler, Unit> {
-            installTransformationFeatureFor(modelClass, mode, content.mappedContentType)
+            registerTransformations(modelClass, mode, content.mappedContentType)
         }
-    }
-
-    private fun unwrapModelClass(modelInstance: ModelInstance): ModelClass? = when (modelInstance) {
-        is CollectionModelInstance -> unwrapModelClass(modelInstance.items.instance)
-        is EnumModelInstance -> modelInstance.ref
-        is MapModelInstance -> unwrapModelClass(modelInstance.items.instance)
-        is ObjectModelInstance -> modelInstance.ref
-        is OneOfModelInstance -> modelInstance.ref
-        is PrimitiveTypeModelInstance -> null
     }
 
 }
@@ -65,7 +56,7 @@ class ModelFeatureTransformation : SpecTransformation {
  */
 interface ModelTransformationHandler : Handler {
 
-    fun installTransformationFeatureFor(
+    fun registerTransformations(
         model: ModelClass, mode: TransformationMode, contentType: ContentType
     ): HandlerResult<Unit>
 

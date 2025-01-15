@@ -137,6 +137,10 @@ class ModelTransformation : SpecTransformation {
                 else -> ComponentName(requestedContainerName, config.modelPackageName, ConflictResolution.Requested)
             }
 
+            oneOf.discriminator?.let {
+                model.discriminator = OneOfModelDiscriminator(variableNameOf(it.property), it.property)
+            }
+
             model.options += OneOfModelOption(
                 containerName,
                 ModelUsage(modelInstanceFor(it.schema, model.direction, true)),

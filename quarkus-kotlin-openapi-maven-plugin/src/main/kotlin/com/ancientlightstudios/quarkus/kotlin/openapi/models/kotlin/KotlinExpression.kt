@@ -5,21 +5,6 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.utils.forEachWithStats
 
 interface KotlinExpression : KotlinStatement
 
-fun ClassName.literalFor(value: String) = nullLiteral()
-//    when (this) {
-//    Kotlin.StringClass -> value.literal()
-//    Kotlin.IntClass -> value.intLiteral()
-//    Kotlin.UIntClass -> value.uintLiteral()
-//    Kotlin.LongClass -> value.longLiteral()
-//    Kotlin.ULongClass -> value.ulongLiteral()
-//    Kotlin.FloatClass -> value.floatLiteral()
-//    Kotlin.DoubleClass -> value.doubleLiteral()
-//    Kotlin.BooleanClass -> value.booleanLiteral()
-//    Kotlin.BigDecimalClass -> value.bigDecimalLiteral()
-//    Kotlin.BigIntegerClass -> value.bigIntegerLiteral()
-//    else -> ProbableBug("Unknown type ${this.value} for literal")
-//}
-
 // TODO: probably not the best way to implement this (needs support for || and &&, etc). but for now until we have a better approach
 fun KotlinExpression.compareWith(other: KotlinExpression, mode: String) = object : KotlinExpression {
 
@@ -188,7 +173,11 @@ fun String.doubleLiteral() = object : KotlinExpression {
     override fun ImportCollector.registerImports() {}
 
     override fun render(writer: CodeWriter) = with(writer) {
-        write(this@doubleLiteral)
+        if (this@doubleLiteral.contains(".")) {
+            write(this@doubleLiteral)
+        } else {
+            write("${this@doubleLiteral}.0")
+        }
     }
 
 }
@@ -216,7 +205,7 @@ fun String.booleanLiteral() = object : KotlinExpression {
 fun String.bigDecimalLiteral() = object : KotlinExpression {
 
     override fun ImportCollector.registerImports() {
-//        register(Kotlin.BigDecimalClass)
+        register(Kotlin.BigDecimal)
     }
 
     override fun render(writer: CodeWriter) = with(writer) {
@@ -228,7 +217,7 @@ fun String.bigDecimalLiteral() = object : KotlinExpression {
 fun String.bigIntegerLiteral() = object : KotlinExpression {
 
     override fun ImportCollector.registerImports() {
-//        register(Kotlin.BigIntegerClass)
+        register(Kotlin.BigInteger)
     }
 
     override fun render(writer: CodeWriter) = with(writer) {

@@ -9,9 +9,11 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.InvocationEx
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinTypeName.Companion.asTypeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.NullCheckExpression.Companion.nullCheck
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.PropertyExpression.Companion.property
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ContentType
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ResponseCode
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.*
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ResponseBody
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ResponseHeader
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ServerRequestContext
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ServerRequestContextResponseMethod
 
 class ServerRequestContextEmitter : CodeEmitter {
 
@@ -67,11 +69,11 @@ class ServerRequestContextEmitter : CodeEmitter {
             returnType = Kotlin.Nothing.asTypeReference(), override = !defaultResponseExists
         ) {
             kotlinParameter("status", Kotlin.Int.asTypeReference())
-            kotlinParameter("mediaType", Kotlin.String.asTypeReference().nullable(), parameterDefaultValue)
-            kotlinParameter("body", Kotlin.Any.asTypeReference().nullable(), parameterDefaultValue)
+            kotlinParameter("mediaType", Kotlin.String.asTypeReference().acceptNull(), parameterDefaultValue)
+            kotlinParameter("body", Kotlin.Any.asTypeReference().acceptNull(), parameterDefaultValue)
             kotlinParameter(
                 "headers", Kotlin.Pair.asTypeReference(
-                    Kotlin.String.asTypeReference(), Kotlin.Any.asTypeReference().nullable()
+                    Kotlin.String.asTypeReference(), Kotlin.Any.asTypeReference().acceptNull()
                 ), asParameterList = true
             )
 
@@ -84,7 +86,11 @@ class ServerRequestContextEmitter : CodeEmitter {
             //         headers.forEach { headers(it.first, it.second) }
             //     }.build())
             val statement = Misc.ResponseBuilder.identifier()
-                .invoke("create", "status".identifier(), genericTypes = listOf(Kotlin.Any.asTypeReference().nullable()))
+                .invoke(
+                    "create",
+                    "status".identifier(),
+                    genericTypes = listOf(Kotlin.Any.asTypeReference().acceptNull())
+                )
                 .wrap()
                 .invoke("entity", "body".identifier())
                 .wrap()
@@ -132,16 +138,20 @@ class ServerRequestContextEmitter : CodeEmitter {
             var mediaTypeExpression: KotlinExpression = nullLiteral()
             var bodyExpression: KotlinExpression = nullLiteral()
 
+            val context = object : ServerRequestContextHandlerContext {
+                override fun addParameter(parameter: KotlinParameter) = this@kotlinMethod.addParameter(parameter)
+            }
+
             method.body?.let { body ->
                 mediaTypeExpression = body.content.rawContentType.literal()
                 bodyExpression = getHandler<ServerRequestContextHandler, KotlinExpression> {
-                    emitResponseMethodBody(body, fromInterface, body.content.contentType)
+                    context.emitBody(body, fromInterface)
                 }
             }
 
             val headerExpressions = method.headers.map { header ->
                 val serializationExpression = getHandler<ServerRequestContextHandler, KotlinExpression> {
-                    emitResponseMethodHeader(header, fromInterface, header.content.contentType)
+                    context.emitHeader(header, fromInterface)
                 }
                 invoke(Kotlin.Pair.identifier(), header.sourceName.literal(), serializationExpression)
             }
@@ -201,42 +211,43 @@ class ServerRequestContextEmitter : CodeEmitter {
         }
     }
 
-    companion object {
-        fun KotlinMethod.emitDefaultResponseMethodHeader(
-            name: String, model: ModelUsage, defaultValue: DefaultValue, interfaceMethod: Boolean
-        ) {
-            // if the method is from a response interface don't repeat the default value here
-            kotlinParameter(
-                name, model.asTypeReference(), when (interfaceMethod) {
-                    true -> null
-                    false -> defaultValue.toKotlinExpression()
-                }
-            )
-        }
+}
 
-        fun KotlinMethod.emitDefaultResponseMethodBody(
-            name: String, model: ModelUsage, defaultValue: DefaultValue, interfaceMethod: Boolean
-        ) {
-            // if the method is from a response interface don't repeat the default value here
-            kotlinParameter(
-                name, model.asTypeReference(), when (interfaceMethod) {
-                    true -> null
-                    false -> defaultValue.toKotlinExpression()
-                }
-            )
-        }
+interface ServerRequestContextHandlerContext : ParameterAware {
 
-    }
+    /**
+     * Generates the standard property for a response header or response body in the server response context.
+     * The type should reflect the nullability of the model even if the value will never be nullable after
+     * serialization. Allows maximum flexibility for the code which is providing values.
+     */
+    fun emitProperty(
+        name: String, type: KotlinTypeReference, defaultValue: DefaultValue, interfaceMethod: Boolean
+    ) = kotlinParameter(
+        // if the method is from a response interface don't repeat the default value here
+        name, type, when (interfaceMethod) {
+            true -> null
+            false -> defaultValue.toKotlinExpression()
+        }
+    )
+    
 }
 
 interface ServerRequestContextHandler : Handler {
 
-    fun KotlinMethod.emitResponseMethodHeader(
-        header: ServerResponseHeader, fromInterface: Boolean, contentType: ContentType
-    ): HandlerResult<KotlinExpression>
+    /**
+     * Generates the standard property for a response header in the server response context. The type of the property
+     * should reflect the nullability of the model even if the value will never be nullable after serialization. Allows
+     * maximum flexibility for the code which is providing values.
+     */
+    fun ServerRequestContextHandlerContext.emitHeader(header: ResponseHeader, fromInterface: Boolean):
+            HandlerResult<KotlinExpression>
 
-    fun KotlinMethod.emitResponseMethodBody(
-        body: ServerResponseBody, fromInterface: Boolean, contentType: ContentType
-    ): HandlerResult<KotlinExpression>
+    /**
+     * Generates the standard property for a response body in the server response context. The type of the property
+     * should reflect the nullability of the model even if the value will never be nullable after serialization. Allows
+     * maximum flexibility for the code which is providing values.
+     */
+    fun ServerRequestContextHandlerContext.emitBody(body: ResponseBody, fromInterface: Boolean):
+            HandlerResult<KotlinExpression>
 
 }

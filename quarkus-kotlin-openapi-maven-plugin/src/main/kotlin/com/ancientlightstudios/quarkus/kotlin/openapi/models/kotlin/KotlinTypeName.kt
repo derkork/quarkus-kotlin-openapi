@@ -8,6 +8,8 @@ data class KotlinTypeName(val name: String, val packageName: String) {
 
     companion object {
 
+        fun String.asTypeName(packageName: String = "") = KotlinTypeName(this, packageName)
+
         fun ComponentName.asTypeName() = KotlinTypeName(name, packageName)
 
         fun KotlinTypeName.nestedTypeName(name: String) = KotlinTypeName("${this.name}.$name", packageName)

@@ -16,6 +16,8 @@ class IdentifierExpression(val value: String, val packageName: String = "") : Ko
 
     companion object {
 
+        fun ComponentName.identifier() = name.identifier(packageName)
+
         fun KotlinTypeName.identifier() = name.identifier(packageName)
 
         fun String.identifier(packageName: String = "") = IdentifierExpression(this, packageName)

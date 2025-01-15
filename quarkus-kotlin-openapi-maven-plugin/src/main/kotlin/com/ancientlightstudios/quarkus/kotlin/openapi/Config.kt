@@ -1,8 +1,5 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.BaseType
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName.Companion.rawClassName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinTypeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ConfigIssue
 
@@ -124,7 +121,7 @@ class Config(
     }
 
     fun additionalProviders() =
-        additionalProviders.map { it.toRawClassName("Illegal value for additional provider $it") }
+        additionalProviders.map { it.toTypeName("Illegal value for additional provider $it") }
 
     private fun String.toTypeName(errorMessage: String): KotlinTypeName {
         val parts = split(':', limit = 2)
@@ -134,14 +131,6 @@ class Config(
 
         // TODO: maybe some other class as this is part of the emitter?
         return KotlinTypeName(parts[1], parts[0])
-    }
-
-    private fun String.toRawClassName(errorMessage: String): ClassName {
-        val parts = split(':', limit = 2)
-        if (parts.size != 2) {
-            ConfigIssue(errorMessage)
-        }
-        return parts[1].rawClassName(parts[0])
     }
 
 }

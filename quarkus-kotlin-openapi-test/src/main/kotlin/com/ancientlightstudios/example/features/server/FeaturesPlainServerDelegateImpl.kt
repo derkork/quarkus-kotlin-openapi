@@ -7,18 +7,6 @@ import jakarta.enterprise.context.ApplicationScoped
 @ApplicationScoped
 class FeaturesPlainServerDelegateImpl : FeaturesPlainServerDelegate {
 
-    override suspend fun PlainEnumParameterContext.plainEnumParameter(): Nothing {
-        val validRequest = request.validOrElse { badRequest(it.toOperationError()) }
-
-        ok(validRequest.param)
-    }
-
-    override suspend fun PlainEnumBodyContext.plainEnumBody(): Nothing {
-        val validRequest = request.validOrElse { badRequest(it.toOperationError()) }
-
-        ok(validRequest.body)
-    }
-
     override suspend fun PlainBigIntegerTypeContext.plainBigIntegerType(): Nothing {
         val validRequest = request.validOrElse { badRequest(it.toOperationError()) }
 

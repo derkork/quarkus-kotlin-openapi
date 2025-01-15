@@ -9,7 +9,7 @@ fun Maybe<String?>.asLocalDate(): Maybe<LocalDate?> = onNotNull {
     try {
         success(LocalDate.parse(value))
     } catch (e: Exception) {
-        failure(ValidationError("Invalid date.", context))
+        failure(ValidationError("Invalid date.", context, ErrorKind.Invalid))
     }
 }
 

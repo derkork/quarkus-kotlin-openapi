@@ -1,12 +1,10 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.solution
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiRequest
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiRequestBundle
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.RequestMethod
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.*
 
 class ServerRestController(
     name: ComponentName,
-    val path: String,
+    val baseRestPath: String,
     val delegate: ServerDelegateInterface,
     val dependencyVogel: DependencyVogel,
     val source: OpenApiRequestBundle
@@ -18,8 +16,13 @@ class ServerRestController(
 
 class ServerRestControllerMethod(
     val name: String,
-    val restPath: String,
-    val restMethod: RequestMethod,
     val delegateMethod: ServerDelegateInterfaceMethod,
     val source: OpenApiRequest
-)
+) {
+
+    val restPath = source.path
+    val restMethod = source.method
+    val parameters = mutableListOf<RequestParameter>()
+    var body: RequestBody? = null
+
+}

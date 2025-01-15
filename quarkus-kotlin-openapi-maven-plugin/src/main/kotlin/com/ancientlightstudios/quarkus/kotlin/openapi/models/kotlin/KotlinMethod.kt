@@ -11,7 +11,7 @@ class KotlinMethod(
     private val bodyAsAssignment: Boolean = false,
     private val accessModifier: KotlinAccessModifier? = null,
     private val override: Boolean = false,
-    private val genericParameter: List<TypeName> = listOf()
+    private val genericParameter: List<KotlinTypeReference> = listOf()
 ) : KotlinRenderable, AnnotationAware, ParameterAware, StatementAware, CommentAware {
 
     private val annotations = KotlinAnnotationContainer()
@@ -63,7 +63,7 @@ class KotlinMethod(
         write("fun ")
 
         if (genericParameter.isNotEmpty()) {
-            val parameterList = genericParameter.joinToString(", ", prefix = "<", postfix = ">") { it.value }
+            val parameterList = genericParameter.joinToString(", ", prefix = "<", postfix = ">") { it.render() }
             write("$parameterList ")
         }
 
@@ -111,7 +111,7 @@ fun MethodAware.kotlinMethod(
     bodyAsAssignment: Boolean = false,
     accessModifier: KotlinAccessModifier? = null,
     override: Boolean = false,
-    genericParameter: List<TypeName> = listOf(),
+    genericParameter: List<KotlinTypeReference> = listOf(),
     block: KotlinMethod.() -> Unit = {}
 ) {
     val content = KotlinMethod(

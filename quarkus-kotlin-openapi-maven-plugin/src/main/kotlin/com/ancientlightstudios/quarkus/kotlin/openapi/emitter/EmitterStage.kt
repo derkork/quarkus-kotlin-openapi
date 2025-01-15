@@ -14,27 +14,36 @@ class EmitterStage(private val config: Config, private val handlerRegistry: Hand
     private val log = LoggerFactory.getLogger(EmitterStage::class.java)
 
     override fun process(spec: OpenApiSpec) {
-        val context = EmitterContext(spec, config, handlerRegistry)
-
-        listOf(
+        val files = listOf(
             DependencyVogelEmitter(),
+
             ServerDelegateInterfaceEmitter(),
             ServerResponseInterfaceEmitter(),
             ServerRestControllerEmitter(),
             ServerRequestContextEmitter(),
             ServerRequestContainerEmitter(),
+
+            ClientDelegateEmitter(),
+            ClientResponseContainerEmitter(),
+            ClientRestControllerEmitter(),
+
+            TestClientResponseValidatorEmitter(),
+            TestClientRequestBuilderEmitter(),
+            TestClientRestControllerEmitter(),
+
             EnumModelClassEmitter(),
             ObjectModelClassEmitter(),
             OneOfModelClassEmitter(),
-        ).runEmitters(context)
+        ).runEmitters(EmitterContext(spec, config, handlerRegistry))
 
-        context.kotlinFiles.writeFiles()
+        files.writeFiles()
     }
 
-    private fun List<CodeEmitter>.runEmitters(context: EmitterContext) {
+    private fun List<CodeEmitter>.runEmitters(context: EmitterContext): List<KotlinFile> {
         forEach {
             it.apply { context.emit() }
         }
+        return context.kotlinFiles
     }
 
     private fun List<KotlinFile>.writeFiles() {

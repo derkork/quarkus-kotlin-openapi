@@ -64,7 +64,7 @@ fun <T> maybeOneOf(context: String, vararg maybes: Maybe<*>, builder: () -> T): 
     return if (count == 1) {
         Success(context, builder())
     } else if (count > 1) {
-        Failure(context, ValidationError("is ambiguous", context))
+        Failure(context, ValidationError("is ambiguous", context, ErrorKind.Invalid))
     } else {
         val errors = maybes.filterIsInstance<Failure<*>>().flatMap { it.errors }
         Failure(context, errors)
@@ -84,7 +84,7 @@ inline fun <I, O> Maybe<I?>.map(
         try {
             success(block(value))
         } catch (e: Exception) {
-            failure(ValidationError(validationMessage, context))
+            failure(ValidationError(validationMessage, context, ErrorKind.Unknown))
         }
     }
 
@@ -101,7 +101,7 @@ inline fun <I, O> Maybe<I?>.mapNotNull(
         try {
             success(block(value))
         } catch (_: Exception) {
-            failure(ValidationError(validationMessage, context))
+            failure(ValidationError(validationMessage, context, ErrorKind.Unknown))
         }
     }
 

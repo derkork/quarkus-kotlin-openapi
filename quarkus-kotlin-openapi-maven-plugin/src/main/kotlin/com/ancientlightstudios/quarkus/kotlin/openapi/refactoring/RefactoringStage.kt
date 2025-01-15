@@ -24,31 +24,6 @@ class RefactoringStage(private val config: Config) : GeneratorStage {
 
             // first apply a few modifications
             OptimizeSchemaRefactoringGroup(),
-
-
-            // TODO: old legacy
-            // adds type information to schemas
-//            AssignTypesToSchemasRefactoring(TypeMapper(config)),
-
-            // apply flow information (content-types, so we know which methods are required for each model)
-            // we need the generated types for this to know what to assign to nested types within a multipart
-//            AssignContentTypesRefactoring(),
-
-            // split types if necessary, the direction for each type from the previous step is necessary for this
-//            SplitTypeDefinitionRefactoring(),
-
-            // after types ready, we can assign them to the request and response objects
-//            AssignTypesToRequestsRefactoring(),
-
-            // schemas have bidirectional or unidirectional type definitions. some of them are just overlays on top
-            // of real types which must be exported. This refactoring adds these models as a list to the spec.
-//            IdentifyRealTypeDefinitionsRefactoring(),
-
-//            ModelNameRefactoring(),
-
-            // type definitions which needs to be exported are identified, make sure their names don't collide with other
-            // stuff
-//            EnsureUniqueNamesRefactoring()
         ).runRefactorings(RefactoringContext(spec, config))
     }
 

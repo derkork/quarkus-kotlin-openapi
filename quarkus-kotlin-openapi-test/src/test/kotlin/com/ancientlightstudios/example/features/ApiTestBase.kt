@@ -1,6 +1,6 @@
 package com.ancientlightstudios.example.features
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.ancientlightstudios.example.features.testclient.DependencyVogel
 import io.quarkus.test.common.http.TestHTTPResource
 import io.restassured.RestAssured
 import io.restassured.config.HttpClientConfig
@@ -17,7 +17,7 @@ abstract class ApiTestBase {
     var internalTestUrl: URL? = null
 
     @Inject
-    lateinit var objectMapper: ObjectMapper
+    lateinit var dependencyVogel: DependencyVogel
 
     private val testUrl: URL
         get() = internalTestUrl

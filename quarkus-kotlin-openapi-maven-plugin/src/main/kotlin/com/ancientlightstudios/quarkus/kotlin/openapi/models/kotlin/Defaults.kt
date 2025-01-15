@@ -98,6 +98,7 @@ object Library {
     val MaybeSuccess = Maybe.nestedTypeName("Success")
     val MaybeFailure = Maybe.nestedTypeName("Failure")
     val ValidationError = KotlinTypeName("ValidationError", packageName)
+    val ErrorKind = KotlinTypeName("ErrorKind", packageName)
     val IsError = KotlinTypeName("IsError", packageName)
     val IsTimeoutError = KotlinTypeName("IsTimeoutError", packageName)
     val IsUnreachableError = KotlinTypeName("IsUnreachableError", packageName)

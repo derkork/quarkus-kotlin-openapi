@@ -8,16 +8,16 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiSpec
 class TransformationStage(private val config: Config, private val handlerRegistry: HandlerRegistry) : GeneratorStage {
 
     override fun process(spec: OpenApiSpec) {
-        // TODO: get list via ServiceLoader to support plugins
         listOf(
-            DependencyVogelTransformation(),
             ModelTransformation(),
             ModelFeatureTransformation(),
-
+            DependencyVogelTransformation(),
             ServerTransformation(),
-            ServerResponseInterfaceTransformation(),
-            ServerRequestTransformation(),
-            ServerResponseTransformation()
+            ClientTransformation(),
+            TestClientTransformation(),
+
+            // make sure, all solution files have unique names
+            UniqueNameTransformation()
         ).runTransformations(TransformationContext(spec, config, handlerRegistry))
     }
 
