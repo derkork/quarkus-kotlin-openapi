@@ -31,9 +31,8 @@ class OctetUpstreamHandler : ServerRestControllerHandler, ServerRequestContainer
             emitProperty(body.name, Kotlin.ByteArray.asTypeReference().acceptNull())
 
             // Maybe.Success(<context>, <parameterName>)
-            var statement = invoke(
-                Library.MaybeSuccess.identifier(), "request.${body.name}".literal(), body.name.identifier()
-            ).wrap()
+            var statement = invoke(Library.MaybeSuccess.identifier(), body.context.literal(), body.name.identifier())
+                .wrap()
 
             // The body value for octet is always expected to be non-null by the request container, because it's not
             // possible to distinguish between a null and empty payload. Therefore, we convert a potential null value into

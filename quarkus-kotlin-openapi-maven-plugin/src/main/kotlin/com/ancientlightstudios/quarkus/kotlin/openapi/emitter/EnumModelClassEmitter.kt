@@ -6,8 +6,6 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.SolutionHint.
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinTypeName.Companion.asTypeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.EnumModelClass
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ResponseBody
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ResponseHeader
 
 class EnumModelClassEmitter : CodeEmitter {
 

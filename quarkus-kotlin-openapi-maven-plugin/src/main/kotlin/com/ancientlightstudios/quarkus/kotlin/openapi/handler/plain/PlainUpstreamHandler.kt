@@ -37,12 +37,7 @@ class PlainUpstreamHandler : ServerRestControllerHandler, ServerRequestContainer
                 else -> ::noOpAdjustment
             }
 
-            emitDeserializationStatement(
-                "request.${parameter.kind.value}.${parameter.sourceName}",
-                parameter.name,
-                parameter.content.model,
-                adjustment
-            )
+            emitDeserializationStatement(parameter.context, parameter.name, parameter.content.model, adjustment)
         }
 
     override fun ServerRestControllerHandlerContext.emitBody(body: RequestBody) =
@@ -58,7 +53,7 @@ class PlainUpstreamHandler : ServerRestControllerHandler, ServerRequestContainer
 
             // always nullable on the server side
             emitProperty(body.name, body.content.model.getSerializedType(true))
-            emitDeserializationStatement("request.${body.name}", body.name, body.content.model, adjustment)
+            emitDeserializationStatement(body.context, body.name, body.content.model, adjustment)
         }
 
     private fun collectionParameterAdjustment(

@@ -6,6 +6,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.handler.HandlerResult
 import com.ancientlightstudios.quarkus.kotlin.openapi.handler.matches
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.IdentifierExpression.Companion.identifier
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.InvocationExpression.Companion.invoke
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinTypeName.Companion.asTypeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.NullCheckExpression.Companion.nullCheck
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.PropertyExpression.Companion.property
@@ -37,11 +38,11 @@ class FormUpstreamHandler : ServerRestControllerHandler, ServerRequestContainerH
                 val objectParts = instance.ref.properties.map { property ->
                     val nestedBody = body.forProperty(property)
                     registry.getHandler<ServerRestControllerHandler, InstantiationParameter> {
-                        NestedServerHandlerContext(nestedBody.sourceName, this@emitBody).emitBody(nestedBody)
+                        NestedServerHandlerContext(property.sourceName, this@emitBody).emitBody(nestedBody)
                     }
                 }
 
-                val maybe = allToObject("request.${body.name}".literal(), instance.ref.name.asTypeName(), objectParts)
+                val maybe = allToObject(body.context.literal(), instance.ref.name.asTypeName(), objectParts)
                     .declaration("${body.name}Maybe")
                 MaybeParameter(maybe)
             } else {
@@ -89,7 +90,7 @@ class FormUpstreamHandler : ServerRestControllerHandler, ServerRequestContainerH
                 instance.ref.properties.map { property ->
                     val nestedBody = body.forProperty(property)
                     registry.getHandler<ClientDelegateHandler, Unit> {
-                        NestedClientHandlerContext(nestedBody.sourceName, this@emitBody).emitBody(nestedBody)
+                        NestedClientHandlerContext(property.sourceName, this@emitBody).emitBody(nestedBody)
                     }
                 }
             } else {
@@ -161,12 +162,44 @@ class FormUpstreamHandler : ServerRestControllerHandler, ServerRequestContainerH
 
     override fun TestClientRequestBuilderHandlerContext.emitBody(body: RequestBody) =
         body.content.matches(ContentType.ApplicationFormUrlencoded) {
-            val model = body.content.model.rejectNull()
-//            val serialization = registry.getHandler<SerializationHandler, KotlinExpression> {
-//                serializationExpression("value".identifier(), model, ContentType.ApplicationFormUrlencoded)
-//            }
-            val serialization = "value".identifier()
-            emitDefaultBody(body, model.asTypeReference().acceptNull(), serialization)
+            val model = body.content.model
+
+            emitCustom(body.name, model.asTypeReference().acceptNull()) {
+                val instance = body.content.model.instance
+                if (instance is ObjectModelInstance) {
+                    // explode the form into several parts, which can require different content types
+                    instance.ref.properties.forEach { property ->
+                        val nestedBody = body.forProperty(property)
+
+                        val serialization = registry.getHandler<SerializationHandler, KotlinExpression> {
+                            serializationExpression(
+                                "value".identifier().property(property.name),
+                                nestedBody.content.model,
+                                nestedBody.content.contentType
+                            )
+                        }
+
+                        // produces
+                        // requestSpecification = requestSpecification.formParam("<paramName>", <serialization>)
+                        "requestSpecification".identifier().invoke("formParam", property.name.literal(), serialization)
+                            .assignment("requestSpecification")
+                    }
+                } else {
+                    // it's just a single item
+                    val serialization = registry.getHandler<SerializationHandler, KotlinExpression> {
+                        serializationExpression(
+                            "value".identifier(),
+                            body.content.model,
+                            body.content.contentType
+                        )
+                    }
+
+                    // produces
+                    // requestSpecification = requestSpecification.formParam("body", <serialization>)
+                    "requestSpecification".identifier().invoke("formParam", body.name.literal(), serialization)
+                        .assignment("requestSpecification")
+                }
+            }
         }
 
     override fun TestClientRestControllerHandlerContext.parameterType(parameter: RequestParameter):
@@ -189,7 +222,8 @@ class FormUpstreamHandler : ServerRestControllerHandler, ServerRequestContainerH
             // TODO: check what would be the best solution for an optional form with optional or required fields. are they
             // just nullable, or is there more to do (e.g. property.model.acceptNull())
             ContentInfo(property.model, contentType, contentType.value),
-            source
+            source,
+            "$context.${property.name}"
         )
     }
 

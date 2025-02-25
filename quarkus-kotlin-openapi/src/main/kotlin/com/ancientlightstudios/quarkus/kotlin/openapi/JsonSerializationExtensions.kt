@@ -99,17 +99,3 @@ fun <T> ObjectNode.setAdditionalProperties(properties: Map<String, T>?, vararg i
     return setAll(transformedProperties)
 }
 
-fun JsonNode?.shallowMerge(other: JsonNode?): JsonNode? {
-    return this?.let {
-        if (other != null) {
-            if (it is ObjectNode && other is ObjectNode) {
-                it.setAll<ObjectNode>(other)
-                return@let  it
-            } else {
-               return@let other
-            }
-        }
-        it
-    } ?: other
-}
-

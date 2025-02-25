@@ -54,7 +54,7 @@ class ClientRestControllerEmitter : CodeEmitter {
 
                 val context = object : ClientRestControllerRequestHandlerContext {
                     override fun addParameter(parameter: KotlinParameter) = this@kotlinMethod.addParameter(parameter)
-                    override fun addStatement(statement: KotlinStatement) = this@kotlinMethod.addStatement(statement)
+                    override fun addStatement(statement: KotlinStatement) = this@tryExpression.addStatement(statement)
                 }
 
                 method.parameters.forEach { parameter ->
@@ -254,19 +254,19 @@ class ClientRestControllerEmitter : CodeEmitter {
     }
 
     // generates
-    // else -> Maybe.Success("response.body", <ResponseObject>("unknown status code ${statusCode.name}", response))
+    // else -> Maybe.Success("response", <ResponseObject>("unknown status code ${statusCode.name}", response))
     private fun WhenOptionAware.generateFallbackResponseOption(errorType: KotlinTypeName) {
         optionBlock("else".identifier()) {
             // produces
             // <ResponseObject>("unknown status code ${statusCode.name}", response)
             val newInstance = invoke(
                 errorType.nestedTypeName("ResponseError").identifier(),
-                "unknown status code \${statusCode}".literal(),
+                "unknown status code \$statusCode".literal(),
                 "response".identifier()
             )
             // produces
-            // Maybe.Success("response.body", <newInstance>)
-            invoke(Library.MaybeSuccess.identifier(), "response.body".literal(), newInstance).statement()
+            // Maybe.Success("response", <newInstance>)
+            invoke(Library.MaybeSuccess.identifier(), "response".literal(), newInstance).statement()
         }
     }
 

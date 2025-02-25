@@ -508,7 +508,7 @@ class JsonModelTransformationHandler : ModelTransformationHandler, Deserializati
                 }
 
                 model.options.forEach {
-                    val aliases = it.aliases.map { it.literal() }
+                    val aliases = it.aliases.map { alias -> alias.literal() }
                     optionBlock(*aliases.toTypedArray()) {
                         // renders
                         //

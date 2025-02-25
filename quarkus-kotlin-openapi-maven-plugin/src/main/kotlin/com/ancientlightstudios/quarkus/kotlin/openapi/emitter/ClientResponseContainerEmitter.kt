@@ -53,12 +53,12 @@ class ClientResponseContainerEmitter : CodeEmitter {
     private fun ClassAware.emitDefaultResponseClass(
         parent: KotlinTypeName, implementation: ClientResponseImplementation
     ) {
-        val bodyExpression: KotlinExpression = when (val body = implementation.body) {
-            null -> nullLiteral()
-            else -> body.name.identifier()
+        val safeBody = when (val body = implementation.body) {
+            null -> null
+            else -> ResponseBody("safeBody", body.content, body.source, body.context)
         }
 
-        val baseClass = KotlinBaseClass(parent, "status".identifier(), bodyExpression)
+        val baseClass = KotlinBaseClass(parent, "status".identifier(), safeBody?.name?.identifier() ?: nullLiteral())
         kotlinClass(implementation.name.asTypeName(), baseClass = baseClass) {
             kotlinMember("status", Kotlin.Int.asTypeReference(), accessModifier = null, override = true)
 
@@ -70,7 +70,7 @@ class ClientResponseContainerEmitter : CodeEmitter {
                 getHandler<ClientResponseHandler, Unit> { context.emitHeader(header) }
             }
 
-            implementation.body?.let { body ->
+            safeBody?.let { body ->
                 getHandler<ClientResponseHandler, Unit> { context.emitBody(body) }
             }
         }
@@ -80,13 +80,13 @@ class ClientResponseContainerEmitter : CodeEmitter {
     private fun ClassAware.emitResponseClass(
         parent: KotlinTypeName, responseCode: ResponseCode.HttpStatusCode, implementation: ClientResponseImplementation
     ) {
-        val bodyExpression: KotlinExpression = when (val body = implementation.body) {
-            null -> nullLiteral()
-            else -> body.name.identifier()
+        val safeBody = when (val body = implementation.body) {
+            null -> null
+            else -> ResponseBody("safeBody", body.content, body.source, body.context)
         }
 
         val status = responseCode.value.literal()
-        val baseClass = KotlinBaseClass(parent, status, bodyExpression)
+        val baseClass = KotlinBaseClass(parent, status, safeBody?.name?.identifier() ?: nullLiteral())
         kotlinClass(implementation.name.asTypeName(), baseClass = baseClass) {
 
             val context = object : ClientResponseHandlerContext {
@@ -97,7 +97,7 @@ class ClientResponseContainerEmitter : CodeEmitter {
                 getHandler<ClientResponseHandler, Unit> { context.emitHeader(header) }
             }
 
-            implementation.body?.let { body ->
+            safeBody?.let { body ->
                 getHandler<ClientResponseHandler, Unit> { context.emitBody(body) }
             }
         }

@@ -67,18 +67,14 @@ class JsonDownstreamHandler : ServerResponseInterfaceHandler, ServerRequestConte
     override fun ClientRestControllerResponseHandlerContext.emitHeader(
         header: ResponseHeader, source: KotlinExpression
     ) = header.content.matches(ContentType.ApplicationJson) {
-        emitDeserializationStatement(
-            "response.${header.kind.value}.${header.sourceName}", header.name, source, header.content.model
-        )
+        emitDeserializationStatement(header.context, header.name, source, header.content.model)
     }
 
     override fun ClientRestControllerResponseHandlerContext.emitBody(
         body: ResponseBody, source: KotlinExpression
     ) = body.content.matches(ContentType.ApplicationJson) {
         val statement = source.nullCheck().invoke("decodeToString")
-        emitDeserializationStatement(
-            "response.${body.sourceName}", body.name, statement, body.content.model
-        )
+        emitDeserializationStatement(body.context, body.name, statement, body.content.model)
     }
 
     private fun StatementAware.emitDeserializationStatement(
@@ -98,18 +94,14 @@ class JsonDownstreamHandler : ServerResponseInterfaceHandler, ServerRequestConte
     override fun TestClientRestControllerResponseHandlerContext.emitHeader(
         header: ResponseHeader, source: KotlinExpression
     ) = header.content.matches(ContentType.ApplicationJson) {
-        emitDeserializationStatement(
-            "response.${header.kind.value}.${header.sourceName}", header.name, source, header.content.model
-        )
+        emitDeserializationStatement(header.context, header.name, source, header.content.model)
     }
 
     override fun TestClientRestControllerResponseHandlerContext.emitBody(
         body: ResponseBody, source: KotlinExpression
     ) = body.content.matches(ContentType.ApplicationJson) {
         val statement = source.invoke("asString")
-        emitDeserializationStatement(
-            "response.${body.sourceName}", body.name, statement, body.content.model
-        )
+        emitDeserializationStatement(body.context, body.name, statement, body.content.model)
     }
 
     // default value for a response value can be different to the default value of a request value

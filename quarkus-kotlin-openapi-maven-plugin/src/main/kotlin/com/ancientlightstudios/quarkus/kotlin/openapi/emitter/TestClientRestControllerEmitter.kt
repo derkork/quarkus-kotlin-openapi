@@ -8,7 +8,6 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.IdentifierEx
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.InvocationExpression.Companion.invoke
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinTypeName.Companion.asTypeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinTypeName.Companion.nestedTypeName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.NullCheckExpression.Companion.nullCheck
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.PropertyExpression.Companion.property
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ParameterKind
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ResponseCode
@@ -289,7 +288,7 @@ class TestClientRestControllerEmitter : CodeEmitter {
     //
     // without a body
     //
-    // RestResponse.Status.<ResponseName> -> Maybe.Success("response.body", <ResponseObject>)
+    // RestResponse.Status.<ResponseName> -> Maybe.Success("response", <ResponseObject>)
     context(EmitterContext)
     private fun WhenOptionAware.generateResponseOption(
         name: KotlinTypeName,
@@ -351,19 +350,19 @@ class TestClientRestControllerEmitter : CodeEmitter {
     }
 
     // generates
-    // else -> Maybe.Success("response.body", <ResponseObject>("unknown status code ${statusCode.name}", response))
+    // else -> Maybe.Success("response", <ResponseObject>("unknown status code ${statusCode.name}", response))
     private fun WhenOptionAware.generateFallbackResponseOption(errorType: KotlinTypeName) {
         optionBlock("else".identifier()) {
             // produces
             // <ResponseObject>("unknown status code ${statusCode.name}", validatableResponse.response())
             val newInstance = invoke(
                 errorType.nestedTypeName("ResponseError").identifier(),
-                "unknown status code \${statusCode}".literal(),
+                "unknown status code \$statusCode".literal(),
                 "validatableResponse".identifier().invoke("response")
             )
             // produces
-            // Maybe.Success("response.body", <newInstance>)
-            invoke(Library.MaybeSuccess.identifier(), "response.body".literal(), newInstance).statement()
+            // Maybe.Success("response", <newInstance>)
+            invoke(Library.MaybeSuccess.identifier(), "response".literal(), newInstance).statement()
         }
     }
 

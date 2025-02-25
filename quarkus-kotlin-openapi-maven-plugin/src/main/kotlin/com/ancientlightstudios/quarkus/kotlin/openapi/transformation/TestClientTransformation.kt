@@ -177,7 +177,7 @@ class TestClientTransformation : SpecTransformation {
 
     context(TransformationContext)
     private fun BodyInspection.generateResponseBody() = ResponseBody(
-        "safeBody", contentModelFor(body.content, Direction.Down, body.required), body
+        "body", contentModelFor(body.content, Direction.Down, body.required), body
     )
 
 }

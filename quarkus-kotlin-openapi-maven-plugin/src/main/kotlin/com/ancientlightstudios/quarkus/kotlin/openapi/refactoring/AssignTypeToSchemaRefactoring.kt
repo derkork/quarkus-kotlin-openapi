@@ -88,7 +88,7 @@ class AssignTypeToSchemaRefactoring : SpecRefactoring {
         schema.schemaMode = SchemaMode.Overlay
     }
 
-    // the target of a overlay is always a real model
+    // the target of an overlay is always a real model
     private fun OpenApiSchema.unwrapOverlay(): OpenApiSchema = when (this.schemaMode) {
         SchemaMode.Overlay -> this.overlayTarget
         else -> this
@@ -226,7 +226,7 @@ class AssignTypeToSchemaRefactoring : SpecRefactoring {
         return SchemaTargetModel.PrimitiveTypeModel(baseType)
     }
 
-    fun baseTypeFor(type: SchemaType, format: String?): BaseType = when (type) {
+    private fun baseTypeFor(type: SchemaType, format: String?): BaseType = when (type) {
         SchemaType.String -> mapStringType(format)
         SchemaType.Number -> mapNumberType(format)
         SchemaType.Integer -> mapIntegerType(format)

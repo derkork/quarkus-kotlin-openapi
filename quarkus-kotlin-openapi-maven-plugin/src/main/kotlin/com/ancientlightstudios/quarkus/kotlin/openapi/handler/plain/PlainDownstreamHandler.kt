@@ -74,13 +74,7 @@ class PlainDownstreamHandler : ServerResponseInterfaceHandler, ServerRequestCont
             else -> ::noOpAdjustment
         }
 
-        emitDeserializationStatement(
-            "request.${header.kind.value}.${header.sourceName}",
-            header.name,
-            source,
-            header.content.model,
-            adjustment
-        )
+        emitDeserializationStatement(header.context, header.name, source, header.content.model, adjustment)
     }
 
     override fun ClientRestControllerResponseHandlerContext.emitBody(
@@ -96,9 +90,7 @@ class PlainDownstreamHandler : ServerResponseInterfaceHandler, ServerRequestCont
         }
 
         val statement = source.nullCheck().invoke("decodeToString")
-        emitDeserializationStatement(
-            "response.${body.sourceName}", body.name, statement, body.content.model, adjustment
-        )
+        emitDeserializationStatement(body.context, body.name, statement, body.content.model, adjustment)
     }
 
     private fun collectionParameterAdjustment(
@@ -163,13 +155,7 @@ class PlainDownstreamHandler : ServerResponseInterfaceHandler, ServerRequestCont
             else -> ::noOpAdjustment
         }
 
-        emitDeserializationStatement(
-            "request.${header.kind.value}.${header.sourceName}",
-            header.name,
-            source,
-            header.content.model,
-            adjustment
-        )
+        emitDeserializationStatement(header.context, header.name, source, header.content.model, adjustment)
     }
 
     override fun TestClientRestControllerResponseHandlerContext.emitBody(
@@ -185,9 +171,7 @@ class PlainDownstreamHandler : ServerResponseInterfaceHandler, ServerRequestCont
             else -> ::emptyBodyToNullAdjustment
         }
 
-        emitDeserializationStatement(
-            "response.${body.sourceName}", body.name, statement, body.content.model, adjustment
-        )
+        emitDeserializationStatement(body.context, body.name, statement, body.content.model, adjustment)
     }
 
     // default value for a response value can be different to the default value of a request value

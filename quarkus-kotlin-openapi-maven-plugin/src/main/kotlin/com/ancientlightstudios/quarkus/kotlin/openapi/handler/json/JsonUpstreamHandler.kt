@@ -8,7 +8,10 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.IdentifierEx
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.InvocationExpression.Companion.invoke
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.PropertyExpression.Companion.property
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ContentType
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.*
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ContentInfo
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ModelUsage
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.RequestBody
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.RequestParameter
 import com.ancientlightstudios.quarkus.kotlin.openapi.transformation.variableNameOf
 
 class JsonUpstreamHandler : ServerRestControllerHandler, ServerRequestContainerHandler, ClientDelegateHandler,
@@ -22,15 +25,13 @@ class JsonUpstreamHandler : ServerRestControllerHandler, ServerRequestContainerH
 
     override fun ServerRestControllerHandlerContext.emitParameter(parameter: RequestParameter) =
         parameter.content.matches(ContentType.ApplicationJson) {
-            val context = "request.${parameter.kind.value}.${parameter.sourceName}"
             val annotation = getSourceAnnotation(parameter.kind, parameter.sourceName)
-            emitProperty(parameter.name, parameter.content, context, annotation)
+            emitProperty(parameter.name, parameter.content, parameter.context, annotation)
         }
 
     override fun ServerRestControllerHandlerContext.emitBody(body: RequestBody) =
         body.content.matches(ContentType.ApplicationJson) {
-            val context = "request.${body.name}"
-            emitProperty(body.name, body.content, context, null)
+            emitProperty(body.name, body.content, body.context, null)
         }
 
     private fun ServerRestControllerHandlerContext.emitProperty(
@@ -119,17 +120,7 @@ class JsonUpstreamHandler : ServerRestControllerHandler, ServerRequestContainerH
 
             emitDefaultBody(body, model.asTypeReference().acceptNull(), serialization)
 
-            val unsafeJsonBody = when (model.instance) {
-                is CollectionModelInstance,
-                is MapModelInstance,
-                is ObjectModelInstance,
-                is OneOfModelInstance -> true
-
-                is EnumModelInstance,
-                is PrimitiveTypeModelInstance -> false
-            }
-
-            if (unsafeJsonBody) {
+            if (model.isUnsafeSupported()) {
                 emitUnsafeBody(body)
             }
         }

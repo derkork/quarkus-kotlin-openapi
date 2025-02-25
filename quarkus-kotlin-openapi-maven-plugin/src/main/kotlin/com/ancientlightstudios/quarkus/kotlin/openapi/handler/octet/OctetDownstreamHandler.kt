@@ -61,7 +61,7 @@ class OctetDownstreamHandler : ServerResponseInterfaceHandler, ServerRequestCont
     override fun ClientResponseHandlerContext.emitBody(body: ResponseBody) =
         body.content.matches(ContentType.ApplicationOctetStream) {
             val model = body.content.model
-            val defaultValue = model.getDefaultValue();
+            val defaultValue = model.getDefaultValue()
             val finalModel = model.adjustToDefault(defaultValue)
             emitProperty(body.name, finalModel.asTypeReference())
         }
@@ -77,8 +77,7 @@ class OctetDownstreamHandler : ServerResponseInterfaceHandler, ServerRequestCont
         body: ResponseBody, source: KotlinExpression
     ): HandlerResult<InstantiationParameter> = body.content.matches(ContentType.ApplicationOctetStream) {
         // Maybe.Success(<context>, <parameterName>)
-        var statement =
-            invoke(Library.MaybeSuccess.identifier(), "response.${body.sourceName}".literal(), source).wrap()
+        var statement = invoke(Library.MaybeSuccess.identifier(), body.context.literal(), source).wrap()
 
         // The body value for octet is always expected to be non-null by the request container, because it's not
         // possible to distinguish between a null and empty payload. Therefore, we convert a potential null value into
@@ -106,7 +105,7 @@ class OctetDownstreamHandler : ServerResponseInterfaceHandler, ServerRequestCont
         // Maybe.Success(<context>, <parameterName>)
         val statement = invoke(
             Library.MaybeSuccess.identifier(),
-            "response.${body.sourceName}".literal(),
+            body.context.literal(),
             source.invoke("asByteArray")
         ).wrap()
 

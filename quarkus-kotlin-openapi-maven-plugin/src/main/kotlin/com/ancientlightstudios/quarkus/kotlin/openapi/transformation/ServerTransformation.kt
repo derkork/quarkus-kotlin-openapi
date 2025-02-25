@@ -8,7 +8,6 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.SolutionHint.
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ResponseCode
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
-import jakarta.ws.rs.core.Response
 
 // generates the general solution model for a server implementation
 class ServerTransformation : SpecTransformation {
@@ -104,7 +103,7 @@ class ServerTransformation : SpecTransformation {
                                 responseInterface.body = generateResponseBody()
                             }
 
-                            result.put(it, responseInterface)
+                            result[it] = responseInterface
                             spec.solution.files.add(responseInterface)
                         }
                     }

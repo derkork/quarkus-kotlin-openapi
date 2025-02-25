@@ -5,10 +5,6 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.IdentifierEx
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.InvocationExpression.Companion.invoke
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.PropertyExpression.Companion.property
 
-fun allToObject(
-    context: KotlinExpression, containerClassName: KotlinTypeName, vararg parameter: InstantiationParameter
-) = allToObject(context, containerClassName, parameter.toList())
-
 /**
  * creates an instantiation expression for the given container class.
  * If the list of parameters is empty or only contains [PlainParameter], generates this
@@ -29,7 +25,7 @@ fun allToObject(
 ): KotlinExpression {
     val constructorValues = parameter.map {
         when (it) {
-            is MaybeParameter -> it.name.identifier() 
+            is MaybeParameter -> it.name.identifier()
                 .cast(Library.MaybeSuccess.asTypeReference())
                 .property("value")
 
@@ -40,15 +36,14 @@ fun allToObject(
     val maybeParameters = parameter.filterIsInstance<MaybeParameter>()
         .map { it.name.identifier() }
 
-    var resultStatement = invoke(containerClassName.identifier(), *constructorValues.toTypedArray())
-    if (maybeParameters.isNotEmpty()) {
-        resultStatement = invoke("maybeAllOf", context, *maybeParameters.toTypedArray()) {
+    val resultStatement = invoke(containerClassName.identifier(), *constructorValues.toTypedArray())
+    return if (maybeParameters.isNotEmpty()) {
+        invoke("maybeAllOf", context, *maybeParameters.toTypedArray()) {
             resultStatement.statement()
         }
     } else {
-        resultStatement = invoke(Library.MaybeSuccess.identifier(), context, resultStatement)
+        invoke(Library.MaybeSuccess.identifier(), context, resultStatement)
     }
-    return resultStatement
 }
 
 sealed interface InstantiationParameter
