@@ -6,7 +6,7 @@ class ServerRestController(
     name: ComponentName,
     val baseRestPath: String,
     val delegate: ServerDelegateInterface,
-    val dependencyVogel: DependencyVogel,
+    val dependencyContainer: DependencyContainer,
     val source: OpenApiRequestBundle
 ) : SolutionFile(name) {
 

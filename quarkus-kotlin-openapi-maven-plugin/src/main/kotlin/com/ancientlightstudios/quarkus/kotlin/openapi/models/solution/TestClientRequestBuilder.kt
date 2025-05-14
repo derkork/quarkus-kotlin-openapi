@@ -4,7 +4,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiRequ
 
 class TestClientRequestBuilder(
     name: ComponentName,
-    val dependencyVogel: DependencyVogel,
+    val dependencyContainer: DependencyContainer,
     val source: OpenApiRequest
 ) : SolutionFile(name) {
 

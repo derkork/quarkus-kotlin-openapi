@@ -17,21 +17,21 @@ class TestClientTransformation : SpecTransformation {
         }
 
         // the global dependency container
-        val dependencyVogel = spec.solution.files
-            .filterIsInstance<DependencyVogel>()
-            .firstOrNull() ?: ProbableBug("solution dependency 'DependencyVogel' not found")
+        val dependencyContainer = spec.solution.files
+            .filterIsInstance<DependencyContainer>()
+            .firstOrNull() ?: ProbableBug("solution dependency 'DependencyContainer' not found")
 
         spec.inspect {
             bundles {
                 // the rest controller for this bundle which is used by the tests
-                val controller = generateRestController(dependencyVogel)
+                val controller = generateRestController(dependencyContainer)
 
                 requests {
                     // the sealed interface with all responses and error cases for this request
                     val responseInterface = generateResponseInterface()
 
                     // the builder to generate unsafe requests and stuff
-                    val builder = generateRequestBuilder(dependencyVogel)
+                    val builder = generateRequestBuilder(dependencyContainer)
 
                     // the response validator for restassured
                     val validator = generateResponseValidator(responseInterface)
@@ -72,11 +72,11 @@ class TestClientTransformation : SpecTransformation {
     }
 
     context(TransformationContext)
-    private fun RequestBundleInspection.generateRestController(dependencyVogel: DependencyVogel): TestClientRestController {
+    private fun RequestBundleInspection.generateRestController(dependencyContainer: DependencyContainer): TestClientRestController {
         val className = classNameOf(bundle.requestBundleIdentifier, "TestClient")
         val result = TestClientRestController(
             ComponentName(className, config.packageName, ConflictResolution.Pinned),
-            dependencyVogel,
+            dependencyContainer,
             bundle
         )
         spec.solution.files.add(result)
@@ -84,11 +84,11 @@ class TestClientTransformation : SpecTransformation {
     }
 
     context(TransformationContext)
-    private fun RequestInspection.generateRequestBuilder(dependencyVogel: DependencyVogel): TestClientRequestBuilder {
+    private fun RequestInspection.generateRequestBuilder(dependencyContainer: DependencyContainer): TestClientRequestBuilder {
         val className = classNameOf(request.requestIdentifier, config.operationBuilderPostfix)
         val result = TestClientRequestBuilder(
             ComponentName(className, config.packageName, ConflictResolution.Pinned),
-            dependencyVogel,
+            dependencyContainer,
             request
         )
         spec.solution.files.add(result)

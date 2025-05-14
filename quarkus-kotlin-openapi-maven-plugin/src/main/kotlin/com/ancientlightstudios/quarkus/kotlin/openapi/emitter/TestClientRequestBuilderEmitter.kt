@@ -35,7 +35,7 @@ class TestClientRequestBuilderEmitter : CodeEmitter {
                     mutable = true,
                     accessModifier = null
                 )
-                kotlinMember("dependencyVogel", builder.dependencyVogel.name.asTypeReference())
+                kotlinMember("dependencyContainer", builder.dependencyContainer.name.asTypeReference())
 
                 val context = object : TestClientRequestBuilderHandlerContext {
                     override fun addMethod(method: KotlinMethod) = this@kotlinClass.addMethod(method)

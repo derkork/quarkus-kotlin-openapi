@@ -162,6 +162,27 @@ paths:
         '400':
           $ref: '#/components/responses/OperationError400'
 
+  /features/split/test3:
+    post:
+      tags:
+        - generic
+      operationId: splitTest3
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MixedObject'
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MixedObject'
+        '400':
+          $ref: '#/components/responses/OperationError400'
+
   /features/rawHeaders:
     get:
       tags:
@@ -257,6 +278,40 @@ components:
       required:
         - readOnlyProperty
         - normalProperty
+
+    SomeEnum:
+      type: string
+      enum:
+        - val1
+        - val2
+
+    MixedObject:
+      type: object
+      properties:
+        stringProp:
+          type: string
+        readOnlyStringProp:
+          readOnly: true
+          type: string
+        writeOnlyStringProp:
+          writeOnly: true
+          type: string
+        enumProp:
+          $ref: '#/components/schemas/SomeEnum'
+        readOnlyEnumProp:
+          readOnly: true
+          $ref: '#/components/schemas/SomeEnum'
+        writeOnlyEnumProp:
+          writeOnly: true
+          $ref: '#/components/schemas/SomeEnum'
+        objectProp:
+          $ref: '#/components/schemas/BaseObject'
+        readOnlyObjectProp:
+          readOnly: true
+          $ref: '#/components/schemas/BaseObject'
+        writeOnlyObjectProp:
+          writeOnly: true
+          $ref: '#/components/schemas/BaseObject'
 
     WriteOnlyObject:
       type: object

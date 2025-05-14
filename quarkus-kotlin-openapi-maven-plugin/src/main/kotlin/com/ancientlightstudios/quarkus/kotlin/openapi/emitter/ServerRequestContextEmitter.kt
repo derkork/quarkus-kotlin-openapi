@@ -40,7 +40,7 @@ class ServerRequestContextEmitter : CodeEmitter {
                 }
 
                 kotlinMember("headers", Jakarta.HttpHeaders.asTypeReference())
-                kotlinMember("dependencyVogel", context.dependencyVogel.name.asTypeReference())
+                kotlinMember("dependencyContainer", context.dependencyContainer.name.asTypeReference())
 
                 emitInterfaceMembers(context)
                 emitStatusMethod(defaultResponseExists)

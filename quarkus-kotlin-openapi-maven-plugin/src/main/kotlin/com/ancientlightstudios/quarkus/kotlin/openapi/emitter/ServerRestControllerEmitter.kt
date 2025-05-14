@@ -39,7 +39,7 @@ class ServerRestControllerEmitter : CodeEmitter {
                 addPathAnnotation(restController.baseRestPath)
 
                 kotlinMember("delegate", restController.delegate.name.asTypeReference())
-                kotlinMember("dependencyVogel", restController.dependencyVogel.name.asTypeReference())
+                kotlinMember("dependencyContainer", restController.dependencyContainer.name.asTypeReference())
 
                 // produces:
                 //
@@ -134,7 +134,7 @@ class ServerRestControllerEmitter : CodeEmitter {
         }
 
         arguments += "headers".identifier()
-        arguments += "dependencyVogel".identifier()
+        arguments += "dependencyContainer".identifier()
 
         val requestContextName = invoke(context.name.identifier(), *arguments.toTypedArray())
             .declaration("context")

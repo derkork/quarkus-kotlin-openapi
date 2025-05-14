@@ -7,49 +7,49 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.SolutionHint.
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ContentType
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ComponentName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ConflictResolution
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.DependencyVogel
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.DependencyContainer
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ModelUsage
 
 // generates the dependency container which is used at several places within the generated code
-class DependencyVogelTransformation : SpecTransformation {
+class DependencyContainerTransformation : SpecTransformation {
 
     override fun TransformationContext.perform() {
-        val dependencyVogel = DependencyVogel(
-            ComponentName("DependencyVogel", config.packageName, ConflictResolution.Pinned)
+        val dependencyContainer = DependencyContainer(
+            ComponentName("DependencyContainer", config.packageName, ConflictResolution.Pinned)
         )
 
-        spec.solution.files.add(dependencyVogel)
+        spec.solution.files.add(dependencyContainer)
 
         // TODO: this should probably be moved at the end of the transformation queue so we have all the models we need in case of models with sub-types e.g. multipart
         spec.inspect {
             bundles {
                 requests {
                     parameters {
-                        getHandler<DependencyVogelHandler, Unit> {
+                        getHandler<DependencyContainerHandler, Unit> {
                             val content = contentModelFor(parameter.content, Direction.Up, parameter.required)
-                            registerDependencies(dependencyVogel, content.model, content.contentType)
+                            registerDependencies(dependencyContainer, content.model, content.contentType)
                         }
                     }
 
                     body {
-                        getHandler<DependencyVogelHandler, Unit> {
+                        getHandler<DependencyContainerHandler, Unit> {
                             val content = contentModelFor(body.content, Direction.Up, body.required)
-                            registerDependencies(dependencyVogel, content.model, content.contentType)
+                            registerDependencies(dependencyContainer, content.model, content.contentType)
                         }
                     }
 
                     responses {
                         headers {
-                            getHandler<DependencyVogelHandler, Unit> {
+                            getHandler<DependencyContainerHandler, Unit> {
                                 val content = contentModelFor(header.content, Direction.Down, header.required)
-                                registerDependencies(dependencyVogel, content.model, content.contentType)
+                                registerDependencies(dependencyContainer, content.model, content.contentType)
                             }
                         }
 
                         body {
-                            getHandler<DependencyVogelHandler, Unit> {
+                            getHandler<DependencyContainerHandler, Unit> {
                                 val content = contentModelFor(body.content, Direction.Down, body.required)
-                                registerDependencies(dependencyVogel, content.model, content.contentType)
+                                registerDependencies(dependencyContainer, content.model, content.contentType)
                             }
                         }
                     }
@@ -61,11 +61,11 @@ class DependencyVogelTransformation : SpecTransformation {
 }
 
 /**
- * handler of this type can install features for the `DependencyVogel` component to register additional dependencies
+ * handler of this type can install features for the `DependencyContainer` component to register additional dependencies
  */
-interface DependencyVogelHandler : Handler {
+interface DependencyContainerHandler : Handler {
 
-    fun registerDependencies(dependencyVogel: DependencyVogel, model: ModelUsage, contentType: ContentType):
+    fun registerDependencies(dependencyContainer: DependencyContainer, model: ModelUsage, contentType: ContentType):
             HandlerResult<Unit>
 
 }

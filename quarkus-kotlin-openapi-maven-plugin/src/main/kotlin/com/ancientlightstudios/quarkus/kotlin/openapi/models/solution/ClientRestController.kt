@@ -6,7 +6,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiRequ
 class ClientRestController(
     name: ComponentName,
     val delegate: ClientDelegateInterface,
-    val dependencyVogel: DependencyVogel,
+    val dependencyContainer: DependencyContainer,
     val source: OpenApiRequestBundle
 ) : SolutionFile(name) {
 

@@ -15,7 +15,7 @@ class EmitterStage(private val config: Config, private val handlerRegistry: Hand
 
     override fun process(spec: OpenApiSpec) {
         val files = listOf(
-            DependencyVogelEmitter(),
+            DependencyContainerEmitter(),
 
             ServerDelegateInterfaceEmitter(),
             ServerResponseInterfaceEmitter(),

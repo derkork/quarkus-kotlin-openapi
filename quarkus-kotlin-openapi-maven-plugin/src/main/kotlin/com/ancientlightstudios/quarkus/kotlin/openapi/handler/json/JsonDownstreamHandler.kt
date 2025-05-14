@@ -48,7 +48,7 @@ class JsonDownstreamHandler : ServerResponseInterfaceHandler, ServerRequestConte
         val expression = registry.getHandler<SerializationHandler, KotlinExpression> {
             serializationExpression(name.identifier(), model, ContentType.ApplicationJson)
         }
-        return expression.invoke("asString", "dependencyVogel".identifier().property("objectMapper"))
+        return expression.invoke("asString", "dependencyContainer".identifier().property("objectMapper"))
     }
 
     override fun ClientResponseHandlerContext.emitHeader(header: ResponseHeader) =
@@ -82,7 +82,7 @@ class JsonDownstreamHandler : ServerResponseInterfaceHandler, ServerRequestConte
     ): InstantiationParameter {
         // Maybe.Success(<context>, <parameterName>)
         val statement = invoke(Library.MaybeSuccess.identifier(), context.literal(), input).wrap()
-            .invoke("asJson", "dependencyVogel".identifier().property("objectMapper")).wrap()
+            .invoke("asJson", "dependencyContainer".identifier().property("objectMapper")).wrap()
 
         val maybe = registry.getHandler<DeserializationHandler, KotlinExpression> {
             deserializationExpression(statement, model, ContentType.ApplicationJson)

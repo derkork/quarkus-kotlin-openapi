@@ -134,7 +134,7 @@ class AssignTypeToSchemaRefactoring : SpecRefactoring {
         val baseItemNames = base.getComponent<EnumItemNamesComponent>()?.values ?: mapOf()
 
         // enums are not compatible, if item names are different
-        return currentItemNames.size == baseItemNames.size && currentItemNames.any { baseItemNames[it.key] == it.value }
+        return currentItemNames.size == baseItemNames.size && currentItemNames.all { baseItemNames[it.key] == it.value }
     }
 
     private fun structurallyIdenticalMap(current: OpenApiSchema, base: OpenApiSchema): Boolean {
@@ -191,7 +191,7 @@ class AssignTypeToSchemaRefactoring : SpecRefactoring {
         val baseMapping = baseOneOf?.discriminator?.additionalMappings ?: mapOf()
 
         // oneOfs are not compatible, if mappings are different
-        return currentMapping.size == baseMapping.size && currentMapping.any { baseMapping[it.key] == it.value }
+        return currentMapping.size == baseMapping.size && currentMapping.all { baseMapping[it.key] == it.value }
     }
 
     private fun targetModelFor(schema: OpenApiSchema): SchemaTargetModel {

@@ -28,7 +28,7 @@ class TestClientRestControllerEmitter : CodeEmitter {
             registerImports(config.additionalImports())
 
             kotlinClass(name) {
-                kotlinMember("dependencyVogel", controller.dependencyVogel.name.asTypeReference())
+                kotlinMember("dependencyContainer", controller.dependencyContainer.name.asTypeReference())
                 kotlinMember(
                     "specBuilder", KotlinDelegateTypeReference(null, RestAssured.RequestSpecification.asTypeReference())
                 )
@@ -109,7 +109,7 @@ class TestClientRestControllerEmitter : CodeEmitter {
                 invoke(
                     method.builder.name.identifier(),
                     "this".identifier(),
-                    "dependencyVogel".identifier()
+                    "dependencyContainer".identifier()
                 )
                     .invoke("apply", "block".identifier())
                     .property("requestSpecification")
@@ -319,7 +319,7 @@ class TestClientRestControllerEmitter : CodeEmitter {
         // validatableResponse.headers().getValues("<headerName>")[.firstOrNull()]
         var headerValueExpression: KotlinExpression =
             "validatableResponse".identifier().invoke("headers")
-                .invoke("getValues", header.name.literal())
+                .invoke("getValues", header.sourceName.literal())
 
         if (header.content.model.instance !is CollectionModelInstance) {
             headerValueExpression = headerValueExpression.invoke("firstOrNull")

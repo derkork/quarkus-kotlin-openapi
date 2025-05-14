@@ -6,7 +6,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiResp
 class ServerRequestContext(
     name: ComponentName,
     val container: ServerRequestContainer?,
-    val dependencyVogel: DependencyVogel,
+    val dependencyContainer: DependencyContainer,
     val source: OpenApiRequest
 ) : SolutionFile(name) {
 

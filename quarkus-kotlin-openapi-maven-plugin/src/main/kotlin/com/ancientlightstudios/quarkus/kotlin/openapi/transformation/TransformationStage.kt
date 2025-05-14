@@ -11,7 +11,7 @@ class TransformationStage(private val config: Config, private val handlerRegistr
         listOf(
             ModelTransformation(),
             ModelFeatureTransformation(),
-            DependencyVogelTransformation(),
+            DependencyContainerTransformation(),
             ServerTransformation(),
             ClientTransformation(),
             TestClientTransformation(),

@@ -34,7 +34,7 @@ class ClientRestControllerEmitter : CodeEmitter {
                     kotlinAnnotation(Misc.RestClient)
                 }
 
-                kotlinMember("dependencyVogel", restController.dependencyVogel.name.asTypeReference())
+                kotlinMember("dependencyContainer", restController.dependencyContainer.name.asTypeReference())
 
                 restController.methods.forEach {
                     emitRequest(it)
@@ -214,7 +214,7 @@ class ClientRestControllerEmitter : CodeEmitter {
         }
         val headerValueExpression = "response".identifier()
             .property("stringHeaders")
-            .invoke(methodName, header.name.literal())
+            .invoke(methodName, header.sourceName.literal())
 
         val context = object : ClientRestControllerResponseHandlerContext {
             override fun addStatement(statement: KotlinStatement) = this@emitHeaderParameter.addStatement(statement)

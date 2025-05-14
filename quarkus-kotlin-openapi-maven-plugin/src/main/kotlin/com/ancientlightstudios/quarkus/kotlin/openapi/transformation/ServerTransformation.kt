@@ -18,9 +18,9 @@ class ServerTransformation : SpecTransformation {
         }
 
         // the global dependency container
-        val dependencyVogel = spec.solution.files
-            .filterIsInstance<DependencyVogel>()
-            .firstOrNull() ?: ProbableBug("solution dependency 'DependencyVogel' not found")
+        val dependencyContainer = spec.solution.files
+            .filterIsInstance<DependencyContainer>()
+            .firstOrNull() ?: ProbableBug("solution dependency 'DependencyContainer' not found")
 
         spec.inspect {
             val knownInterfaces = generateResponseInterfaces()
@@ -30,14 +30,14 @@ class ServerTransformation : SpecTransformation {
                 val delegateInterface = generateDelegateInterface()
 
                 // the rest controller for this bundle which sits between the quarkus request handler and our delegate interface
-                val controller = generateRestController(delegateInterface, dependencyVogel)
+                val controller = generateRestController(delegateInterface, dependencyContainer)
 
                 requests {
                     // the container class which contains the input data (parameter and body) for this request
                     val container = generateRequestContainer()
 
                     // the context class which contains the valid responses for this request
-                    val context = generateRequestContext(container, dependencyVogel)
+                    val context = generateRequestContext(container, dependencyContainer)
 
                     // the method for this request in the delegate interface
                     val delegateMethod = generateDelegateInterfaceMethod(delegateInterface, context)
@@ -126,14 +126,14 @@ class ServerTransformation : SpecTransformation {
 
     context(TransformationContext)
     private fun RequestBundleInspection.generateRestController(
-        delegateInterface: ServerDelegateInterface, dependencyVogel: DependencyVogel
+        delegateInterface: ServerDelegateInterface, dependencyContainer: DependencyContainer
     ): ServerRestController {
         val className = classNameOf(bundle.requestBundleIdentifier, "Server")
         val result = ServerRestController(
             ComponentName(className, config.packageName, ConflictResolution.Pinned),
             config.pathPrefix,
             delegateInterface,
-            dependencyVogel,
+            dependencyContainer,
             bundle
         )
         spec.solution.files.add(result)
@@ -157,13 +157,13 @@ class ServerTransformation : SpecTransformation {
 
     context(TransformationContext)
     private fun RequestInspection.generateRequestContext(
-        requestContainer: ServerRequestContainer?, dependencyVogel: DependencyVogel
+        requestContainer: ServerRequestContainer?, dependencyContainer: DependencyContainer
     ): ServerRequestContext {
         val className = classNameOf(request.requestIdentifier, config.operationContextPostfix)
         val result = ServerRequestContext(
             ComponentName(className, config.packageName, ConflictResolution.Pinned),
             requestContainer,
-            dependencyVogel,
+            dependencyContainer,
             request
         )
         spec.solution.files.add(result)

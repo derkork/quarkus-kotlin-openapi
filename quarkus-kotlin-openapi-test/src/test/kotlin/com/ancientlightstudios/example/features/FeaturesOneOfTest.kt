@@ -31,7 +31,7 @@ class FeaturesOneOfTest : ApiTestBase() {
     lateinit var client: FeaturesOneOfClient
 
     val testClient: FeaturesOneOfTestClient
-        get() = FeaturesOneOfTestClient(dependencyVogel) { prepareRequest() }
+        get() = FeaturesOneOfTestClient(dependencyContainer) { prepareRequest() }
 
     @Test
     fun `sending the wrong value is rejected by endpoint without discriminator (Test-Client)`() {

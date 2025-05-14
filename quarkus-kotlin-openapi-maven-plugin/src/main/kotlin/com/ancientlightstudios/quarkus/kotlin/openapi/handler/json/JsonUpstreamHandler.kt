@@ -46,7 +46,7 @@ class JsonUpstreamHandler : ServerRestControllerHandler, ServerRequestContainerH
     ): InstantiationParameter {
         // Maybe.Success(<context>, <parameterName>)
         val statement = invoke(Library.MaybeSuccess.identifier(), context.literal(), inputName.identifier()).wrap()
-            .invoke("asJson", "dependencyVogel".identifier().property("objectMapper")).wrap()
+            .invoke("asJson", "dependencyContainer".identifier().property("objectMapper")).wrap()
 
         val maybe = registry.getHandler<DeserializationHandler, KotlinExpression> {
             deserializationExpression(statement, model, ContentType.ApplicationJson)
@@ -95,7 +95,7 @@ class JsonUpstreamHandler : ServerRestControllerHandler, ServerRequestContainerH
         val payload = registry.getHandler<SerializationHandler, KotlinExpression> {
             serializationExpression(name.identifier(), content.model, ContentType.ApplicationJson)
         }
-            .invoke("asString", "dependencyVogel".identifier().property("objectMapper"))
+            .invoke("asString", "dependencyContainer".identifier().property("objectMapper"))
             .declaration(variableNameOf(name, "Payload"))
 
         return listOf(payload.identifier())
@@ -106,7 +106,7 @@ class JsonUpstreamHandler : ServerRestControllerHandler, ServerRequestContainerH
             val model = parameter.content.model.rejectNull()
             val serialization = registry.getHandler<SerializationHandler, KotlinExpression> {
                 serializationExpression("value".identifier(), model, ContentType.ApplicationJson)
-            }.invoke("asString", "dependencyVogel".identifier().property("objectMapper"))
+            }.invoke("asString", "dependencyContainer".identifier().property("objectMapper"))
 
             emitDefaultParameter(parameter, model.asTypeReference().acceptNull(), serialization)
         }
@@ -116,7 +116,7 @@ class JsonUpstreamHandler : ServerRestControllerHandler, ServerRequestContainerH
             val model = body.content.model.rejectNull()
             val serialization = registry.getHandler<SerializationHandler, KotlinExpression> {
                 serializationExpression("value".identifier(), model, ContentType.ApplicationJson)
-            }.invoke("asString", "dependencyVogel".identifier().property("objectMapper"))
+            }.invoke("asString", "dependencyContainer".identifier().property("objectMapper"))
 
             emitDefaultBody(body, model.asTypeReference().acceptNull(), serialization)
 
@@ -129,7 +129,7 @@ class JsonUpstreamHandler : ServerRestControllerHandler, ServerRequestContainerH
         val model = body.content.model.rejectNull()
         val serialization = registry.getHandler<SerializationHandler, KotlinExpression> {
             serializationExpression("value".identifier(), model, ContentType.ApplicationJson)
-        }.invoke("asString", "dependencyVogel".identifier().property("objectMapper"))
+        }.invoke("asString", "dependencyContainer".identifier().property("objectMapper"))
 
         // this method needs a special annotation
         val nestedContext = object : TestClientRequestBuilderHandlerContext {
@@ -155,7 +155,7 @@ class JsonUpstreamHandler : ServerRestControllerHandler, ServerRequestContainerH
             val model = parameter.content.model
             registry.getHandler<SerializationHandler, KotlinExpression> {
                 serializationExpression(parameter.name.identifier(), model, ContentType.ApplicationJson)
-            }.invoke("asString", "dependencyVogel".identifier().property("objectMapper"))
+            }.invoke("asString", "dependencyContainer".identifier().property("objectMapper"))
         }
 
     // don't adjust the model to the default value, to keep nullability even if there is a default value available

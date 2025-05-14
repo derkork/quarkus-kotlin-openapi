@@ -23,7 +23,7 @@ class FeaturesExtensionTest : ApiTestBase() {
     lateinit var client: FeaturesExtensionClient
 
     val testClient: FeaturesExtensionTestClient
-        get() = FeaturesExtensionTestClient(dependencyVogel) { prepareRequest() }
+        get() = FeaturesExtensionTestClient(dependencyContainer) { prepareRequest() }
 
     @Test
     fun `invalid instant value will be rejected (Test-Client)`() {

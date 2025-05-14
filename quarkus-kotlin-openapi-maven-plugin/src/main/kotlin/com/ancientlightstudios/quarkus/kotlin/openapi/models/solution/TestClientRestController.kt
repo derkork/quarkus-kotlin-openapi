@@ -5,7 +5,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiRequ
 
 class TestClientRestController(
     name: ComponentName,
-    val dependencyVogel: DependencyVogel,
+    val dependencyContainer: DependencyContainer,
     val source: OpenApiRequestBundle
 ) : SolutionFile(name) {
 

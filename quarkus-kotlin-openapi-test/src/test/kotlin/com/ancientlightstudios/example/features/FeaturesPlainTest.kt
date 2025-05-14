@@ -23,7 +23,7 @@ class FeaturesPlainTest : ApiTestBase() {
     lateinit var client: FeaturesPlainClient
 
     val testClient: FeaturesPlainTestClient
-        get() = FeaturesPlainTestClient(dependencyVogel) { prepareRequest() }
+        get() = FeaturesPlainTestClient(dependencyContainer) { prepareRequest() }
 
     @Test
     fun `sending invalid big integer value is rejected (Test-Client)`() {

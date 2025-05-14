@@ -111,7 +111,7 @@ class ModelTransformation : SpecTransformation {
 
         validProperties.forEach {
             val modelInstance = modelInstanceFor(it.schema, model.direction, required.contains(it.name))
-            model.properties += ObjectModelProperties(methodNameOf(it.name), it.name, ModelUsage(modelInstance))
+            model.properties += ObjectModelProperties(variableNameOf(it.name), it.name, ModelUsage(modelInstance))
         }
 
         if (itemsSchema != null) {

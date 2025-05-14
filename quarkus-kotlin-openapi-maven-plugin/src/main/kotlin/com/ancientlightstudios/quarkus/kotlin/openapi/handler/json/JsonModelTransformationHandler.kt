@@ -306,7 +306,7 @@ class JsonModelTransformationHandler : ModelTransformationHandler, Deserializati
                     val expression = registry.getHandler<DeserializationHandler, KotlinExpression> {
                         deserializationExpression(statement, it.model, ContentType.ApplicationJson)
                     }
-                    val name = expression.declaration("${it.sourceName}Maybe")
+                    val name = expression.declaration("${it.name}Maybe")
                     objectParts += MaybeParameter(name)
                 }
 

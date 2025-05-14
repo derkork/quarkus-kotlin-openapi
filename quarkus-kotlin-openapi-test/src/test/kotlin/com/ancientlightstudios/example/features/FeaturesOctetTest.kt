@@ -18,7 +18,7 @@ class FeaturesOctetTest : ApiTestBase() {
     lateinit var client: FeaturesOctetClient
 
     val testClient: FeaturesOctetTestClient
-        get() = FeaturesOctetTestClient(dependencyVogel) { prepareRequest() }
+        get() = FeaturesOctetTestClient(dependencyContainer) { prepareRequest() }
 
     @Test
     fun `empty body is supported for optional content (Client)`() {

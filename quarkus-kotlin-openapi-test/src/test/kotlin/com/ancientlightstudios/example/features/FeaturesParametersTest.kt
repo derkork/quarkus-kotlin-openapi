@@ -18,7 +18,7 @@ class FeaturesParametersTest : ApiTestBase() {
     lateinit var client: FeaturesParametersClient
 
     val testClient: FeaturesParametersTestClient
-        get() = FeaturesParametersTestClient(dependencyVogel) { prepareRequest() }
+        get() = FeaturesParametersTestClient(dependencyContainer) { prepareRequest() }
 
     @Test
     fun `path parameters work (Client)`() {

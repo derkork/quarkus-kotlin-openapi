@@ -20,7 +20,7 @@ class FeaturesGenericTest : ApiTestBase() {
     lateinit var client: FeaturesGenericClient
 
     val testClient: FeaturesGenericTestClient
-        get() = FeaturesGenericTestClient(dependencyVogel) { prepareRequest() }
+        get() = FeaturesGenericTestClient(dependencyContainer) { prepareRequest() }
 
     // status code 422 is unknown to jakarta.ws.rs.core.Response.Status
     @Test
@@ -183,5 +183,39 @@ class FeaturesGenericTest : ApiTestBase() {
             assertThat(safeBody.singleValueHeader).isEqualTo("fooBar")
             assertThat(safeBody.multiValueHeader).containsExactly("puit", "zort", "narf", "troz")
         }
+    }
+
+    @Test
+    fun `verify response header names (Client)`() {
+        runBlocking {
+            val response = client.responseWithInterface()
+            if (response is ResponseWithInterfaceHttpResponse.BadRequest) {
+                assertThat(response.xTest).isEqualTo("header-value")
+            } else {
+                fail("unexpected response")
+            }
+        }
+
+        testClient.responseWithInterfaceSafe()
+            .isBadRequestResponse {
+                assertThat(xTest).isEqualTo("header-value")
+            }
+    }
+
+    @Test
+    fun `verify response header names (Test-Client)`() {
+        testClient.responseWithInterfaceSafe()
+            .isBadRequestResponse {
+                assertThat(xTest).isEqualTo("header-value")
+            }
+    }
+
+    @Test
+    fun `verify response header names (Raw)`() {
+        prepareRequest()
+            .get("/features/generic/responseWithInterface")
+            .execute()
+            .statusCode(400)
+            .header("X-TEST", "header-value")
     }
 }

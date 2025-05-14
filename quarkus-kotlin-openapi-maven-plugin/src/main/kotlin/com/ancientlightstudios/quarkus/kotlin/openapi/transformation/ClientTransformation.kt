@@ -17,9 +17,9 @@ class ClientTransformation : SpecTransformation {
         }
 
         // the global dependency container
-        val dependencyVogel = spec.solution.files
-            .filterIsInstance<DependencyVogel>()
-            .firstOrNull() ?: ProbableBug("solution dependency 'DependencyVogel' not found")
+        val dependencyContainer = spec.solution.files
+            .filterIsInstance<DependencyContainer>()
+            .firstOrNull() ?: ProbableBug("solution dependency 'DependencyContainer' not found")
 
         spec.inspect {
             bundles {
@@ -27,7 +27,7 @@ class ClientTransformation : SpecTransformation {
                 val delegateInterface = generateDelegateInterface()
 
                 // the rest controller for this bundle which sits in front of the delegate and is used by the application
-                val controller = generateRestController(delegateInterface, dependencyVogel)
+                val controller = generateRestController(delegateInterface, dependencyContainer)
 
                 requests {
                     // the sealed interface with all responses and error cases for this request
@@ -85,13 +85,13 @@ class ClientTransformation : SpecTransformation {
 
     context(TransformationContext)
     private fun RequestBundleInspection.generateRestController(
-        delegateInterface: ClientDelegateInterface, dependencyVogel: DependencyVogel
+        delegateInterface: ClientDelegateInterface, dependencyContainer: DependencyContainer
     ): ClientRestController {
         val className = classNameOf(bundle.requestBundleIdentifier, "Client")
         val result = ClientRestController(
             ComponentName(className, config.packageName, ConflictResolution.Pinned),
             delegateInterface,
-            dependencyVogel,
+            dependencyContainer,
             bundle
         )
         spec.solution.files.add(result)

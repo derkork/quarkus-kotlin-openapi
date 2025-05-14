@@ -1,6 +1,6 @@
 package com.ancientlightstudios.example.features
 
-import com.ancientlightstudios.example.features.testclient.DependencyVogel
+import com.ancientlightstudios.example.features.testclient.DependencyContainer
 import io.quarkus.test.common.http.TestHTTPResource
 import io.restassured.RestAssured
 import io.restassured.config.HttpClientConfig
@@ -17,7 +17,7 @@ abstract class ApiTestBase {
     var internalTestUrl: URL? = null
 
     @Inject
-    lateinit var dependencyVogel: DependencyVogel
+    lateinit var dependencyContainer: DependencyContainer
 
     private val testUrl: URL
         get() = internalTestUrl
