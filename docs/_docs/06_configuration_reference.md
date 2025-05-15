@@ -14,6 +14,7 @@ description: "Configuration reference for Quarkus Kotlin OpenAPI."
 - [Additional validation checks for values and models](#additional-validation-checks-for-values-and-models)
 - [Changing the names of enum items](#changing-the-names-of-enum-items)
 - [Changing the names of model classes](#changing-the-names-of-model-classes)
+- [Sharing responses between requests](#sharing-responses-between-requests)
 
 ## Generating only a subset of the API
 
@@ -103,7 +104,8 @@ x-constraints:
   - allLower
 ```
                                            
-For this schema you have to provide two validation functions
+For this schema you have to provide two validation functions. The functions must be in the same package as the generated
+server or client code or in one of the packages specified via `additionalImports` in the plugin configuration.
 
 ```kotlin
 fun DefaultValidator.withO(value: String) {
@@ -129,7 +131,7 @@ have to check that a given date is at least 5 days in the future. This is not po
 realized with this feature.
 
 Furthermore, in both function the type of the value was a simple string. But that's just because the schema defines 
-a string type. By adding the `x-constraint` property to a schema of type `object`, `array` or any other type, the type
+a string type. By adding the `x-constraints` property to a schema of type `object`, `array` or any other type, the type
 of the value parameter changes accordingly.
 
 ## Changing the names of enum items
@@ -293,8 +295,8 @@ paths:
         
 components:
   responses:
-    Generic404:
-      description: Not Found
+    Generic400:
+      description: Bad Request
       content:
         application/json:
           schema:
@@ -326,8 +328,8 @@ So changing the above example to
 ```yaml
 components:
   responses:
-    Generic404:
-      description: Not Found
+    Generic400:
+      description: Bad Request
       x-generic-response-name: GenericBadRequestResponse
       content:
         application/json:
@@ -336,6 +338,7 @@ components:
 ```
                 
 will change the generated code to
+
 ```kotlin
 interface GenericBadRequestResponse {
 
@@ -348,31 +351,36 @@ class Test1RequestContext(...): GenericBadRequestResponse {
     ...
 }
 
-class Test2RequestContext(...) {
+class Test2RequestContext(...): GenericBadRequestResponse {
     ...
     override fun badRequest(body: ErrorInfo): Nothing = status(400, "application/json", body.asJson().asString(dependencyContainer.objectMapper))
     ...
 }
 ```
-
-The context classes now implement a new interface with this method. This can be useful to implement
-crosscutting aspects where a utility method should produce responses without knowing each requests
-
-```kotlin
-context(GenericBadRequestResponse)
-fun <T> Maybe<T>.validate() =
-    validOrElse {
-        Log.info("Validation failed. Aborting request.")
-        val messages = it.map { error -> "${error.path}: ${error.message}" }
-        badRequest(ErrorInfo(...))
-    }
-```
-
-This method can now be used in each request to avoid code duplication
+                                                  
+A new interface with this method was generated and is implemented by both context classes. This can be useful to implement
+crosscutting aspects. For example, the following method is now available for all requests with this response 
 
 ```kotlin
+fun <C> C.doSomething() where C: GenericBadRequestResponse {
+    // can now generate a bad request response 
+    badRequest(ErrorInfo(...))
+}
+
 override suspend fun Test1RequestContext.test1(): Nothing {
-   val validRequest = request.validate()
-   ...
+    ...
+    doSomething()
+    ...
 }
 ```
+                  
+Adding multiple interfaces to the `where` clause is also possible and a request needs all the specified
+responses in order to use this method.
+
+```kotlin
+fun <C> C.doSomethingElse() where C: GenericForbiddenResponse, C: GenericUnauthorizedResponse { }
+```
+
+The `x-generic-response-name` property can be used at any response not only on those under `/components/responses` as in
+the example above. But you have to make sure, all responses with the same property value are identically. This means
+same body model and same headers. Otherwise, you will run into compiler errors.
