@@ -3,12 +3,12 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
 
 class KotlinClass(
-    private val name: ClassName,
-    private val constructorAccessModifier: KotlinAccessModifier? = null,
+    private val name: KotlinTypeName,
+    var constructorAccessModifier: KotlinAccessModifier? = null,
     private val asDataClass: Boolean = false,
     private val sealed: Boolean = false,
     private val baseClass: KotlinBaseClass? = null,
-    private val interfaces: List<ClassName> = listOf()
+    var interfaces: List<KotlinTypeReference> = listOf()
 ) : KotlinRenderable, AnnotationAware, MethodAware, MemberAware, CompanionAware,
     CommentAware, ClassAware, ConstructorAware {
 
@@ -79,7 +79,7 @@ class KotlinClass(
             write("data ")
         }
 
-        write("class ${name.value}")
+        write("class ${name.name}")
 
         constructorAccessModifier?.let { write(" ${it.value} constructor") }
 
@@ -98,7 +98,7 @@ class KotlinClass(
             }
 
             if (interfaces.isNotEmpty()) {
-                write(interfaces.joinToString { it.value })
+                write(interfaces.joinToString { it.render() })
             }
         }
 
@@ -143,12 +143,12 @@ interface ClassAware {
 }
 
 fun ClassAware.kotlinClass(
-    name: ClassName,
+    name: KotlinTypeName,
     constructorAccessModifier: KotlinAccessModifier? = null,
     asDataClass: Boolean = false,
     sealed: Boolean = false,
     baseClass: KotlinBaseClass? = null,
-    interfaces: List<ClassName> = listOf(),
+    interfaces: List<KotlinTypeReference> = listOf(),
     block: KotlinClass.() -> Unit
 ) {
     val content = KotlinClass(name, constructorAccessModifier, asDataClass, sealed, baseClass, interfaces).apply(block)

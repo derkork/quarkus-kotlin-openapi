@@ -45,3 +45,15 @@ fun <T> RestResponse.ResponseBuilder<T>.headers(name: String, value: Any?): Rest
     }
     return this
 }
+
+@Suppress("unused")
+fun String?.nullAsEmptyString() = when (this) {
+    null -> ""
+    else -> this
+}
+
+@Suppress("unused")
+fun <T> List<T>?.nullAsEmptyList() = when (this) {
+    null -> listOf()
+    else -> this
+}

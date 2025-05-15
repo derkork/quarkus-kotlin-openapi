@@ -24,7 +24,7 @@ class FeaturesJsonTest : ApiTestBase() {
     lateinit var client: FeaturesJsonClient
 
     val testClient: FeaturesJsonTestClient
-        get() = FeaturesJsonTestClient(objectMapper) { prepareRequest() }
+        get() = FeaturesJsonTestClient(dependencyContainer) { prepareRequest() }
 
     @Test
     fun `sending null as an optional object body works (Client)`() {

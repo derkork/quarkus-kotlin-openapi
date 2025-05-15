@@ -5,51 +5,6 @@ info:
   description: fragment of the overall test suit
 
 paths:
-  /features/plain/plainEnumParameter:
-    get:
-      tags:
-        - plain
-      operationId: plainEnumParameter
-      parameters:
-        - name: param
-          in: query
-          schema:
-            $ref: '#/components/schemas/PlainEnum'
-      responses:
-        '200':
-          description: Ok
-          content:
-            text/plain:
-              schema:
-                $ref: '#/components/schemas/PlainEnum'
-                type:
-                  - 'null'
-        '400':
-          $ref: '#/components/responses/OperationError400'
-
-  /features/plain/plainEnumBody:
-    post:
-      tags:
-        - plain
-      operationId: plainEnumBody
-      requestBody:
-        required: false
-        content:
-          text/plain:
-            schema:
-              $ref: '#/components/schemas/PlainEnum'
-      responses:
-        '200':
-          description: Ok
-          content:
-            text/plain:
-              schema:
-                $ref: '#/components/schemas/PlainEnum'
-                type:
-                  - 'null'
-        '400':
-          $ref: '#/components/responses/OperationError400'
-
   /features/plain/bigIntegerType:
     post:
       tags:
@@ -60,13 +15,11 @@ paths:
           in: query
           schema:
             type: integer
-          required: true
       requestBody:
         content:
           text/plain:
             schema:
               type: integer
-        required: true
       responses:
         200:
           description: Ok
@@ -79,9 +32,6 @@ paths:
                     type: integer
                   bodyValue:
                     type: integer
-                required:
-                  - parameterValue
-                  - bodyValue
         '400':
           $ref: '#/components/responses/OperationError400'
 
@@ -96,14 +46,12 @@ paths:
           schema:
             type: number
             format: int32
-          required: true
       requestBody:
         content:
           text/plain:
             schema:
               type: number
               format: int32
-        required: true
       responses:
         200:
           description: Ok
@@ -118,9 +66,6 @@ paths:
                   bodyValue:
                     type: number
                     format: int32
-                required:
-                  - parameterValue
-                  - bodyValue
         '400':
           $ref: '#/components/responses/OperationError400'
 
@@ -134,13 +79,11 @@ paths:
           in: query
           schema:
             type: number
-          required: true
       requestBody:
         content:
           text/plain:
             schema:
               type: number
-        required: true
       responses:
         200:
           description: Ok
@@ -153,9 +96,6 @@ paths:
                     type: number
                   bodyValue:
                     type: number
-                required:
-                  - parameterValue
-                  - bodyValue
         '400':
           $ref: '#/components/responses/OperationError400'
 
@@ -170,14 +110,12 @@ paths:
           schema:
             type: number
             format: float
-          required: true
       requestBody:
         content:
           text/plain:
             schema:
               type: number
               format: float
-        required: true
       responses:
         200:
           description: Ok
@@ -192,9 +130,6 @@ paths:
                   bodyValue:
                     type: number
                     format: float
-                required:
-                  - parameterValue
-                  - bodyValue
         '400':
           $ref: '#/components/responses/OperationError400'
 
@@ -208,13 +143,11 @@ paths:
           in: query
           schema:
             type: boolean
-          required: true
       requestBody:
         content:
           text/plain:
             schema:
               type: boolean
-        required: true
       responses:
         200:
           description: Ok
@@ -227,9 +160,6 @@ paths:
                     type: boolean
                   bodyValue:
                     type: boolean
-                required:
-                  - parameterValue
-                  - bodyValue
         '400':
           $ref: '#/components/responses/OperationError400'
 
@@ -243,13 +173,11 @@ paths:
           in: query
           schema:
             type: string
-          required: true
       requestBody:
         content:
           text/plain:
             schema:
               type: string
-        required: true
       responses:
         200:
           description: Ok
@@ -262,9 +190,6 @@ paths:
                     type: string
                   bodyValue:
                     type: string
-                required:
-                  - parameterValue
-                  - bodyValue
         '400':
           $ref: '#/components/responses/OperationError400'
 
@@ -278,13 +203,11 @@ paths:
           in: query
           schema:
             $ref: '#/components/schemas/PlainEnum'
-          required: true
       requestBody:
         content:
           text/plain:
             schema:
               $ref: '#/components/schemas/PlainEnum'
-        required: true
       responses:
         200:
           description: Ok
@@ -297,9 +220,6 @@ paths:
                     $ref: '#/components/schemas/PlainEnum'
                   bodyValue:
                     $ref: '#/components/schemas/PlainEnum'
-                required:
-                  - parameterValue
-                  - bodyValue
         '400':
           $ref: '#/components/responses/OperationError400'
 

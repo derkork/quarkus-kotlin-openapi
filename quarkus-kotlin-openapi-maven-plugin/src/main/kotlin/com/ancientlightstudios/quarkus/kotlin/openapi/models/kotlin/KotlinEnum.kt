@@ -3,7 +3,7 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.forEachWithStats
 
-class KotlinEnum(private val name: ClassName) : KotlinRenderable,
+class KotlinEnum(private val name: KotlinTypeName) : KotlinRenderable,
     AnnotationAware, MethodAware, MemberAware, CompanionAware, CommentAware {
 
     private val annotations = KotlinAnnotationContainer()
@@ -52,7 +52,7 @@ class KotlinEnum(private val name: ClassName) : KotlinRenderable,
         }
 
         annotations.render(this)
-        write("enum class ${name.value}")
+        write("enum class ${name.name}")
         if (members.isNotEmpty) {
             write("(")
             members.render(this)
@@ -93,7 +93,7 @@ interface EnumAware {
 
 }
 
-fun EnumAware.kotlinEnum(name: ClassName, block: KotlinEnum.() -> Unit) {
+fun EnumAware.kotlinEnum(name: KotlinTypeName, block: KotlinEnum.() -> Unit) {
     val content = KotlinEnum(name).apply(block)
     addEnum(content)
 }

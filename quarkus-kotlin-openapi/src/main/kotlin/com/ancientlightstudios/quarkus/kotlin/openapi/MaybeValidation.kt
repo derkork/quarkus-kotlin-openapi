@@ -13,7 +13,7 @@ fun <T> Maybe<T?>.validate(block: DefaultValidator.(T) -> Unit): Maybe<T?> =
                 failure(errors)
             }
         } catch (_: Exception) {
-            failure(ValidationError("is not a valid value", context))
+            failure(ValidationError("is not a valid value", context, ErrorKind.Unknown))
         }
     }
 
@@ -28,24 +28,22 @@ fun Maybe<String?>.validateString(block: StringValidator.(String) -> Unit): Mayb
                 failure(errors)
             }
         } catch (_: Exception) {
-            failure(ValidationError("is not a valid value", context))
+            failure(ValidationError("is not a valid value", context, ErrorKind.Unknown))
         }
     }
 
-// TODO: name should be validateByteArray, but we can't determine the correct name right now in the ValidationStatementEmitter
 @Suppress("unused")
-@JvmName("validateByteArray")
-fun Maybe<ByteArray?>.validateString(block: ByteArrayValidator.(ByteArray) -> Unit): Maybe<ByteArray?> =
+fun Maybe<ByteArray?>.validateByteArray(block: ByteArrayValidator.(ByteArray) -> Unit): Maybe<ByteArray?> =
     onNotNull {
         try {
             val errors = ByteArrayValidator(context).apply { this.block(value) }.validationErrors
             if (errors.isEmpty()) {
-                this@validateString
+                this@validateByteArray
             } else {
                 failure(errors)
             }
         } catch (_: Exception) {
-            failure(ValidationError("is not a valid value", context))
+            failure(ValidationError("is not a valid value", context, ErrorKind.Unknown))
         }
     }
 
@@ -61,7 +59,7 @@ fun <T : Number> Maybe<T?>.validateNumber(block: NumberValidator<T>.(T) -> Unit)
                 failure(errors)
             }
         } catch (_: Exception) {
-            failure(ValidationError("is not a valid value", context))
+            failure(ValidationError("is not a valid value", context, ErrorKind.Unknown))
         }
     }
 
@@ -77,7 +75,7 @@ fun Maybe<ULong?>.validateNumber(block: NumberValidator<ULong>.(ULong) -> Unit):
                 failure(errors)
             }
         } catch (_: Exception) {
-            failure(ValidationError("is not a valid value", context))
+            failure(ValidationError("is not a valid value", context, ErrorKind.Unknown))
         }
     }
 
@@ -93,7 +91,7 @@ fun Maybe<UInt?>.validateNumber(block: NumberValidator<UInt>.(UInt) -> Unit): Ma
                 failure(errors)
             }
         } catch (_: Exception) {
-            failure(ValidationError("is not a valid value", context))
+            failure(ValidationError("is not a valid value", context, ErrorKind.Unknown))
         }
     }
 
@@ -109,7 +107,7 @@ fun Maybe<UShort?>.validateNumber(block: NumberValidator<UShort>.(UShort) -> Uni
                 failure(errors)
             }
         } catch (_: Exception) {
-            failure(ValidationError("is not a valid value", context))
+            failure(ValidationError("is not a valid value", context, ErrorKind.Unknown))
         }
     }
 
@@ -125,7 +123,7 @@ fun Maybe<UByte?>.validateNumber(block: NumberValidator<UByte>.(UByte) -> Unit):
                 failure(errors)
             }
         } catch (_: Exception) {
-            failure(ValidationError("is not a valid value", context))
+            failure(ValidationError("is not a valid value", context, ErrorKind.Unknown))
         }
     }
 
@@ -140,7 +138,7 @@ fun <I> Maybe<List<I>?>.validateList(block: ListValidator.(List<I>) -> Unit): Ma
                 failure(errors)
             }
         } catch (_: Exception) {
-            failure(ValidationError("is not a valid value", context))
+            failure(ValidationError("is not a valid value", context, ErrorKind.Unknown))
         }
     }
 
@@ -155,7 +153,7 @@ fun <I> Maybe<Map<String, I>?>.validateProperties(block: PropertiesValidator.(Ma
                 failure(errors)
             }
         } catch (_: Exception) {
-            failure(ValidationError("is not a valid value", context))
+            failure(ValidationError("is not a valid value", context, ErrorKind.Unknown))
         }
     }
 
@@ -171,7 +169,7 @@ fun <I : PropertiesContainer> Maybe<I?>.validateProperties(block: PropertiesVali
                 failure(errors)
             }
         } catch (_: Exception) {
-            failure(ValidationError("is not a valid value", context))
+            failure(ValidationError("is not a valid value", context, ErrorKind.Unknown))
         }
     }
 
@@ -194,7 +192,7 @@ fun <I, O> Maybe<List<I?>?>.mapItems(block: (Maybe.Success<I?>) -> Maybe<O>): Ma
                 success(validated)
             }
         } catch (_: Exception) {
-            failure(ValidationError("is not a valid value", context))
+            failure(ValidationError("is not a valid value", context, ErrorKind.Unknown))
         }
     }
 
@@ -219,7 +217,7 @@ fun <T> Maybe<JsonNode?>.propertiesAsMap(vararg ignoredProperties: String, block
                 success(map)
             }
         } catch (_: Exception) {
-            failure(ValidationError("is not a valid value", context))
+            failure(ValidationError("is not a valid value", context, ErrorKind.Unknown))
         }
     }
 
@@ -229,13 +227,13 @@ fun <T> Maybe<JsonNode?>.propertiesAsMap(vararg ignoredProperties: String, block
  * @return the given maybe or a [Maybe.Failure] if the value was null
  */
 @Suppress("unused")
-fun <T> Maybe<T?>.required(): Maybe<T> =
+fun <T> Maybe<T>.required(): Maybe<T & Any> =
     onSuccess {
         if (value != null) {
             @Suppress("UNCHECKED_CAST")
-            this as Maybe<T>
+            this as Maybe<T & Any>
         } else {
-            failure(ValidationError("is required", context))
+            failure(ValidationError("is required", context, ErrorKind.Missing))
         }
     }
 
@@ -244,12 +242,13 @@ fun <T> Maybe<T?>.required(): Maybe<T> =
  * @return the given maybe or a new [Maybe.Success] if the value was null
  */
 @Suppress("unused")
-fun <T> Maybe<T?>.default(block: () -> T): Maybe<T?> =
+fun <T> Maybe<T?>.default(block: () -> T): Maybe<T> =
     onSuccess {
         if (value == null) {
             success(block())
         } else {
-            this
+            @Suppress("UNCHECKED_CAST")
+            this as Maybe<T>
         }
     }
 

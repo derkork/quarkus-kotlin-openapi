@@ -4,14 +4,14 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
 
 // TODO: replace suspend, private and other stuff with a bit flag .e.g. Suspend | Private to avoid 5 more members for internal etc
 class KotlinMethod(
-    private val name: MethodName,
+    private val name: String,
     private val suspend: Boolean = false,
-    private val returnType: TypeName? = null,
-    private val receiverType: TypeName? = null,
+    private val returnType: KotlinTypeReference? = null,
+    private val receiverType: KotlinTypeReference? = null,
     private val bodyAsAssignment: Boolean = false,
     private val accessModifier: KotlinAccessModifier? = null,
     private val override: Boolean = false,
-    private val genericParameter: List<TypeName> = listOf()
+    private val genericParameter: List<KotlinTypeReference> = listOf()
 ) : KotlinRenderable, AnnotationAware, ParameterAware, StatementAware, CommentAware {
 
     private val annotations = KotlinAnnotationContainer()
@@ -63,19 +63,19 @@ class KotlinMethod(
         write("fun ")
 
         if (genericParameter.isNotEmpty()) {
-            val parameterList = genericParameter.joinToString(", ", prefix = "<", postfix = ">") { it.value }
+            val parameterList = genericParameter.joinToString(", ", prefix = "<", postfix = ">") { it.render() }
             write("$parameterList ")
         }
 
         if (receiverType != null) {
-            write("${receiverType.value}.")
+            write("${receiverType.render()}.")
         }
-        write("${name.value}(")
+        write("$name(")
         parameters.render(this)
         write(")")
 
         if (returnType != null) {
-            write(": ${returnType.value}")
+            write(": ${returnType.render()}")
         }
 
         if (statements.isNotEmpty) {
@@ -104,14 +104,14 @@ interface MethodAware {
 }
 
 fun MethodAware.kotlinMethod(
-    name: MethodName,
+    name: String,
     suspend: Boolean = false,
-    returnType: TypeName? = null,
-    receiverType: TypeName? = null,
+    returnType: KotlinTypeReference? = null,
+    receiverType: KotlinTypeReference? = null,
     bodyAsAssignment: Boolean = false,
     accessModifier: KotlinAccessModifier? = null,
     override: Boolean = false,
-    genericParameter: List<TypeName> = listOf(),
+    genericParameter: List<KotlinTypeReference> = listOf(),
     block: KotlinMethod.() -> Unit = {}
 ) {
     val content = KotlinMethod(

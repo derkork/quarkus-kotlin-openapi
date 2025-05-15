@@ -1,8 +1,8 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.inspection
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSpec
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiSpec
 
-class SpecInspection(val spec: TransformableSpec) {
+class SpecInspection(val spec: OpenApiSpec) {
 
     fun bundles(block: RequestBundleInspection.() -> Unit) =
         spec.bundles.forEach { RequestBundleInspection(it).block() }
@@ -12,6 +12,6 @@ class SpecInspection(val spec: TransformableSpec) {
 
 }
 
-fun TransformableSpec.inspect(block: SpecInspection.() -> Unit) = SpecInspection(this).block()
+fun OpenApiSpec.inspect(block: SpecInspection.() -> Unit) = SpecInspection(this).block()
 
 

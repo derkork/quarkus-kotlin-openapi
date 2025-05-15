@@ -14,16 +14,17 @@ fun Maybe<String?>.asJson(objectMapper: ObjectMapper): Maybe<JsonNode?> = onNotN
             success(objectMapper.readValue(value, JsonNode::class.java))
         }
     } catch (_: Exception) {
-        failure(ValidationError("is not valid json", context))
+        failure(ValidationError("is not valid json", context, ErrorKind.Incompatible))
     }
 }
 
 @Suppress("unused")
 fun Maybe<out JsonNode?>.asObject(): Maybe<JsonNode?> = onNotNull {
+    @Suppress("UNCHECKED_CAST")
     when (this.value) {
         is NullNode -> success(null)
         is ObjectNode -> this@asObject as Maybe<JsonNode?>
-        else -> Maybe.Failure(context, ValidationError("is not a valid json object", context))
+        else -> Maybe.Failure(context, ValidationError("is not a valid json object", context, ErrorKind.Incompatible))
     }
 }
 
@@ -53,7 +54,7 @@ fun Maybe<out JsonNode?>.asList(): Maybe<List<JsonNode?>?> = onNotNull {
     when (this.value) {
         is NullNode -> success(null)
         is ArrayNode -> success(this.value.toList())
-        else -> Maybe.Failure(context, ValidationError("is not a valid json array", context))
+        else -> Maybe.Failure(context, ValidationError("is not a valid json array", context, ErrorKind.Incompatible))
     }
 }
 
@@ -62,7 +63,7 @@ fun Maybe<out JsonNode?>.asList(): Maybe<List<JsonNode?>?> = onNotNull {
 fun Maybe<JsonNode?>.asString() = onNotNull {
     when (value) {
         is NullNode -> Maybe.Success(context, null)
-        is ObjectNode, is ArrayNode -> Maybe.Failure(context, ValidationError("is not a string", context))
+        is ObjectNode, is ArrayNode -> Maybe.Failure(context, ValidationError("is not a string", context, ErrorKind.Incompatible))
         else -> Maybe.Success(context, value.asText())
     }
 }

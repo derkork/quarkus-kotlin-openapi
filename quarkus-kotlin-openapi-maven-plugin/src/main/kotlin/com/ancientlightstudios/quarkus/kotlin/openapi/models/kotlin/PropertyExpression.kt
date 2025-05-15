@@ -3,27 +3,21 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
 
 
-class PropertyExpression(private val receiver: KotlinExpression, private val name: KotlinExpression) :
+class PropertyExpression(private val receiver: KotlinExpression, private val name: String) :
     KotlinExpression {
 
     override fun ImportCollector.registerImports() {
         registerFrom(receiver)
-        registerFrom(name)
     }
 
     override fun render(writer: CodeWriter) = with(writer) {
         receiver.render(this)
-        write(".")
-        name.render(this)
+        write(".$name")
     }
 
     companion object {
 
-        fun KotlinExpression.property(name: VariableName) = PropertyExpression(this, name)
-
-        fun KotlinExpression.property(name: ClassName) = PropertyExpression(this, name.companionObject())
-
-        fun KotlinExpression.property(name: ConstantName) = PropertyExpression(this, name)
+        fun KotlinExpression.property(name: String) = PropertyExpression(this, name)
 
     }
 

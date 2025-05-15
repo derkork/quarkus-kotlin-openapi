@@ -4,7 +4,9 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ArrayNode
 import com.fasterxml.jackson.databind.node.ObjectNode
 
-class UnsafeJson<T>(val value: JsonNode) {
+class UnsafeJson<T>(private val value: JsonNode) {
+
+    fun asJson() = value
 
     @Suppress("unused")
     fun modifyObject(block: ObjectNode.() -> ObjectNode) = when (value) {

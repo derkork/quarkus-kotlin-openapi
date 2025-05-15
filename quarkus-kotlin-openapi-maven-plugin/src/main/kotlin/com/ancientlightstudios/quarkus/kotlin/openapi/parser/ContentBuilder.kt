@@ -1,18 +1,18 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.parser
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.OriginPathHint.originPath
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableContentMapping
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiContentMapping
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.SpecIssue
 import com.fasterxml.jackson.databind.node.ObjectNode
 
 class ContentBuilder(private val node: ObjectNode) {
 
-    fun ParseContext.build(): TransformableContentMapping {
+    fun ParseContext.build(): OpenApiContentMapping {
         val contents = node.propertiesAsList()
             .map { (rawContentType, _) ->
                 val contentType = contentTypeMapper.mapContentType(rawContentType)
                 val schema = contextFor(rawContentType, "schema").parseAsSchema()
-                TransformableContentMapping(contentType, rawContentType, schema).apply {
+                OpenApiContentMapping(contentType, rawContentType, schema).apply {
                     originPath = contextPath
                 }
             }

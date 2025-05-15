@@ -1,3 +1,0 @@
-package com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components
-
-interface SchemaComponent

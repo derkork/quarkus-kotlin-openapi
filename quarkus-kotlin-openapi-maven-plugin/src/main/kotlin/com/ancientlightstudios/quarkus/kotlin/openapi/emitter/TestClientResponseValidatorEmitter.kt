@@ -1,71 +1,54 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.RequestInspection
-import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.inspect
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ClientHttpResponseClassNameHint.clientHttpResponseClassName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ResponseContainerClassNameHint.responseContainerClassName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ResponseValidatorClassNameHint.responseValidatorClassName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.SolutionHint.solution
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.ClassName.Companion.rawClassName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.IdentifierExpression.Companion.identifier
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.InvocationExpression.Companion.invoke
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.methodName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinTypeName.Companion.asTypeName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinTypeName.Companion.nestedTypeName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.PropertyExpression.Companion.property
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TryCatchExpression.Companion.tryExpression
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.SimpleTypeName.Companion.typeName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.WhenExpression.Companion.whenExpression
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ResponseCode
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableRequest
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ClientResponse
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ClientResponseImplementation
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.TestClientResponseValidator
+import com.ancientlightstudios.quarkus.kotlin.openapi.transformation.methodNameOf
 
 class TestClientResponseValidatorEmitter : CodeEmitter {
 
-    private lateinit var emitterContext: EmitterContext
-
     override fun EmitterContext.emit() {
-        emitterContext = this
-        spec.inspect {
-            bundles {
-                requests {
-                    emitResponseValidatorFile()
-                        .writeFile()
+        spec.solution.files
+            .filterIsInstance<TestClientResponseValidator>()
+            .forEach { emitFile(it) }
+    }
+
+    private fun EmitterContext.emitFile(validator: TestClientResponseValidator) {
+        kotlinFile(validator.name.asTypeName()) {
+            kotlinClass(name) {
+                kotlinMember("response", validator.response.name.asTypeReference())
+                kotlinMember("requestResponseLog", Kotlin.ByteArrayOutputStream.asTypeReference())
+
+                val response = validator.response
+                emitVerifyResponseMethod(response)
+                emitGenericValidationMethod(response)
+
+                validator.response.httpResponse.implementations.forEach { implementation ->
+                    emitResponseValidationMethod(response, implementation)
                 }
             }
         }
     }
 
-    private fun RequestInspection.emitResponseValidatorFile() = kotlinFile(request.responseValidatorClassName) {
-        kotlinClass(fileName) {
-            kotlinMember(
-                "response".variableName(),
-                type = request.responseContainerClassName.typeName(),
-            )
-            kotlinMember(
-                "requestResponseLog".variableName(),
-                type = Kotlin.ByteArrayOutputStreamClass.typeName(),
-            )
-
-            emitVerifyResponseMethod(request)
-            emitGenericValidationMethod(request)
-
-            responses {
-                val reason = when (val responseCode = response.responseCode) {
-                    is ResponseCode.Default -> "default"
-                    is ResponseCode.HttpStatusCode -> responseCode.statusCodeReason()
-                }
-
-                emitResponseValidationMethod(request, reason)
-            }
-        }
-    }
-
-    private fun KotlinClass.emitVerifyResponseMethod(request: TransformableRequest) {
-        val tType = "T".rawClassName("", true).typeName()
-        kotlinMethod("verifyResponse".methodName(), accessModifier = KotlinAccessModifier.Private, bodyAsAssignment = true,
-                returnType = tType, genericParameter = listOf(tType)) {
-            kotlinParameter(
-                "block".variableName(),
-                TypeName.DelegateTypeName(request.responseContainerClassName.typeName(), listOf(), tType)
-            )
+    private fun KotlinClass.emitVerifyResponseMethod(response: ClientResponse) {
+        val returnType = KotlinSimpleTypeReference("T", "")
+        kotlinMethod(
+            "verifyResponse",
+            accessModifier = KotlinAccessModifier.Private,
+            bodyAsAssignment = true,
+            returnType = returnType,
+            genericParameter = listOf(returnType)
+        ) {
+            kotlinParameter("block", KotlinDelegateTypeReference(response.name.asTypeReference(), returnType))
 
             // produces
             // try {
@@ -75,36 +58,40 @@ class TestClientResponseValidatorEmitter : CodeEmitter {
             //     throw e
             // }
             tryExpression {
-                "response".variableName().invoke("block".methodName()).statement()
-                catchBlock(Kotlin.ThrowableClass) {
-                    InvocationExpression.invoke("println".methodName(), "requestResponseLog".variableName()).statement()
-                    "e".variableName().throwStatement()
+                "response".identifier().invoke("block").statement()
+                catchBlock(Kotlin.Throwable) {
+                    InvocationExpression.invoke("println", "requestResponseLog".identifier()).statement()
+                    "e".identifier().throwStatement()
                 }
             }.statement()
         }
     }
 
-    private fun KotlinClass.emitGenericValidationMethod(request: TransformableRequest) {
-        kotlinMethod("responseSatisfies".methodName(), bodyAsAssignment = true) {
+    private fun KotlinClass.emitGenericValidationMethod(response: ClientResponse) {
+        kotlinMethod("responseSatisfies", bodyAsAssignment = true) {
             kotlinParameter(
-                "block".variableName(),
-                TypeName.DelegateTypeName(request.responseContainerClassName.typeName(), listOf(), Kotlin.UnitType)
+                "block",
+                KotlinDelegateTypeReference(response.name.asTypeReference(), Kotlin.Unit.asTypeReference())
             )
 
             // produces
             // verifyResponse(block)
-            invoke("verifyResponse".methodName(), "block".variableName())
-                .statement()
+            invoke("verifyResponse", "block".identifier()).statement()
         }
     }
 
-    private fun KotlinClass.emitResponseValidationMethod(request: TransformableRequest, reason: String) {
-        val responseClass = request.clientHttpResponseClassName.nested(reason)
+    private fun KotlinClass.emitResponseValidationMethod(
+        response: ClientResponse,
+        implementation: ClientResponseImplementation
+    ) {
+        val methodName = methodNameOf("is", implementation.name, "Response")
+        val implementationClass = response.httpResponse.name.asTypeName()
+            .nestedTypeName(implementation.name)
 
-        kotlinMethod(reason.methodName(prefix = "is", postfix = "Response"), bodyAsAssignment = true) {
+        kotlinMethod(methodName, bodyAsAssignment = true) {
             kotlinParameter(
-                "block".variableName(),
-                TypeName.DelegateTypeName(responseClass.typeName(), listOf(), Kotlin.UnitType)
+                "block",
+                KotlinDelegateTypeReference(implementationClass.asTypeReference(), Kotlin.Unit.asTypeReference())
             )
 
             // produces
@@ -113,23 +100,22 @@ class TestClientResponseValidatorEmitter : CodeEmitter {
             //         ...
             //     }
             // }
-            invoke("verifyResponse".methodName()) {
-                whenExpression("response".variableName()) {
+            invoke("verifyResponse") {
+                whenExpression("response".identifier()) {
                     // produces
                     // is <responseClass> -> response.block()
-                    optionBlock(AssignableExpression.assignable(responseClass)) {
-                        "response".variableName().invoke("apply".methodName(), "block".variableName()).statement()
+                    optionBlock(AssignableExpression.assignable(implementationClass.asTypeReference())) {
+                        "response".identifier().invoke("apply", "block".identifier()).statement()
                     }
 
                     // produces
                     // else -> throw AssertionFailedError("Assertion failed.", <responseClass>::class.java.name, response.javaClass.name)
-                    optionBlock("else".variableName()) {
+                    optionBlock("else".identifier()) {
                         InvocationExpression.invoke(
-                            Misc.AssertionFailedErrorClass.constructorName,
+                            Misc.AssertionFailedError.identifier(),
                             "Assertion failed.".literal(),
-                            responseClass.javaClass().property("name".variableName()),
-                            "response".variableName().property("javaClass".variableName())
-                                .property("name".variableName())
+                            implementationClass.identifier().functionReference("class.java").property("name"),
+                            "response".identifier().property("javaClass").property("name")
                         ).throwStatement()
                     }
                 }.statement()

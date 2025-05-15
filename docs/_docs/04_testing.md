@@ -6,6 +6,7 @@ description: "How to use test clients to test your server implementation."
 ---
 
 # {{ page.title }}
+
 ## Table of contents
 - [Introduction](#introduction)
 - [Generating a test client](#generating-a-test-client)

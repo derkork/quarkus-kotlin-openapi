@@ -1,5 +1,6 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.patching
 
+import com.ancientlightstudios.quarkus.kotlin.openapi.parser.asArrayNode
 import com.ancientlightstudios.quarkus.kotlin.openapi.parser.asObjectNode
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ArrayNode

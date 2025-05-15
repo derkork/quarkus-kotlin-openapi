@@ -6,6 +6,7 @@ description: "Creating clients with Quarkus Kotlin OpenAPI."
 ---
 
 #  {{ page.title }}
+
 ## Table of contents
 
 - [Introduction](#introduction)
@@ -15,6 +16,7 @@ description: "Creating clients with Quarkus Kotlin OpenAPI."
 
 
 ## Introduction
+
 In many projects you will not only create a REST server, but also will need to create clients that consume other REST services. You can use the OpenAPI generator to create a client for your REST service. The general approach is very similar to creating a server, but with a few differences. First, let's configure the generation of a client in the `pom.xml` file.
 
 ```xml

@@ -15,7 +15,7 @@ import org.opentest4j.AssertionFailedError
 class TestClientTest : ApiTestBase() {
 
     val client: FeaturesGenericTestClient
-        get() = FeaturesGenericTestClient(objectMapper) { prepareRequest() }
+        get() = FeaturesGenericTestClient(dependencyContainer) { prepareRequest() }
 
     @ParameterizedTest
     @EnumSource(value = ResponseCodeHint::class)

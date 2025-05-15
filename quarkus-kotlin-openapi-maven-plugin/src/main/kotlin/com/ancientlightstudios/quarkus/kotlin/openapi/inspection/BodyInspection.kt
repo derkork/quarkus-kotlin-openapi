@@ -1,5 +1,5 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.inspection
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableBody
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiBody
 
-class BodyInspection(val body: TransformableBody)
+class BodyInspection(val body: OpenApiBody)

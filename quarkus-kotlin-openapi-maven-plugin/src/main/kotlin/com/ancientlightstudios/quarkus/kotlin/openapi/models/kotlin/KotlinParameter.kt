@@ -3,9 +3,10 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
 
 class KotlinParameter(
-    private val name: VariableName, private val type: TypeName,
+    private val name: String,
+    private val type: KotlinTypeReference,
     private val expression: KotlinExpression? = null,
-    private val asParameterList : Boolean = false
+    private val asParameterList: Boolean = false
 ) : KotlinRenderable, AnnotationAware {
 
     private val annotations = KotlinAnnotationContainer(true)
@@ -25,7 +26,7 @@ class KotlinParameter(
         if (asParameterList) {
             write("vararg ")
         }
-        write("${name.value}: ${type.value}")
+        write("$name: ${type.render()}")
         if (expression != null) {
             write(" = ")
             expression.render(this)
@@ -41,10 +42,10 @@ interface ParameterAware {
 }
 
 fun ParameterAware.kotlinParameter(
-    name: VariableName,
-    type: TypeName,
+    name: String,
+    type: KotlinTypeReference,
     expression: KotlinExpression? = null,
-    asParameterList : Boolean = false,
+    asParameterList: Boolean = false,
     block: KotlinParameter.() -> Unit = {}
 ) {
     val content = KotlinParameter(name, type, expression, asParameterList).apply(block)

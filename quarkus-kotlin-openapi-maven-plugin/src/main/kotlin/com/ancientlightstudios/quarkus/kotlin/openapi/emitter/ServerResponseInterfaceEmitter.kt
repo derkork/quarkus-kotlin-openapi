@@ -1,90 +1,79 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.inspect
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ParameterVariableNameHint.parameterVariableName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ResponseInterfaceNameHint.responseInterfaceName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeUsageHint.typeUsage
+import com.ancientlightstudios.quarkus.kotlin.openapi.handler.Handler
+import com.ancientlightstudios.quarkus.kotlin.openapi.handler.HandlerResult
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.SolutionHint.solution
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.methodName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.SimpleTypeName.Companion.typeName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ResponseCode
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableBody
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableParameter
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableResponse
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinTypeName.Companion.asTypeName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ResponseCode
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ResponseBody
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ResponseHeader
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ServerResponseInterface
 
 class ServerResponseInterfaceEmitter : CodeEmitter {
 
-    private lateinit var emitterContext: EmitterContext
-
     override fun EmitterContext.emit() {
-        emitterContext = this
-        val responseInterfaces = mutableMapOf<ClassName, TransformableResponse>()
+        spec.solution.files
+            .filterIsInstance<ServerResponseInterface>()
+            .forEach { emitFile(it) }
+    }
 
-        spec.inspect {
-            bundles {
-                requests {
-                    responses {
-                        response.responseInterfaceName?.let {
-                            responseInterfaces.putIfAbsent(it, response)
-                        }
+    private fun EmitterContext.emitFile(responseInterface: ServerResponseInterface) {
+        kotlinFile(responseInterface.name.asTypeName()) {
+            registerImports(Library.All)
+            registerImports(config.additionalImports())
+
+            kotlinInterface(name) {
+                kotlinMethod(responseInterface.methodName, returnType = Kotlin.Nothing.asTypeReference()) {
+                    if (responseInterface.responseCode == ResponseCode.Default) {
+                        kotlinParameter("status", Kotlin.Int.asTypeReference())
+                    }
+
+                    val context = object : ServerResponseInterfaceHandlerContext {
+                        override fun addParameter(parameter: KotlinParameter) =
+                            this@kotlinMethod.addParameter(parameter)
+                    }
+
+                    responseInterface.body?.let { body ->
+                        getHandler<ServerResponseInterfaceHandler, Unit> { context.emitBody(body) }
+                    }
+
+                    responseInterface.headers.forEach { header ->
+                        getHandler<ServerResponseInterfaceHandler, Unit> { context.emitHeader(header) }
                     }
                 }
             }
         }
-
-        responseInterfaces.forEach { (className, response) ->
-            response.emitInterfaceFile(className)
-                .writeFile()
-        }
     }
 
-    private fun TransformableResponse.emitInterfaceFile(className: ClassName) = kotlinFile(className) {
-        registerImports(Library.AllClasses)
-        registerImports(emitterContext.getAdditionalImports())
+}
 
-        kotlinInterface(fileName) {
+interface ServerResponseInterfaceHandlerContext : ParameterAware {
 
-            when (val code = responseCode) {
-                is ResponseCode.HttpStatusCode -> emitStatusMethod(code, body, headers)
-                is ResponseCode.Default -> emitDefaultStatusMethod(body, headers)
-            }
+    /**
+     * Generates the standard property for a response header or response body in a server response interface.
+     * The type should reflect the nullability of the model even if the value will never be nullable after
+     * serialization. Allows maximum flexibility for the code which is providing values.
+     */
+    fun emitProperty(name: String, type: KotlinTypeReference, defaultValue: DefaultValue) =
+        kotlinParameter(name, type, defaultValue.toKotlinExpression())
 
-        }
-    }
+}
 
-    private fun KotlinInterface.emitStatusMethod(
-        statusCode: ResponseCode.HttpStatusCode,
-        body: TransformableBody?,
-        headers: List<TransformableParameter>
-    ) {
-        kotlinMethod(statusCode.statusCodeReason().methodName(), returnType = Kotlin.NothingType) {
-            emitMethodBody(body, headers)
-        }
-    }
+interface ServerResponseInterfaceHandler : Handler {
 
-    private fun KotlinInterface.emitDefaultStatusMethod(
-        body: TransformableBody?,
-        headers: List<TransformableParameter>
-    ) {
-        kotlinMethod("defaultStatus".methodName(), returnType = Kotlin.NothingType) {
-            kotlinParameter("status".variableName(), Kotlin.IntClass.typeName())
-            emitMethodBody(body, headers)
-        }
+    /**
+     * Generates the standard property for a response header in a server response interface. The type of the property
+     * should reflect the nullability of the model even if the value will never be nullable after serialization. Allows
+     * maximum flexibility for the code which is providing values.
+     */
+    fun ServerResponseInterfaceHandlerContext.emitHeader(header: ResponseHeader): HandlerResult<Unit>
 
-    }
+    /**
+     * Generates the standard property for a response body in a server response interface. The type of the property
+     * should reflect the nullability of the model even if the value will never be nullable after serialization. Allows
+     * maximum flexibility for the code which is providing values.
+     */
+    fun ServerResponseInterfaceHandlerContext.emitBody(body: ResponseBody): HandlerResult<Unit>
 
-    private fun KotlinMethod.emitMethodBody(
-        body: TransformableBody?,
-        headers: List<TransformableParameter>
-    ) {
-        if (body != null) {
-            val typeUsage = body.content.typeUsage
-            kotlinParameter("body".variableName(), typeUsage.buildValidType())
-        }
-
-        headers.forEach {
-            kotlinParameter(it.parameterVariableName, it.content.typeUsage.buildValidType())
-        }
-    }
 }

@@ -43,7 +43,6 @@ paths:
             schema:
               type: string
               format: binary
-              minLength: 2
       responses:
         '200':
           description: Ok

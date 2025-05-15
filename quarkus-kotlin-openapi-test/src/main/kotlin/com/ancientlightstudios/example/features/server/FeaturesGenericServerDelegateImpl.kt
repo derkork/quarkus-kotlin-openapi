@@ -31,6 +31,10 @@ class FeaturesGenericServerDelegateImpl : FeaturesGenericServerDelegate {
         }
     }
 
+    override suspend fun ResponseWithInterfaceContext.responseWithInterface(): Nothing {
+        badRequest(OperationError(listOf("test")), "header-value")
+    }
+
     override suspend fun EchoContext.echo(): Nothing {
         val validRequest = request.validOrElse { badRequest(it.toOperationError()) }
 
@@ -55,12 +59,31 @@ class FeaturesGenericServerDelegateImpl : FeaturesGenericServerDelegate {
         ok(ReadOnlyObject(body.writeOnlyProperty, body.normalProperty))
     }
 
+    override suspend fun SplitTest3Context.splitTest3(): Nothing {
+        val validRequest = request.validOrElse { badRequest(it.toOperationError()) }
+
+        val body = validRequest.body
+
+        ok(
+            MixedObjectDown(
+                body.stringProp,
+                body.writeOnlyStringProp,
+                body.enumProp,
+                body.writeOnlyEnumProp,
+                body.objectProp,
+                body.writeOnlyObjectProp
+            )
+        )
+    }
+
     override suspend fun RawHeadersContext.rawHeaders(): Nothing {
-        ok(RawHeaders200Response(
-            rawHeaderValue("singleValueHeader1"),
-            rawHeaderValues("multiValueHeader1"),
-            rawHeaderValue("singleValueHeader2"),
-            rawHeaderValues("multiValueHeader2")
-        ))
+        ok(
+            RawHeaders200Response(
+                rawHeaderValue("singleValueHeader1"),
+                rawHeaderValues("multiValueHeader1"),
+                rawHeaderValue("singleValueHeader2"),
+                rawHeaderValues("multiValueHeader2")
+            )
+        )
     }
 }

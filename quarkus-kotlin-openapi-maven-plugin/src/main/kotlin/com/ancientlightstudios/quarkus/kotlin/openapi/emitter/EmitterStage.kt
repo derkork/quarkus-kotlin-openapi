@@ -2,50 +2,95 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.Config
 import com.ancientlightstudios.quarkus.kotlin.openapi.GeneratorStage
-import com.ancientlightstudios.quarkus.kotlin.openapi.InterfaceType
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableSpec
+import com.ancientlightstudios.quarkus.kotlin.openapi.handler.HandlerRegistry
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinFile
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiSpec
 import org.slf4j.LoggerFactory
+import java.io.File
+import kotlin.io.path.Path
 
-class EmitterStage(private val config: Config) : GeneratorStage {
+class EmitterStage(private val config: Config, private val handlerRegistry: HandlerRegistry) : GeneratorStage {
 
     private val log = LoggerFactory.getLogger(EmitterStage::class.java)
 
-    override fun process(spec: TransformableSpec) {
+    override fun process(spec: OpenApiSpec) {
+        val files = listOf(
+            DependencyContainerEmitter(),
 
-        val context = EmitterContext(spec, config)
+            ServerDelegateInterfaceEmitter(),
+            ServerResponseInterfaceEmitter(),
+            ServerRestControllerEmitter(),
+            ServerRequestContextEmitter(),
+            ServerRequestContainerEmitter(),
 
-        when (config.interfaceType) {
-            InterfaceType.CLIENT -> clientEmitters()
-            InterfaceType.SERVER -> serverEmitters()
-            InterfaceType.TEST_CLIENT -> testClientEmitters()
-        }.forEach {
-            context.runEmitter(it)
-        }
+            ClientDelegateEmitter(),
+            ClientResponseContainerEmitter(),
+            ClientRestControllerEmitter(),
 
-        log.info("Generated ${context.filesWritten + context.filesUpToDate} files (${context.filesWritten} new, ${context.filesUpToDate} up-to-date).")
+            TestClientResponseValidatorEmitter(),
+            TestClientRequestBuilderEmitter(),
+            TestClientRestControllerEmitter(),
+
+            EnumModelClassEmitter(),
+            ObjectModelClassEmitter(),
+            OneOfModelClassEmitter(),
+        ).runEmitters(EmitterContext(spec, config, handlerRegistry))
+
+        files.writeFiles()
     }
 
-    private fun serverEmitters() = listOf(
-        ServerDelegateEmitter(),
-        ServerRestInterfaceEmitter(config.pathPrefix),
-        ServerRequestContainerEmitter(),
-        ServerRequestContextEmitter(),
-        ServerResponseInterfaceEmitter(),
-        ModelClassEmitter(false)
-    )
+    private fun List<CodeEmitter>.runEmitters(context: EmitterContext): List<KotlinFile> {
+        forEach {
+            it.apply { context.emit() }
+        }
+        return context.kotlinFiles
+    }
 
-    private fun clientEmitters() = listOf(
-        ClientDelegateEmitter(config.pathPrefix, config.interfaceName, config.additionalProviders()),
-        ClientRestInterfaceEmitter(),
-        ClientResponseContainerEmitter(false),
-        ModelClassEmitter(false)
-    )
+    private fun List<KotlinFile>.writeFiles() {
+        // get the last modified time of all input files
+        val inputLastModifiedDate = config.sourceFiles
+            .union(config.patchFiles)
+            .maxOfOrNull { File(it).lastModified() } ?: -1
 
-    private fun testClientEmitters() = listOf(
-        TestClientRestInterfaceEmitter(config.pathPrefix),
-        TestClientResponseValidatorEmitter(),
-        TestClientRequestBuilderEmitter(),
-        ClientResponseContainerEmitter(true),
-        ModelClassEmitter(true)
-    )
+        var filesWritten = 0
+        var filesUpToDate = 0
+
+        this.forEach {
+            if (!it.writeFile(inputLastModifiedDate)) {
+                filesUpToDate++
+            } else {
+                filesWritten++
+            }
+        }
+
+        log.info("(New) Generated ${filesWritten + filesUpToDate} files ($filesWritten new, $filesUpToDate up-to-date).")
+
+    }
+
+    private fun KotlinFile.writeFile(inputLastModifiedDate: Long): Boolean {
+        val outputDirectory = Path(config.outputDirectory)
+        val packageName = name.packageName
+        val targetPath = if (packageName.isNotBlank()) {
+            val subPath = packageName.split(".")
+            outputDirectory.resolve(Path(subPath.first(), *subPath.drop(1).toTypedArray()))
+        } else {
+            outputDirectory
+        }
+
+        targetPath.toFile().mkdirs()
+
+        val outputFile = targetPath.resolve("${name.name}.kt").toFile()
+        if (!config.forceOverwriteGeneratedFiles) {
+            if (outputFile.exists() && outputFile.lastModified() > inputLastModifiedDate) {
+                return false
+            }
+        }
+
+        check(outputFile.exists() || outputFile.createNewFile()) { "Could not create file $outputFile" }
+        outputFile.bufferedWriter().use {
+            render(CodeWriter(it))
+        }
+        return true
+    }
+
 }

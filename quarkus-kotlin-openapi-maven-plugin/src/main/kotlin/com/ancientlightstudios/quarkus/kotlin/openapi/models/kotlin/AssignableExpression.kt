@@ -3,12 +3,12 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
 
 class AssignableExpression(
-    private val receiver: KotlinExpression?, private val className: ClassName
+    private val receiver: KotlinExpression?, private val typeReference: KotlinTypeReference
 ) : KotlinExpression {
 
     override fun ImportCollector.registerImports() {
         receiver?.let { registerFrom(it) }
-        register(className)
+        register(typeReference)
     }
 
     override fun render(writer: CodeWriter) = with(writer) {
@@ -17,16 +17,16 @@ class AssignableExpression(
             write(" ")
         }
 
-        write("is ${className.value}")
+        write("is ${typeReference.render()}")
     }
 
     companion object {
 
-        fun assignable(className: ClassName): KotlinExpression =
-            AssignableExpression(null, className)
+        fun assignable(typeReference: KotlinTypeReference): KotlinExpression =
+            AssignableExpression(null, typeReference)
 
-        fun KotlinExpression.assignable(className: ClassName): KotlinExpression =
-            AssignableExpression(this, className)
+        fun KotlinExpression.assignable(typeReference: KotlinTypeReference): KotlinExpression =
+            AssignableExpression(this, typeReference)
 
     }
 

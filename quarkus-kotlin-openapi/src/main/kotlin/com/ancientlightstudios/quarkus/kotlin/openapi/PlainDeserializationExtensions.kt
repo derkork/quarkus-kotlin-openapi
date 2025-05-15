@@ -14,11 +14,29 @@ fun Maybe<String?>.emptyStringAsNull(): Maybe<String?> = onNotNull {
 }
 
 @Suppress("unused")
-fun Maybe<ByteArray?>.emptyArrayAsNull(): Maybe<ByteArray?> = onNotNull {
-    if (value.isEmpty()) {
-        success(null)
+fun Maybe<String?>.nullAsEmptyString(): Maybe<String?> = onSuccess {
+    if (value == null) {
+        success("")
     } else {
-        this@emptyArrayAsNull
+        this@nullAsEmptyString
+    }
+}
+
+@Suppress("unused")
+fun <T> Maybe<List<T>?>.nullAsEmptyList(): Maybe<List<T>?> = onSuccess {
+    if (value == null) {
+        success(listOf())
+    } else {
+        this@nullAsEmptyList
+    }
+}
+
+@Suppress("unused")
+fun Maybe<ByteArray?>.nullAsEmptyArray(): Maybe<ByteArray?> = onSuccess {
+    if (value == null) {
+        success(byteArrayOf())
+    } else {
+        this@nullAsEmptyArray
     }
 }
 
@@ -51,7 +69,7 @@ fun Maybe<String?>.asBigDecimal(): Maybe<BigDecimal?> = this.mapNotNull("is not 
 @Suppress("unused")
 fun Maybe<String?>.asBoolean(): Maybe<Boolean?> = this.mapNotNull("is not a boolean") {
     it.toBooleanStrict()
-    when (val value = it.lowercase()) {
+    when (it.lowercase()) {
         "true" -> true
         "false" -> false
         else -> throw IllegalArgumentException()

@@ -5,11 +5,10 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
 fun <T> CodeWriter.renderWithWrap(
     parameters: List<T>,
     maxSizeForSingleLine: Int = 1,
-    delimiter: String = ", ",
     block: CodeWriter.(T) -> Unit
 ) {
     // block to render the parameters. but will be called later
-    val parameterBlock: CodeWriter.(Boolean) -> Unit = { newLine ->
+    val parameterBlock: CodeWriter.(Boolean, String) -> Unit = { newLine, delimiter ->
         parameters.forEachWithStats { status, it ->
             block(it)
             if (!status.last) {
@@ -19,8 +18,8 @@ fun <T> CodeWriter.renderWithWrap(
     }
 
     if (parameters.size > maxSizeForSingleLine) {
-        indent(newLineBefore = true, newLineAfter = true) { parameterBlock(true) }
+        indent(newLineBefore = true, newLineAfter = true) { parameterBlock(true, ",") }
     } else {
-        parameterBlock(false)
+        parameterBlock(false, ", ")
     }
 }

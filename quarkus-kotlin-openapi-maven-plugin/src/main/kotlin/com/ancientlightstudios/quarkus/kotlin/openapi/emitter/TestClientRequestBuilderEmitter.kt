@@ -1,312 +1,126 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.serialization.SerializationStatementEmitter
-import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.serialization.UnsafeSerializationStatementEmitter
-import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.RequestInspection
-import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.inspect
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.ParameterVariableNameHint.parameterVariableName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.RequestBuilderClassNameHint.requestBuilderClassName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.TypeUsageHint.typeUsage
+import com.ancientlightstudios.quarkus.kotlin.openapi.handler.Handler
+import com.ancientlightstudios.quarkus.kotlin.openapi.handler.HandlerResult
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.SolutionHint.solution
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.IdentifierExpression.Companion.identifier
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.IfElseExpression.Companion.ifElseExpression
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.InvocationExpression.Companion.invoke
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.methodName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.PropertyExpression.Companion.property
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.SimpleTypeName.Companion.typeName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ContentType
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ParameterKind
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableBody
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.*
-import com.ancientlightstudios.quarkus.kotlin.openapi.refactoring.AssignContentTypesRefactoring.Companion.getContentTypeForFormPart
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinTypeName.Companion.asTypeName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ParameterKind
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.RequestBody
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.RequestParameter
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.TestClientRequestBuilder
+import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
 
 class TestClientRequestBuilderEmitter : CodeEmitter {
 
-    private lateinit var emitterContext: EmitterContext
-
     override fun EmitterContext.emit() {
-        emitterContext = this
-        spec.inspect {
-            bundles {
-                requests {
-                    emitRequestBuilderFile()
-                        .writeFile()
-                }
-            }
-        }
+        spec.solution.files
+            .filterIsInstance<TestClientRequestBuilder>()
+            .forEach { emitFile(it) }
     }
 
-    private fun RequestInspection.emitRequestBuilderFile() = kotlinFile(request.requestBuilderClassName) {
-        val requestSpecificationVariable = "requestSpecification".variableName()
-        kotlinClass(fileName) {
-            registerImports(Library.AllClasses)
-            registerImports(emitterContext.getAdditionalImports())
+    private fun EmitterContext.emitFile(builder: TestClientRequestBuilder) {
+        kotlinFile(builder.name.asTypeName()) {
 
-            kotlinMember(
-                requestSpecificationVariable,
-                type = RestAssured.RequestSpecificationClass.typeName(),
-                mutable = true,
-                accessModifier = null
-            )
-            kotlinMember(
-                "objectMapper".variableName(),
-                type = Misc.ObjectMapperClass.typeName()
-            )
+            kotlinClass(name) {
+                registerImports(Library.All)
+                registerImports(config.additionalImports())
 
-            parameters {
-                if (parameter.kind != ParameterKind.Path) {
-                    kotlinMethod(parameter.name.methodName()) {
-                        val nullableType = parameter.content.typeUsage.forceNullable()
-
-                        // TODO: the buildValidType might revert the nullable again if this type has a default value
-                        kotlinParameter("value".variableName(), nullableType.buildValidType())
-
-                        val methodName = when (parameter.kind) {
-                            ParameterKind.Query -> "queryParams"
-                            ParameterKind.Header -> "headers"
-                            ParameterKind.Cookie -> "cookies"
-                            ParameterKind.Path -> "lazyVogel" // filtered out above
-                        }.methodName()
-
-                        val parameterStatement = emitterContext.runEmitter(
-                            SerializationStatementEmitter(
-                                nullableType,
-                                "value".variableName(),
-                                parameter.content.mappedContentType,
-                                true // we only use the statement inside a null check
-                            )
-                        ).resultStatement
-
-                        // produces
-                        //
-                        // if (value != null) {
-                        //     requestSpecification = requestSpecification.<methodName>(mapOf(Pair(<parameter.name>, <parameterStatement>)))
-                        // }
-                        ifElseExpression("value".variableName().compareWith(nullLiteral(), "!=")) {
-                            val argument = InvocationExpression.invoke(
-                                "mapOf".methodName(),
-                                InvocationExpression.invoke(
-                                    Kotlin.PairClass.constructorName,
-                                    parameter.name.literal(),
-                                    parameterStatement
-                                )
-                            )
-
-                            requestSpecificationVariable.invoke(methodName, argument)
-                                .assignment(requestSpecificationVariable)
-                        }.statement()
-                    }
-                }
-            }
-
-            body {
-                body.emitBodyMethods(this@kotlinClass, requestSpecificationVariable)
-            }
-        }
-    }
-
-    private fun TransformableBody.emitBodyMethods(clazz: KotlinClass, requestSpecificationVariable: VariableName) {
-        when (content.mappedContentType) {
-            ContentType.ApplicationJson -> emitJsonBodyMethod(clazz, requestSpecificationVariable)
-            ContentType.TextPlain -> emitPlainBodyMethod(clazz, requestSpecificationVariable)
-            ContentType.ApplicationFormUrlencoded -> emitFormBodyMethod(clazz, requestSpecificationVariable)
-            ContentType.ApplicationOctetStream -> emitOctetStreamBodyMethod(clazz, requestSpecificationVariable)
-//            ContentType.MultipartFormData -> ProbableBug("Multipart-Form not yet supported for test client")
-        }
-    }
-
-    private fun specialMapSupport(type: TypeDefinition): Boolean {
-        if (type !is ObjectTypeDefinition) {
-            return false
-        }
-
-        if (!type.isPureMap) {
-            return false
-        }
-
-        val valueType = type.additionalProperties!!
-        return valueType.type is PrimitiveTypeDefinition || valueType.type is EnumTypeDefinition
-    }
-
-    private fun TransformableBody.emitJsonBodyMethod(clazz: KotlinClass, requestSpecificationVariable: VariableName) {
-        val specialMapSupport = specialMapSupport(content.typeUsage.type)
-
-        if (!specialMapSupport) {
-            // generate the default body method
-            clazz.kotlinMethod("body".methodName()) {
-                val nullableType = content.typeUsage.forceNullable()
-                kotlinParameter("value".variableName(), nullableType.buildValidType())
-
-                val bodyStatement = emitterContext.runEmitter(
-                    SerializationStatementEmitter(
-                        nullableType,
-                        "value".variableName(),
-                        content.mappedContentType
-                    )
-                ).resultStatement
-
-                // produces
-                //
-                // requestSpecification = requestSpecification.body(<bodyStatement>)
-                requestSpecificationVariable
-                    .invoke(
-                        "body".methodName(),
-                        bodyStatement.invoke("asString".methodName(), "objectMapper".variableName())
-                    )
-                    .assignment(requestSpecificationVariable)
-            }
-        }
-
-        // generate a body method with a UnsafeJson parameter for object and oneOf types
-        if (content.typeUsage.type is ObjectTypeDefinition || content.typeUsage.type is OneOfTypeDefinition || content.typeUsage.type is CollectionTypeDefinition) {
-            clazz.kotlinMethod("body".methodName()) {
-                kotlinAnnotation(Kotlin.JvmNameClass, "name".variableName() to "bodyWithUnsafe".literal())
-                kotlinParameter("value".variableName(), content.typeUsage.buildUnsafeJsonType(specialMapSupport))
-
-                val bodyStatement = emitterContext.runEmitter(
-                    UnsafeSerializationStatementEmitter(
-                        content.typeUsage,
-                        "value".variableName(),
-                        content.mappedContentType,
-                        !specialMapSupport // the normal type is not null here, only for special maps
-                    )
-                ).resultStatement
-
-                // produces
-                //
-                // requestSpecification = requestSpecification.body(<bodyStatement>)
-                requestSpecificationVariable
-                    .invoke(
-                        "body".methodName(),
-                        bodyStatement.invoke("asString".methodName(), "objectMapper".variableName())
-                    )
-                    .assignment(requestSpecificationVariable)
-            }
-        }
-    }
-
-    private fun TransformableBody.emitPlainBodyMethod(clazz: KotlinClass, requestSpecificationVariable: VariableName) {
-        clazz.kotlinMethod("body".methodName()) {
-            val nullableType = content.typeUsage.forceNullable()
-            kotlinParameter("value".variableName(), nullableType.buildValidType())
-
-            val bodyStatement = emitterContext.runEmitter(
-                SerializationStatementEmitter(
-                    nullableType,
-                    "value".variableName(),
-                    content.mappedContentType,
-                    true // we only use the statement inside a null check
+                kotlinMember(
+                    "requestSpecification",
+                    type = RestAssured.RequestSpecification.asTypeReference(),
+                    mutable = true,
+                    accessModifier = null
                 )
-            ).resultStatement
+                kotlinMember("dependencyContainer", builder.dependencyContainer.name.asTypeReference())
 
-            // produces
-            //
-            // if (value != null) {
-            //     requestSpecification = requestSpecification.body(<bodyStatement>)
-            // }
-            ifElseExpression("value".variableName().compareWith(nullLiteral(), "!=")) {
-                requestSpecificationVariable
-                    .invoke("body".methodName(), bodyStatement)
-                    .assignment(requestSpecificationVariable)
-            }.statement()
-        }
-    }
-
-    private fun TransformableBody.emitFormBodyMethod(clazz: KotlinClass, requestSpecificationVariable: VariableName) {
-        clazz.kotlinMethod("body".methodName()) {
-            val nullableType = content.typeUsage.forceNullable()
-            kotlinParameter("value".variableName(), nullableType.buildValidType())
-
-            // produces
-            //
-            // if (value != null) {
-            //     ...
-            // }
-            ifElseExpression("value".variableName().compareWith(nullLiteral(), "!=")) {
-                val safeType = nullableType.type
-                if (safeType is ObjectTypeDefinition) {
-                    // TODO: in case of json we probably want the writeValueAsString method to convert the payload
-                    //   see jsonBody. same for restClient
-                    safeType.properties.forEach {
-                        val propertyType = it.typeUsage
-                        val contentType = getContentTypeForFormPart(propertyType.type)
-                        if (propertyType.nullable) {
-                            ifElseExpression(
-                                "value".variableName().property(it.name).compareWith(nullLiteral(), "!=")
-                            ) {
-                                renderFormParamStatement(
-                                    requestSpecificationVariable,
-                                    propertyType,
-                                    "value".variableName().property(it.name),
-                                    contentType,
-                                    it.sourceName
-                                )
-                            }
-                        } else {
-                            renderFormParamStatement(
-                                requestSpecificationVariable,
-                                propertyType,
-                                "value".variableName().property(it.name),
-                                contentType,
-                                it.sourceName
-                            )
-                        }
-                    }
-                } else {
-                    renderFormParamStatement(
-                        requestSpecificationVariable,
-                        nullableType,
-                        "value".variableName(),
-                        content.mappedContentType,
-                        parameterVariableName.value
-                    )
+                val context = object : TestClientRequestBuilderHandlerContext {
+                    override fun addMethod(method: KotlinMethod) = this@kotlinClass.addMethod(method)
                 }
-            }.statement()
+
+                builder.parameters.filterNot { it.kind == ParameterKind.Path }.forEach { parameter ->
+                    getHandler<TestClientRequestBuilderHandler, Unit> {
+                        context.emitParameter(parameter)
+                    }
+                }
+
+                builder.body?.let { body ->
+                    getHandler<TestClientRequestBuilderHandler, Unit> {
+                        context.emitBody(body)
+                    }
+                }
+            }
         }
     }
 
-    private fun StatementAware.renderFormParamStatement(
-        requestSpecificationVariable: VariableName,
-        type: TypeUsage,
-        parameter: KotlinExpression,
-        contentType: ContentType,
-        parameterName: String
-    ) {
-        val serializeStatement = emitterContext.runEmitter(
-            SerializationStatementEmitter(
-                type,
-                parameter,
-                contentType,
-                true // we only use the statement inside a null check
-            )
-        ).resultStatement
+}
 
-        requestSpecificationVariable
-            .invoke("formParam".methodName(), parameterName.literal(), serializeStatement)
-            .assignment(requestSpecificationVariable)
+interface TestClientRequestBuilderHandlerContext : MethodAware {
 
-    }
-
-
-    private fun emitOctetStreamBodyMethod(
-        clazz: KotlinClass,
-        requestSpecificationVariable: VariableName
-    ) {
-        clazz.kotlinMethod("body".methodName()) {
-            kotlinParameter("value".variableName(), Kotlin.ByteArrayClass.typeName(true))
+    /**
+     * generates a default method for the parameter. if the type is nullable, a null check will be added, so the given
+     * serialization should ignore null values
+     */
+    fun emitDefaultParameter(parameter: RequestParameter, type: KotlinTypeReference, serialization: KotlinExpression) {
+        emitCustom(parameter.name, type) {
+            val methodName = when (parameter.kind) {
+                ParameterKind.Query -> "queryParams"
+                ParameterKind.Header -> "headers"
+                ParameterKind.Cookie -> "cookies"
+                ParameterKind.Path -> ProbableBug("path params are not supported by the test client builder")
+            }
 
             // produces
-            //
-            // if (value != null) {
-            //     requestSpecification = requestSpecification.body(value)
-            // }
-            ifElseExpression("value".variableName().compareWith(nullLiteral(), "!=")) {
-                requestSpecificationVariable
-                    .invoke("body".methodName(), "value".variableName())
-                    .assignment(requestSpecificationVariable)
-            }.statement()
+            // requestSpecification.<methodName>(mapOf(Pair(<parameter.sourceName>, <serialization>)))
+            val pair = invoke(Kotlin.Pair.identifier(), parameter.sourceName.literal(), serialization)
+            "requestSpecification".identifier().invoke(methodName, invoke("mapOf", pair))
+                .assignment("requestSpecification")
         }
     }
 
-    private fun TypeUsage.forceNullable() = TypeUsage(false, this.type)
+    /**
+     * generates a default method for the body. if the type is nullable, a null check will be added, so the given
+     * serialization should ignore null values
+     */
+    fun emitDefaultBody(body: RequestBody, type: KotlinTypeReference, serialization: KotlinExpression) {
+        emitCustom(body.name, type) {
+            // produces
+            // requestSpecification = requestSpecification.body(<serialization>)
+            "requestSpecification".identifier().invoke("body", serialization)
+                .assignment("requestSpecification")
+        }
+    }
+
+    fun emitCustom(methodName: String, type: KotlinTypeReference, block: StatementAware.() -> Unit) {
+        kotlinMethod(methodName) {
+            kotlinParameter("value", type)
+
+            // produces
+            // if (value != null) {
+            //     <statements>
+            // }
+            // or just
+            // <statements>
+            // if the type is not nullable
+            if (type.nullable) {
+                ifElseExpression("value".identifier().compareWith(nullLiteral(), "!=")) {
+                    block()
+                }.statement()
+            } else {
+                block()
+            }
+        }
+    }
+
+}
+
+interface TestClientRequestBuilderHandler : Handler {
+
+    fun TestClientRequestBuilderHandlerContext.emitParameter(parameter: RequestParameter): HandlerResult<Unit>
+
+    fun TestClientRequestBuilderHandlerContext.emitBody(body: RequestBody): HandlerResult<Unit>
+
 }

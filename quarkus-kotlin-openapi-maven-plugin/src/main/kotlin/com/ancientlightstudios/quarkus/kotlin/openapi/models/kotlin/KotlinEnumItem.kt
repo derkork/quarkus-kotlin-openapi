@@ -3,7 +3,7 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.forEachWithStats
 
-class KotlinEnumItem(private val name: ConstantName, private vararg val values: KotlinExpression) :
+class KotlinEnumItem(private val name: String, private vararg val values: KotlinExpression) :
     KotlinRenderable, AnnotationAware {
 
     private val annotations = KotlinAnnotationContainer()
@@ -19,7 +19,7 @@ class KotlinEnumItem(private val name: ConstantName, private vararg val values: 
     override fun render(writer: CodeWriter) = with(writer) {
         annotations.render(this)
 
-        write(name.value)
+        write(name)
         if (values.isNotEmpty()) {
             write("(")
             values.forEachWithStats { status, value ->
@@ -35,7 +35,7 @@ class KotlinEnumItem(private val name: ConstantName, private vararg val values: 
 }
 
 fun KotlinEnum.kotlinEnumItem(
-    name: ConstantName,
+    name: String,
     vararg values: KotlinExpression,
     block: KotlinEnumItem.() -> Unit = {}
 ) {

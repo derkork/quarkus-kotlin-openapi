@@ -1,6 +1,6 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.parser
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.RequestMethod
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.RequestMethod
 
 
 class RequestFilter(endpoints: List<String>) {

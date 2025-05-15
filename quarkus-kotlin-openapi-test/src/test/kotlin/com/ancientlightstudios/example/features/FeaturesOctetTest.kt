@@ -18,14 +18,14 @@ class FeaturesOctetTest : ApiTestBase() {
     lateinit var client: FeaturesOctetClient
 
     val testClient: FeaturesOctetTestClient
-        get() = FeaturesOctetTestClient(objectMapper) { prepareRequest() }
+        get() = FeaturesOctetTestClient(dependencyContainer) { prepareRequest() }
 
     @Test
     fun `empty body is supported for optional content (Client)`() {
         runBlocking {
             val response = client.fileUploadOptional(byteArrayOf())
             if (response is FileUploadOptionalHttpResponse.Ok) {
-                assertThat(response.safeBody).isNull()
+                assertThat(response.safeBody).isEqualTo(byteArrayOf())
             } else {
                 fail("unexpected response")
             }
@@ -36,7 +36,7 @@ class FeaturesOctetTest : ApiTestBase() {
     fun `empty body is supported for optional content (Test-Client)`() {
         testClient.fileUploadOptionalSafe(byteArrayOf())
             .isOkResponse {
-                assertThat(safeBody).isNull()
+                assertThat(safeBody).isEqualTo(byteArrayOf())
             }
     }
 
@@ -58,7 +58,7 @@ class FeaturesOctetTest : ApiTestBase() {
         runBlocking {
             val response = client.fileUploadOptional(null)
             if (response is FileUploadOptionalHttpResponse.Ok) {
-                assertThat(response.safeBody).isEqualTo(null)
+                assertThat(response.safeBody).isEqualTo(byteArrayOf())
             } else {
                 fail("unexpected response")
             }
@@ -67,11 +67,9 @@ class FeaturesOctetTest : ApiTestBase() {
 
     @Test
     fun `null body is supported for optional content (Test-Client)`() {
-        testClient.fileUploadOptionalUnsafe {
-            body(null)
-        }
+        testClient.fileUploadOptionalSafe(null)
             .isOkResponse {
-                assertThat(safeBody).isEqualTo(null)
+                assertThat(safeBody).isEqualTo(byteArrayOf())
             }
     }
 
@@ -92,7 +90,7 @@ class FeaturesOctetTest : ApiTestBase() {
         runBlocking {
             val response = client.fileUploadRequired(byteArrayOf())
             if (response is FileUploadRequiredHttpResponse.BadRequest) {
-                assertThat(response.safeBody.messages).containsExactly(listOf("body", "required"))
+                assertThat(response.safeBody.messages).containsExactly(listOf("body", "minimum"))
             } else {
                 fail("unexpected response")
             }
@@ -103,7 +101,7 @@ class FeaturesOctetTest : ApiTestBase() {
     fun `empty body is rejected when required (Test-Client)`() {
         testClient.fileUploadRequiredSafe(byteArrayOf())
             .isBadRequestResponse {
-                assertThat(safeBody.messages).containsExactly(listOf("body", "required"))
+                assertThat(safeBody.messages).containsExactly(listOf("body", "minimum"))
             }
     }
 
@@ -119,7 +117,7 @@ class FeaturesOctetTest : ApiTestBase() {
             .jsonPath()
             .getList<String>("messages")
 
-        assertThat(messages).containsExactly(listOf("body", "required"))
+        assertThat(messages).containsExactly(listOf("body", "minimum"))
     }
 
     @Test
@@ -128,7 +126,7 @@ class FeaturesOctetTest : ApiTestBase() {
             body(null)
         }
             .isBadRequestResponse {
-                assertThat(safeBody.messages).containsExactly(listOf("body", "required"))
+                assertThat(safeBody.messages).containsExactly(listOf("body", "minimum"))
             }
     }
 
@@ -143,7 +141,7 @@ class FeaturesOctetTest : ApiTestBase() {
             .jsonPath()
             .getList<String>("messages")
 
-        assertThat(messages).containsExactly(listOf("body", "required"))
+        assertThat(messages).containsExactly(listOf("body", "minimum"))
     }
 
     @Test

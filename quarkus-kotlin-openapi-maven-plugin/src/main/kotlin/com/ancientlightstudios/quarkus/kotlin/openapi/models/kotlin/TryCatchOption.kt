@@ -1,9 +1,8 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.rawVariableName
 
-class TryCatchOption(private val variableName: VariableName, private val className: ClassName) : KotlinRenderable,
+class TryCatchOption(private val variableName: String, private val className: KotlinTypeName) : KotlinRenderable,
     StatementAware {
 
     private val statements = KotlinStatementContainer()
@@ -18,7 +17,7 @@ class TryCatchOption(private val variableName: VariableName, private val classNa
     }
 
     override fun render(writer: CodeWriter) = with(writer) {
-        write("catch (${variableName.value}: ${className.value}) ")
+        write("catch ($variableName: ${className.name}) ")
         block(newLineAfter = false) {
             statements.render(this)
         }
@@ -33,11 +32,11 @@ interface TryCatchAware {
 }
 
 fun TryCatchAware.catchBlock(
-    className: ClassName, variableName: VariableName = "e".rawVariableName(), ignoreVariable: Boolean = false,
+    className: KotlinTypeName, variableName: String = "e", ignoreVariable: Boolean = false,
     block: TryCatchOption.() -> Unit
 ) {
     val variable = when (ignoreVariable) {
-        true -> "_".rawVariableName()
+        true -> "_"
         else -> variableName
     }
 

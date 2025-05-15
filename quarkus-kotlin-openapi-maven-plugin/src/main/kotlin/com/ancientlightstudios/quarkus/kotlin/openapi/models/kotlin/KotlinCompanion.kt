@@ -2,7 +2,8 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
 
-class KotlinCompanion(private val identifier: ClassName? = null) : KotlinRenderable, MethodAware, CommentAware {
+class KotlinCompanion(private val identifier: KotlinTypeName? = null, private val keepIfEmpty: Boolean = false) :
+    KotlinRenderable, MethodAware, CommentAware {
 
     private val methods = KotlinRenderableBlockContainer<KotlinMethod>()
     private var comment: KotlinComment? = null
@@ -20,6 +21,10 @@ class KotlinCompanion(private val identifier: ClassName? = null) : KotlinRendera
     }
 
     override fun render(writer: CodeWriter) = with(writer) {
+        if (!keepIfEmpty && methods.isEmpty) {
+            return
+        }
+
         comment?.let {
             it.render(this)
             writeln(forceNewLine = false)
@@ -27,7 +32,7 @@ class KotlinCompanion(private val identifier: ClassName? = null) : KotlinRendera
 
         write("companion object ")
         if (identifier != null) {
-            write("${identifier.value} ")
+            write("${identifier.name} ")
         }
         block {
             writeln()
@@ -44,7 +49,6 @@ interface CompanionAware {
 
 }
 
-fun CompanionAware.kotlinCompanion(identifier: ClassName? = null, block: KotlinCompanion.() -> Unit) {
-    val content = KotlinCompanion(identifier).apply(block)
-    setCompanion(content)
-}
+fun CompanionAware.kotlinCompanion(
+    identifier: KotlinTypeName? = null, keepIfEmpty: Boolean = false, block: KotlinCompanion.() -> Unit
+) = KotlinCompanion(identifier).apply(block).also { setCompanion(it) }

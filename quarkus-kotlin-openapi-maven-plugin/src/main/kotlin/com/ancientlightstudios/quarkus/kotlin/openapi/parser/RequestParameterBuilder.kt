@@ -2,21 +2,21 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.parser
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.NameSuggestionHint.nameSuggestion
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.OriginPathHint.originPath
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ParameterKind
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableParameter
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.ParameterKind
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiParameter
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.SpecIssue
 import com.fasterxml.jackson.databind.node.ObjectNode
 
 class RequestParameterBuilder(private val node: ObjectNode) {
 
-    fun ParseContext.build(): TransformableParameter {
+    fun ParseContext.build(): OpenApiParameter {
         return when (val ref = node.getTextOrNull("\$ref")) {
             null -> extractParameterDefinition()
             else -> extractParameterReference(ref)
         }
     }
 
-    private fun ParseContext.extractParameterDefinition(): TransformableParameter {
+    private fun ParseContext.extractParameterDefinition(): OpenApiParameter {
         val name = node.getTextOrNull("name")
             ?: SpecIssue("Property 'name' is required for parameter $contextPath")
         val kind = node.getTextOrNull("in")?.let { ParameterKind.fromString(it) }
@@ -28,7 +28,7 @@ class RequestParameterBuilder(private val node: ObjectNode) {
         }
 
         val content = contextFor("content").parseAsContent()
-        return TransformableParameter(name, kind, required, content)
+        return OpenApiParameter(name, kind, required, content)
             .apply {
                 originPath = contextPath
             }
@@ -36,7 +36,7 @@ class RequestParameterBuilder(private val node: ObjectNode) {
 
     private fun ParseContext.extractParameterReference(ref: String) = rootContext.contextFor(JsonPointer.fromPath(ref))
         .parseAsRequestParameter()
-        .apply { nameSuggestion = ref.nameSuggestion() }
+        .apply { nameSuggestion = ref.referencedComponentName() }
 
 }
 

@@ -29,7 +29,7 @@ class FeaturesValidationTest : ApiTestBase() {
     lateinit var client: FeaturesValidationClient
 
     val testClient: FeaturesValidationTestClient
-        get() = FeaturesValidationTestClient(objectMapper) { prepareRequest() }
+        get() = FeaturesValidationTestClient(dependencyContainer) { prepareRequest() }
 
     @Test
     fun `omitted optional values are not validated (Client)`() {

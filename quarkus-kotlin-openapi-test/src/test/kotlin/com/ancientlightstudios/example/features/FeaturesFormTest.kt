@@ -22,7 +22,7 @@ class FeaturesFormTest : ApiTestBase() {
     lateinit var client: FeaturesFormClient
 
     val testClient: FeaturesFormTestClient
-        get() = FeaturesFormTestClient(objectMapper) { prepareRequest() }
+        get() = FeaturesFormTestClient(dependencyContainer) { prepareRequest() }
 
     @Test
     fun `sending a value is accepted (Client)`() {

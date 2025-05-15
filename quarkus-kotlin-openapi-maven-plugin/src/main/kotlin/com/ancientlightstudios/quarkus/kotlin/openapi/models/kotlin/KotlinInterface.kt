@@ -3,9 +3,9 @@ package com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin
 import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.CodeWriter
 
 class KotlinInterface(
-    private val name: ClassName,
+    private val name: KotlinTypeName,
     private val sealed: Boolean = false,
-    private val interfaces: List<ClassName> = listOf()
+    private val interfaces: List<KotlinTypeReference> = listOf()
 ) : KotlinRenderable, AnnotationAware, MethodAware, CommentAware, ClassAware, CompanionAware {
 
     private val annotations = KotlinAnnotationContainer()
@@ -35,7 +35,7 @@ class KotlinInterface(
     }
 
     override fun ImportCollector.registerImports() {
-        register(interfaces)
+//        register(interfaces)
         registerFrom(annotations)
         registerFrom(methods)
         registerFrom(items)
@@ -52,10 +52,10 @@ class KotlinInterface(
         if (sealed) {
             write("sealed ")
         }
-        write("interface ${name.value}")
+        write("interface ${name.name}")
 
         if (interfaces.isNotEmpty()) {
-            write(interfaces.joinToString(prefix = " : ") { it.value })
+            write(interfaces.joinToString(prefix = " : ") { it.render() })
         }
 
         if (methods.isNotEmpty || items.isNotEmpty || companion != null) {
@@ -91,9 +91,9 @@ interface InterfaceAware {
 }
 
 fun InterfaceAware.kotlinInterface(
-    name: ClassName,
+    name: KotlinTypeName,
     sealed: Boolean = false,
-    interfaces: List<ClassName> = listOf(),
+    interfaces: List<KotlinTypeReference> = listOf(),
     block: KotlinInterface.() -> Unit
 ) {
     val content = KotlinInterface(name, sealed, interfaces).apply(block)

@@ -1,348 +1,135 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.emitter
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.deserialization.CombineIntoObjectStatementEmitter
-import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.deserialization.DeserializationStatementEmitter
-import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.serialization.SerializationStatementEmitter
-import com.ancientlightstudios.quarkus.kotlin.openapi.emitter.serialization.UnsafeSerializationStatementEmitter
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.DeserializationDirectionHint.deserializationDirection
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.SerializationDirectionHint.serializationDirection
+import com.ancientlightstudios.quarkus.kotlin.openapi.handler.Handler
+import com.ancientlightstudios.quarkus.kotlin.openapi.handler.HandlerResult
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.SolutionHint.solution
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.*
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.IdentifierExpression.Companion.identifier
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.InvocationExpression.Companion.invoke
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.methodName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.MethodName.Companion.rawMethodName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.GenericTypeName.Companion.of
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.TypeName.SimpleTypeName.Companion.typeName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.VariableName.Companion.variableName
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.ContentType
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.PropertiesValidation
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.types.*
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.kotlin.KotlinTypeName.Companion.asTypeName
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.ObjectModelClass
 
-class ObjectModelClassEmitter(private val typeDefinition: ObjectTypeDefinition, private val withTestSupport: Boolean) :
-    CodeEmitter {
-
-    private lateinit var emitterContext: EmitterContext
+class ObjectModelClassEmitter : CodeEmitter {
 
     override fun EmitterContext.emit() {
-        emitterContext = this
+        spec.solution.files
+            .filterIsInstance<ObjectModelClass>()
+            .forEach { emitFile(it) }
+    }
 
-        kotlinFile(typeDefinition.modelName) {
-            registerImports(Library.AllClasses)
-            registerImports(getAdditionalImports())
+    private fun EmitterContext.emitFile(model: ObjectModelClass) {
+        kotlinFile(model.name.asTypeName()) {
+            registerImports(Library.All)
+            registerImports(config.additionalImports())
 
-            val hasPropertiesValidation = typeDefinition.validations.any { it is PropertiesValidation }
+            kotlinClass(name, asDataClass = true) {
+                var additionalConstructor: KotlinConstructor? = null
 
-            val baseInterfaces = mutableListOf<ClassName>()
-            var constructorModifier: KotlinAccessModifier? = null
+                if (model.needsPropertiesCount) {
+                    interfaces += Library.PropertiesContainer.asTypeReference()
+                    constructorAccessModifier = KotlinAccessModifier.Private
 
-            if (hasPropertiesValidation) {
-                baseInterfaces.add(Library.PropertiesContainerInterface)
-                constructorModifier = KotlinAccessModifier.Private
-            }
-
-            kotlinClass(
-                fileName,
-                asDataClass = true,
-                interfaces = baseInterfaces,
-                constructorAccessModifier = constructorModifier
-            ) {
-                if (hasPropertiesValidation) {
+                    // create an additional member that contains the number of received properties
                     kotlinMember(
-                        "receivedPropertiesCount".variableName(),
-                        Kotlin.IntClass.typeName(),
+                        "receivedPropertiesCount",
+                        Kotlin.Int.asTypeReference(),
                         accessModifier = KotlinAccessModifier.Private
                     )
-                    kotlinConstructor {
+
+                    additionalConstructor = kotlinConstructor {
+                        // initialize the `receivedPropertiesCount` member with -1 if this ctor is called
                         addPrimaryConstructorParameter((-1).literal())
-
-                        typeDefinition.properties.forEach {
-                            val defaultValue = generateDefaultValueExpression(it.typeUsage)
-                            kotlinParameter(
-                                it.name,
-                                it.typeUsage.buildValidType(),
-                                expression = defaultValue
-                            )
-                            addPrimaryConstructorParameter(it.name)
-                        }
-
-                        typeDefinition.additionalProperties?.let {
-                            kotlinParameter(
-                                "additionalProperties".variableName(),
-                                Kotlin.MapClass.typeName().of(Kotlin.StringClass.typeName(), it.buildValidType()),
-                                expression = invoke("mapOf".methodName())
-                            )
-                            addPrimaryConstructorParameter("additionalProperties".variableName())
-                        }
                     }
 
                     generatePropertyCountMethod()
                 }
 
-                typeDefinition.properties.forEach {
-                    val defaultValue = generateDefaultValueExpression(it.typeUsage)
+                model.properties.forEach {
+                    val defaultValue = it.model.getDefinedDefaultValue()
+                    val finalModel = it.model.adjustToDefault(defaultValue)
                     kotlinMember(
                         it.name,
-                        it.typeUsage.buildValidType(),
+                        finalModel.asTypeReference(),
                         accessModifier = null,
-                        default = defaultValue
+                        default = defaultValue.toKotlinExpression()
                     )
+
+                    // if the second ctor exists, add the property there as well
+                    additionalConstructor?.apply {
+                        kotlinParameter(it.name, finalModel.asTypeReference(), defaultValue.toKotlinExpression())
+                        // and pass it to the primary ctor
+                        addPrimaryConstructorParameter(it.name.identifier())
+                    }
                 }
 
-                typeDefinition.additionalProperties?.let {
+                model.additionalProperties?.let {
                     kotlinMember(
-                        "additionalProperties".variableName(),
-                        Kotlin.MapClass.typeName().of(Kotlin.StringClass.typeName(), it.buildValidType()),
+                        "additionalProperties",
+                        Kotlin.Map.asTypeReference(Kotlin.String.asTypeReference(), it.asTypeReference()),
                         accessModifier = null,
-                        default = invoke("mapOf".methodName())
+                        default = invoke("mapOf")
                     )
+
+                    // if the second ctor exists, add the map there as well
+                    additionalConstructor?.apply {
+                        kotlinParameter(
+                            "additionalProperties",
+                            Kotlin.Map.asTypeReference(Kotlin.String.asTypeReference(), it.asTypeReference()),
+                            invoke("mapOf")
+                        )
+                        // and pass it to the primary ctor
+                        addPrimaryConstructorParameter("additionalProperties".identifier())
+                    }
                 }
 
-                generateSerializeMethods(spec.serializationDirection)
+                model.features.filterIsInstance<ModelSerializationFeature>().forEach { feature ->
+                    getHandler<ObjectModelSerializationHandler, Unit> {
+                        installSerializationFeature(model, feature)
+                    }
+                }
 
                 kotlinCompanion {
-                    generateDeserializeMethods(spec.deserializationDirection, hasPropertiesValidation)
+                    model.features.filterIsInstance<ModelDeserializationFeature>().forEach { feature ->
+                        getHandler<ObjectModelDeserializationHandler, Unit> {
+                            installDeserializationFeature(model, feature)
+                        }
+                    }
 
                     if (withTestSupport) {
-                        generateUnsafeMethods(spec.serializationDirection)
+                        model.features.filterIsInstance<ModelSerializationFeature>().forEach { feature ->
+                            getHandler<ObjectModelSerializationHandler, Unit> {
+                                installTestSerializationFeature(model, feature)
+                            }
+                        }
                     }
                 }
-
             }
-        }.writeFile()
+        }
     }
 
+    // produces
+    // override fun receivedPropertiesCount() = receivedPropertiesCount
     private fun KotlinClass.generatePropertyCountMethod() {
-        kotlinMethod("receivedPropertiesCount".methodName(), override = true, bodyAsAssignment = true) {
-            "receivedPropertiesCount".variableName().statement()
+        kotlinMethod("receivedPropertiesCount", override = true, bodyAsAssignment = true) {
+            "receivedPropertiesCount".identifier().statement()
         }
     }
 
-    private fun KotlinClass.generateSerializeMethods(serializationDirection: Direction) {
-        val types = typeDefinition.getContentTypes(serializationDirection)
-        if (types.contains(ContentType.ApplicationJson)) {
-            generateJsonSerializeMethod()
-        }
-    }
+}
 
-    private fun KotlinCompanion.generateDeserializeMethods(
-        deserializationDirection: Direction,
-        hasPropertyValidation: Boolean
-    ) {
-        val types = typeDefinition.getContentTypes(deserializationDirection)
-            .intersect(listOf(ContentType.ApplicationJson))
+interface ObjectModelSerializationHandler : Handler {
 
-        if (types.isNotEmpty()) {
-            if (types.contains(ContentType.ApplicationJson)) {
-                generateJsonDeserializeMethod(hasPropertyValidation)
-            }
-        }
-    }
+    fun MethodAware.installSerializationFeature(model: ObjectModelClass, feature: ModelSerializationFeature):
+            HandlerResult<Unit>
 
-    // generates a method like this
-    //
-    // fun asJson(): JsonNode = objectNode()
-    //     .setProperty("<propertyName>", <SerializationStatement for property>, (true|false))
-    //
-    // generates a call to setProperty for every property of the object
-    private fun MethodAware.generateJsonSerializeMethod() {
-        kotlinMethod("asJson".rawMethodName(), returnType = Misc.JsonNodeClass.typeName(), bodyAsAssignment = true) {
-            var expression = invoke("objectNode".rawMethodName())
+    fun MethodAware.installTestSerializationFeature(model: ObjectModelClass, feature: ModelSerializationFeature):
+            HandlerResult<Unit>
 
-            typeDefinition.properties.forEach {
-                val serialization = emitterContext.runEmitter(
-                    SerializationStatementEmitter(it.typeUsage, it.name, ContentType.ApplicationJson)
-                ).resultStatement
+}
 
-                expression = expression.wrap().invoke(
-                    "setProperty".rawMethodName(),
-                    it.sourceName.literal(),
-                    serialization,
-                    // only check for required, not !nullable, because we want to include null in the response
-                    // if the type is nullable but required
-                    it.typeUsage.required.literal()
-                )
-            }
+interface ObjectModelDeserializationHandler : Handler {
 
-            typeDefinition.additionalProperties?.let {
-                val protectedNames = typeDefinition.properties.map { it.sourceName.literal() }
-
-                expression = expression.wrap().invoke(
-                    "setAdditionalProperties".rawMethodName(),
-                    "additionalProperties".variableName(),
-                    *protectedNames.toTypedArray()
-                ) {
-                    emitterContext.runEmitter(
-                        SerializationStatementEmitter(it, "it".variableName(), ContentType.ApplicationJson)
-                    ).resultStatement.statement()
-                }
-            }
-
-            expression.statement()
-        }
-    }
-
-    // generates a method like this
-    //
-    // fun Maybe<JsonNode?>.as<ModelName>(): Maybe<<ModelName>?> = onNotNull {
-    //
-    // }
-    //
-    // there is an option for every enum value
-    private fun MethodAware.generateJsonDeserializeMethod(hasPropertyValidation: Boolean) {
-        kotlinMethod(
-            typeDefinition.modelName.value.methodName(prefix = "as"),
-            returnType = Library.MaybeClass.typeName().of(typeDefinition.modelName.typeName(true)),
-            receiverType = Library.MaybeClass.typeName().of(Misc.JsonNodeClass.typeName(true)),
-            bodyAsAssignment = true
-        ) {
-            invoke("onNotNull".rawMethodName()) {
-                if (hasPropertyValidation) {
-                    val propertiesWithDefault = typeDefinition.properties.filter { hasRealDefaultValueDeclared(it.typeUsage) }.map { it.sourceName.literal() }
-                    invoke("listOf<String>".rawMethodName(), propertiesWithDefault).declaration("propertiesWithDefault")
-
-                    if (typeDefinition.additionalProperties != null) {
-                        // just count all properties
-                        "value".variableName().invoke("countAllProperties".methodName(), "propertiesWithDefault".variableName())
-                            .declaration("propertyCount")
-                    } else {
-                        // only count known properties
-                        val knownProperties = typeDefinition.properties.map { it.sourceName.literal() }
-                        invoke("listOf<String>".rawMethodName(), knownProperties).declaration("knownProperties")
-                        "value".variableName().invoke("countKnownProperties".methodName(), "knownProperties".variableName(), "propertiesWithDefault".variableName())
-                            .declaration("propertyCount")
-                    }
-                }
-
-                // iterate over all members and create a deserialize statement for each
-                val root = "value".variableName()
-                val objectParts = typeDefinition.properties.mapTo(mutableListOf()) {
-
-                    val statement = root.invoke(
-                        "findProperty".rawMethodName(),
-                        it.sourceName.literal(),
-                        "\${context}.${it.sourceName}".literal()
-                    )
-
-                    emitterContext.runEmitter(
-                        DeserializationStatementEmitter(it.typeUsage, statement, ContentType.ApplicationJson, false)
-                    ).resultStatement.declaration("${it.sourceName}Maybe")
-                }
-
-                typeDefinition.additionalProperties?.let {
-                    val protectedNames = typeDefinition.properties.map { it.sourceName.literal() }
-                    val maybe = invoke("propertiesAsMap".rawMethodName(), *protectedNames.toTypedArray()) {
-                        emitterContext.runEmitter(
-                            DeserializationStatementEmitter(it, "it".variableName(), ContentType.ApplicationJson, false)
-                        ).resultStatement.statement()
-                    }
-                        .invoke("required".rawMethodName())
-                        .declaration("additionalPropertiesMaybe".variableName())
-
-                    objectParts.add(maybe)
-                }
-
-                val additionalProperties = when (hasPropertyValidation) {
-                    true -> listOf("propertyCount".variableName())
-                    false -> listOf()
-                }
-
-                if (objectParts.isEmpty()) {
-                    // just return a new instance
-                    invoke(typeDefinition.modelName.constructorName, additionalProperties).statement()
-                } else {
-                    emitterContext.runEmitter(
-                        CombineIntoObjectStatementEmitter(
-                            "context".variableName(), typeDefinition.modelName, additionalProperties, objectParts
-                        )
-                    ).resultStatement?.statement()
-                }
-            }.statement()
-        }
-    }
-
-    private fun hasRealDefaultValueDeclared(typeUsage: TypeUsage) = when (val safeType = typeUsage.type) {
-        is PrimitiveTypeDefinition -> safeType.defaultValue != null
-        is EnumTypeDefinition -> safeType.defaultValue != null
-        else -> false
-    }
-
-    private fun generateDefaultValueExpression(
-        typeUsage: TypeUsage,
-        fallback: KotlinExpression? = null
-    ): KotlinExpression? {
-        val declaredDefaultValue = when (val safeType = typeUsage.type) {
-            is PrimitiveTypeDefinition -> safeType.defaultExpression()
-            is EnumTypeDefinition -> safeType.defaultExpression()
-            is CollectionTypeDefinition,
-            is ObjectTypeDefinition,
-            is OneOfTypeDefinition -> null
-        }
-
-        // if there is a default expression defined, use it. Otherwise, use the null expression, if null is allowed or the fallback
-        return declaredDefaultValue ?: if (typeUsage.isNullable()) nullLiteral() else fallback
-    }
-
-    private fun KotlinCompanion.generateUnsafeMethods(serializationDirection: Direction) {
-        val types = typeDefinition.getContentTypes(serializationDirection)
-        if (types.contains(ContentType.ApplicationJson)) {
-            generateJsonUnsafeMethod()
-        }
-    }
-
-    private fun KotlinCompanion.generateJsonUnsafeMethod() {
-        kotlinMethod(
-            "unsafeJson".methodName(),
-            returnType = Library.UnsafeJsonClass.typeName().of(typeDefinition.modelName.typeName()),
-            bodyAsAssignment = true
-        ) {
-            typeDefinition.properties.forEach {
-                val defaultValue = generateDefaultValueExpression(it.typeUsage, nullLiteral())
-                kotlinParameter(
-                    it.name,
-                    it.typeUsage.buildUnsafeJsonType(),
-                    expression = defaultValue
-                )
-
-            }
-
-            var expression = invoke("objectNode".rawMethodName())
-
-            typeDefinition.properties.forEach {
-                val serialization = emitterContext.runEmitter(
-                    UnsafeSerializationStatementEmitter(it.typeUsage, it.name, ContentType.ApplicationJson)
-                ).resultStatement
-
-                expression = expression.wrap().invoke(
-                    "setProperty".rawMethodName(),
-                    it.sourceName.literal(),
-                    serialization,
-                    // only check for required, not !nullable, because we want to include null in the response
-                    // if the type is nullable but required
-                    it.typeUsage.required.literal()
-                )
-            }
-
-            typeDefinition.additionalProperties?.let {
-                kotlinParameter(
-                    "additionalProperties".variableName(),
-                    Kotlin.MapClass.typeName(true).of(Kotlin.StringClass.typeName(), it.buildUnsafeJsonType()),
-                    expression = nullLiteral()
-                )
-
-                val protectedNames = typeDefinition.properties.map { it.sourceName.literal() }
-
-                expression = expression.wrap().invoke(
-                    "setAdditionalProperties".rawMethodName(),
-                    "additionalProperties".variableName(),
-                    *protectedNames.toTypedArray()
-                ) {
-                    emitterContext.runEmitter(
-                        UnsafeSerializationStatementEmitter(it, "it".variableName(), ContentType.ApplicationJson)
-                    ).resultStatement.statement()
-                }
-            }
-
-            invoke(Library.UnsafeJsonClass.constructorName, expression).statement()
-        }
-    }
+    fun MethodAware.installDeserializationFeature(model: ObjectModelClass, feature: ModelDeserializationFeature):
+            HandlerResult<Unit>
 
 }

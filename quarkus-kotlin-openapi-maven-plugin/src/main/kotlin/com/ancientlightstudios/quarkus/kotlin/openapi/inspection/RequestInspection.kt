@@ -1,8 +1,8 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.inspection
 
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.TransformableRequest
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiRequest
 
-class RequestInspection(val request: TransformableRequest) {
+class RequestInspection(val request: OpenApiRequest) {
 
     fun parameters(block: ParameterInspection.() -> Unit) =
         request.parameters.forEach { ParameterInspection(it).block() }
@@ -12,3 +12,5 @@ class RequestInspection(val request: TransformableRequest) {
     fun responses(block: ResponseInspection.() -> Unit) = request.responses.forEach { ResponseInspection(it).block() }
 
 }
+
+fun OpenApiRequest.inspect(block: RequestInspection.() -> Unit) = RequestInspection(this).block()

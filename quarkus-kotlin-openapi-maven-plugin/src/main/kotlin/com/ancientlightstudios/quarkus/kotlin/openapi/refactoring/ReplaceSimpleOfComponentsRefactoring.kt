@@ -1,8 +1,8 @@
 package com.ancientlightstudios.quarkus.kotlin.openapi.refactoring
 
 import com.ancientlightstudios.quarkus.kotlin.openapi.inspection.inspect
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.AllOfComponent
-import com.ancientlightstudios.quarkus.kotlin.openapi.models.transformable.components.SomeOfComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.AllOfComponent
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.SomeOfComponent
 
 // checks for schemas with a single one-item *Of component replaces it with an allOf component
 class ReplaceSimpleOfComponentsRefactoring : SpecRefactoring {
@@ -23,14 +23,13 @@ class ReplaceSimpleOfComponentsRefactoring : SpecRefactoring {
                 }
 
                 // can't replace it, without changing the meaning
-                if (someOfComponent.schemas.size > 1) {
+                if (someOfComponent.options.size > 1) {
                     return@schemas
                 }
 
-                val newComponents = schema.components.toMutableList()
-                newComponents.remove(someOfComponent)
-                newComponents.add(AllOfComponent(someOfComponent.schemas))
-                schema.components = newComponents
+                // remove old component and add the new one instead
+                schema.components -= someOfComponent
+                schema.components += AllOfComponent(someOfComponent.options)
             }
         }
     }
