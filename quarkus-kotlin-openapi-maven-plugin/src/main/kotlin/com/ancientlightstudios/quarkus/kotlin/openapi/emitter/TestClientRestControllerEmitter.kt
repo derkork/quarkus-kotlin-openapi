@@ -33,6 +33,15 @@ class TestClientRestControllerEmitter : CodeEmitter {
                     "specBuilder", KotlinDelegateTypeReference(null, RestAssured.RequestSpecification.asTypeReference())
                 )
 
+                // produces:
+                //
+                // private val log = LoggerFactory.getLogger(<name>::class.java)
+                val loggerExpression = Misc.LoggerFactory.identifier()
+                    .invoke("getLogger", name.identifier().functionReference("class.java"))
+                kotlinMember(
+                    "log", Misc.Logger.asTypeReference(), default = loggerExpression, initializedInConstructor = false
+                )
+
                 controller.methods.forEach { method ->
                     emitSafeMethod(method)
                     emitUnsafeMethod(method)
@@ -198,9 +207,14 @@ class TestClientRestControllerEmitter : CodeEmitter {
 
                 // produces
                 // catch (e: Exception) {
-                //     AddMovieRatingError.RequestErrorUnknown(e)
+                //     log.error("unexpected exception occurred.", e)
+                //     <errorType>.RequestErrorUnknown(e)
                 // }
                 catchBlock(Kotlin.Exception) {
+                    "log".identifier()
+                        .invoke("error", "unexpected exception occurred.".literal(), "e".identifier())
+                        .statement()
+
                     InvocationExpression.invoke(
                         errorClass.nestedTypeName("RequestErrorUnknown").identifier(), "e".identifier()
                     ).statement()

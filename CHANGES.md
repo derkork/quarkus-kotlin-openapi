@@ -3,6 +3,9 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+                 
+## [0.6.1] - 2025-06-17
+- Server and client implementation now logs any caught exception
 
 ## [0.6.0] - 2025-05-15
 - Major refactoring in the generator to allow more features in the future. The produced code is more or less the same

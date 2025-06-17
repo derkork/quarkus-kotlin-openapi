@@ -43,7 +43,7 @@ class ServerRestControllerEmitter : CodeEmitter {
 
                 // produces:
                 //
-                // private val log = LoggerFactory.getLogger(FeaturesDefaultValueServer::class.java)
+                // private val log = LoggerFactory.getLogger(<name>::class.java)
                 val loggerExpression = Misc.LoggerFactory.identifier()
                     .invoke("getLogger", name.identifier().functionReference("class.java"))
                 kotlinMember(
@@ -160,12 +160,13 @@ class ServerRestControllerEmitter : CodeEmitter {
             catchBlock(Kotlin.Exception, "e") {
                 // produces:
                 //
-                // log.error("[<method>] <path> unexpected exception occurred. Please check the delegate implementation to make sure it never throws an exception. Response is now undefined.")
+                // log.error("[<method>] <path> unexpected exception occurred. Please check the delegate implementation to make sure it never throws an exception. Response is now undefined.", e)
                 // throw e
                 "log".identifier()
                     .invoke(
                         "error",
-                        "[${restMethod.value}] $restPath - unexpected exception occurred. Please check the delegate implementation to make sure it never throws an exception. Response is now undefined.".literal()
+                        "[${restMethod.value}] $restPath - unexpected exception occurred. Please check the delegate implementation to make sure it never throws an exception. Response is now undefined.".literal(),
+                        "e".identifier()
                     )
                     .statement()
                 "e".identifier().throwStatement()

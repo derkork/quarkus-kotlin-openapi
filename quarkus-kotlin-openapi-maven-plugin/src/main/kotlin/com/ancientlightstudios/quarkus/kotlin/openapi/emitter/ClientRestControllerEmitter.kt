@@ -36,6 +36,15 @@ class ClientRestControllerEmitter : CodeEmitter {
 
                 kotlinMember("dependencyContainer", restController.dependencyContainer.name.asTypeReference())
 
+                // produces:
+                //
+                // private val log = LoggerFactory.getLogger(<name>::class.java)
+                val loggerExpression = Misc.LoggerFactory.identifier()
+                    .invoke("getLogger", name.identifier().functionReference("class.java"))
+                kotlinMember(
+                    "log", Misc.Logger.asTypeReference(), default = loggerExpression, initializedInConstructor = false
+                )
+
                 restController.methods.forEach {
                     emitRequest(it)
                 }
@@ -157,9 +166,14 @@ class ClientRestControllerEmitter : CodeEmitter {
 
                 // produces
                 // catch (e: Exception) {
+                //     log.error("unexpected exception occurred.", e)
                 //     <errorType>.RequestErrorUnknown(e)
                 // }
                 catchBlock(Kotlin.Exception) {
+                    "log".identifier()
+                        .invoke("error", "unexpected exception occurred.".literal(), "e".identifier())
+                        .statement()
+
                     InvocationExpression.invoke(
                         errorType.nestedTypeName("RequestErrorUnknown").identifier(), "e".identifier()
                     ).statement()
