@@ -65,17 +65,20 @@ class CalculationApiServerDelegateImplTest {
 }
 ```
 
-We also need an instance of an ObjectMapper, to convert objects into JSON and back. We can use the Jackson ObjectMapper that Quarkus provides:
+To create an instance of the test client, we need some dependencies. For example the Jackson ObjectMapper, to convert 
+objects into JSON and back, if json is used by one or more requests. The generator will create a DependencyContainer 
+class in the same package as the test client. This container contains all dependencies for the test client and can be 
+obtained via injection, because it is annotated with `@ApplicationScoped`. 
 
 ```kotlin
     @Inject
-    lateinit var objectMapper: ObjectMapper
+    lateinit var dependencyContainer: DependencyContainer
 ```
 
 Now we can build a function to make an instance of the test client:
 
 ```kotlin
-fun testClient() = CalculationApiTestClient(objectMapper) {
+fun testClient() = CalculationApiTestClient(dependencyContainer) {
     RestAssured.given().baseUri(serverUrl.toString())
 }
 ```
