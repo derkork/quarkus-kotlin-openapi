@@ -11,12 +11,7 @@ class Config(
     /**
      * The source files to parse.
      */
-    val sourceFiles: List<String>,
-
-    /**
-     * The JSON-Patch files to apply to the OpenAPI specification.
-     */
-    val patchFiles: List<String>,
+    val sourceFiles: List<Sources>,
 
     /**
      * Path where the debug output should be written.
@@ -133,4 +128,12 @@ class Config(
         return KotlinTypeName(parts[1], parts[0])
     }
 
+}
+
+data class Sources(val files: List<SourceFile>)
+
+sealed class SourceFile(val path: String) {
+    class OpenApi(path: String) : SourceFile(path)
+    class JsonPatch(path: String) : SourceFile(path)
+    class JsonataPatch(path: String) : SourceFile(path)
 }

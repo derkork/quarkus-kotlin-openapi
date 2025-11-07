@@ -16,6 +16,7 @@ import com.ancientlightstudios.example.features.testclient.model.JsonEnum as Tes
 import com.ancientlightstudios.example.features.testclient.model.NonNullContainerPart as TestNonNullContainerPart
 import com.ancientlightstudios.example.features.testclient.model.NullableContainerPart as TestNullableContainerPart
 import com.ancientlightstudios.example.features.testclient.model.SimpleObject as TestSimpleObject
+import com.ancientlightstudios.example.features.testclient.model.EmptyObject as TestEmptyObject
 
 @QuarkusTest
 class FeaturesJsonTest : ApiTestBase() {
@@ -73,6 +74,80 @@ class FeaturesJsonTest : ApiTestBase() {
             .execute()
             .statusCode(200)
             .body(equalTo(""))
+    }
+
+
+    @Test
+    fun `sending null as an empty object body is rejected (Test-Client)`() {
+        testClient.jsonEmptyObjectUnsafe {
+            body(null)
+        }
+            .isBadRequestResponse {
+                assertThat(safeBody.messages).containsExactly(listOf("request.body", "required"))
+            }
+    }
+
+    @Test
+    fun `sending null as an empty object body is rejected (Raw)`() {
+        val messages = prepareRequest()
+            .contentType("application/json")
+            .body("null")
+            .post("/features/json/empty/object")
+            .execute()
+            .statusCode(400)
+            .extract()
+            .jsonPath()
+            .getList<String>("messages")
+
+        assertThat(messages).containsExactly(listOf("request.body", "required"))
+    }
+
+    @Test
+    fun `sending nothing as an empty object body is rejected (Test-Client)`() {
+        testClient.jsonEmptyObjectUnsafe {}
+            .isBadRequestResponse {
+                assertThat(safeBody.messages).containsExactly(listOf("request.body", "required"))
+            }
+    }
+
+    @Test
+    fun `sending nothing as an empty object body is rejected (Raw)`() {
+        val messages = prepareRequest()
+            .contentType("application/json")
+            .post("/features/json/empty/object")
+            .execute()
+            .statusCode(400)
+            .extract()
+            .jsonPath()
+            .getList<String>("messages")
+
+        assertThat(messages).containsExactly(listOf("request.body", "required"))
+    }
+
+    @Test
+    fun `sending an empty object value is accepted (Client)`() {
+        runBlocking {
+            val response = client.jsonEmptyObject(EmptyObject())
+
+            assertThat(response).isInstanceOf(JsonEmptyObjectHttpResponse.Ok::class.java)
+        }
+    }
+
+    @Test
+    fun `sending an empty object value is accepted (Test-Client)`() {
+        testClient.jsonEmptyObjectSafe(TestEmptyObject())
+            .isOkResponse {  }
+    }
+
+    @Test
+    fun `sending an empty object value is accepted (Raw)`() {
+        prepareRequest()
+            .contentType("application/json")
+            .body("{}")
+            .post("/features/json/empty/object")
+            .execute()
+            .statusCode(200)
+            .body( equalTo("{}"))
     }
 
     @Test

@@ -49,7 +49,8 @@ class EmitterStage(private val config: Config, private val handlerRegistry: Hand
     private fun List<KotlinFile>.writeFiles() {
         // get the last modified time of all input files
         val inputLastModifiedDate = config.sourceFiles
-            .union(config.patchFiles)
+            .flatMap { it.files }
+            .map { it.path }
             .maxOfOrNull { File(it).lastModified() } ?: -1
 
         var filesWritten = 0
@@ -63,7 +64,7 @@ class EmitterStage(private val config: Config, private val handlerRegistry: Hand
             }
         }
 
-        log.info("(New) Generated ${filesWritten + filesUpToDate} files ($filesWritten new, $filesUpToDate up-to-date).")
+        log.info("Generated ${filesWritten + filesUpToDate} files ($filesWritten new, $filesUpToDate up-to-date).")
 
     }
 

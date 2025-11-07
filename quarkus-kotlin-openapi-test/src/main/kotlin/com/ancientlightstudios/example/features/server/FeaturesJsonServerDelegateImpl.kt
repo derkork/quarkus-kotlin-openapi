@@ -12,6 +12,12 @@ class FeaturesJsonServerDelegateImpl : FeaturesJsonServerDelegate {
         ok(validRequest.body)
     }
 
+    override suspend fun JsonEmptyObjectContext.jsonEmptyObject(): Nothing {
+        val validRequest = request.validOrElse { badRequest(it.toOperationError()) }
+
+        ok(validRequest.body)
+    }
+
     override suspend fun JsonRequiredObjectContext.jsonRequiredObject(): Nothing {
         val validRequest = request.validOrElse { badRequest(it.toOperationError()) }
 

@@ -22,7 +22,7 @@ class ObjectModelClassEmitter : CodeEmitter {
             registerImports(Library.All)
             registerImports(config.additionalImports())
 
-            kotlinClass(name, asDataClass = true) {
+            kotlinClass(name, asDataClass = model.properties.isNotEmpty()) {
                 var additionalConstructor: KotlinConstructor? = null
 
                 if (model.needsPropertiesCount) {

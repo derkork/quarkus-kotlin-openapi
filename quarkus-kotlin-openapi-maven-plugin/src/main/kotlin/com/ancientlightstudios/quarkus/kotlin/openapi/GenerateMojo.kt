@@ -16,7 +16,7 @@ abstract class GenerateMojo : AbstractMojo() {
      * The list of the source files.
      */
     @Parameter(required = true)
-    lateinit var sources: List<String>
+    lateinit var sources: List<Any>
 
     /**
      * The list of JSON-Patch files to apply to the OpenAPI specification.
@@ -120,9 +120,18 @@ abstract class GenerateMojo : AbstractMojo() {
     var exceptProfile : String = ""
 
     override fun execute() {
+
+        val finalSources = sources.map {
+            when (it) {
+                is String -> Sources(listOf(it.asSourceFile()))
+                is ComplexSource -> Sources(it.sources.map { it.asSourceFile() })
+                else -> throw IllegalArgumentException("Unknown source type: ${it::class.java.name}")
+            }
+        } + patches.map { Sources(listOf(it.asPatch())) }
+
+
         val config = Config(
-            sources,
-            patches,
+            finalSources,
             debugOutputFile,
             interfaceName,
             packageName,
@@ -156,4 +165,17 @@ abstract class GenerateMojo : AbstractMojo() {
 
     abstract fun registerSourceRoot()
 
+    fun String.asSourceFile() = when {
+        startsWith("jsonpatch://") -> SourceFile.JsonPatch(substringAfter("jsonpatch://"))
+        startsWith("jsonata://") -> SourceFile.JsonataPatch(substringAfter("jsonata://"))
+        startsWith("openapi://") -> SourceFile.OpenApi(substringAfter("openapi://"))
+        else -> SourceFile.OpenApi(this)
+    }
+
+    fun String.asPatch() = when {
+        startsWith("jsonpatch://") -> SourceFile.JsonPatch(substringAfter("jsonpatch://"))
+        startsWith("jsonata://") -> SourceFile.JsonataPatch(substringAfter("jsonata://"))
+        // legacy implementation, no prefix means JsonPatch
+        else -> SourceFile.JsonPatch(this)
+    }
 }

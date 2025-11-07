@@ -95,8 +95,7 @@ class ModelTransformation : SpecTransformation {
 
     private fun TransformationContext.finalizeObjectModel(model: ObjectModelClass) {
         val schema = model.source
-        val properties = schema.getComponent<ObjectComponent>()?.properties
-            ?: ProbableBug("Object component not found at object schema")
+        val properties = schema.getComponent<ObjectComponent>()?.properties ?: listOf()
         val required = schema.getComponent<ObjectValidationComponent>()?.required ?: listOf()
         val itemsSchema = schema.getComponent<MapComponent>()?.schema
         val hasPropertyValidation =

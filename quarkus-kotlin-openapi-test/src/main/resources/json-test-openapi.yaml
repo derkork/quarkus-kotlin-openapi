@@ -25,6 +25,27 @@ paths:
         '400':
           $ref: '#/components/responses/OperationError400'
 
+  /features/json/empty/object:
+    post:
+      tags:
+        - json
+      operationId: jsonEmptyObject
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmptyObject'
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptyObject'
+        '400':
+          $ref: '#/components/responses/OperationError400'
+
   /features/json/required/object:
     post:
       tags:
@@ -178,6 +199,9 @@ components:
         - second
       x-enum-item-names:
         first: TheFirst
+
+    EmptyObject:
+      type: object
 
     SimpleObject:
       type: object
