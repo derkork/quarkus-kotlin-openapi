@@ -85,6 +85,7 @@ class TestClientResponseValidatorEmitter : CodeEmitter {
         implementation: ClientResponseImplementation
     ) {
         val methodName = methodNameOf("is", implementation.name, "Response")
+        val errorClass = response.errorResponse.name.asTypeName()
         val implementationClass = response.httpResponse.name.asTypeName()
             .nestedTypeName(implementation.name)
 
@@ -106,6 +107,31 @@ class TestClientResponseValidatorEmitter : CodeEmitter {
                     // is <responseClass> -> response.block()
                     optionBlock(AssignableExpression.assignable(implementationClass.asTypeReference())) {
                         "response".identifier().invoke("apply", "block".identifier()).statement()
+                    }
+
+                    // produces
+                    // is <errorClass>.RequestErrorUnknown -> throw AssertionFailedError("Assertion failed.", <responseClass>::class.java.name, response.javaClass.name, response.cause)
+                    val unknownErrorClass = errorClass.nestedTypeName("RequestErrorUnknown").asTypeReference()
+                    optionBlock(AssignableExpression.assignable(unknownErrorClass)) {
+                        InvocationExpression.invoke(
+                            Misc.AssertionFailedError.identifier(),
+                            "Assertion failed.".literal(),
+                            implementationClass.identifier().functionReference("class.java").property("name"),
+                            "response".identifier().property("javaClass").property("name"),
+                            "response".identifier().property("cause")
+                        ).throwStatement()
+                    }
+
+                    // produces
+                    // is <errorClass>.ResponseError -> throw AssertionFailedError("Assertion failed.\n${response.errorMessage}", <responseClass>::class.java.name, response.javaClass.name)
+                    val responseErrorClass = errorClass.nestedTypeName("ResponseError").asTypeReference()
+                    optionBlock(AssignableExpression.assignable(unknownErrorClass)) {
+                        InvocationExpression.invoke(
+                            Misc.AssertionFailedError.identifier(),
+                            "Assertion failed.\n\${response.errorMessage}".literal(),
+                            implementationClass.identifier().functionReference("class.java").property("name"),
+                            "response".identifier().property("javaClass").property("name"),
+                        ).throwStatement()
                     }
 
                     // produces
