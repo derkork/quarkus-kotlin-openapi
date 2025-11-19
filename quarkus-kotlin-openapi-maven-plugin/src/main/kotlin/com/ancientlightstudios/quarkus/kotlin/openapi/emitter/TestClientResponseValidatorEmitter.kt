@@ -123,12 +123,12 @@ class TestClientResponseValidatorEmitter : CodeEmitter {
                     }
 
                     // produces
-                    // is <errorClass>.ResponseError -> throw AssertionFailedError("Assertion failed.\n${response.errorMessage}", <responseClass>::class.java.name, response.javaClass.name)
+                    // is <errorClass>.ResponseError -> throw AssertionFailedError("Assertion failed. ${response.errorMessage}", <responseClass>::class.java.name, response.javaClass.name)
                     val responseErrorClass = errorClass.nestedTypeName("ResponseError").asTypeReference()
-                    optionBlock(AssignableExpression.assignable(unknownErrorClass)) {
+                    optionBlock(AssignableExpression.assignable(responseErrorClass)) {
                         InvocationExpression.invoke(
                             Misc.AssertionFailedError.identifier(),
-                            "Assertion failed.\n\${response.errorMessage}".literal(),
+                            "Assertion failed. \${response.errorMessage}".literal(),
                             implementationClass.identifier().functionReference("class.java").property("name"),
                             "response".identifier().property("javaClass").property("name"),
                         ).throwStatement()
