@@ -14,6 +14,7 @@ description: "How to patch OpenAPI specifications"
   - [Overlays](#overlays)
   - [JSON patches](#json-patches)
   - [JSONata patches](#jsonata-patches)
+  - [Complex sources](#complex-sources)
 - [Previewing the patch result](#previewing-the-patch-result)
 
 ## Introduction
