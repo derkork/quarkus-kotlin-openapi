@@ -99,11 +99,15 @@ configuration in `pom.xml`:
         ...
     </execution>
 </executions>
-        ...
+...
 ```
 
 The code generator will now merge both files into one and now the `id` property is read-only. This way we can quickly
 make minor changes and keep the original OpenAPI spec intact.
+
+Both source files can be prefixed with `openapi://` to describe to the code generator that they contain OpenAPI specs.
+This schema is the default for source files and can be omitted. But it helps to make clear what each file contains
+and it will be more important when adding other patches as described in the following sections. 
 
 ### JSON patches
 
@@ -142,17 +146,19 @@ We save this patch in a file `server-openapi-jsonpatch.yaml` and add it to the p
     <configuration>
         <sources>
             ...
+            <!-- A a JSON-patch to the openapi we got -->
+            <source>jsonpatch://${project.basedir}/src/main/resources/server-openapi-jsonpatch.yaml</source>
+            ...
         </sources>
         <patches>
-            <!-- A a JSON-patch to the openapi we got -->
-            <patch>jsonpatch://${project.basedir}/src/main/resources/server-openapi-jsonpatch.yaml</patch>
         </patches>
     </configuration>
 </execution>
-        ...
+...
 ```
-
-All JSON patches will be applied in the order they are defined in the configuration and after the overlays.
+         
+JSON patches will be applied in the order they are defined. That means you can mix OpenAPI specs, overlays and patches
+in any order necessary.
 
 ### JSONata patches
 
@@ -176,18 +182,57 @@ in `pom.xml`:
     <configuration>
         <sources>
             ...
-        </sources>
-        <patches>
             <!-- A JSONata patch to the openapi we got -->
-            <patch>jsonata://${project.basedir}/src/main/resources/server-openapi-patch.jsonata</patch>
-        </patches>
+            <source>jsonata://${project.basedir}/src/main/resources/server-openapi-patch.jsonata</source>
+            ...
+        </sources>
     </configuration>
     ...
 </execution>
 ...
 ```
 
-Like JSON patches, JSONata patches will also be applied after the overlays in the specified order. All patches can be mixed, so we can have overlays, JSON patches, and JSONata patches in the same configuration. This allows us to use a patch format that is most suitable for the change we want to make.
+Like JSON patches, JSONata patches will be applied in the order they are defined. That means you can mix OpenAPI specs, 
+overlays and patches in any order necessary. Mixing overlays, JSON patches and JSONata patches allows us to use a patch 
+format that is most suitable for the change we want to make.
+      
+### Complex sources
+
+By default, all sources are applied in the order the are defined. So patches are applied to the result of all previous 
+steps. But there are cases where patches should only be applied to some sources before merging them together. 
+To do this, the code generator supports a second kind of source.
+
+ ```xml
+...
+<execution>
+    ...
+    <configuration>
+        <sources>
+            <source>${project.basedir}/src/main/resources/server-public-openapi.yaml</source>
+            <source>jsonpatch://${project.basedir}/src/main/resources/server-public-openapi-jsonpatch.yaml</source>
+            <source>${project.basedir}/src/main/resources/server-public-openapi-overlay.yaml</source>
+            <complexSource>
+                <sources>
+                    <source>${project.basedir}/src/main/resources/server-management-openapi.yaml</source>
+                    <source>jsonata://${project.basedir}/src/main/resources/server-management-openapi-patch.jsonata</source>
+                </sources>
+            </complexSource>
+            ...
+        </sources>
+    </configuration>
+    ...
+</execution>
+...
+```
+In this example, the public part of the OpenAPI spec is patched using a JSON patch and merged with its overlay. Then
+the management part of the OpenAPI spec is patched using a JSONata patch and then merged into the public part. The 
+JSONata patch only sees the management part and can't modify anything from the public part. 
+
+This feature can be used, if patches should only be applied to parts of the OpenAPI spec and writing proper matches
+(mainly for JSONata) is too complicated.
+
+Sources are applied in the order they are defined. So it's possible to use `source` and `complexSource` in any order.
+Nesting `complexSource` inside another `complexSource` is currently not supported.
 
 ## Previewing the patch result
 
@@ -201,9 +246,6 @@ When we patch a file, it is very useful to see what the result of all applied pa
         <sources>
             ...
         </sources>
-        <patches>
-            ...
-        </patches>
         <!-- Write the patched OpenAPI spec to a file, for debugging -->
         <debugOutputFile>${project.build.directory}/debug.output.json</debugOutputFile>
     </configuration>
