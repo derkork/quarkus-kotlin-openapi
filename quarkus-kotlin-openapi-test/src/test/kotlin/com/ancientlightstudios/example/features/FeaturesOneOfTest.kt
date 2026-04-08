@@ -1,9 +1,6 @@
 package com.ancientlightstudios.example.features
 
-import com.ancientlightstudios.example.features.client.FeaturesOneOfClient
-import com.ancientlightstudios.example.features.client.OneOfWithDiscriminatorAndMappingHttpResponse
-import com.ancientlightstudios.example.features.client.OneOfWithDiscriminatorHttpResponse
-import com.ancientlightstudios.example.features.client.OneOfWithoutDiscriminatorHttpResponse
+import com.ancientlightstudios.example.features.client.*
 import com.ancientlightstudios.example.features.client.model.*
 import com.ancientlightstudios.example.features.testclient.FeaturesOneOfTestClient
 import io.quarkus.test.junit.QuarkusTest
@@ -16,13 +13,24 @@ import org.junit.jupiter.api.fail
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import com.ancientlightstudios.example.features.testclient.model.Book as TestBook
+import com.ancientlightstudios.example.features.testclient.model.OneOfWithDiscriminatorAndMapping as TestOneOfWithDiscriminatorAndMapping
+import com.ancientlightstudios.example.features.testclient.model.OneOfWithDiscriminatorAndMappingAsEnum as TestOneOfWithDiscriminatorAndMappingAsEnum
+import com.ancientlightstudios.example.features.testclient.model.OneOfWithDiscriminatorAndMappingAsEnumSong as TestOneOfWithDiscriminatorAndMappingAsEnumSong
+import com.ancientlightstudios.example.features.testclient.model.OneOfWithDiscriminatorAndMappingAsEnumStatue as TestOneOfWithDiscriminatorAndMappingAsEnumStatue
 import com.ancientlightstudios.example.features.testclient.model.OneOfWithDiscriminatorAndMappingBook as TestOneOfWithDiscriminatorAndMappingBook
 import com.ancientlightstudios.example.features.testclient.model.OneOfWithDiscriminatorAndMappingSong as TestOneOfWithDiscriminatorAndMappingSong
+import com.ancientlightstudios.example.features.testclient.model.OneOfWithDiscriminatorAsEnum as TestOneOfWithDiscriminatorAsEnum
+import com.ancientlightstudios.example.features.testclient.model.OneOfWithDiscriminatorAsEnumPicture as TestOneOfWithDiscriminatorAsEnumPicture
+import com.ancientlightstudios.example.features.testclient.model.OneOfWithDiscriminatorAsEnumSong as TestOneOfWithDiscriminatorAsEnumSong
 import com.ancientlightstudios.example.features.testclient.model.OneOfWithDiscriminatorBook as TestOneOfWithDiscriminatorBook
 import com.ancientlightstudios.example.features.testclient.model.OneOfWithDiscriminatorSong as TestOneOfWithDiscriminatorSong
 import com.ancientlightstudios.example.features.testclient.model.OneOfWithoutDiscriminatorBook as TestOneOfWithoutDiscriminatorBook
 import com.ancientlightstudios.example.features.testclient.model.OneOfWithoutDiscriminatorSong as TestOneOfWithoutDiscriminatorSong
+import com.ancientlightstudios.example.features.testclient.model.Picture as TestPicture
+import com.ancientlightstudios.example.features.testclient.model.PictureKind as TestPictureKind
 import com.ancientlightstudios.example.features.testclient.model.Song as TestSong
+import com.ancientlightstudios.example.features.testclient.model.Statue as TestStatue
+import com.ancientlightstudios.example.features.testclient.model.StatueKind as TestStatueKind
 
 @QuarkusTest
 class FeaturesOneOfTest : ApiTestBase() {
@@ -417,6 +425,176 @@ class FeaturesOneOfTest : ApiTestBase() {
     }
 
     @Test
+    fun `sending the wrong discriminator is rejected by endpoint with discriminator as enum (Test-Client)`() {
+        testClient.oneOfWithDiscriminatorAsEnumRaw {
+            body(
+                """{
+                      "kind": "all"
+                    }""".trimIndent()
+            )
+        }
+            .isBadRequestResponse {
+                assertThat(safeBody.messages).containsExactly(listOf("discriminator field", "has invalid value"))
+            }
+    }
+
+    @Test
+    fun `sending the wrong discriminator is rejected by endpoint with discriminator as enum (Raw)`() {
+        val messages = prepareRequest()
+            .contentType("application/json")
+            .body(
+                """{
+                  "kind": "all"
+                }""".trimIndent()
+            )
+            .post("/features/oneOf/withDiscriminatorAsEnum")
+            .execute()
+            .statusCode(400)
+            .extract()
+            .jsonPath()
+            .getList<String>("messages")
+
+        assertThat(messages).containsExactly(listOf("discriminator field", "has invalid value"))
+    }
+
+    @Test
+    fun `sending no discriminator is rejected by endpoint with discriminator as enum (Test-Client)`() {
+        testClient.oneOfWithDiscriminatorAsEnumRaw {
+            body(
+                """{
+                      "foo": "bar"
+                    }""".trimIndent()
+            )
+        }
+            .isBadRequestResponse {
+                assertThat(safeBody.messages).containsExactly(listOf("discriminator field", "is missing"))
+            }
+    }
+
+    @Test
+    fun `sending no discriminator is rejected by endpoint with discriminator as enum (Raw)`() {
+        val messages = prepareRequest()
+            .contentType("application/json")
+            .body(
+                """{
+                  "foo": "bar"
+                }""".trimIndent()
+            )
+            .post("/features/oneOf/withDiscriminatorAsEnum")
+            .execute()
+            .statusCode(400)
+            .extract()
+            .jsonPath()
+            .getList<String>("messages")
+
+        assertThat(messages).containsExactly(listOf("discriminator field", "is missing"))
+    }
+
+    @Test
+    fun `sending option1 is accepted by endpoint with discriminator as enum (Client)`() {
+        runBlocking {
+            val response = client.oneOfWithDiscriminatorAsEnum(
+                OneOfWithDiscriminatorAsEnum.of(Picture("foo", "bar"))
+            )
+
+            if (response is OneOfWithDiscriminatorAsEnumHttpResponse.Ok) {
+                val safeBody = response.safeBody as? OneOfWithDiscriminatorAsEnumPicture ?: fail("wrong response body")
+                assertThat(safeBody.value.title).isEqualTo("foo")
+                assertThat(safeBody.value.artist).isEqualTo("bar")
+                assertThat(safeBody.value.kind).isEqualTo(PictureKind.Picture)
+            } else {
+                fail("unexpected response")
+            }
+        }
+    }
+
+    @Test
+    fun `sending option1 is accepted by endpoint with discriminator as enum (Test-Client)`() {
+        testClient.oneOfWithDiscriminatorAsEnumSafe(
+            TestOneOfWithDiscriminatorAsEnum.of(TestPicture("foo", "bar"))
+        )
+            .isOkResponse {
+                val safeBody = safeBody as? TestOneOfWithDiscriminatorAsEnumPicture
+                    ?: fail("wrong response body")
+                assertThat(safeBody.value.title).isEqualTo("foo")
+                assertThat(safeBody.value.artist).isEqualTo("bar")
+                assertThat(safeBody.value.kind).isEqualTo(TestPictureKind.Picture)
+            }
+    }
+
+    @Test
+    fun `sending option1 is accepted by endpoint with discriminator as enum (Raw)`() {
+        prepareRequest()
+            .contentType("application/json")
+            .body(
+                """{
+                    "title": "foo",
+                    "artist": "bar",
+                    "kind": "Picture" 
+                }""".trimIndent()
+            )
+            .post("/features/oneOf/withDiscriminatorAsEnum")
+            .execute()
+            .statusCode(200)
+            .body("title", equalTo("foo"))
+            .body("artist", equalTo("bar"))
+            .body("kind", equalTo("Picture"))
+    }
+
+    @Test
+    fun `sending option2 is accepted by endpoint with discriminator as enum (Client)`() {
+        runBlocking {
+            val response = client.oneOfWithDiscriminatorAsEnum(
+                OneOfWithDiscriminatorAsEnum.of(Song("puit", 200, "some strange kind"))
+            )
+
+            if (response is OneOfWithDiscriminatorAsEnumHttpResponse.Ok) {
+                val safeBody = response.safeBody as? OneOfWithDiscriminatorAsEnumSong
+                    ?: fail("wrong response body")
+                assertThat(safeBody.value).isNotNull
+                assertThat(safeBody.value.title).isEqualTo("puit")
+                assertThat(safeBody.value.duration).isEqualTo(200)
+                assertThat(safeBody.value.kind).isEqualTo("Song")
+            } else {
+                fail("unexpected response")
+            }
+        }
+    }
+
+    @Test
+    fun `sending option2 is accepted by endpoint with discriminator as enum (Test-Client)`() {
+        testClient.oneOfWithDiscriminatorAsEnumSafe(
+            TestOneOfWithDiscriminatorAsEnum.of(TestSong("puit", 200, "Song"))
+        )
+            .isOkResponse {
+                val safeBody = safeBody as? TestOneOfWithDiscriminatorAsEnumSong
+                    ?: fail("wrong response body")
+                assertThat(safeBody.value.title).isEqualTo("puit")
+                assertThat(safeBody.value.duration).isEqualTo(200)
+                assertThat(safeBody.value.kind).isEqualTo("Song")
+            }
+    }
+
+    @Test
+    fun `sending option2 is accepted by endpoint with discriminator as enum (Raw)`() {
+        prepareRequest()
+            .contentType("application/json")
+            .body(
+                """{
+                    "title": "puit",
+                    "duration": 200,
+                    "kind": "Song" 
+                }""".trimIndent()
+            )
+            .post("/features/oneOf/withDiscriminatorAsEnum")
+            .execute()
+            .statusCode(200)
+            .body("title", equalTo("puit"))
+            .body("duration", equalTo(200))
+            .body("kind", equalTo("Song"))
+    }
+
+    @Test
     fun `sending the wrong discriminator is rejected by endpoint with discriminator and mapping (Test-Client)`() {
         testClient.oneOfWithDiscriminatorAndMappingRaw {
             body(
@@ -504,15 +682,15 @@ class FeaturesOneOfTest : ApiTestBase() {
     @ParameterizedTest
     @ValueSource(strings = ["Book", "booooook"])
     fun `sending option1 is accepted by endpoint with discriminator and mapping (Test-Client)`(mapping: String) {
-        testClient.oneOfWithDiscriminatorAndMappingRaw {
-            body(
-                """{
-                    "title": "foo",
-                    "pages": 10,
-                    "kind": "$mapping" 
-                }""".trimIndent()
+        testClient.oneOfWithDiscriminatorAndMappingSafe(
+            TestOneOfWithDiscriminatorAndMapping.of(
+                TestBook(
+                    "foo",
+                    10,
+                    mapping
+                )
             )
-        }
+        )
             .isOkResponse {
                 val safeBody = safeBody as? TestOneOfWithDiscriminatorAndMappingBook
                     ?: fail("wrong response body")
@@ -588,6 +766,182 @@ class FeaturesOneOfTest : ApiTestBase() {
                 }""".trimIndent()
             )
             .post("/features/oneOf/withDiscriminatorAndMapping")
+            .execute()
+            .statusCode(200)
+            .body("title", equalTo("puit"))
+            .body("duration", equalTo(200))
+            .body("kind", equalTo("Song"))
+    }
+
+    @Test
+    fun `sending the wrong discriminator is rejected by endpoint with discriminator and mapping as enum (Test-Client)`() {
+        testClient.oneOfWithDiscriminatorAndMappingAsEnumRaw {
+            body(
+                """{
+                      "kind": "all"
+                    }""".trimIndent()
+            )
+        }
+            .isBadRequestResponse {
+                assertThat(safeBody.messages).containsExactly(listOf("discriminator field", "has invalid value"))
+            }
+    }
+
+    @Test
+    fun `sending the wrong discriminator is rejected by endpoint with discriminator and mapping as enum (Raw)`() {
+        val messages = prepareRequest()
+            .contentType("application/json")
+            .body(
+                """{
+                  "kind": "all"
+                }""".trimIndent()
+            )
+            .post("/features/oneOf/withDiscriminatorAndMappingAsEnum")
+            .execute()
+            .statusCode(400)
+            .extract()
+            .jsonPath()
+            .getList<String>("messages")
+
+        assertThat(messages).containsExactly(listOf("discriminator field", "has invalid value"))
+    }
+
+    @Test
+    fun `sending no discriminator is rejected by endpoint with discriminator and mapping as enum (Test-Client)`() {
+        testClient.oneOfWithDiscriminatorAndMappingAsEnumRaw {
+            body(
+                """{
+                      "foo": "bar"
+                    }""".trimIndent()
+            )
+        }
+            .isBadRequestResponse {
+                assertThat(safeBody.messages).containsExactly(listOf("discriminator field", "is missing"))
+            }
+    }
+
+    @Test
+    fun `sending no discriminator is rejected by endpoint with discriminator and mapping as enum (Raw)`() {
+        val messages = prepareRequest()
+            .contentType("application/json")
+            .body(
+                """{
+                  "foo": "bar"
+                }""".trimIndent()
+            )
+            .post("/features/oneOf/withDiscriminatorAndMappingAsEnum")
+            .execute()
+            .statusCode(400)
+            .extract()
+            .jsonPath()
+            .getList<String>("messages")
+
+        assertThat(messages).containsExactly(listOf("discriminator field", "is missing"))
+    }
+
+    @Test
+    fun `sending option1 is accepted by endpoint with discriminator and mapping as enum (Client)`() {
+        runBlocking {
+            val response = client.oneOfWithDiscriminatorAndMappingAsEnum(
+                OneOfWithDiscriminatorAndMappingAsEnum.of(Statue("foo", "bar"))
+            )
+
+            if (response is OneOfWithDiscriminatorAndMappingAsEnumHttpResponse.Ok) {
+                val safeBody = response.safeBody as? OneOfWithDiscriminatorAndMappingAsEnumStatue
+                    ?: fail("wrong response body")
+                assertThat(safeBody.value.title).isEqualTo("foo")
+                assertThat(safeBody.value.artist).isEqualTo("bar")
+                assertThat(safeBody.value.kind).isEqualTo(StatueKind.Thing)
+            } else {
+                fail("unexpected response")
+            }
+        }
+    }
+
+    @Test
+    fun `sending option1 is accepted by endpoint with discriminator and mapping as enum (Test-Client)`() {
+        testClient.oneOfWithDiscriminatorAndMappingAsEnumSafe(
+            TestOneOfWithDiscriminatorAndMappingAsEnum.of(
+                TestStatue(
+                    "foo",
+                    "bar"
+                )
+            )
+        )
+            .isOkResponse {
+                val safeBody = safeBody as? TestOneOfWithDiscriminatorAndMappingAsEnumStatue
+                    ?: fail("wrong response body")
+                assertThat(safeBody.value.title).isEqualTo("foo")
+                assertThat(safeBody.value.artist).isEqualTo("bar")
+                assertThat(safeBody.value.kind).isEqualTo(TestStatueKind.Thing)
+            }
+    }
+
+    @Test
+    fun `sending option1 is accepted by endpoint with discriminator and mapping (Raw)`() {
+        prepareRequest()
+            .contentType("application/json")
+            .body(
+                """{
+                    "title": "foo",
+                    "artist": "bar",
+                    "kind": "Thing" 
+                }""".trimIndent()
+            )
+            .post("/features/oneOf/withDiscriminatorAndMappingAsEnum")
+            .execute()
+            .statusCode(200)
+            .body("title", equalTo("foo"))
+            .body("artist", equalTo("bar"))
+            .body("kind", equalTo("Thing"))
+    }
+
+    @Test
+    fun `sending option2 is accepted by endpoint with discriminator and mapping as enum (Client)`() {
+        runBlocking {
+            val response = client.oneOfWithDiscriminatorAndMappingAsEnum(
+                OneOfWithDiscriminatorAndMappingAsEnum.of(Song("puit", 200, "some strange kind"))
+            )
+
+            if (response is OneOfWithDiscriminatorAndMappingAsEnumHttpResponse.Ok) {
+                val safeBody = response.safeBody as? OneOfWithDiscriminatorAndMappingAsEnumSong
+                    ?: fail("wrong response body")
+                assertThat(safeBody.value).isNotNull
+                assertThat(safeBody.value.title).isEqualTo("puit")
+                assertThat(safeBody.value.duration).isEqualTo(200)
+                assertThat(safeBody.value.kind).isEqualTo("Song")
+            } else {
+                fail("unexpected response")
+            }
+        }
+    }
+
+    @Test
+    fun `sending option2 is accepted by endpoint with discriminator and mapping as enum (Test-Client)`() {
+        testClient.oneOfWithDiscriminatorAndMappingAsEnumSafe(
+            TestOneOfWithDiscriminatorAndMappingAsEnum.of(TestSong("puit", 200, "Song"))
+        )
+            .isOkResponse {
+                val safeBody = safeBody as? TestOneOfWithDiscriminatorAndMappingAsEnumSong
+                    ?: fail("wrong response body")
+                assertThat(safeBody.value.title).isEqualTo("puit")
+                assertThat(safeBody.value.duration).isEqualTo(200)
+                assertThat(safeBody.value.kind).isEqualTo("Song")
+            }
+    }
+
+    @Test
+    fun `sending option2 is accepted by endpoint with discriminator and mapping as enum (Raw)`() {
+        prepareRequest()
+            .contentType("application/json")
+            .body(
+                """{
+                    "title": "puit",
+                    "duration": 200,
+                    "kind": "Song" 
+                }""".trimIndent()
+            )
+            .post("/features/oneOf/withDiscriminatorAndMappingAsEnum")
             .execute()
             .statusCode(200)
             .body("title", equalTo("puit"))

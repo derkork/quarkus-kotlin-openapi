@@ -47,6 +47,27 @@ paths:
         '400':
           $ref: '#/components/responses/OperationError400'
 
+  /features/oneOf/withDiscriminatorAsEnum:
+    post:
+      tags:
+        - oneOf
+      operationId: oneOfWithDiscriminatorAsEnum
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OneOfWithDiscriminatorAsEnum'
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OneOfWithDiscriminatorAsEnum'
+        '400':
+          $ref: '#/components/responses/OperationError400'
+
   /features/oneOf/withDiscriminatorAndMapping:
     post:
       tags:
@@ -65,6 +86,27 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OneOfWithDiscriminatorAndMapping'
+        '400':
+          $ref: '#/components/responses/OperationError400'
+
+  /features/oneOf/withDiscriminatorAndMappingAsEnum:
+    post:
+      tags:
+        - oneOf
+      operationId: oneOfWithDiscriminatorAndMappingAsEnum
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OneOfWithDiscriminatorAndMappingAsEnum'
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OneOfWithDiscriminatorAndMappingAsEnum'
         '400':
           $ref: '#/components/responses/OperationError400'
 
@@ -87,6 +129,13 @@ components:
       discriminator:
         propertyName: kind
 
+    OneOfWithDiscriminatorAsEnum:
+      oneOf:
+        - $ref: '#/components/schemas/Picture'
+        - $ref: '#/components/schemas/Song'
+      discriminator:
+        propertyName: kind
+
     OneOfWithDiscriminatorAndMapping:
       oneOf:
         - $ref: '#/components/schemas/Book'
@@ -95,6 +144,15 @@ components:
         propertyName: kind
         mapping:
           booooook: '#/components/schemas/Book'
+
+    OneOfWithDiscriminatorAndMappingAsEnum:
+      oneOf:
+        - $ref: '#/components/schemas/Statue'
+        - $ref: '#/components/schemas/Song'
+      discriminator:
+        propertyName: kind
+        mapping:
+          Thing: '#/components/schemas/Statue'
 
     Book:
       type: object
@@ -109,6 +167,40 @@ components:
       required:
         - title
         - pages
+        - kind
+
+    Picture:
+      type: object
+      properties:
+        title:
+          type: string
+        artist:
+          type: string
+        kind:
+          type: string
+          enum:
+            - Picture
+          default: Picture
+      required:
+        - title
+        - artist
+        - kind
+
+    Statue:
+      type: object
+      properties:
+        title:
+          type: string
+        artist:
+          type: string
+        kind:
+          type: string
+          enum:
+            - Thing
+          default: Thing
+      required:
+        - title
+        - artist
         - kind
 
     Song:

@@ -599,7 +599,7 @@ class JsonModelTransformationHandler : ModelTransformationHandler, Deserializati
             bodyAsAssignment = true, override = true
         ) {
             var statement: KotlinExpression = "value".identifier()
-            if (discriminatorProperty != null) {
+            if (discriminatorProperty != null && model.enforceAliasValue) {
                 statement = statement.invoke(
                     "copy",
                     discriminatorProperty to model.aliases.first().literal()

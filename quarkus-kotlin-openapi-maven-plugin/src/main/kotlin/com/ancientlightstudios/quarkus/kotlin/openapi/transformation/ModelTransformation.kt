@@ -17,6 +17,7 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.SchemaModif
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.solution.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.utils.ProbableBug
+import com.ancientlightstudios.quarkus.kotlin.openapi.utils.SpecIssue
 
 class ModelTransformation : SpecTransformation {
 
@@ -52,6 +53,11 @@ class ModelTransformation : SpecTransformation {
                 is OneOfModelClass -> finalizeOneOfModel(it)
             }
         }
+
+        modelHulls.filterIsInstance<OneOfModelClass>().forEach {
+            finalizeOneOfAliases(it)
+        }
+
     }
 
     private fun TransformationContext.transformSchema(
@@ -129,10 +135,10 @@ class ModelTransformation : SpecTransformation {
         val oneOf = schema.getComponent<OneOfComponent>()
             ?: ProbableBug("OneOf component not found at oneOf schema")
 
-        oneOf.options.forEach {
-            val requestedContainerName = it.schema.getComponent<ContainerModelNameComponent>()?.value
+        oneOf.options.forEach { option ->
+            val requestedContainerName = option.schema.getComponent<ContainerModelNameComponent>()?.value
             val containerName = when (requestedContainerName) {
-                null -> schema.schemaName.postfix(it.schema.schemaName.value).toContainerName(config.modelPackageName)
+                null -> schema.schemaName.postfix(option.schema.schemaName.value).toContainerName(config.modelPackageName)
                 else -> ComponentName(requestedContainerName, config.modelPackageName, ConflictResolution.Requested)
             }
 
@@ -142,20 +148,76 @@ class ModelTransformation : SpecTransformation {
 
             model.options += OneOfModelOption(
                 containerName,
-                ModelUsage(modelInstanceFor(it.schema, model.direction, true)),
-                oneOf.discriminator?.getAliasesFor(it.schema) ?: listOf()
+                ModelUsage(modelInstanceFor(option.schema, model.direction, true)),
+                option.schema,
+                // these two values will be calculated in a later step
+                listOf(),
+                false
             )
         }
     }
 
-    private fun OneOfDiscriminator.getAliasesFor(optionSchema: OpenApiSchema): List<String> {
-        // one of with discriminator doesn't work with inline schemas, so there should always be a useful schema name.
-        // We have to use the name suggestion hint instead of the schema name hint, because the second might contain
-        // the name requested by the developer via x-model-name annotation, and we can't use this
-        val defaultAlias = optionSchema.nameSuggestion
-            ?: ProbableBug("OneOf with discriminator contains a schema without a name")
-        val additionalAliases = additionalMappings.filter { it.value == optionSchema.originPath }.keys
-        return listOf(defaultAlias, *additionalAliases.toTypedArray())
+    private fun TransformationContext.finalizeOneOfAliases(model: OneOfModelClass) {
+        val oneOfComponent = model.source.getComponent<OneOfComponent>()
+            ?: ProbableBug("OneOf component not found at oneOf schema")
+
+        // the following steps are only necessary for oneOf models with a discriminator property
+        if (oneOfComponent.discriminator == null) {
+            return
+        }
+
+        val propertyName = oneOfComponent.discriminator.property
+        val additionalMappings = oneOfComponent.discriminator.additionalMappings
+
+        model.options.forEach { option ->
+            val optionSchema = option.source
+            val optionModel = option.model
+
+            val objectModel = optionModel.instance as? ObjectModelInstance ?:
+                SpecIssue("OneOf with discriminator requires objects as options. Found invalid option in ${model.source.originPath}.")
+
+            // oneOf with discriminator doesn't work with inline schemas, so there should always be a useful schema name.
+            // We have to use the name suggestion hint instead of the schema name hint, because the second might contain
+            // the name requested by the developer via x-model-name annotation for the model, and this is not useful here
+            val implicitAlias = optionSchema.nameSuggestion
+                ?: ProbableBug("OneOf with discriminator contains a schema without a name")
+
+            val explicitAliases = additionalMappings.filter { it.value == optionSchema.originPath }.keys
+
+            val property = objectModel.ref.properties.firstOrNull { it.name == propertyName }
+                ?: SpecIssue("OneOf with discriminator requires discriminator property in ${optionSchema.originPath}.")
+
+            val allAliases = mutableListOf<String>()
+            var enforceAliasValue = false
+
+            val propertyInstance = property.model.instance
+            if (propertyInstance is EnumModelInstance) {
+                val enumItems = propertyInstance.ref.items.map { it.value }.toMutableSet()
+
+                // the implicit alias is only necessary if it is a part of the enum, but it is not required as a enum item
+                if (enumItems.remove(implicitAlias)) {
+                    allAliases.add(implicitAlias)
+                }
+
+                if (!enumItems.containsAll(explicitAliases) || enumItems.size != explicitAliases.size) {
+                    SpecIssue("Enumeration for property ${property.name} in ${optionSchema.originPath} does not contain all aliases.")
+                }
+
+                allAliases.addAll(explicitAliases)
+
+                if (allAliases.isEmpty()) {
+                    SpecIssue("Enumeration for property ${property.name} in ${optionSchema.originPath} does not contain any aliases.")
+                }
+            } else {
+                allAliases.add(implicitAlias)
+                allAliases.addAll(explicitAliases)
+                enforceAliasValue = true
+            }
+
+            option.aliases = allAliases.distinct()
+            option.enforceAliasValue = enforceAliasValue
+        }
+
     }
 
     private fun SchemaName.toContainerName(targetPackage: String) = when (strategy) {

@@ -23,4 +23,16 @@ class FeaturesOneOfServerDelegateImpl : FeaturesOneOfServerDelegate {
 
         ok(validRequest.body)
     }
+
+    override suspend fun OneOfWithDiscriminatorAsEnumContext.oneOfWithDiscriminatorAsEnum(): Nothing {
+        val validRequest = request.validOrElse { badRequest(it.toOperationError()) }
+
+        ok(validRequest.body)
+    }
+
+    override suspend fun OneOfWithDiscriminatorAndMappingAsEnumContext.oneOfWithDiscriminatorAndMappingAsEnum(): Nothing {
+        val validRequest = request.validOrElse { badRequest(it.toOperationError()) }
+
+        ok(validRequest.body)
+    }
 }
