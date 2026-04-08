@@ -174,44 +174,43 @@ class ModelTransformation : SpecTransformation {
             val optionModel = option.model
 
             val objectModel = optionModel.instance as? ObjectModelInstance ?:
-                SpecIssue("OneOf with discriminator requires objects as options. Found invalid option in ${model.source.originPath}.")
+                SpecIssue("OneOf with discriminator requires objects as options. Found in ${model.source.originPath}.")
 
             // oneOf with discriminator doesn't work with inline schemas, so there should always be a useful schema name.
             // We have to use the name suggestion hint instead of the schema name hint, because the second might contain
             // the name requested by the developer via x-model-name annotation for the model, and this is not useful here
             val implicitAlias = optionSchema.nameSuggestion
-                ?: ProbableBug("OneOf with discriminator contains a schema without a name")
+                ?: ProbableBug("OneOf with discriminator contains a schema without a name. Found in ${model.source.originPath}.")
 
             val explicitAliases = additionalMappings.filter { it.value == optionSchema.originPath }.keys
 
-            val property = objectModel.ref.properties.firstOrNull { it.name == propertyName }
-                ?: SpecIssue("OneOf with discriminator requires discriminator property in ${optionSchema.originPath}.")
+            val property = objectModel.ref.properties.firstOrNull { it.sourceName == propertyName }
+                ?: SpecIssue("OneOf with discriminator requires discriminator property in ${optionSchema.originPath}. Found in ${model.source.originPath}")
 
-            val allAliases = mutableListOf<String>()
-            var enforceAliasValue = false
+            // by default, the implicit and all explicit aliases are valid
+            val allAliases = mutableListOf(implicitAlias, *explicitAliases.toTypedArray())
+            var enforceAliasValue = true
 
             val propertyInstance = property.model.instance
             if (propertyInstance is EnumModelInstance) {
+                // in the case of an enum, the generated code doesn't need to set the discriminator value, because it is always a valid value
+                enforceAliasValue = false
+
                 val enumItems = propertyInstance.ref.items.map { it.value }.toMutableSet()
 
-                // the implicit alias is only necessary if it is a part of the enum, but it is not required as a enum item
-                if (enumItems.remove(implicitAlias)) {
-                    allAliases.add(implicitAlias)
+                // the implicit alias can be omitted if there is no matching item in the enum.
+                // it is also removed from the remaining enum items to check explicit aliases in the next step
+                if (!enumItems.remove(implicitAlias)) {
+                    allAliases.removeAt(0)
                 }
 
                 if (!enumItems.containsAll(explicitAliases) || enumItems.size != explicitAliases.size) {
                     SpecIssue("Enumeration for property ${property.name} in ${optionSchema.originPath} does not contain all aliases.")
                 }
 
-                allAliases.addAll(explicitAliases)
-
                 if (allAliases.isEmpty()) {
                     SpecIssue("Enumeration for property ${property.name} in ${optionSchema.originPath} does not contain any aliases.")
                 }
-            } else {
-                allAliases.add(implicitAlias)
-                allAliases.addAll(explicitAliases)
-                enforceAliasValue = true
             }
 
             option.aliases = allAliases.distinct()

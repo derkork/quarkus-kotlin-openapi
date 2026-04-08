@@ -173,8 +173,8 @@ class FeaturesOneOfTest : ApiTestBase() {
                     ?: fail("wrong response body")
                 assertThat(safeBody.value).isNotNull
                 assertThat(safeBody.value!!.title).isEqualTo("puit")
-                assertThat(safeBody.value!!.duration).isEqualTo(200)
-                assertThat(safeBody.value!!.kind).isEqualTo("song")
+                assertThat(safeBody.value.duration).isEqualTo(200)
+                assertThat(safeBody.value.kind).isEqualTo("song")
             } else {
                 fail("unexpected response")
             }
@@ -191,8 +191,8 @@ class FeaturesOneOfTest : ApiTestBase() {
                     ?: fail("wrong response body")
                 assertThat(safeBody.value).isNotNull
                 assertThat(safeBody.value!!.title).isEqualTo("puit")
-                assertThat(safeBody.value!!.duration).isEqualTo(200)
-                assertThat(safeBody.value!!.kind).isEqualTo("song")
+                assertThat(safeBody.value.duration).isEqualTo(200)
+                assertThat(safeBody.value.kind).isEqualTo("song")
             }
     }
 
