@@ -53,4 +53,11 @@ class FeaturesJsonServerDelegateImpl : FeaturesJsonServerDelegate {
 
         ok(validRequest.body)
     }
+
+    override suspend fun JsonNullValueContext.jsonNullValue(): Nothing {
+        val validRequest = request.validOrElse { badRequest(it.toOperationError()) }
+
+        ok(validRequest.body)
+    }
+
 }

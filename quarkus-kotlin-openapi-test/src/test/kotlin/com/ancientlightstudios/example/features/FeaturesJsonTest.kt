@@ -12,11 +12,12 @@ import org.hamcrest.Matchers.equalTo
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import com.ancientlightstudios.example.features.testclient.model.Container as TestContainer
+import com.ancientlightstudios.example.features.testclient.model.EmptyObject as TestEmptyObject
 import com.ancientlightstudios.example.features.testclient.model.JsonEnum as TestJsonEnum
 import com.ancientlightstudios.example.features.testclient.model.NonNullContainerPart as TestNonNullContainerPart
+import com.ancientlightstudios.example.features.testclient.model.NullValueTestObject as TestNullValueTestObject
 import com.ancientlightstudios.example.features.testclient.model.NullableContainerPart as TestNullableContainerPart
 import com.ancientlightstudios.example.features.testclient.model.SimpleObject as TestSimpleObject
-import com.ancientlightstudios.example.features.testclient.model.EmptyObject as TestEmptyObject
 
 @QuarkusTest
 class FeaturesJsonTest : ApiTestBase() {
@@ -136,7 +137,7 @@ class FeaturesJsonTest : ApiTestBase() {
     @Test
     fun `sending an empty object value is accepted (Test-Client)`() {
         testClient.jsonEmptyObjectSafe(TestEmptyObject())
-            .isOkResponse {  }
+            .isOkResponse { }
     }
 
     @Test
@@ -147,7 +148,7 @@ class FeaturesJsonTest : ApiTestBase() {
             .post("/features/json/empty/object")
             .execute()
             .statusCode(200)
-            .body( equalTo("{}"))
+            .body(equalTo("{}"))
     }
 
     @Test
@@ -1270,5 +1271,126 @@ class FeaturesJsonTest : ApiTestBase() {
             listOf("request.body.withNullableValues.1st", "maximum")
         )
     }
+
+    @Test
+    fun `required nullable values are verified (Test-Client)`() {
+        testClient.jsonNullValueUnsafe { body(TestNullValueTestObject.unsafeJson()) }
+            .isBadRequestResponse {
+                assertThat(safeBody.messages).containsExactly(
+                    listOf("request.body.requiredNotNullable", "required")
+                )
+            }
+    }
+
+    @Test
+    fun `required nullable values are verified (Raw)`() {
+        val messages = prepareRequest()
+            .contentType("application/json")
+            .body("{}")
+            .post("/features/json/nullValue")
+            .execute()
+            .statusCode(400)
+            .extract()
+            .jsonPath()
+            .getList<String>("messages")
+
+        assertThat(messages).containsExactly(
+            listOf("request.body.requiredNotNullable", "required")
+        )
+    }
+
+    @Test
+    fun `non-nullable values work (Client)`() {
+        runBlocking {
+            val response = client.jsonNullValue(NullValueTestObject("test1", "test2", "test3", "test4"))
+            if (response is JsonNullValueHttpResponse.Ok) {
+                assertThat(response.safeBody.requiredNullable).isEqualTo("test1")
+                assertThat(response.safeBody.requiredNotNullable).isEqualTo("test2")
+                assertThat(response.safeBody.optionalNullable).isEqualTo("test3")
+                assertThat(response.safeBody.optionalNotNullable).isEqualTo("test4")
+            } else {
+                fail("unexpected response")
+            }
+        }
+    }
+
+    @Test
+    fun `non-nullable values work (Test-Client)`() {
+        testClient.jsonNullValueSafe(TestNullValueTestObject("test1", "test2", "test3", "test4"))
+            .isOkResponse {
+                assertThat(safeBody.requiredNullable).isEqualTo("test1")
+                assertThat(safeBody.requiredNotNullable).isEqualTo("test2")
+                assertThat(safeBody.optionalNullable).isEqualTo("test3")
+                assertThat(safeBody.optionalNotNullable).isEqualTo("test4")
+            }
+    }
+
+    @Test
+    fun `non-nullable values work (Raw)`() {
+        prepareRequest()
+            .contentType("application/json")
+            .body(
+                """{
+                  "requiredNullable": "test1",
+                  "requiredNotNullable": "test2",
+                  "optionalNullable": "test3",
+                  "optionalNotNullable": "test4"
+                }""".trimIndent()
+            )
+            .post("/features/json/nullValue")
+            .execute()
+            .statusCode(200)
+            .body("requiredNullable", equalTo("test1"))
+            .body("requiredNotNullable", equalTo("test2"))
+            .body("optionalNullable", equalTo("test3"))
+            .body("optionalNotNullable", equalTo("test4"))
+    }
+
+    @Test
+    fun `nullable values work (Client)`() {
+        runBlocking {
+            val response = client.jsonNullValue(NullValueTestObject(requiredNotNullable = "test2"))
+            if (response is JsonNullValueHttpResponse.Ok) {
+                assertThat(response.safeBody.requiredNullable).isNull()
+                assertThat(response.safeBody.requiredNotNullable).isEqualTo("test2")
+                assertThat(response.safeBody.optionalNullable).isNull()
+                assertThat(response.safeBody.optionalNotNullable).isNull()
+            } else {
+                fail("unexpected response")
+            }
+        }
+    }
+
+    @Test
+    fun `nullable values work (Test-Client)`() {
+        testClient.jsonNullValueSafe(TestNullValueTestObject(requiredNotNullable = "test2"))
+            .isOkResponse {
+                assertThat(safeBody.requiredNullable).isNull()
+                assertThat(safeBody.requiredNotNullable).isEqualTo("test2")
+                assertThat(safeBody.optionalNullable).isNull()
+                assertThat(safeBody.optionalNotNullable).isNull()
+            }
+    }
+
+    @Test
+    fun `nullable values work (Raw)`() {
+        prepareRequest()
+            .contentType("application/json")
+            .body(
+                """{
+                  "requiredNotNullable": "test2"
+                }""".trimIndent()
+            )
+            .post("/features/json/nullValue")
+            .execute()
+            .statusCode(200)
+            .body("requiredNullable", equalTo(null))
+            .body("requiredNotNullable", equalTo("test2"))
+            .body("optionalNullable", equalTo(null))
+            .body("optionalNotNullable", equalTo(null))
+            // one of the nullable fields is required, so it has to be part of the response, even if it is null
+            .body("size()", equalTo(2))
+    }
+
 
 }

@@ -190,6 +190,27 @@ paths:
         '400':
           $ref: '#/components/responses/OperationError400'
 
+  /features/json/nullValue:
+    post:
+      tags:
+        - json
+      operationId: jsonNullValue
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NullValueTestObject'
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NullValueTestObject'
+        400:
+          $ref: '#/components/responses/OperationError400'
+
 components:
   schemas:
     JsonEnum:
@@ -202,6 +223,25 @@ components:
 
     EmptyObject:
       type: object
+
+    NullValueTestObject:
+      type: object
+      properties:
+        requiredNullable:
+          type:
+            - string
+            - "null"
+        requiredNotNullable:
+          type: string
+        optionalNullable:
+          type:
+            - string
+            - "null"
+        optionalNotNullable:
+          type: string
+      required:
+        - requiredNullable
+        - requiredNotNullable
 
     SimpleObject:
       type: object
