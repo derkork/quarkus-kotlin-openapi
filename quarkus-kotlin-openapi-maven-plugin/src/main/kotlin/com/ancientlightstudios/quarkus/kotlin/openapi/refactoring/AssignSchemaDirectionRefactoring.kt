@@ -6,6 +6,8 @@ import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.SchemaDirecti
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.SchemaMode
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.hints.SchemaModeHint.hasSchemaMode
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiSchema
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.OpenApiSchemaProperty
+import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.SchemaModifier
 import com.ancientlightstudios.quarkus.kotlin.openapi.models.openapi.components.*
 import com.ancientlightstudios.quarkus.kotlin.openapi.transformation.Direction
 
@@ -44,7 +46,15 @@ class AssignSchemaDirectionRefactoring : SpecRefactoring {
                 components<AnyOfComponent> { component.options.forEach { setAndPropagate(it.schema, direction) } }
                 components<ArrayItemsComponent> { setAndPropagate(component.schema, direction) }
                 components<MapComponent> { setAndPropagate(component.schema, direction) }
-                components<ObjectComponent> { component.properties.forEach { setAndPropagate(it.schema, direction) } }
+                components<ObjectComponent> {
+                    component.properties.forEach {
+                        // properties are special, because they can be configured to occur in one or both directions.
+                        // so it's necessary to check if the current direction must be propagated to this property.
+                        if (it.isNecessaryFor(direction)) {
+                            setAndPropagate(it.schema, direction)
+                        }
+                    }
+                }
                 components<OneOfComponent> { component.options.forEach { setAndPropagate(it.schema, direction) } }
 
                 // if this schema is an overlay, propagate the direction to its target model too. If it is a
@@ -53,7 +63,18 @@ class AssignSchemaDirectionRefactoring : SpecRefactoring {
                     setAndPropagate(schema.overlayTarget, direction)
                 }
             }
+        }
+    }
 
+    private fun OpenApiSchemaProperty.isNecessaryFor(direction: Direction) : Boolean{
+        // get the modifier for this schema. If there is no modifier set, the property is necessary in any direction
+        val modifier = schema.getComponent<SchemaModifierComponent>()?.modifier ?: return true
+
+        return when {
+            modifier == SchemaModifier.ReadOnly && direction == Direction.Down -> true
+            modifier == SchemaModifier.WriteOnly && direction == Direction.Up -> true
+            // modifier and direction doesn't match
+            else -> false
         }
     }
 
